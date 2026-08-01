@@ -1,31 +1,10 @@
-# CLAUDE.md
+# Claude 專案入口
 
-Claude 的完整規則以 [`AGENTS.md`](AGENTS.md) 為準；本檔只保留快速入口。
-
-## 專案摘要
-
-VoxAvatar 是 Windows-only Electron + React + Three.js VRM 桌面角色陪伴，衍生自 `xikhar/persona`。產品識別一律使用 **VoxAvatar／voxavatar**。
-
-## 常用指令
+完整且具優先權的規則見 [`AGENTS.md`](AGENTS.md)。開始前另讀 [`README.md`](README.md) 與本次工作相關文件。
 
 ```powershell
 npm ci
-npm run dev
 npm run check
 ```
 
-只有修改原生 listener 或本機安裝包時才需要 Visual Studio Build Tools：
-
-```powershell
-npm run native:build
-npm run native:test
-npm run dist:windows
-```
-
-## 交付
-
-完成主人要求後推送 `main`，再 bump 版本與 CHANGELOG。Release／tag 依 D-23 **批次**發布，不必每次 bump 都推版；Windows 實機驗證不阻塞 v0.3+ 路線圖。
-
-每次 push 前必須檢討 `README`／`ROADMAP`／`CHANGELOG`／`SECURITY`／`REVIEW` 等相關文件（見 [`AGENTS.md`](AGENTS.md)）。中斷或壓縮後必須自動接續未完成工作，不要等主人再提醒。
-
-不可越過音訊隱私、loopback、Windows-only、媒體授權或上游 attribution 邊界。
+一般 UI、MCP、文件與 TypeScript 工作不需要 Visual Studio Build Tools；只有 C++ helper 或本機 installer 需要。不可越過音訊隱私、loopback-only、Windows-only、媒體授權與上游 attribution 邊界。完成後依 `AGENTS.md` 更新版號、文件並推送 `main`；tag／Release 採批次發布。

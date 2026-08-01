@@ -203,7 +203,7 @@ const ZH_TW: MessageDictionary = {
   'actions.idleGuideStep1Suffix':
     '（請閱讀該頁條款——通常僅限本機使用；將可提取檔案打包進其他安裝程式通常不允許）。',
   'actions.idleGuideStep2': '設定 → 動作 → Idle → 加入 .vrma 片段。',
-  'actions.idleGuideStep3': '完整指南：repo 內 docs/IDLE_MOTIONS.md。',
+  'actions.idleGuideStep3': '查看完整角色表現指南。',
   'actions.listTitle': '動作列表',
   'actions.listDesc':
     '點選 VRMA 片段可預覽該動畫。動作執行時 VoxAvatar 會從中隨機選取。',
@@ -388,6 +388,14 @@ const ZH_TW: MessageDictionary = {
   'mcp.setupCommandLabel': '設定指令',
   'mcp.portNote':
     '若要使用不同連接埠，請在啟動 VoxAvatar 前設定 VOXAVATAR_BRIDGE_PORT，並註冊顯示的 URL。',
+  'mcp.usageTitle': '連線後怎麼用',
+  'mcp.usageDesc':
+    '註冊後開啟新的代理工作階段；代理會自動讀取 VoxAvatar 提供的工具與動作說明。可直接用自然語言要求：',
+  'mcp.usageStatus': '「檢查 VoxAvatar 是否已準備好。」',
+  'mcp.usageList': '「列出目前可播放動作，以及適合使用的情境。」',
+  'mcp.usagePlay': '「播放 wave-hello。」（請改成實際列出的動作名稱）',
+  'mcp.usageWindow': '「顯示、隱藏或切換 VoxAvatar 視窗。」',
+  'mcp.usageGuide': '查看完整 MCP 使用方式、schema 與錯誤處理。',
   'mcp.toolsTitle': '可用工具',
   'mcp.toolsDesc': '工具不提供檔案系統、轉錄或原始音訊存取。',
   'mcp.toolsCount': '{count} 個工具',
@@ -615,7 +623,7 @@ const EN: MessageDictionary = {
   'actions.idleGuideStep1Suffix':
     '(read that page’s terms — local use is typical; bundling extractable files into another installer usually is not).',
   'actions.idleGuideStep2': 'Settings → Actions → Idle → add the .vrma clips.',
-  'actions.idleGuideStep3': 'Full guide: docs/IDLE_MOTIONS.md in the repo.',
+  'actions.idleGuideStep3': 'Open the full character behavior guide.',
   'actions.listTitle': 'Animation actions',
   'actions.listDesc':
     'Click a VRMA clip to preview that exact animation. VoxAvatar chooses randomly between them when the action runs.',
@@ -803,6 +811,14 @@ const EN: MessageDictionary = {
   'mcp.setupCommandLabel': 'Setup command',
   'mcp.portNote':
     'To use a different port, set VOXAVATAR_BRIDGE_PORT before launching VoxAvatar and register the displayed URL.',
+  'mcp.usageTitle': 'How to use it after connecting',
+  'mcp.usageDesc':
+    'Start a new agent session after registration. The agent discovers VoxAvatar’s tools and action guidance automatically. You can ask in natural language:',
+  'mcp.usageStatus': '“Check whether VoxAvatar is ready.”',
+  'mcp.usageList': '“List playable actions and when each one fits.”',
+  'mcp.usagePlay': '“Play wave-hello.” (Use a name returned by the action list.)',
+  'mcp.usageWindow': '“Show, hide, or toggle the VoxAvatar window.”',
+  'mcp.usageGuide': 'Read the full MCP usage, schemas, and error handling guide.',
   'mcp.toolsTitle': 'Available tools',
   'mcp.toolsDesc':
     'Tools are exposed without filesystem, transcript, or raw audio access.',

@@ -11,10 +11,10 @@
 
 ## 完成、推送與發行
 
-主人指示（2026-08-01；批次政策見 D-23）：
+主人指示（2026-08-01；批次流程見 [`docs/RELEASING.md`](docs/RELEASING.md)）：
 
 1. 完成要求後直接 commit 並 `git push origin main`，不要預設只開 PR。
-2. 每個可交付工作段落 bump `package.json` 版號、同步 lockfile、更新 `CHANGELOG.md`，再 commit／push。**不必每次 bump 都 Release／tag**；`main` 可累積多個版本再批次發布。
+2. 每個可交付工作段落在 push 前 bump `package.json` 版號、同步 lockfile 並更新 `CHANGELOG.md`。**不必每次 bump 都 Release／tag**；`main` 可累積多個版本再批次發布。
 3. **批次 Release 時**：建立並推送 `v{version}` tag（指向 `main` tip）；**先推 tag、再推 `main`**，由「main tip 已 tagged」觸發打包，或依 [`docs/RELEASING.md`](docs/RELEASING.md) 手動 dispatch。驗證公開 Release、Latest、target commit 與資產。禁止空轉或無實質變更的 Release。
 4. 新版 Release **成功後**才刪除其餘舊 GitHub Release 與對應 tag，只保留最新版；新版失敗則不動舊版。
 5. **Windows 實機驗證**（GUI smoke、簽署、native capture 矩陣）在無 Windows 桌面或密鑰時**不得阻塞** v0.3+ 路線圖；應停止實機步驟、回報缺口，繼續可驗證的開發。
@@ -68,5 +68,5 @@ VoxAvatar 是 Windows-only Electron VRM 桌面角色陪伴：監聽指定應用�
 - 其餘維護文件使用繁中；規則、review 與路線圖都可隨專案現況修正，但硬性產品邊界的變更必須寫入 `docs/DECISIONS.md`。
 - 所有修改至少跑 `npm run check`；原生相關再跑 `npm run native:build` 與 `npm run native:test`。一般 UI、MCP、文件與 TypeScript 開發不要求本機安裝 Visual Studio Build Tools。
 - 資產或發行相關另跑 `npm run assets:release`；安裝相關跑 `npm run dist:windows`。
-- 若本機沒有 C++ toolchain，以 GitHub Windows runner 的 native build／self-test／installer 為正式 gate。Windows GUI smoke 與簽署驗收在可取得桌面／密鑰時補做，**不阻塞** v0.3+ 路線圖（D-23）。
+- 若本機沒有 C++ toolchain，以 GitHub Windows runner 的 native build／self-test／installer 為正式 gate。Windows GUI smoke 與簽署驗收在可取得桌面／密鑰時補做，不阻塞其他可自動驗證的路線圖工作。
 - 不接受「應該可用」；以測試、build、Git／GitHub 與實際 Release 狀態收尾。

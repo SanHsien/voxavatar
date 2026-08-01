@@ -60,6 +60,8 @@ Electron main ── settings / tray / MCP / HTTP / URL protocol
 React + Three.js ── VRM / VRMA / lip sync / desktop interaction
 ```
 
+Lip sync drives VRM expressions from the live level; VRMA supplies optional body motion only, so the mouth still moves without a Speaking clip. This is amplitude response, not speech recognition or phoneme sync.
+
 ## Privacy and security boundaries
 
 - **No microphone capture**, recording, transcription, audio retention, or audio transmission.
@@ -91,7 +93,7 @@ Visual Studio Build Tools is not required for normal UI, settings, MCP, document
 4. Add `.vrma` clips to Idle, Speaking, or custom actions. Lip sync still works without motion clips.
 5. Under **Voice**, select the application that plays assistant audio.
 
-Find lawful models and motions on [VRoid Hub](https://hub.vroid.com/), [BOOTH](https://booth.pm/), or create an original model with [VRoid Studio](https://vroid.com/studio). Download, avatar use, commercial use, and redistribution terms vary by asset. See [`ASSET_LICENSES.md`](ASSET_LICENSES.md) and [`docs/IDLE_MOTIONS.md`](docs/IDLE_MOTIONS.md).
+Find lawful models and motions on [VRoid Hub](https://hub.vroid.com/), [BOOTH](https://booth.pm/), or create an original model with [VRoid Studio](https://vroid.com/studio). Download, avatar use, commercial use, and redistribution terms vary by asset. See [`ASSET_LICENSES.md`](ASSET_LICENSES.md) and [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) (Traditional Chinese).
 
 ## Connect Codex and MCP
 
@@ -115,9 +117,9 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-The GitHub Latest Release is **`v0.5.0`**; `main` has accumulated **`0.8.0`** (v0.6 module convergence, v0.7 performance baselines and settings splits, v0.8 synthetic compatibility matrix; not yet batch-tagged/Released). Windows smoke evidence and installer signing sit in the v0.9 track and do **not** block v0.6–v0.8 (D-23, D-24).
+The GitHub Latest Release is **`v0.5.0`**; `main` has accumulated **`0.8.1`** and has not yet been batch-tagged or Released. v0.9 consolidates character states, floating bubbles, deferred code convergence, and Windows real-machine/signing validation.
 
-See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones (completed v0.1–v0.8 summary plus v0.9–v1.0), completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
+See [`ROADMAP.en.md`](ROADMAP.en.md) for version order and completion criteria, and [`REVIEW.md`](REVIEW.md) for current health and validation gaps (Traditional Chinese).
 
 ## Run from source
 
@@ -149,7 +151,7 @@ src/             React/Three.js renderer, action logic, and Vitest tests
 native/windows/  WASAPI process-loopback C++ helper
 scripts/         Build, media, docs, Dependabot, version, and checksum gates
 public/assets/   UI icon and release manifests; no VRM/VRMA by default
-docs/            Development, integration, decisions, and release docs
+docs/            Development, integration, character behavior, decisions, and release docs
 .github/         CI, CodeQL, Dependabot, Release, and contribution templates
 ```
 
@@ -157,18 +159,12 @@ docs/            Development, integration, decisions, and release docs
 
 | Document | Purpose |
 | --- | --- |
-| [`ROADMAP.en.md`](ROADMAP.en.md) | Product positioning, milestones, completion criteria, risks, and non-goals |
-| [`REVIEW.md`](REVIEW.md) | Latest repository review and open validation gaps (Traditional Chinese) |
-| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Architecture, directories, toolchain, and validation matrix |
+| [`ROADMAP.en.md`](ROADMAP.en.md) / [`REVIEW.md`](REVIEW.md) / [`CHANGELOG.md`](CHANGELOG.md) | Future work, current health, and completed history |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) / [`CONTRIBUTING.en.md`](CONTRIBUTING.en.md) | Architecture, toolchain, validation, and contribution workflow |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP, HTTP event API, and URL protocol |
-| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM/VRMA compatibility matrix, synthetic fixtures, and exporter notes |
-| [`docs/RELEASING.md`](docs/RELEASING.md) | Versioning, GitHub Actions, assets, and post-release verification |
-| [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Real-machine installer, desktop, audio, MCP, and signing checks (Traditional Chinese) |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Fork, privacy, licensing, and maintenance decisions |
-| [`CONTRIBUTING.en.md`](CONTRIBUTING.en.md) | Contribution workflow and hard boundaries |
-| [`SECURITY.en.md`](SECURITY.en.md) | Supported versions, security model, and vulnerability reporting |
-| [`ASSET_LICENSES.md`](ASSET_LICENSES.md) | Media provenance and redistribution gate (Traditional Chinese) |
-| [`CHANGELOG.md`](CHANGELOG.md) | Version history (Traditional Chinese) |
+| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) / [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | Motion import, character behavior design, and media compatibility (Traditional Chinese where noted) |
+| [`docs/RELEASING.md`](docs/RELEASING.md) / [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Release workflow and Windows evidence (Traditional Chinese) |
+| [`SECURITY.en.md`](SECURITY.en.md) / [`ASSET_LICENSES.md`](ASSET_LICENSES.md) / [`docs/DECISIONS.md`](docs/DECISIONS.md) | Security, media licensing, and current decisions |
 
 ## Support and contributing
 

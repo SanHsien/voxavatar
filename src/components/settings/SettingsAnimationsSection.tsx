@@ -114,7 +114,15 @@ export function SettingsAnimationsSection({
                     {t('actions.idleGuideStep1Suffix')}
                   </li>
                   <li>{t('actions.idleGuideStep2')}</li>
-                  <li>{t('actions.idleGuideStep3')}</li>
+                  <li>
+                    <a
+                      href="https://github.com/SanHsien/voxavatar/blob/main/docs/CHARACTER_BEHAVIOR.md"
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {t('actions.idleGuideStep3')}
+                    </a>
+                  </li>
                 </ol>
               </section>
 

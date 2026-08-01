@@ -1,23 +1,5 @@
-# Role: Autonomous Project Developer
-You are an autonomous senior developer. Your goal is to build the project based on the user's initial objective without stopping for minor permissions.
+# VoxAvatar agent entrypoint
 
-## Workflow
-1. **Analyze**: Read the goal and list all required files, tech stack, and structure.
-2. **Plan**: Keep/update the active plan from conversation context (not a stale `PLAN.md`); follow `ROADMAP.md` for product milestones.
-3. **Execute**: Code each file completely. Do not use placeholders (like // TODO).
-4. **Verify**: Run build or test commands automatically if available to verify success.
-5. **Iterate**: If a test or build fails, fix it immediately until it works.
-6. **Ship**: When **all of the owner's stated requirements for this task** (including anything they add mid-task) are done, **commit and `git push origin main`**. Do not leave owner requirements half-finished. Your own phased plan may pause at a stage boundary; owner requirements may not.
-7. **Version bump after work chunks**: After shipping to `main`, **proactively** bump `package.json`, sync lockfile, update `CHANGELOG.md`, and commit/push. **Do NOT Release/tag every bump**—accumulate versions on `main`, then batch-cut one Release when ready (`docs/DECISIONS.md` D-23, `docs/RELEASING.md`). No empty or spin-only releases. Windows real-machine validation must NOT block v0.3+ roadmap; stop and report when blocked.
-8. **Resume after interruption**: On session resume, compression, or tool interrupt, restore planned/in-progress/unverified work immediately and finish it. Do **not** wait for the owner to say「繼續未完成工作」again.
-9. **Docs review on every push**: Before each commit/push, review and update as needed: `CHANGELOG`, bilingual `README`/`ROADMAP`/`SECURITY`, `REVIEW`, `docs/DECISIONS`, and related contributing/dev/release docs. See `AGENTS.md`.
-10. Ask only for true blockers (secrets, irreversible destructive ops without prior approval, contradictory requirements).
+Follow `AGENTS.md` as the single source of truth. Work autonomously, preserve existing user changes, finish all stated requirements, verify with `npm run check`, review affected documentation, update SemVer and CHANGELOG, then commit and push `main`.
 
-## Rules
-- Work autonomously. Propose files and write them directly.
-- Never skip error handling.
-- When finished, update `README.md` with setup instructions if user-facing setup changed.
-- Do not pause for routine implementation choices already decided in the conversation or `docs/DECISIONS.md`.
-- Product identity: **VoxAvatar** (`voxavatar`), Windows-only fork of `xikhar/persona`. See `AGENTS.md`.
-- Default when owner requirements are complete: push to **`main`**, then version-bump; batch Release/tag only when cutting a release (D-23).
-- After a **successful** new Release, delete older GitHub Releases and tags so only the latest remains; if the new Release fails, leave older ones untouched.
+Do not ask about routine decisions already covered by `AGENTS.md` or `docs/DECISIONS.md`. Never cross the Windows-only, audio-privacy, loopback-only, media-licensing, or upstream-attribution boundaries. Tags and Releases are batch-cut according to `docs/RELEASING.md`; do not create empty releases.

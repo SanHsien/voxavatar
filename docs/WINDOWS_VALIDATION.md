@@ -2,9 +2,11 @@
 
 GitHub Actions 能證明程式可在乾淨 Windows runner 編譯、測試與打包，但不能證明真實桌面的音效裝置、透明視窗、系統匣、SmartScreen 或安裝／移除體驗。每個準備宣稱「已完成實機驗收」的版本都依本檔執行。
 
-## 證據範圍
+## 證據檔案與範圍
 
 記錄放在 `docs/release-evidence/v{version}/windows-smoke.md`。不得提交使用者名稱、絕對路徑、VRM／VRMA 原檔、憑證、音訊、對話或其他私人內容；截圖先裁切或遮蔽。
+
+用 `npm run evidence:manifest -- --version <version>` 建立機讀的 `manifest.json` metadata 模板；人工依本檔另建立 `windows-smoke.md`。每個版本只保留實際執行結果；無法執行的項目寫「未驗」與原因，不可預先勾選。證據目錄不是 installer、log dump 或私人媒體的保存位置。
 
 至少記錄：
 
@@ -13,6 +15,7 @@ GitHub Actions 能證明程式可在乾淨 Windows runner 編譯、測試與打�
 - installer Authenticode 狀態；未簽署即明記 `NotSigned`。
 - 使用的測試素材只記可公開的來源、授權與格式，不提交原檔。
 - 每項測試的通過／失敗、觀察結果與 issue 連結。
+- 執行者、日期，以及是否為實體機、VM 或遠端桌面。
 
 ## 自動化前置 gate
 

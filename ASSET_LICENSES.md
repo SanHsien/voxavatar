@@ -19,7 +19,7 @@
 - 是否限制個人／商用、直播、改作或署名。
 - 是否禁止再配布或以可取出狀態包入其他軟體。
 
-官方 VRoid Photo Booth VRMA [BOOTH 5512385](https://booth.pm/en/items/5512385) 適合本機匯入，但不可直接提交到本 repo 或安裝包。匯入方式見 [`docs/IDLE_MOTIONS.md`](docs/IDLE_MOTIONS.md)。
+官方 VRoid Photo Booth VRMA [BOOTH 5512385](https://booth.pm/en/items/5512385) 適合本機匯入，但不可直接提交到本 repo 或安裝包。匯入方式見 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
 ## 新增打包媒體的發行閘門
 

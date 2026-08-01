@@ -60,6 +60,8 @@ Electron main ── 設定／系統匣／MCP／HTTP／URL protocol
 React + Three.js ── VRM／VRMA／口型／桌面互動
 ```
 
+口型由音量即時驅動 VRM expression；VRMA 只負責可選的身體動作，因此沒有 Speaking VRMA 仍可張嘴。這是音量反應，不是語音辨識或音素同步。
+
 ## 隱私與安全邊界
 
 - **不擷取麥克風**，不錄音、不轉錄、不保存或傳送音訊。
@@ -91,7 +93,7 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 4. 在 Idle／Speaking 或自訂動作加入 `.vrma`；沒有 VRMA 時仍可做口型。
 5. 在「語音」選擇會播放助理聲音的應用程式。
 
-模型與動作可從 [VRoid Hub](https://hub.vroid.com/)、[BOOTH](https://booth.pm/) 或 [VRoid Studio](https://vroid.com/studio) 合法取得。每個素材的下載、Avatar、商用與再散布條款各自不同，詳見 [`ASSET_LICENSES.md`](ASSET_LICENSES.md) 與 [`docs/IDLE_MOTIONS.md`](docs/IDLE_MOTIONS.md)。
+模型與動作可從 [VRoid Hub](https://hub.vroid.com/)、[BOOTH](https://booth.pm/) 或 [VRoid Studio](https://vroid.com/studio) 合法取得。每個素材的下載、Avatar、商用與再散布條款各自不同，詳見 [`ASSET_LICENSES.md`](ASSET_LICENSES.md) 與 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
 ## 連接 Codex 與 MCP
 
@@ -120,9 +122,9 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-GitHub Latest Release 為 **`v0.5.0`**；`main` 已累積至 **`0.8.0`**（v0.6 模組收斂、v0.7 效能基準與設定再拆、v0.8 合成相容矩陣；尚未批次 tag／Release）。Windows 實機證據與 installer 簽署收在 v0.9 軌道，**不阻塞** v0.6–v0.8（D-23、D-24）。
+GitHub Latest Release 為 **`v0.5.0`**；`main` 已累積至 **`0.8.1`**，尚未批次 tag／Release。v0.9 集中處理角色狀態、浮動氣泡、先前延後的程式收斂，以及 Windows 實機／簽署驗收。
 
-版本里程碑（已完成 v0.1–v0.8 摘要與後續 v0.9–v1.0）、完成條件、風險與明確不做的範圍見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與仍需實機驗證的項目見 [`REVIEW.md`](REVIEW.md)。
+版本順序與完成條件見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與驗證缺口見 [`REVIEW.md`](REVIEW.md)。
 
 ## 從原始碼執行
 
@@ -154,7 +156,7 @@ src/             React／Three.js renderer、動作邏輯與 Vitest
 native/windows/  WASAPI process-loopback C++ helper
 scripts/         build、資產、文件、Dependabot、版本與 checksum gates
 public/assets/   UI 圖示與發行 manifest，預設不含 VRM／VRMA
-docs/            開發、整合、路線圖決策與發行文件
+docs/            開發、整合、角色表現、決策與發行文件
 .github/         CI、CodeQL、Dependabot、Release 與貢獻模板
 ```
 
@@ -162,18 +164,12 @@ docs/            開發、整合、路線圖決策與發行文件
 
 | 文件 | 內容 |
 | --- | --- |
-| [`ROADMAP.md`](ROADMAP.md) | 產品定位、版本里程碑、完成條件、風險與非目標 |
-| [`REVIEW.md`](REVIEW.md) | 最新一次專案 review 與未解驗證缺口 |
-| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | 架構、目錄、工具鏈與驗證矩陣 |
+| [`ROADMAP.md`](ROADMAP.md)／[`REVIEW.md`](REVIEW.md)／[`CHANGELOG.md`](CHANGELOG.md) | 未來、目前健康與已完成歷史 |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)／[`CONTRIBUTING.md`](CONTRIBUTING.md) | 架構、工具鏈、驗證與貢獻流程 |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP、HTTP 事件 API 與 URL protocol |
-| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM／VRMA 相容矩陣、合成 fixture 與 Exporter 備註 |
-| [`docs/RELEASING.md`](docs/RELEASING.md) | 版本、GitHub Actions、資產與發布後驗證 |
-| [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | 安裝、桌面、語音、MCP 與簽章實機驗收 |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | fork、隱私、授權與維護決策 |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | 貢獻流程與不可跨越的邊界 |
-| [`SECURITY.md`](SECURITY.md) | 支援版本、安全模型與漏洞回報 |
-| [`ASSET_LICENSES.md`](ASSET_LICENSES.md) | 媒體來源與再散布 gate |
-| [`CHANGELOG.md`](CHANGELOG.md) | 逐版變更紀錄 |
+| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)／[`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | 動作匯入、角色表現設計與素材相容性 |
+| [`docs/RELEASING.md`](docs/RELEASING.md)／[`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | 發布流程與 Windows 實機證據 |
+| [`SECURITY.md`](SECURITY.md)／[`ASSET_LICENSES.md`](ASSET_LICENSES.md)／[`docs/DECISIONS.md`](docs/DECISIONS.md) | 安全、媒體授權與現行取捨 |
 
 ## 支援與貢獻
 

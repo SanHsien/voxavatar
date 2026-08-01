@@ -1,117 +1,58 @@
-# VoxAvatar 決策紀錄
+# VoxAvatar 現行決策
 
-本檔記錄相對上游與維護流程的重要決策。日期均為 2026-08-01；歷史發行細節見 [`CHANGELOG.md`](../CHANGELOG.md)。
+最後修訂：2026-08-01
 
-## D-01｜文件語言
+本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
-公開文件 `README`、`ROADMAP`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁體中文為預設，提供 `*.en.md`。其餘維護文件使用繁中，避免雙份內部文件漂移。
+## 1. 產品與上游
 
-## D-02｜上游同步
+- 顯示名為 **VoxAvatar**，識別字串為 `voxavatar`；產品只維護 Windows Electron、WASAPI 與 NSIS。
+- 上游為 `xikhar/persona`，保留 MIT 與 attribution。已 squash 的 `docs/contribution`、`feat/settings`、`feat/ui-theme`、`fix/mcp-update` 不再合併，只挑選符合本 fork 邊界的變更。
+- VoxAvatar 是桌面角色呈現層，不在應用程式內執行 LLM、保存聊天紀錄或取代聊天客戶端。
 
-不再合併 `docs/contribution`、`feat/settings`、`feat/ui-theme`、`fix/mcp-update`：這些分支已透過上游 squash PR 進入 main，再合會產生重複歷史與大量衝突。後續只挑選可驗證且符合 Windows-only 邊界的上游變更。
+## 2. 音訊與本機整合
 
-## D-03｜Windows-only
+- 預設只分析指定應用程式的 WASAPI playback loopback 音量；`output` 模式須由使用者明確啟用，並警告它會涵蓋目前輸出裝置的所有聲音。
+- 不擷取麥克風、不保存／傳送音訊、不轉錄。任何擴張都視為新的安全設計。
+- MCP／HTTP bridge 僅綁定 loopback，限制 Host、origin、body、session 與 schema；不提供任意命令或任意檔案存取。
+- MCP CLI、protocol 與環境變數分別使用 `voxavatar`、`voxavatar://`、`VOXAVATAR_*`。
 
-產品識別固定為 VoxAvatar／`voxavatar`，只維護 Windows WASAPI、NSIS 與桌面行為。不恢復 PipeWire、Hyprland、macOS native、Linux／macOS CI 或發行目標。
+## 3. 媒體與角色表現
 
-## D-04｜語音資料邊界
+- 安裝包預設不內建角色或動作。使用者本機匯入不代表專案具有再散布權；打包媒體須通過 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
+- 匯入先在 app-controlled 暫存檔完成有界 GLB／VRM／VRMA 驗證，再 atomic rename；失敗不得污染既有 catalog。
+- 目錄品質報告是啟發式輔助，不能取代人工預覽或授權審查。VRM 與 VRMA 共用既有 quality-gate 設定鍵，避免平行設定漂移。
+- Idle、Speaking、自訂動作與後續狀態／氣泡契約集中在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 
-只從使用者選定應用程式的 WASAPI playback loopback 計算記憶體內音量；不擷取麥克風、不保存／傳送音訊、不轉錄。任何擴張都視為新的安全設計，而非一般功能。
+## 4. Electron 與狀態邊界
 
-## D-05｜本機整合邊界
+- Renderer 維持 sandbox、context isolation、無 Node integration；avatar 與 settings 使用不同 preload allowlist。
+- Privileged IPC 驗證 sender URL；設定寫入另要求 settings 視窗的 `webContents`。
+- MCP／protocol／HTTP 動作進入有界佇列，包含同名合併、容量上限與最小間隔。
+- Settings 與 MCP `get_status` 共用 readiness、listener 狀態與診斷語彙；診斷必須移除使用者名、絕對路徑與媒體檔名，不包含音訊或模型內容。
 
-MCP 與 HTTP bridge 只綁定 loopback，限制 Host、origin、body 與 schema；不提供任意命令或檔案存取。MCP CLI 名稱、protocol 與環境變數分別固定為 `voxavatar`、`voxavatar://`、`VOXAVATAR_*`。
+## 5. 文件與開發環境
 
-## D-06｜Windows 語音來源選擇
+- `AGENTS.md` 是 agent 單一真相源；`CLAUDE.md` 與 `SKILL.md` 只作入口，不複製完整規則。
+- `README`、`ROADMAP`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁中為預設並提供英文版；內部維護文件只保留繁中。
+- `ROADMAP` 管未來、`REVIEW` 管目前健康、`CHANGELOG` 管已完成；不另建平行計畫或歷史決策流水帳。
+- 一般 Node／Electron／文件開發不要求 Visual Studio Build Tools。C++ helper 或本機 installer 才需 C++ toolchain；GitHub Windows runner 是正式 native 與 package gate。
 
-從上游 #12 手動移植 application、external、可搜尋來源與設定 schema；不整包帶入 PipeWire、macOS 或舊產品識別。
+## 6. 依賴與合併自動化
 
-## D-07｜不內建角色 VRM
+- Dependabot 高權限 workflow 必須 fail closed：只信任 `dependabot[bot]`、`main` base 與 base commit 上的 policy，並綁定 head SHA。
+- 只有 CI 直接覆蓋的開發工具與 GitHub Actions minor／patch 可 guarded auto-merge；runtime、打包、渲染、major 與未知更新保留人工審查。
 
-`public/assets/library.json` 預設沒有 model，首次啟動開啟設定並引導使用者合法下載後本機匯入。這避免品質不佳的強制預設，也縮小第三方再散布風險。
+## 7. 版本與 Release
 
-## D-08｜不內建 Idle／Speaking VRMA
+- 完成可交付工作後直接 commit／push `main`，並以 SemVer 更新 package、lockfile 與 CHANGELOG。
+- `main` 可累積多個版號再批次 Release；不為空轉或無實質變更建立 tag。
+- Release tag 必須精確指向可信 `main` tip。已發布 tag 不 force-update；目前不要求以 repository ruleset 保護 tag。
+- 新 Release 成功且成為 Latest 後才清理舊 Release／tag；失敗時保留舊版。
+- Windows GUI、簽署與真機 capture 在缺少桌面或密鑰時不阻塞可自動驗證的開發，但未驗項目不得宣稱完成。
 
-程序產生動作品質僵硬，官方 VRoid VRMA 又限制可取出原檔再配布，因此系統動作槽保留但媒體為空。使用者可本機匯入；Release 內建媒體須通過 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
+## 8. 相容與品質證據
 
-## D-09｜動作與桌面互動
-
-Idle 從可用非說話動作池隨機抽播並避免立即重複。透明區點穿；角色本體支援左鍵拖曳、滾輪縮放、中鍵旋轉、右鍵選單；系統匣左右鍵分工保持 Windows 可靠性。
-
-## D-10｜自訂動作與品質報告
-
-動作以名稱、描述、觸發情境與多個 VRMA 片段組成；MCP 即時看到 catalog。目錄匯入品質把關是啟發式報告，可選全收、嚴格略過或關閉，不能取代人工預覽或授權審查。
-
-## D-11｜開發與協作入口
-
-`AGENTS.md` 是 agent 單一真相源，`CLAUDE.md` 是薄入口；另維護 `SKILL.md`、`REVIEW.md`、EditorConfig、issue／PR templates、CI、CodeQL 與文件驗證。專案採中英行為準則，以清楚執行原則取代過去「不維護社群準則」決定。
-
-## D-12｜依賴自動化
-
-Dependabot 可使用高權限 workflow，但必須 fail closed：只信任 `dependabot[bot]`、`main` base 與 base commit 上的 policy；以 semver、檔案範圍與 allowlist 分類；policy check 綁定 head SHA；必要 CI／CodeQL 全綠後再核准與 squash。runtime、打包、渲染、major 與未知更新人工審查。
-
-## D-13｜完成即推 main，版號隨工作累積
-
-主人要求完成工作段落後直接 commit 並 push `main`，並 bump `package.json`、同步 lockfile、更新 `CHANGELOG.md`。版號 bump 代表可觀察變更已落地，**不等於**每次都要 Release／tag。實際 GitHub Release 依 D-23 批次政策執行。
-
-## D-14｜第一個穩定版本
-
-`0.1.0-beta.10` 後以 `0.1.0` 作為第一個 stable release。理由是主要 Windows 使用流程、local-first 安全邊界、MCP、媒體管理、CI／CodeQL、guarded dependency automation 與正式安裝包已形成可驗證基線；不直接跳 `1.0.0`，避免過早承諾所有設定與整合 schema 長期不變。
-
-## D-15｜路線圖與開發工具鏈
-
-以雙語 `ROADMAP.md`／`ROADMAP.en.md` 作為公開產品方向，取代較薄且容易與 review 重複的 `PLAN.md`；`REVIEW.md` 只保留最新健康狀態，`CHANGELOG.md` 只記已完成版本。
-
-一般 Node／Electron／文件開發不要求本機 Visual Studio Build Tools。C++ helper 變更與本機 installer 才需要 C++ toolchain；GitHub Windows runner 是正式 native build／self-test／NSIS gate，下載後的 Windows GUI smoke 仍由真實桌面完成。
-
-## D-16｜程式與媒體授權分離
-
-`LICENSE` 保持可被工具辨識的 canonical MIT 全文。第三方 VRM、VRMA、圖片與環境資產的排除、來源及再散布條件集中在 `NOTICE.md` 與 `ASSET_LICENSES.md`；移除 LICENSE 尾端的自訂句子不會把第三方媒體改授權為 MIT。
-
-## D-17｜Release 與素材匯入信任邊界
-
-Release 可由可信 `main` 的 `workflow_dispatch`，或在 **push `main` 且 `v{package.version}` tag 已精確指向該 tip** 時自動打包（供無法 dispatch 的自動化／agent 使用；一般無 tip tag 的 `main` push 略過）。不以 tag ref 觸發 packaging，因 `release` environment 的部署分支政策只允許 `main`。執行前驗證 workflow／遠端 `main`／tag commit 相同，後續 checkout 固定該 SHA，發布前再驗 tag 未移動。checkout 不保留 credentials，只有 publish job 取得 `contents: write`；已發布 tag 另由 active tag ruleset 禁止 force-update（刪除舊版僅在新版成功後、政策允許時暫關 ruleset）。素材匯入先複製到 app-controlled 暫存檔，再從同一個 file descriptor 驗證實際／宣告 GLB 長度、bounded JSON chunk、glTF 2.0 與 VRM／VRMA extension，最後 atomic rename；renderer 載入錯誤必須保留可回復的設定入口。
-
-## D-18｜輸出裝置全音監聽（opt-in）
-
-- **日期**：2026-08-01
-- **決定**：語音來源新增 `output` 模式，以 WASAPI 預設 render endpoint loopback 監聽目前輸出裝置混音。預設仍為指定應用程式／自動偵測。
-- **隱私**：必須在 Settings 明示「隱私邊界警告」——會聽到音樂、影片、遊戲、系統音與其他應用，不只語音助理；音量僅本機轉口型／動作、不上傳。使用者需主動選擇該模式。
-- **配套**：角色縮放最小 30%；Idle 間隔預設 8 秒（可調 2–60 秒）；VRMA 品質門檻淘汰低於 60、保留 75 以上，預設嚴格模式；匣／右鍵／設定提供「關於」顯示版本。
-
-## D-19｜每次 push 的文件檢討與中斷接續
-
-- **日期**：2026-08-01
-- **決定**：每次 commit／push 前必須檢討 `CHANGELOG`、雙語 `README`／`ROADMAP`／`SECURITY`、`REVIEW`、`docs/DECISIONS` 及相關流程文件；無變更也要確認已檢討。Agent 在對話壓縮或工具中斷後必須自動接續未完成工作，不得等主人再次提醒。
-- **發行清理**：新版 GitHub Release 成功後才刪除其餘舊 Release／tag，只保留最新；失敗則保留舊版。不可變 tag 的「禁止 force-update」仍成立；刪除舊 tag 僅在主人政策允許且新版已驗證成功時執行。
-- **權威來源**：[`AGENTS.md`](../AGENTS.md)、[`.cursorrules`](../.cursorrules)、[`ROADMAP.md`](../ROADMAP.md) 執行規則。
-
-## D-20｜VRM 目錄評估匯入共用品質 gate
-
-- **日期**：2026-08-01
-- **決定**：VRM 從目錄匯入比照 VRMA，共用 `vrma_quality_gate`／`vrma_report_dir`（不另開設定鍵）。報告檔名為 `voxavatar-vrm-report.md`；評分檢查 VRM 擴充、humanoid、mesh、體積與粗估三角面等。humanoid 同時支援 VRM 1.0 物件 map 與 VRM 0.x `[{ bone, node }]` 陣列。單檔選 VRM 仍只做 GLB／extension 驗證。
-- **嚴格模式**：`verdict === reject` 不匯入；`report` 仍全部匯入並寫報告；`off` 不做分析。
-
-## D-21｜首次設定 readiness 與診斷摘要
-
-- **日期**：2026-08-01
-- **決定**：以 `electron/app-readiness.cjs`／`listener-status.cjs`／`diagnostic-summary.cjs` 作為設定頁與 MCP `get_status` 的共用語彙。helper 狀態為 `missing`／`launch_failed`／`target_missing`／`no_output`／`listening`（外加 `inactive`／`external`）。診斷摘要必須 redact 使用者名、絕對路徑與 `.vrm`／`.vrma` 檔名，且不得含音訊或模型內容。
-- **不在此決策**：Windows 實機證據矩陣、installer 簽署仍待補證，但依 D-23 **不阻塞** v0.3+ 路線圖；preload 分權已於 `0.2.9` 落地（見 D-22）。
-
-## D-22｜avatar／settings preload 分權與動作佇列
-
-- **日期**：2026-08-01
-- **決定**：avatar 使用 `preload-avatar.cjs`（bridge＋唯讀 settings）；settings 使用 `preload-settings.cjs`（完整管理 API）。設定寫入 IPC 除 URL 信任外，必須 `event.sender === settingsWindow.webContents`。MCP／protocol／HTTP 的 `play_animation` 經有界佇列（同名合併、容量上限、最小間隔）再送 renderer。
-
-## D-23｜批次 Release 與實機驗證非路線圖 gate
-
-- **日期**：2026-08-01
-- **決定**：`main` 可累積多次 SemVer bump 與 CHANGELOG 條目，再一次性建立 `v{version}` tag 與 GitHub Release（batch cut）。禁止為空轉或無實質變更而頻繁 Release／tag。
-- **實機邊界**：Windows GUI smoke、installer 簽署、COM／WASAPI capture 真機矩陣仍須在可取得 Windows 桌面或密鑰時補證；**不得**因此阻塞 v0.3／v0.4 等後續路線圖開發。若環境無法完成實機步驟，應停止該項、回報缺口，繼續可驗證的程式／文件／CI 工作。
-- **權威來源**：[`AGENTS.md`](../AGENTS.md)、[`.cursorrules`](../.cursorrules)、[`docs/RELEASING.md`](RELEASING.md)、[`ROADMAP.md`](../ROADMAP.md)。
-
-## D-24｜v0.6 起路線圖分軌
-
-- **日期**：2026-08-01
-- **決定**：v0.5 完成後重寫 `ROADMAP`：v0.1–v0.5 以摘要表示已完成；原先散在 0.1–0.5 的未完成項移入 **v0.6**（模組收斂／可測試性）、**v0.7**（效能基準）、**v0.8**（exporter 相容矩陣）、**v0.9**（Windows 實機／簽署／native）。
-- **邊界**：v0.9 可整節延後開工，**不得**阻塞 v0.6–v0.8 的程式、文件與 CI 推進；v1.0 門檻仍要求 v0.9 實機證據與簽署（若未簽署不得進 1.0）。
+- 合成 fixture 用於穩定重現 parser、品質 gate 與 rollback；真實 exporter 結論必須有版本與合法樣本證據。
+- 自動 workflow 綠燈不能取代透明視窗、DPI、系統匣、音效裝置、SmartScreen 與安裝生命週期的 Windows 實機驗收。
+- 只有具體測試、build、GitHub 狀態或人工紀錄才能標記完成；相關模板與判定見 [`WINDOWS_VALIDATION.md`](WINDOWS_VALIDATION.md)。

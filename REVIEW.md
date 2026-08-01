@@ -1,44 +1,36 @@
 # VoxAvatar 專案覆核
 
 覆核日期：2026-08-01
-
-覆核基準：`v0.8.0`／`main`（v0.7 效能基準＋設定再拆；v0.8 合成相容矩陣與 Exporter 備註；Latest GitHub Release 仍為 `v0.5.0`，見 D-23）
+基準：`v0.8.1`／`main`；Latest GitHub Release：`v0.5.0`
 
 ## 結論
 
-v0.6–v0.8 路線圖本輪可在 Linux CI 驗證的工作已收斂。沒有已知未解 P0／P1。Windows 實機／簽署／native capture 缺口**延後、不阻塞**（D-23、D-24）。下一批次 Release 建議等 v0.9 有進展或累積需求再發；目前不空轉發版。
+目前沒有已知未解 P0／P1。v0.6–v0.8 可自動驗證的主體已完成，剩餘工作已集中到 v0.9，避免已完成清單與 CHANGELOG 重複。這次完成文件架構、角色表現契約與 Settings 的現有 MCP 使用指引；**尚未實作**狀態仲裁、浮動氣泡、MCP `show_message` 或小尺寸口型增益。
 
-## 本輪已修正（含至 0.8.0）
+## 現況
 
-| 嚴重度 | 問題 | 處理 |
-| --- | --- | --- |
-| P1 | Release 信任根／環境政策 | tip tag 對齊；改為批次 Release（D-23） |
-| P1 | 匯入 GLB 驗證過淺 | 完整驗證後 atomic rename |
-| P2 | discovery／matcher／MCP session／IPC／preload／佇列 | `0.2.0`–`0.2.9` |
-| P2 | settings migration／匯入確認／片段排序／報告導覽 | `0.3.0` |
-| P2 | MCP 工具輸出需解析人類文字 | `0.4.0` JSON schema＋多 client 測試 |
-| P3 | 設定頁同步打包進 overlay | `React.lazy`；SBOM 腳本 |
-| P3 | 大型模組難以維護 | `0.5.0`–`0.7.0` 持續拆分 section／IPC／preview |
-| P3 | 無 bundle／啟動基準與 release 證據模板 | `baseline:bundle` 對照／guidance；`baseline:startup`；`evidence:manifest` |
-| P3 | 相容矩陣過淺 | `0.8.0` 擴充合成案例＋Exporter 備註；人工樣本仍待 |
-| P3 | 路線圖仍列大量已完成 v0.1–v0.5 細項 | 重寫 ROADMAP（D-24）；v0.7／v0.8 本輪勾選 |
+- 安全邊界：WASAPI playback level only、無麥克風／錄音／轉錄；MCP／HTTP 仍為 loopback-only。
+- 媒體邊界：安裝包無第三方 VRM／VRMA；匯入與 Release 各有 fail-closed gate。
+- 維護性：Settings、IPC、validation 與 preview 已拆分；尚有 overlay lifecycle、store CRUD 與 jsdom 整合可補。
+- 品質證據：合成 VRM／VRMA matrix 已存在；真實 exporter、Windows GUI、DPI、WASAPI 與簽署仍需人工證據。
+- 文件責任：ROADMAP 管未來、REVIEW 管目前、CHANGELOG 管歷史；角色動作與氣泡契約集中在 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
-## 延後（不阻塞；屬 v0.9）
+## v0.9 開放項
 
-1. Installer 簽署（需 `WIN_CSC_*`）
-2. 版本化 Windows GUI smoke 證據
-3. Native COM／WASAPI capture self-test（需 Windows＋C++）
-4. 桌面 E2E／DPI／鍵盤實機驗收
+1. **角色表現**：動作用途 profile、狀態仲裁／fallback、小尺寸口型可讀性、浮動氣泡與 MCP `show_message`。
+2. **程式收斂**：overlay lifecycle、settings-store CRUD、App／Settings jsdom、Idle／切換模型基準。
+3. **素材證據**：取得授權清楚的 VRoid／UniVRM／Blender 樣本並補人工結果，不提交二進位。
+4. **Windows／Release**：protocol、tray、DPI、鍵盤、native capture、installer 簽署與版本化 smoke。
 
-## 仍開放的開發項
+## 本輪驗證
 
-1. **可選（Linux CI）**：`main` overlay lifecycle 再拆；`settings-store` CRUD 邊界；App／Settings jsdom 整合測；Idle／切換模型真機基準說明細化。
-2. **v0.8 人工**：真實 exporter 樣本（授權清楚）補實測欄位。
-3. **v0.9**：protocol／tray 桌面 smoke、簽署、native 真機驗收（有 Windows／密鑰再開）。
+- `npm run check`：通過（174 Node tests、22 renderer tests、文件／資產、production audit、TypeScript 與 Vite build）。
+- `npm run assets:release`：通過，安裝包仍不含第三方角色或動作。
+- 非阻塞警告：`src/main.tsx` Fast Refresh 規則，以及約 1.61 MB 的 main renderer chunk；後者持續以 bundle baseline 監看。
 
-## 發行與治理判定
+## 發行判定
 
-- 已發布 tag 視為 immutable；不再移動同名 tag。
-- SemVer：能力／邊界強化走 **minor**，純修補走 patch。
-- `main` 可累積多個版號；足夠前進後再一次 tag／Release（目前 Latest=`v0.5.0`，`main` tip=`0.8.0` 未發版）。
-- `ROADMAP` 管里程碑，`REVIEW` 只保留最新健康狀態，`CHANGELOG` 記已完成版本。
+- 能力或安全邊界強化用 minor，純修補與文件維護用 patch。
+- `main` 可累積多個版號，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次 tag／Release；目前不需要空轉發版。
+- 已發布 tag 不 force-update；新 Release 成功且成為 Latest 後才清理舊版。
+- 未取得真實桌面、合法樣本或簽署密鑰時，相關項目標為未驗，不阻塞其他工作，也不宣稱完成。

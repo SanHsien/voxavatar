@@ -1,6 +1,14 @@
 # 更新紀錄
 
-本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，Release／tag 依批次政策累積後一次發布（見 D-23）。
+本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
+
+## 0.8.1 - 2026-08-01
+
+- 簡化整個 repository 的 Markdown 分工：ROADMAP 只留已完成摘要與 v0.9，決策檔改為現行主題，代理與 fixture 文件改為薄入口。
+- v0.6–v0.8 未完成項全部移入 v0.9；Windows release-evidence 規則併入單一驗收文件。
+- 新增角色表現設計：動作用途、狀態仲裁、小尺寸口型可讀性、漫畫式浮動氣泡，以及已連接 AI 的 MCP `show_message` 規劃。
+- 原 VRMA Idle 指南併入 `docs/CHARACTER_BEHAVIOR.md`，同步更新 Settings、README 與資產 manifest 連結。
+- Settings MCP 頁新增連線後的自然語言使用範例；整合文件明確分開目前 4 個工具與 v0.9 `show_message` 契約。
 
 ## 0.8.0 - 2026-08-01
 
@@ -17,7 +25,7 @@
 
 ## 0.6.0 - 2026-08-01
 
-- 路線圖重規劃：v0.1–v0.5 收斂為已完成摘要；未完成項移入 v0.6–v0.9 與 v1.0 門檻（D-24）。
+- 路線圖重規劃：v0.1–v0.5 收斂為已完成摘要；未完成項移入 v0.6–v0.9 與 v1.0 門檻。
 - 設定頁抽出 `SettingsAnimationsSection`／`SettingsVoiceSection`；`SettingsPage` 行數下降。
 - `main.cjs` 抽出 `settings-ipc.cjs`（settings IPC 註冊與測試）；`settings-store` 抽出資產驗證邊界（`settings-asset-validation`＋測試）。
 - Scene 錯誤復原抽出 `scene-error-recovery` helper 與測試；`main.cjs` 行數下降。
@@ -34,7 +42,7 @@
 
 - MCP 工具結果改為可解析 JSON（含 `status_schema_version`／`tools_schema_version`）；設定頁 MCP 狀態同步暴露 schema 版本。
 - 多 client 並發、catalog 熱更新與 handler close／重開自動化測試；`docs/INTEGRATIONS.md` 補 Streamable HTTP、重連、port 變更與故障排除。
-- 決策 D-23：批次 Release；Windows 實機驗證不阻塞 v0.3+。
+- 採批次 Release；Windows 實機驗證不阻塞其他可自動驗證的路線圖工作。
 
 ## 0.3.0 - 2026-08-01
 

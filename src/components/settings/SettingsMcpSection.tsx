@@ -144,6 +144,30 @@ export function SettingsMcpSection({
       <section className="settings-panel">
         <div className="panel-heading">
           <div>
+            <h2>{t('mcp.usageTitle')}</h2>
+            <p>{t('mcp.usageDesc')}</p>
+          </div>
+        </div>
+        <ol className="settings-steps">
+          <li>{t('mcp.usageStatus')}</li>
+          <li>{t('mcp.usageList')}</li>
+          <li>{t('mcp.usagePlay')}</li>
+          <li>{t('mcp.usageWindow')}</li>
+        </ol>
+        <p className="desktop-note">
+          <a
+            href="https://github.com/SanHsien/voxavatar/blob/main/docs/INTEGRATIONS.md"
+            rel="noreferrer"
+            target="_blank"
+          >
+            {t('mcp.usageGuide')}
+          </a>
+        </p>
+      </section>
+
+      <section className="settings-panel">
+        <div className="panel-heading">
+          <div>
             <h2>{t('mcp.toolsTitle')}</h2>
             <p>{t('mcp.toolsDesc')}</p>
           </div>

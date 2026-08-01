@@ -858,6 +858,54 @@ test("backs up unmigratable settings and falls back without blocking the store",
   assert.deepEqual(snapshot.models, []);
 });
 
+test("failed model import does not leave catalog records or asset files", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const invalidModel = path.join(root, "invalid.vrm");
+  fs.writeFileSync(invalidModel, Buffer.from("not-a-glb"));
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const beforeModels = store.getSnapshot().models.length;
+  const modelDirectory = path.join(userDataPath, "assets", "models");
+
+  assert.throws(
+    () =>
+      store.importModel({
+        filePath: invalidModel,
+        model_name: "Rejected model",
+      }),
+    /empty or invalid|glTF/,
+  );
+  assert.equal(store.getSnapshot().models.length, beforeModels);
+  assert.equal(fs.readdirSync(modelDirectory).length, 0);
+});
+
+test("addAnimationClips rolls back stored files when a later clip fails validation", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const goodClip = path.join(root, "good.vrma");
+  const badClip = path.join(root, "bad.vrma");
+  writeGlb(goodClip);
+  fs.writeFileSync(badClip, Buffer.from("not-a-glb"));
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.createAnimation({
+    animation_name: "rollback-test",
+    animation_description: "Rollback on invalid clip.",
+    animation_trigger_scenario: "Use when verifying reject-before-commit.",
+  });
+  const actionId = snapshot.animations.find(
+    (animation) => animation.animation_name === "rollback-test",
+  ).id;
+  const animationDirectory = path.join(userDataPath, "assets", "animations");
+
+  assert.throws(
+    () => store.addAnimationClips(actionId, [goodClip, badClip]),
+    /empty or invalid|glTF/,
+  );
+  const action = store
+    .getSnapshot()
+    .animations.find((candidate) => candidate.id === actionId);
+  assert.equal(action.clips.length, 0);
+  assert.equal(fs.readdirSync(animationDirectory).length, 0);
+});
+
 test("reorders uploaded clips within an action and persists the new order", (context) => {
   const { root, userDataPath, packagedLibraryPath } = fixture(context);
   const firstSource = path.join(root, "first.vrma");

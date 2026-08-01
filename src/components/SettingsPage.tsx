@@ -6,8 +6,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { Scene } from './Scene';
-import { SceneErrorBoundary } from './SceneErrorBoundary';
 import {
   type ActionPresetDefinition,
   resolveActionPreset,
@@ -22,28 +20,27 @@ import {
   resolveLightingSettings,
 } from '../settings-defaults';
 import {
-  mcpToolDescriptionKeys,
   normalizeUiLocale,
   settingsT,
 } from '../settings-i18n';
-import { SettingsModelsSection } from './settings/SettingsModelsSection';
-import { SettingsAnimationsSection } from './settings/SettingsAnimationsSection';
-import { SettingsVoiceSection } from './settings/SettingsVoiceSection';
 import {
   applyTheme,
   LIGHT_QUERY,
   readStoredTheme,
   storeTheme,
-  THEME_OPTIONS,
   type ThemePreference,
 } from '../theme';
+import { SettingsModelsSection } from './settings/SettingsModelsSection';
+import { SettingsAnimationsSection } from './settings/SettingsAnimationsSection';
+import { SettingsVoiceSection } from './settings/SettingsVoiceSection';
+import {
+  SettingsAppearanceSection,
+  type LightingNumberField,
+} from './settings/SettingsAppearanceSection';
+import { SettingsMcpSection } from './settings/SettingsMcpSection';
+import { SettingsPreviewPanel } from './settings/SettingsPreviewPanel';
 
 type SettingsSection = 'models' | 'animations' | 'appearance' | 'voice' | 'mcp';
-type LightingNumberField =
-  | 'exposure'
-  | 'environment_intensity'
-  | 'key_light_intensity'
-  | 'ambient_intensity';
 
 const LIGHTING_NUMBER_RANGES: Record<
   LightingNumberField,
@@ -1385,444 +1382,26 @@ export function SettingsPage() {
           )}
 
           {section === 'appearance' && (
-            <>
-              <section className="settings-panel theme-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('appearance.localeTitle')}</h2>
-                    <p>{t('appearance.localeDesc')}</p>
-                  </div>
-                </div>
-                <div
-                  aria-label={t('appearance.localeAria')}
-                  className="theme-segmented"
-                  role="group"
-                >
-                  {(
-                    [
-                      { id: 'zh-TW' as const, label: t('appearance.localeZh') },
-                      { id: 'en' as const, label: t('appearance.localeEn') },
-                    ] as const
-                  ).map((option) => (
-                    <button
-                      aria-pressed={(settings.ui_locale ?? 'zh-TW') === option.id}
-                      data-testid={`locale-${option.id}`}
-                      key={option.id}
-                      onClick={() => void saveUiLocale(option.id)}
-                      type="button"
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              <section className="settings-panel theme-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('appearance.themeTitle')}</h2>
-                    <p>{t('appearance.themeDesc')}</p>
-                  </div>
-                </div>
-                <div
-                  aria-label={t('appearance.themeAria')}
-                  className="theme-segmented"
-                  role="group"
-                >
-                  {THEME_OPTIONS.map((option) => (
-                    <button
-                      aria-pressed={themePreference === option.id}
-                      data-testid={`theme-${option.id}`}
-                      key={option.id}
-                      onClick={() => chooseTheme(option.id)}
-                      type="button"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="theme-swatch"
-                        data-theme-preview={option.id}
-                      />
-                      {t(`appearance.theme.${option.id}`)}
-                    </button>
-                  ))}
-                </div>
-                <p className="theme-note">{t('appearance.themeNote')}</p>
-              </section>
-
-              <section className="settings-panel appearance-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('appearance.sizeTitle')}</h2>
-                    <p>{t('appearance.sizeDesc')}</p>
-                  </div>
-                  <strong className="size-value">
-                    {Math.round(settings.character_size * 100)}%
-                  </strong>
-                </div>
-                <input
-                  aria-label={t('appearance.sizeAria')}
-                  className="size-slider"
-                  max="1.6"
-                  min="0.3"
-                  onBlur={(event) =>
-                    void saveCharacterSize(Number(event.currentTarget.value))
-                  }
-                  onChange={(event) =>
-                    previewCharacterSize(Number(event.currentTarget.value))
-                  }
-                  onKeyUp={(event) => {
-                    if (event.key.startsWith('Arrow')) {
-                      void saveCharacterSize(
-                        Number(event.currentTarget.value),
-                      );
-                    }
-                  }}
-                  onPointerUp={(event) =>
-                    void saveCharacterSize(Number(event.currentTarget.value))
-                  }
-                  step="0.05"
-                  type="range"
-                  value={settings.character_size}
-                />
-                <div className="slider-labels">
-                  <span>{t('appearance.sizeMin')}</span>
-                  <span>{t('appearance.sizeDefault')}</span>
-                  <span>{t('appearance.sizeMax')}</span>
-                </div>
-              </section>
-
-              <section className="settings-panel appearance-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('appearance.idleRestTitle')}</h2>
-                    <p>{t('appearance.idleRestDesc')}</p>
-                  </div>
-                  <strong className="size-value">
-                    {t('appearance.idleRestValue', {
-                      seconds: Math.round((settings.idle_rest_ms ?? 8000) / 1000),
-                    })}
-                  </strong>
-                </div>
-                <input
-                  aria-label={t('appearance.idleRestAria')}
-                  className="size-slider"
-                  max="60"
-                  min="2"
-                  onBlur={(event) =>
-                    void saveIdleRestMs(Number(event.currentTarget.value) * 1000)
-                  }
-                  onChange={(event) =>
-                    previewIdleRestMs(Number(event.currentTarget.value) * 1000)
-                  }
-                  onKeyUp={(event) => {
-                    if (event.key.startsWith('Arrow')) {
-                      void saveIdleRestMs(
-                        Number(event.currentTarget.value) * 1000,
-                      );
-                    }
-                  }}
-                  onPointerUp={(event) =>
-                    void saveIdleRestMs(Number(event.currentTarget.value) * 1000)
-                  }
-                  step="1"
-                  type="range"
-                  value={Math.round((settings.idle_rest_ms ?? 8000) / 1000)}
-                />
-                <div className="slider-labels">
-                  <span>{t('appearance.idleRestMin')}</span>
-                  <span>{t('appearance.idleRestMax')}</span>
-                </div>
-              </section>
-
-              <section className="settings-panel lighting-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('appearance.lightingTitle')}</h2>
-                    <p>{t('appearance.lightingDesc')}</p>
-                  </div>
-                  <button
-                    className="lighting-reset-button"
-                    disabled={busy || !bridge || !selectedModel}
-                    onClick={() => void resetLighting()}
-                    type="button"
-                  >
-                    {t('appearance.lightingReset')}
-                  </button>
-                </div>
-
-                <div className="lighting-select-row">
-                  <span>{t('appearance.toneMapping')}</span>
-                  <select
-                    disabled={busy || !bridge || !selectedModel}
-                    onChange={(e) => {
-                      const value = e.currentTarget.value as
-                        | 'none'
-                        | 'aces';
-                      previewLightingField('tone_mapping', value);
-                      void saveLightingField('tone_mapping', value);
-                    }}
-                    value={previewLighting.tone_mapping}
-                  >
-                    <option value="none">{t('appearance.toneNone')}</option>
-                    <option value="aces">{t('appearance.toneAces')}</option>
-                  </select>
-                </div>
-
-                <div className="lighting-toggle-row">
-                  <span>{t('appearance.hdrEnvironment')}</span>
-                  <button
-                    aria-checked={previewLighting.environment_enabled}
-                    className={`toggle-switch${previewLighting.environment_enabled ? ' active' : ''}`}
-                    disabled={busy || !bridge || !selectedModel}
-                    onClick={() => {
-                      const next = !previewLighting.environment_enabled;
-                      previewLightingField('environment_enabled', next);
-                      void saveLightingField('environment_enabled', next);
-                    }}
-                    role="switch"
-                    type="button"
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>{t('appearance.envIntensity')}</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="2"
-                      min="0"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'environment_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'environment_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'environment_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.environment_intensity}
-                    />
-                    <div className="slider-labels">
-                      <span>0.00</span>
-                      <span>1.00</span>
-                      <span>2.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="2"
-                    min="0"
-                    onBlur={(event) =>
-                      saveLightingNumber(
-                        'environment_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber(
-                        'environment_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.environment_intensity}
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>{t('appearance.keyIntensity')}</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="4"
-                      min="0"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'key_light_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'key_light_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'key_light_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.key_light_intensity}
-                    />
-                    <div className="slider-labels">
-                      <span>0.00</span>
-                      <span>{Math.PI.toFixed(2)}</span>
-                      <span>4.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="4"
-                    min="0"
-                    onBlur={(event) =>
-                      saveLightingNumber(
-                        'key_light_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber(
-                        'key_light_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.key_light_intensity}
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>{t('appearance.ambientIntensity')}</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="4"
-                      min="0"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'ambient_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'ambient_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'ambient_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.ambient_intensity}
-                    />
-                    <div className="slider-labels">
-                      <span>0.00</span>
-                      <span>{Math.PI.toFixed(2)}</span>
-                      <span>4.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="4"
-                    min="0"
-                    onBlur={(event) =>
-                      saveLightingNumber(
-                        'ambient_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber(
-                        'ambient_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.ambient_intensity}
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>{t('appearance.exposure')}</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="3"
-                      min="0.1"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'exposure',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'exposure',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'exposure',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.exposure}
-                    />
-                    <div className="slider-labels">
-                      <span>0.10</span>
-                      <span>1.00</span>
-                      <span>3.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="3"
-                    min="0.1"
-                    onBlur={(event) =>
-                      saveLightingNumber('exposure', event.currentTarget)
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber('exposure', event.currentTarget)
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.exposure}
-                  />
-                </div>
-              </section>
-            </>
+            <SettingsAppearanceSection
+              bridge={bridge}
+              busy={busy}
+              chooseTheme={chooseTheme}
+              previewCharacterSize={previewCharacterSize}
+              previewIdleRestMs={previewIdleRestMs}
+              previewLighting={previewLighting}
+              previewLightingField={previewLightingField}
+              previewLightingNumber={previewLightingNumber}
+              resetLighting={resetLighting}
+              saveCharacterSize={saveCharacterSize}
+              saveIdleRestMs={saveIdleRestMs}
+              saveLightingField={saveLightingField}
+              saveLightingNumber={saveLightingNumber}
+              saveUiLocale={saveUiLocale}
+              selectedModel={selectedModel}
+              settings={settings}
+              t={t}
+              themePreference={themePreference}
+            />
           )}
 
           {section === 'voice' && (
@@ -1853,264 +1432,43 @@ export function SettingsPage() {
             />
           )}
 
-         {section === 'mcp' && (
-            <>
-              <section className="settings-panel mcp-overview-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('mcp.serverTitle')}</h2>
-                    <p>{t('mcp.serverDesc')}</p>
-                  </div>
-                  <span className={`mcp-health-badge ${mcpHealth}`}>
-                    <i aria-hidden="true" />
-                    {mcpHealth === 'online'
-                      ? t('common.online')
-                      : mcpHealth === 'starting'
-                        ? t('common.starting')
-                        : t('common.unavailable')}
-                  </span>
-                </div>
-
-                <div className="mcp-status-grid">
-                  <article>
-                    <span>{t('mcp.health')}</span>
-                    <strong>
-                      {mcpHealth === 'online'
-                        ? t('common.ready')
-                        : mcpHealth === 'starting'
-                          ? t('common.starting')
-                          : t('common.notRunning')}
-                    </strong>
-                    <small>
-                      {mcpStatus?.checked_at
-                        ? t('mcp.checkedAt', {
-                            time: new Date(
-                              mcpStatus.checked_at,
-                            ).toLocaleTimeString(),
-                          })
-                        : t('mcp.waitingBridge')}
-                    </small>
-                  </article>
-                  <article>
-                    <span>{t('mcp.transport')}</span>
-                    <strong>
-                      {mcpStatus?.transport ?? t('mcp.transportDefault')}
-                    </strong>
-                    <small>{t('mcp.transportDesc')}</small>
-                  </article>
-                  <article>
-                    <span>{t('mcp.access')}</span>
-                    <strong>
-                      {mcpStatus?.local_only === false
-                        ? t('mcp.accessNetwork')
-                        : t('mcp.accessLocal')}
-                    </strong>
-                    <small>{t('mcp.accessBound')}</small>
-                  </article>
-                  <article>
-                    <span>{t('mcp.version')}</span>
-                    <strong>v{mcpStatus?.version ?? '—'}</strong>
-                    <small>{t('mcp.versionDesc')}</small>
-                  </article>
-                </div>
-
-                {mcpStatus?.error && (
-                  <p className="mcp-error-message" role="alert">
-                    {mcpStatus.error}
-                  </p>
-                )}
-              </section>
-
-              <section className="settings-panel mcp-endpoint-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('mcp.endpointTitle')}</h2>
-                    <p>{t('mcp.endpointDesc')}</p>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    disabled={mcpLoading}
-                    onClick={() => void refreshMcpStatus()}
-                    type="button"
-                  >
-                    {mcpLoading ? t('common.checking') : t('mcp.checkHealth')}
-                  </button>
-                </div>
-
-                <div className="mcp-copy-field">
-                  <div>
-                    <span>{t('mcp.serverUrl')}</span>
-                    <code>{mcpServerUrl}</code>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    onClick={() =>
-                      void copyText(mcpServerUrl, t('mcp.serverUrl'))
-                    }
-                    type="button"
-                  >
-                    {t('common.copy')}
-                  </button>
-                </div>
-
-                <div className="mcp-copy-field">
-                  <div>
-                    <span>{t('mcp.setupCommand')}</span>
-                    <code>{mcpSetupCommand}</code>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    onClick={() =>
-                      void copyText(
-                        mcpSetupCommand,
-                        t('mcp.setupCommandLabel'),
-                      )
-                    }
-                    type="button"
-                  >
-                    {t('common.copy')}
-                  </button>
-                </div>
-
-                <p className="desktop-note">{t('mcp.portNote')}</p>
-              </section>
-
-              <section className="settings-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('mcp.toolsTitle')}</h2>
-                    <p>{t('mcp.toolsDesc')}</p>
-                  </div>
-                  <span className="file-pill">
-                    {t('mcp.toolsCount', {
-                      count: mcpStatus?.tools.length ?? 4,
-                    })}
-                  </span>
-                </div>
-                <div className="mcp-tool-list">
-                  {(mcpStatus?.tools ?? mcpToolDescriptionKeys()).map(
-                    (tool) => (
-                      <article key={tool}>
-                        <code>{tool}</code>
-                        <p>
-                          {(() => {
-                            const key = `mcp.tools.${tool}`;
-                            const text = t(key);
-                            return text === key
-                              ? t('mcp.tools.fallback')
-                              : text;
-                          })()}
-                        </p>
-                      </article>
-                    ),
-                  )}
-                </div>
-              </section>
-
-              <section className="settings-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>{t('mcp.actionsTitle')}</h2>
-                    <p>{t('mcp.actionsDesc')}</p>
-                  </div>
-                  <span className="file-pill">
-                    {t('mcp.actionsActive', {
-                      count: mcpStatus?.playable_actions.length ?? 0,
-                    })}
-                  </span>
-                </div>
-                {mcpStatus && mcpStatus.playable_actions.length > 0 ? (
-                  <div className="mcp-action-list">
-                    {mcpStatus.playable_actions.map((action) => (
-                      <code key={action}>{action}</code>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="empty-library">
-                    <strong>{t('mcp.noActionsTitle')}</strong>
-                    <p>{t('mcp.noActionsDesc')}</p>
-                  </div>
-                )}
-                <p className="mcp-session-note">{t('mcp.sessionNote')}</p>
-              </section>
-            </>
+          {section === 'mcp' && (
+            <SettingsMcpSection
+              copyText={copyText}
+              mcpHealth={mcpHealth}
+              mcpLoading={mcpLoading}
+              mcpServerUrl={mcpServerUrl}
+              mcpSetupCommand={mcpSetupCommand}
+              mcpStatus={mcpStatus}
+              refreshMcpStatus={refreshMcpStatus}
+              t={t}
+            />
           )}
         </div>
       </section>
 
-      <aside className="settings-preview">
-        <button
-          aria-expanded={!previewCollapsed}
-          aria-label={
-            previewCollapsed
-              ? t('preview.expandAria')
-              : t('preview.collapseAria')
-          }
-          className="settings-preview-toggle"
-          onClick={() => setPreviewCollapsed((collapsed) => !collapsed)}
-          title={
-            previewCollapsed ? t('preview.expand') : t('preview.collapse')
-          }
-          type="button"
-        >
-          <span aria-hidden="true">{previewCollapsed ? '‹' : '›'}</span>
-        </button>
-
-        {!previewCollapsed && (
-          <>
-            <div className="preview-header">
-              <div>
-                <span className="eyebrow">{t('preview.live')}</span>
-                <strong>{selectedModel?.model_name ?? 'VoxAvatar'}</strong>
-              </div>
-              <span className="preview-live">
-                <i />
-                {t('preview.liveBadge')}
-              </span>
-            </div>
-            <div className="preview-stage" data-testid="settings-preview">
-              {selectedModel && (
-                <SceneErrorBoundary
-                  fallback={(
-                    <div className="preview-load-error" role="alert">
-                      <strong>{t('preview.loadError')}</strong>
-                      <p>{t('preview.loadErrorHint')}</p>
-                    </div>
-                  )}
-                  resetKey={selectedModel.id}
-                >
-                  <Scene
-                    animation={previewType}
-                    animationRequest={previewRequest}
-                    animationUrls={previewAnimationUrls}
-                    audioLevel={0}
-                    characterSize={settings.character_size}
-                    lighting={previewLighting}
-                    enablePan={false}
-                    framingMargin={1.22}
-                    groundShadow
-                    modelUrl={selectedModel.asset_url}
-                    onAnimationComplete={() => {
-                      setPreviewAnimation(null);
-                      setPreviewClipId(null);
-                    }}
-                    playback={previewClip ? 'once' : 'loop'}
-                    speaking={false}
-                  />
-                </SceneErrorBoundary>
-              )}
-              <div className="preview-hint">{t('preview.hint')}</div>
-            </div>
-            <div className="preview-now-playing">
-              <span>{t('preview.nowPlaying')}</span>
-              <strong>{previewTitle}</strong>
-              {previewAnimation && (
-                <small>{previewAnimation.animation_description}</small>
-              )}
-            </div>
-          </>
-        )}
-      </aside>
+      <SettingsPreviewPanel
+        characterSize={settings.character_size}
+        modelId={selectedModel?.id}
+        modelName={selectedModel?.model_name ?? 'VoxAvatar'}
+        modelUrl={selectedModel?.asset_url}
+        onAnimationComplete={() => {
+          setPreviewAnimation(null);
+          setPreviewClipId(null);
+        }}
+        onToggleCollapsed={() =>
+          setPreviewCollapsed((collapsed) => !collapsed)
+        }
+        playback={previewClip ? 'once' : 'loop'}
+        previewAnimationUrls={previewAnimationUrls}
+        previewCollapsed={previewCollapsed}
+        previewDescription={previewAnimation?.animation_description ?? null}
+        previewLighting={previewLighting}
+        previewRequest={previewRequest}
+        previewTitle={previewTitle}
+        previewType={previewType}
+        t={t}
+      />
 
       {confirmation && (
         <div

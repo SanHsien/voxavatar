@@ -120,9 +120,9 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-GitHub Latest Release 為 **`v0.5.0`**；`main` 正推進 **v0.6**（Settings／main／store 再拆、scene-error-recovery 測試、路線圖 v0.6–v0.9 分軌）。Windows 實機證據與 installer 簽署收在 v0.9 軌道，**不阻塞** v0.6–v0.8（D-23、D-24）。
+GitHub Latest Release 為 **`v0.5.0`**；`main` 已累積至 **`0.8.0`**（v0.6 模組收斂、v0.7 效能基準與設定再拆、v0.8 合成相容矩陣；尚未批次 tag／Release）。Windows 實機證據與 installer 簽署收在 v0.9 軌道，**不阻塞** v0.6–v0.8（D-23、D-24）。
 
-版本里程碑（已完成 v0.1–v0.5 摘要與後續 v0.6–v1.0 分軌）、完成條件、風險與明確不做的範圍見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與仍需實機驗證的項目見 [`REVIEW.md`](REVIEW.md)。
+版本里程碑（已完成 v0.1–v0.8 摘要與後續 v0.9–v1.0）、完成條件、風險與明確不做的範圍見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與仍需實機驗證的項目見 [`REVIEW.md`](REVIEW.md)。
 
 ## 從原始碼執行
 
@@ -166,7 +166,7 @@ docs/            開發、整合、路線圖決策與發行文件
 | [`REVIEW.md`](REVIEW.md) | 最新一次專案 review 與未解驗證缺口 |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | 架構、目錄、工具鏈與驗證矩陣 |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP、HTTP 事件 API 與 URL protocol |
-| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM／VRMA 相容矩陣骨架與 synthetic fixture |
+| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM／VRMA 相容矩陣、合成 fixture 與 Exporter 備註 |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | 版本、GitHub Actions、資產與發布後驗證 |
 | [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | 安裝、桌面、語音、MCP 與簽章實機驗收 |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | fork、隱私、授權與維護決策 |

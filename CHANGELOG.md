@@ -2,6 +2,18 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，Release／tag 依批次政策累積後一次發布（見 D-23）。
 
+## 0.8.0 - 2026-08-01
+
+- 擴充合成 VRM／VRMA 相容矩陣：無 mesh／稀疏骨骼／無貼圖／無表情、過短／無動畫／loop seam 等案例，並掛到品質測試與 `manifest.json`。
+- 公開文件補 Exporter 備註（VRoid／UniVRM／Blender）；真實廠商樣本仍標 `pending-human-sample`。
+- `settings-store` 補強匯入失敗不留下半完成 catalog 的回歸測試。
+
+## 0.7.0 - 2026-08-01
+
+- `baseline:bundle` 支援歷史對照與門檻建議（`comparison`／`guidance`）；文件化於 `docs/DEVELOPMENT.md`。
+- 新增 `baseline:startup`（main process 關鍵模組 `require()` 計時）；真機 cold-start／Idle／記憶體仍屬 v0.9。
+- 設定頁再拆 `SettingsAppearanceSection`／`SettingsMcpSection`／`SettingsPreviewPanel`；Settings 仍為 lazy chunk。
+
 ## 0.6.0 - 2026-08-01
 
 - 路線圖重規劃：v0.1–v0.5 收斂為已完成摘要；未完成項移入 v0.6–v0.9 與 v1.0 門檻（D-24）。

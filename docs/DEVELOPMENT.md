@@ -67,8 +67,37 @@ npm run dist:windows
 | `npm run build` | TypeScript + Vite production build |
 | `npm run native:build` | 編譯 Windows helper |
 | `npm run native:test` | helper self-test |
+| `npm run baseline:bundle` | 產生／對照 renderer bundle 基準（可選） |
+| `npm run baseline:startup` | 量測 main process 關鍵模組 require 耗時（可選） |
 | `npm run check` | 非原生的完整日常 gate |
 | `npm run dist:windows` | 原生 build／test + NSIS 安裝包 |
+
+## 效能基準（本地）
+
+以下腳本輸出至 gitignore 的 `release/`，供回歸對照；不等同於已填寫的 Windows 實機證據。
+
+### Bundle 基準
+
+```powershell
+npm run baseline:bundle
+```
+
+產生 `release/bundle-baseline.json`（main chunk、SettingsPage chunk、JS/CSS 總量）。若要與前次結果比較：
+
+1. 將目前的 `release/bundle-baseline.json` 複製為 `release/bundle-baseline.prev.json`
+2. 修改程式或設定後再執行一次 `npm run baseline:bundle`
+
+腳本會自動讀取 `release/bundle-baseline.prev.json`（或 `--compare <path>`），在 JSON 的 `comparison` 與 `guidance` 欄位輸出位元組增減與門檻建議（例如 main chunk 成長 >10% 且 SettingsPage 未相應縮小時提示 review）。
+
+### 啟動基準（Node 軟體層）
+
+```powershell
+npm run baseline:startup
+```
+
+產生 `release/startup-baseline.json`，量測 main process 關鍵模組的 `require()` 耗時（settings-store、mcp-schemas、directory-import、app-readiness）。預設不包含 `npm run build`；需要時加 `--include-build`。
+
+**注意：** 此腳本不含 Electron GUI 冷啟動、Idle 長駐或記憶體量測；真機 cold-start／Idle／memory 基準規劃於 **v0.9 Windows** 驗證階段完成。
 
 ## 設定與環境變數
 

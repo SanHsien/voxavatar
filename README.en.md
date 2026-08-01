@@ -115,9 +115,9 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-The GitHub Latest Release is **`v0.5.0`**; `main` is advancing **v0.6** (further Settings/main/store splits, scene-error-recovery tests, and the v0.6–v0.9 roadmap tracks). Windows smoke evidence and installer signing sit in the v0.9 track and do **not** block v0.6–v0.8 (D-23, D-24).
+The GitHub Latest Release is **`v0.5.0`**; `main` has accumulated **`0.8.0`** (v0.6 module convergence, v0.7 performance baselines and settings splits, v0.8 synthetic compatibility matrix; not yet batch-tagged/Released). Windows smoke evidence and installer signing sit in the v0.9 track and do **not** block v0.6–v0.8 (D-23, D-24).
 
-See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones (completed v0.1–v0.5 summary plus v0.6–v1.0 tracks), completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
+See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones (completed v0.1–v0.8 summary plus v0.9–v1.0), completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 
 ## Run from source
 
@@ -161,7 +161,7 @@ docs/            Development, integration, decisions, and release docs
 | [`REVIEW.md`](REVIEW.md) | Latest repository review and open validation gaps (Traditional Chinese) |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Architecture, directories, toolchain, and validation matrix |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP, HTTP event API, and URL protocol |
-| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM/VRMA compatibility matrix skeleton and synthetic fixtures |
+| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM/VRMA compatibility matrix, synthetic fixtures, and exporter notes |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | Versioning, GitHub Actions, assets, and post-release verification |
 | [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Real-machine installer, desktop, audio, MCP, and signing checks (Traditional Chinese) |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Fork, privacy, licensing, and maintenance decisions |

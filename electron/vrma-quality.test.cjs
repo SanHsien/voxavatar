@@ -59,6 +59,52 @@ test("velocity spike VRMA is marked review or reject", (context) => {
   );
 });
 
+test("too-short VRMA clip is marked review or reject", (context) => {
+  const { filePath } = writeTempVrma(
+    context,
+    buildRotationVrma({ duration: 0.25, frames: 6 }),
+    "too-short.vrma",
+  );
+  const report = analyzeVrmaFile(filePath);
+  assert.ok(report.issues.some((issue) => issue.code === "too_short"));
+  assert.ok(
+    report.verdict === VERDICT.REVIEW || report.verdict === VERDICT.REJECT,
+  );
+  assert.ok(report.metrics.durationSec < 0.4);
+});
+
+test("VRMA without animation tracks is rejected", (context) => {
+  const { filePath } = writeTempVrma(
+    context,
+    buildRotationVrma({ includeAnimation: false }),
+    "no-animation.vrma",
+  );
+  const report = analyzeVrmaFile(filePath);
+  assert.equal(report.verdict, VERDICT.REJECT);
+  assert.ok(report.issues.some((issue) => issue.code === "no_animation"));
+  assert.equal(report.metrics.animationCount, 0);
+});
+
+test("loop seam VRMA is marked review or reject", (context) => {
+  const { filePath } = writeTempVrma(
+    context,
+    buildRotationVrma({ loopSeam: true, angle: 0.2, loopSeamDelta: 0.35 }),
+    "loop-seam.vrma",
+  );
+  const report = analyzeVrmaFile(filePath);
+  assert.ok(
+    report.issues.some((issue) => issue.code.startsWith("loop_seam")),
+  );
+  assert.ok(
+    !report.issues.some((issue) => issue.code === "velocity_spike"),
+    "loop seam case must not reuse mid-clip velocity_spike failure mode",
+  );
+  assert.ok(
+    report.verdict === VERDICT.REVIEW || report.verdict === VERDICT.REJECT,
+  );
+  assert.ok(report.metrics.loopSeamMaxRad > 0.25);
+});
+
 test("broken file is rejected", (context) => {
   const { filePath } = writeTempVrma(context, Buffer.from("not-a-glb"), "bad.vrma");
   const report = analyzeVrmaFile(filePath);

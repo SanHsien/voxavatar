@@ -73,6 +73,62 @@ test("missing humanoid is review or reject", (context) => {
   assert.ok(report.issues.some((issue) => issue.code === "missing_humanoid"));
 });
 
+test("VRM without meshes is rejected", (context) => {
+  const { filePath } = writeTempVrm(
+    context,
+    buildVrmGlb({ includeMesh: false }),
+    "no-mesh.vrm",
+  );
+  const report = analyzeVrmFile(filePath);
+  assert.equal(report.verdict, VERDICT.REJECT);
+  assert.ok(report.issues.some((issue) => issue.code === "no_meshes"));
+  assert.equal(report.metrics.meshCount, 0);
+});
+
+test("sparse humanoid bone coverage is marked review", (context) => {
+  const { filePath } = writeTempVrm(
+    context,
+    buildVrmGlb({ sparseHumanoidBones: true }),
+    "sparse-humanoid.vrm",
+  );
+  const report = analyzeVrmFile(filePath);
+  assert.equal(report.verdict, VERDICT.REVIEW);
+  assert.ok(
+    report.issues.some((issue) => issue.code === "low_bone_coverage"),
+  );
+  assert.ok(report.metrics.humanoidBoneCount <= 4);
+});
+
+test("VRM without textures is flagged", (context) => {
+  const { filePath } = writeTempVrm(
+    context,
+    buildVrmGlb({ includeTextures: false }),
+    "no-textures.vrm",
+  );
+  const report = analyzeVrmFile(filePath);
+  assert.ok(
+    report.verdict === VERDICT.KEEP || report.verdict === VERDICT.REVIEW,
+  );
+  assert.ok(report.issues.some((issue) => issue.code === "no_textures"));
+  assert.equal(report.metrics.textureCount, 0);
+});
+
+test("VRM without expressions is flagged", (context) => {
+  const { filePath } = writeTempVrm(
+    context,
+    buildVrmGlb({ includeExpressions: false }),
+    "no-expressions.vrm",
+  );
+  const report = analyzeVrmFile(filePath);
+  assert.ok(
+    report.verdict === VERDICT.KEEP || report.verdict === VERDICT.REVIEW,
+  );
+  assert.ok(
+    report.issues.some((issue) => issue.code === "missing_expressions"),
+  );
+  assert.equal(report.metrics.hasExpressions, false);
+});
+
 test("broken file is rejected", (context) => {
   const { filePath } = writeTempVrm(context, Buffer.from("not-a-glb"), "bad.vrm");
   const report = analyzeVrmFile(filePath);

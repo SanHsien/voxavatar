@@ -4,7 +4,7 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.6.0` (accumulated on `main`; Latest Release is `v0.5.0`—see D-23).
+Planning baseline: `v0.8.0` (accumulated on `main`; Latest Release is `v0.5.0`—see D-23).
 
 This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done; `-` means not done.
 
@@ -60,6 +60,9 @@ SemVer pace: capability or security-boundary hardening ships as a **minor**; use
 | v0.3.x | Import confirmation, schema 4/5→6 fixtures, clip ordering, report navigation |
 | v0.4.x | MCP JSON schema, integration docs, multi-client tests |
 | v0.5.x | Migration/sanitize/renderer-windows/SettingsModels split start, bundle baseline, matrix skeleton |
+| v0.6.x | SettingsAnimations/Voice, settings-ipc/asset-validation, scene-error-recovery, roadmap tracks |
+| v0.7.x | Bundle compare/guidance, startup baseline, Appearance/MCP/Preview splits |
+| v0.8.x | Expanded synthetic matrix, exporter notes, import-failure catalog safety |
 
 Historical detail is in [`CHANGELOG.md`](CHANGELOG.md). The sections below list only **unfinished** and **newly planned** work.
 
@@ -71,7 +74,7 @@ Goal: keep splitting large files so common settings/IPC changes do not require t
 
 ### Work
 
-- [x] Continue splitting `SettingsPage` sections: `SettingsAnimationsSection`, `SettingsVoiceSection` (appearance/mcp/preview can still split further).
+- [x] Continue splitting `SettingsPage` sections: `SettingsAnimationsSection`, `SettingsVoiceSection` (appearance/mcp/preview continued in v0.7).
 - [x] Extract settings IPC registration from `main.cjs` into `settings-ipc.cjs` (overlay lifecycle can still split further).
 - [x] Extract `settings-asset-validation.cjs`; store CRUD boundaries can keep converging.
 - [x] Add Scene/preview error-recovery pure-function tests (`scene-error-recovery`); jsdom App integration and protocol/tray desktop smoke remain later/v0.9.
@@ -89,15 +92,15 @@ Goal: use repeatable data to guide bundle splits and deferred loading—not bund
 
 ### Work
 
-- Extend `baseline:bundle`: record historical comparisons and threshold guidance (documented, not telemetry).
-- Further split non-first-frame code (quality-report views, heavier settings sub-pages).
-- Software-side timing scripts for cold start, first avatar display, and large libraries (as much as can run without a desktop; real-machine memory belongs in v0.9).
-- Repeatable local baseline notes for long idle runs and model switching.
+- [x] Extend `baseline:bundle`: record historical comparisons and threshold guidance (documented, not telemetry).
+- [x] Further split non-first-frame code (`SettingsAppearanceSection` / `SettingsMcpSection` / `SettingsPreviewPanel`; heavier quality-report views can still split later).
+- [x] Software-side timing scripts (`baseline:startup` Node `require()` timing; real-machine memory belongs in v0.9).
+- Repeatable local baseline notes for long idle runs and model switching (real machine in v0.9; docs already mark the boundary).
 
 ### Completion criteria
 
-- At least two comparable bundle/startup baseline recording methods are documented in development docs.
-- After non-first-frame splits, the overlay first-frame chunk does not regress to pre-split levels (per `baseline:bundle`).
+- [x] At least two comparable bundle/startup baseline recording methods are documented in development docs.
+- [x] After non-first-frame splits, the overlay first-frame chunk does not regress to pre-split levels (per `baseline:bundle`; SettingsPage remains a lazy chunk).
 
 ## v0.8.x: asset exporter compatibility matrix
 
@@ -105,15 +108,15 @@ Goal: expand the synthetic matrix into maintainable public compatibility documen
 
 ### Work
 
-- Extend [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md): mark common exporters/versions and known limits from public information.
-- Add synthetic cases (skeleton coverage, expressions, missing textures, motion spikes, etc.) and wire them to automated tests.
-- Keep import failure/skip paths from breaking the existing library (regression tests).
+- [x] Extend [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md): mark common exporters/versions and known limits from public information.
+- [x] Add synthetic cases (skeleton coverage, expressions, missing textures, motion spikes/short/no-animation/loop seam, etc.) and wire them to automated tests.
+- [x] Keep import failure/skip paths from breaking the existing library (regression tests).
 - Real vendor-file manual evidence may follow when lawful samples are available; it does **not** block this series' docs and synthetic tests.
 
 ### Completion criteria
 
-- The public matrix covers main failure modes, and each case maps to an automated test or an explicit "manual pending" marker.
-- Incompatible imports do not leave half-finished catalog records.
+- [x] The public matrix covers main failure modes, and each case maps to an automated test or an explicit "manual pending" marker.
+- [x] Incompatible imports do not leave half-finished catalog records.
 
 ## v0.9.x: Windows real-machine/signing/native track
 
@@ -192,6 +195,6 @@ VoxAvatar will not add telemetry. Metrics come from automated tests, benchmarks,
 
 ## Next three actions
 
-1. [x] **Finish this v0.6 slice:** further Settings/IPC/asset-validation splits, error-recovery tests, and roadmap replan.
-2. **Advance v0.7 / v0.8:** deepen bundle/startup baselines and expand the exporter compatibility matrix.
-3. **Open v0.9 only with Windows/secrets:** smoke evidence, signing, native capture; until then do not idle-spin Releases.
+1. [x] **Finish v0.6:** further Settings/IPC/asset-validation splits, error-recovery tests, and roadmap replan.
+2. [x] **Finish this v0.7 / v0.8 slice:** deepen bundle/startup baselines, further settings splits, expand synthetic matrix and exporter notes.
+3. **Open v0.9 only with Windows/secrets:** smoke evidence, signing, native capture; until then do not idle-spin Releases. Remaining Linux-CI work: overlay lifecycle extraction, settings-store CRUD boundaries, App jsdom integration tests.

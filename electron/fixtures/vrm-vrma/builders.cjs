@@ -30,15 +30,17 @@ function buildVrmGlb({
   includeHumanoid = true,
   includeMesh = true,
   includeExpressions = true,
+  includeTextures = true,
   triangleVertices = 30,
   vrm0ArrayHumanoid = false,
+  sparseHumanoidBones = false,
 } = {}) {
   const positions = [];
   for (let i = 0; i < triangleVertices; i += 1) {
     positions.push(i * 0.01, (i % 3) * 0.02, 0);
   }
   const binary = Buffer.from(new Float32Array(positions).buffer);
-  const humanBoneEntries = [
+  const fullHumanBoneEntries = [
     ["hips", 0],
     ["spine", 1],
     ["chest", 2],
@@ -53,6 +55,13 @@ function buildVrmGlb({
     ["leftUpperLeg", 0],
     ["rightUpperLeg", 0],
   ];
+  const humanBoneEntries = sparseHumanoidBones
+    ? [
+        ["hips", 0],
+        ["spine", 1],
+        ["head", 4],
+      ]
+    : fullHumanBoneEntries;
 
   const extensions = {};
   const extensionsUsed = [];
@@ -132,8 +141,12 @@ function buildVrmGlb({
             ],
             buffers: [{ byteLength: binary.length }],
             materials: [{ name: "skin" }],
-            textures: [{ source: 0 }],
-            images: [{ mimeType: "image/png" }],
+            ...(includeTextures
+              ? {
+                  textures: [{ source: 0 }],
+                  images: [{ mimeType: "image/png" }],
+                }
+              : {}),
           }
         : {
             buffers: [{ byteLength: binary.length }],
@@ -155,7 +168,9 @@ function buildRotationVrma({
   angle = 0.2,
   spike = false,
   loopSeam = false,
+  loopSeamDelta = 0.35,
   includeHumanoid = true,
+  includeAnimation = true,
   multiBone = true,
 } = {}) {
   const times = [];
@@ -200,7 +215,7 @@ function buildRotationVrma({
         localAngle = 2.8;
       }
       if (loopSeam && bone.name === "head" && i === frames - 1) {
-        localAngle = angle + 1.2;
+        localAngle = angle + loopSeamDelta;
       }
       const q = quatFromAxisAngle([0, 1, 0], localAngle);
       rotations.push(q[0], q[1], q[2], q[3]);
@@ -268,7 +283,9 @@ function buildRotationVrma({
         { name: "leftUpperArm" },
         { name: "rightUpperArm" },
       ],
-      animations: [{ name: "clip", samplers, channels }],
+      ...(includeAnimation
+        ? { animations: [{ name: "clip", samplers, channels }] }
+        : {}),
       accessors,
       bufferViews,
       buffers: [{ byteLength: binary.length }],

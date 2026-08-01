@@ -46,6 +46,42 @@
       "tests": ["missing humanoid is review or reject"]
     },
     {
+      "id": "vrm-no-mesh",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeMesh": false },
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["no_meshes"],
+      "tests": ["VRM without meshes is rejected"]
+    },
+    {
+      "id": "vrm-sparse-humanoid",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "sparseHumanoidBones": true },
+      "expectedVerdict": ["review"],
+      "expectedIssueCodes": ["low_bone_coverage"],
+      "tests": ["sparse humanoid bone coverage is marked review"]
+    },
+    {
+      "id": "vrm-no-textures",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeTextures": false },
+      "expectedVerdict": ["keep", "review"],
+      "expectedIssueCodes": ["no_textures"],
+      "tests": ["VRM without textures is flagged"]
+    },
+    {
+      "id": "vrm-no-expressions",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeExpressions": false },
+      "expectedVerdict": ["keep", "review"],
+      "expectedIssueCodes": ["missing_expressions"],
+      "tests": ["VRM without expressions is flagged"]
+    },
+    {
       "id": "vrm-broken",
       "kind": "vrm",
       "builder": null,
@@ -73,6 +109,38 @@
       "expectedVerdict": ["review", "reject"],
       "expectedIssueCodePrefix": "velocity",
       "tests": ["velocity spike VRMA is marked review or reject"]
+    },
+    {
+      "id": "vrma-too-short",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "duration": 0.25, "frames": 6 },
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodes": ["too_short"],
+      "tests": ["too-short VRMA clip is marked review or reject"]
+    },
+    {
+      "id": "vrma-no-animation",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "includeAnimation": false },
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["no_animation"],
+      "tests": ["VRMA without animation tracks is rejected"]
+    },
+    {
+      "id": "vrma-loop-seam",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": {
+        "loopSeam": true,
+        "angle": 0.2,
+        "loopSeamDelta": 0.35
+      },
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodePrefix": "loop_seam",
+      "mustNotIncludeIssueCodes": ["velocity_spike"],
+      "tests": ["loop seam VRMA is marked review or reject"]
     },
     {
       "id": "vrma-broken",

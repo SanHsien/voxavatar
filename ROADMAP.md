@@ -4,7 +4,7 @@
 
 更新日期：2026-08-01
 
-規劃基準：`v0.6.0`（`main` 累積；Latest Release 為 `v0.5.0`，見 D-23）
+規劃基準：`v0.8.0`（`main` 累積；Latest Release 為 `v0.5.0`，見 D-23）
 
 這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成，`-` 表示尚未完成。
 
@@ -60,6 +60,9 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**；純修補才用
 | v0.3.x | 匯入確認、schema 4／5→6 fixtures、片段排序、報告導覽 |
 | v0.4.x | MCP JSON schema、整合文件、多 client 測試 |
 | v0.5.x | migration／sanitize／renderer-windows／SettingsModels 拆分起步、bundle 基準、矩陣骨架 |
+| v0.6.x | SettingsAnimations／Voice、settings-ipc／asset-validation、scene-error-recovery、路線圖分軌 |
+| v0.7.x | bundle 對照／guidance、startup 基準、Appearance／MCP／Preview 拆分 |
+| v0.8.x | 合成相容矩陣擴充、Exporter 備註、匯入失敗不污染 catalog |
 
 歷史細項見 [`CHANGELOG.md`](CHANGELOG.md)。下列各節只列**未完成**與**新規劃**工作。
 
@@ -71,7 +74,7 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**；純修補才用
 
 ### 工作
 
-- [x] 繼續拆分 `SettingsPage` section：`SettingsAnimationsSection`、`SettingsVoiceSection`（appearance／mcp／preview 仍可再拆）。
+- [x] 繼續拆分 `SettingsPage` section：`SettingsAnimationsSection`、`SettingsVoiceSection`（appearance／mcp／preview 於 v0.7 續拆）。
 - [x] 將 `main.cjs` 的 settings IPC 註冊抽成 `settings-ipc.cjs`（overlay lifecycle 仍可再拆）。
 - [x] 抽出 `settings-asset-validation.cjs`；store CRUD 邊界仍可繼續收斂。
 - [x] 補 Scene／preview 錯誤復原純函式測試（`scene-error-recovery`）；jsdom App 整合與 protocol／tray 桌面 smoke 仍屬後續／v0.9。
@@ -89,15 +92,15 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**；純修補才用
 
 ### 工作
 
-- 延伸 `baseline:bundle`：記錄歷史對照、門檻建議（文件化，非遙測）。
-- 非首屏進一步拆分（品質報告檢視、較重設定子頁）。
-- 冷啟動／首次角色顯示／大型 library 的**軟體側**計時腳本（能跑多少算多少；真機記憶體屬 v0.9）。
-- Idle 長跑與切換模型的可重複本機基準說明。
+- [x] 延伸 `baseline:bundle`：記錄歷史對照、門檻建議（文件化，非遙測）。
+- [x] 非首屏進一步拆分（`SettingsAppearanceSection`／`SettingsMcpSection`／`SettingsPreviewPanel`；品質報告檢視若再變重可續拆）。
+- [x] 冷啟動／首次角色顯示／大型 library 的**軟體側**計時腳本（`baseline:startup` Node require 計時；真機記憶體屬 v0.9）。
+- Idle 長跑與切換模型的可重複本機基準說明（真機屬 v0.9；文件已標註邊界）。
 
 ### 完成條件
 
-- 至少兩次可比較的 bundle／啟動基準紀錄方式寫進開發文件。
-- 非首屏拆分後 overlay 首屏 chunk 不回升到拆分前水準（對照 `baseline:bundle`）。
+- [x] 至少兩次可比較的 bundle／啟動基準紀錄方式寫進開發文件。
+- [x] 非首屏拆分後 overlay 首屏 chunk 不回升到拆分前水準（對照 `baseline:bundle`；SettingsPage 仍為 lazy chunk）。
 
 ## v0.8.x：素材 exporter 相容矩陣
 
@@ -105,15 +108,15 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**；純修補才用
 
 ### 工作
 
-- 擴充 [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md)：依公開資訊標註常見 exporter／版本假設與已知限制。
-- 增加合成案例（骨架覆蓋、表情、貼圖缺損、動作尖峰等）並掛到自動測試。
-- 匯入失敗／略過路徑保持不破壞既有 library（回歸測試）。
+- [x] 擴充 [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md)：依公開資訊標註常見 exporter／版本假設與已知限制。
+- [x] 增加合成案例（骨架覆蓋、表情、貼圖缺損、動作尖峰／過短／無動畫／loop seam 等）並掛到自動測試。
+- [x] 匯入失敗／略過路徑保持不破壞既有 library（回歸測試）。
 - 真實廠商檔案人工證據：可在取得合法樣本後補；**不**阻塞本系列文件與合成測試。
 
 ### 完成條件
 
-- 公開矩陣涵蓋主要失敗模式，且每個案例能對到自動測試或明確「待人工」標記。
-- 不相容匯入不會留下半完成 catalog 紀錄。
+- [x] 公開矩陣涵蓋主要失敗模式，且每個案例能對到自動測試或明確「待人工」標記。
+- [x] 不相容匯入不會留下半完成 catalog 紀錄。
 
 ## v0.9.x：Windows 實機／簽署／native 軌道
 
@@ -192,6 +195,6 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 
 ## 接下來三件事
 
-1. [x] **完成 v0.6 本輪**：Settings／IPC／asset-validation 再拆與錯誤復原測試；路線圖重規劃。
-2. **推進 v0.7／v0.8**：bundle／啟動基準深化與 exporter 相容矩陣擴充。
-3. **有 Windows／密鑰時再開 v0.9**：smoke 證據、簽署、native capture；之前不空轉發版。
+1. [x] **完成 v0.6**：Settings／IPC／asset-validation 再拆與錯誤復原測試；路線圖重規劃。
+2. [x] **完成 v0.7／v0.8 本輪**：bundle／啟動基準深化、設定頁再拆、exporter 合成矩陣與 Exporter 備註。
+3. **有 Windows／密鑰時再開 v0.9**：smoke 證據、簽署、native capture；之前不空轉發版。剩餘可在 Linux CI 做的：`main` overlay lifecycle 再拆、settings-store CRUD 邊界、App jsdom 整合測。

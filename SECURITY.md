@@ -16,7 +16,7 @@
 - MCP 與 HTTP bridge 只綁定 `127.0.0.1`，驗證 loopback `Host`、來源、內容型別、請求大小與輸入 schema；MCP session 有 idle TTL 與容量上限。
 - 本機 MCP 無登入驗證；同一 Windows 帳號下的其他行程可操作角色視窗與動作。不要把連接埠轉發到區域網路或 Internet。
 - MCP 只提供動畫、視窗與狀態工具，不執行任意命令、不讀取任意檔案。
-- Electron renderer 啟用 sandbox 與 context isolation，停用 Node integration；preload 只暴露明確 allowlist 的 IPC，且 privileged handler 會驗證 sender URL。avatar／settings 仍共用 preload API，完整分權仍列入 [`ROADMAP.md`](ROADMAP.md)。
+- Electron renderer 啟用 sandbox 與 context isolation，停用 Node integration；avatar／settings 使用不同 preload allowlist，privileged handler 會驗證 sender URL，設定寫入另驗 settings 視窗 webContents。
 - 自訂 process matcher 限制為有界安全子集，拒絕明顯易 ReDoS 的 pattern。
 - 使用者匯入媒體會複製到每使用者應用資料，renderer 只能以已登記 ID 經 `voxavatar-asset:` 讀取。
 

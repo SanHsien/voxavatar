@@ -33,66 +33,17 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 
 | 類別 | 能做什麼 |
 | --- | --- |
-| 語音口型 | 以 WASAPI application／系統輸出 loopback 讀取播放音量，驅動嘴型與 Speaking；明確 helper 狀態（missing／target_missing／no_output／listening） |
-| 桌面角色 | 透明置頂、透明區點穿、拖曳、縮放、旋轉、顯示／隱藏與系統匣控制（含重設視角） |
-| 本機素材 | 匯入 `.vrm`／`.vrma`、目錄評估匯入、VRM 0.x／1.0 與 VRMA 品質報告、嚴格把關、一鍵清除與自訂動作 |
-| 首次設定 | 設定頁進度清單（模型／可選動作／語音／MCP）與可複製診斷摘要（遮罩路徑與素材檔名） |
-| 動作系統 | Idle／Speaking 系統槽、多片段隨機播放、常用動作預設與 MCP 即時 catalog |
-| Agent 整合 | loopback-only MCP、版本化 `get_status` readiness、HTTP 事件 API 與 `voxavatar://` URL protocol |
-| 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS 安裝包與 SHA-256 checksum |
+| 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；可搜尋來源目錄；sticky discovery 與 helper 狀態（missing／target_missing／no_output／listening） |
+| 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵、重設視角、聆聽／說話預覽、關於 |
+| 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告（report／strict／off）；VRM 0.x／1.0；一鍵清除；載入失敗可回復 |
+| 動作系統 | Idle／Speaking 槽、隨機多片段（避免立即重複）、可調 Idle 休息間隔、自訂動作與常用預設、MCP 即時 catalog |
+| 首次設定 | 進度清單（模型／可選動作／語音／MCP）；可複製診斷摘要（遮罩路徑與素材檔名）；與 `get_status` 共用 readiness |
+| Agent 整合 | loopback-only MCP（`voxavatar`、session TTL／容量上限）、HTTP 事件 API、`voxavatar://` |
+| 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS、SHA-256；`main` tip 已 tagged 才打包 |
 
-## 相對上游的獨有能力
+## 相對上游
 
-相對 [`xikhar/persona`](https://github.com/xikhar/persona)，本 fork 刻意做成 **Windows-only 的本機角色呈現層**，並累積下列產品能力（細節見 [`CHANGELOG.md`](CHANGELOG.md)、[`docs/DECISIONS.md`](docs/DECISIONS.md)）：
-
-### 平台與識別
-
-- 只維護 Windows WASAPI、NSIS 與桌面行為；不恢復 PipeWire、Hyprland、macOS native 或 Linux／macOS 發行。
-- 產品識別一律為 **VoxAvatar／`voxavatar`**（appId、MCP CLI、`voxavatar://`、`VOXAVATAR_*`、`voxavatar-asset:`、原生 helper 名稱）。
-- 公開文件以繁體中文為預設，並附英文對照。
-
-### 桌面互動
-
-- 透明區點穿；角色本體左鍵拖曳、滾輪縮放（下限 30%）、中鍵旋轉、右鍵快捷選單。
-- Windows 可靠系統匣：左鍵顯示／隱藏，右鍵功能選單（含重設視角、聆聽／說話預覽、設定、關於）。
-- 系統匣與角色選單可重設視角；「關於」顯示應用程式版本。
-
-### 語音與 listener
-
-- 語音來源：預設／指定應用／自訂 process matcher／外部事件／**系統輸出混音（opt-in，設定頁有隱私警告）**。
-- 可搜尋的本機執行中應用程式目錄；多符合來源採 sticky active root。
-- Process discovery：PID 存活快路徑與 adaptive backoff；自訂 matcher 為有界安全子集（防 ReDoS）。
-- Native helper 明確狀態：`missing`／`launch_failed`／`target_missing`／`no_output`／`listening`。
-- 可調 Idle 休息間隔（預設 8 秒，2–60 秒）。
-
-### 素材與動作
-
-- 安裝包**預設不內建**第三方 VRM／Idle／Speaking VRMA；首次無模型時開啟設定並引導合法下載後本機匯入。
-- VRM／VRMA **目錄遞迴評估匯入**；共用品質把關（report／strict／off）與 Markdown 報告（`voxavatar-vrm-report.md`／`voxavatar-vrma-report.md`）。
-- VRM 0.x（`humanBones` 陣列）與 VRM 1.0（物件 map）humanoid 覆蓋皆可正確評分；VRMA 預設嚴格門檻（淘汰低於 60、保留至少 75）。
-- 匯入採複製 → GLB／extension 驗證 → atomic rename；載入失敗可回到可回復設定畫面。
-- 自訂動作（名稱／描述／觸發情境／多片段）、常用動作預設、一鍵清除全部使用者 VRM／VRMA。
-- Idle 從可用非說話動作池隨機抽播並避免立即重複；MCP 即時看到動作 catalog。
-
-### 首次設定與診斷
-
-- 設定頁首次設定進度清單：模型、可選動作、語音來源、MCP 健康與完成狀態。
-- 可複製診斷摘要：遮罩使用者名、絕對路徑與 `.vrm`／`.vrma` 檔名，不含音訊或模型內容。
-- 設定頁與 MCP `get_status` 共用同一套 readiness／helper 狀態語彙。
-
-### Agent 與安全硬化
-
-- MCP 註冊名為 `voxavatar`；session 有 idle TTL（30 分）與容量上限（32）。
-- Privileged IPC 驗證 renderer sender URL；HTTP events／MCP 拒絕非 JSON media type。
-- 本機 MCP／HTTP 仍只綁定 loopback，不提供任意命令或任意檔案存取。
-
-### 發行與維護基線
-
-- Windows CI、CodeQL、資產授權 gate、Dependabot guarded auto-merge、NSIS 與 SHA-256 Release。
-- Release 在 `main` tip 已有對應 `v{version}` tag 時打包；新版成功後只保留最新公開 Release。
-- 雙語 `ROADMAP`／`REVIEW`／`DECISIONS` 與 agent 指引（`AGENTS.md`）作為產品與維護契約。
-
-上游仍可能提供跨平台 listener 或不同設定路徑；本專案以 Windows 本機閉環、素材授權邊界與可診斷首次設定為優先，不追求功能對齊上游每一支分支。
+相對 [`xikhar/persona`](https://github.com/xikhar/persona)：本專案為 **Windows-only**（不恢復 PipeWire／Hyprland／macOS 發行）、產品識別改為 **VoxAvatar／`voxavatar`**、安裝包**預設不內建**第三方 VRM／VRMA，並保留上游 MIT 與 attribution。其餘已落地能力見上方功能一覽與 [`docs/DECISIONS.md`](docs/DECISIONS.md)。
 
 ## 運作方式
 
@@ -169,7 +120,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前 Latest 為 `v0.2.x`：含系統輸出語音、目錄品質把關、Idle 間隔、discovery／matcher／MCP session／IPC sender、VRM0 humanoid 覆蓋修正，以及首次設定 readiness／診斷摘要。下一階段補版本化 Windows 實機證據，再進入素材相容矩陣與 MCP 契約／preload 分權。
+目前 Latest 為 `v0.2.x`：含系統輸出語音、目錄品質把關、readiness／診斷、preload 分權與動作佇列。下一階段需 **Windows 實機證據**（本環境無法代填）與 installer 簽署密鑰後，再推進素材相容矩陣。
 
 版本里程碑、完成條件、風險與明確不做的範圍見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與仍需實機驗證的項目見 [`REVIEW.md`](REVIEW.md)。
 
@@ -198,7 +149,7 @@ npm run dist:windows
 ## 專案結構
 
 ```text
-electron/        Electron main、preload、設定、MCP／HTTP 與 Node tests
+electron/        Electron main、preload-avatar／preload-settings、設定、MCP／HTTP 與 Node tests
 src/             React／Three.js renderer、動作邏輯與 Vitest
 native/windows/  WASAPI process-loopback C++ helper
 scripts/         build、資產、文件、Dependabot、版本與 checksum gates

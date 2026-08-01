@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.9 - 2026-08-01
+
+- README：核實後將已落地能力併入功能一覽並簡化；「相對上游」改為短政策註（Windows-only、識別改名、預設不內建媒體）。
+- avatar／settings preload 分權；設定寫入 IPC 綁定 settings 視窗 webContents。
+- MCP／protocol／HTTP 動作指令改走有界佇列（同名合併、容量上限、最小間隔）。
+- 同步 SECURITY／DEVELOPMENT／INTEGRATIONS／ROADMAP／REVIEW。
+
 ## 0.2.8 - 2026-08-01
 
 - 雙語 README 補回「相對上游的獨有能力」專節：Windows-only 識別、桌面互動、語音／helper、素材品質把關、首次設定／診斷、MCP 硬化與發行基線；隱私邊界同步系統輸出 opt-in 說明。

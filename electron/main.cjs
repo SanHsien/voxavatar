@@ -25,7 +25,10 @@ const {
 const { createSettingsStore } = require("./settings-store.cjs");
 const { createAudioListener } = require("./audio-listener.cjs");
 const { isAllowedRendererNavigation } = require("./navigation-policy.cjs");
-const { assertTrustedIpcSender } = require("./ipc-guard.cjs");
+const {
+  assertTrustedIpcSender,
+  assertTrustedIpcSenderContents,
+} = require("./ipc-guard.cjs");
 const { snapshotHasConfiguredModel } = require("./model-readiness.cjs");
 const { buildAppReadiness } = require("./app-readiness.cjs");
 const { buildDiagnosticSummary } = require("./diagnostic-summary.cjs");
@@ -33,6 +36,9 @@ const {
   LISTENER_STATE,
   withListenerState,
 } = require("./listener-status.cjs");
+const {
+  createAnimationCommandQueue,
+} = require("./animation-command-queue.cjs");
 const { parseProtocolUrl, voiceState } = require("./protocol-actions.cjs");
 const {
   createSettingsWindowPresentationGate,
@@ -374,6 +380,22 @@ function handleTrustedIpc(channel, handler) {
   });
 }
 
+function handleTrustedSettingsIpc(channel, handler) {
+  ipcMain.handle(channel, async (event, ...args) => {
+    assertTrustedIpcSender(event, [rendererUrl("settings")]);
+    assertTrustedIpcSenderContents(event, settingsWindow?.webContents);
+    return handler(event, ...args);
+  });
+}
+
+function handleTrustedAvatarIpc(channel, handler) {
+  ipcMain.handle(channel, async (event, ...args) => {
+    assertTrustedIpcSender(event, [rendererUrl()]);
+    assertTrustedIpcSenderContents(event, avatarWindow?.webContents);
+    return handler(event, ...args);
+  });
+}
+
 function secureRendererWindow(window, allowedRendererUrl) {
   window.webContents.setWindowOpenHandler(({ url }) => {
     try {
@@ -420,7 +442,7 @@ function createWindow() {
     skipTaskbar: true,
     title: "VoxAvatar",
     webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
+      preload: path.join(__dirname, "preload-avatar.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -483,7 +505,7 @@ function createSettingsWindow() {
     ),
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
+      preload: path.join(__dirname, "preload-settings.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -631,7 +653,7 @@ function restartAudioListener() {
   }
 }
 
-function playConfiguredAnimation(animationName) {
+function playConfiguredAnimationNow(animationName) {
   if (!hasConfiguredModel()) return false;
   const installedAnimation = settingsStore?.getAnimation(animationName);
   if (
@@ -650,6 +672,24 @@ function playConfiguredAnimation(animationName) {
     requestId: animationCommandRequestId,
   });
   return true;
+}
+
+const animationCommandQueue = createAnimationCommandQueue({
+  play: (animationName) => {
+    playConfiguredAnimationNow(animationName);
+  },
+});
+
+function playConfiguredAnimation(animationName) {
+  if (!hasConfiguredModel()) return false;
+  const installedAnimation = settingsStore?.getAnimation(animationName);
+  if (
+    installedAnimation == null ||
+    installedAnimation.asset_urls.length === 0
+  ) {
+    return false;
+  }
+  return animationCommandQueue.enqueue(installedAnimation.animation_name);
 }
 
 async function withAvatarAlwaysOnTopPaused(operation) {
@@ -946,16 +986,16 @@ if (!app.requestSingleInstanceLock()) {
       return net.fetch(pathToFileURL(assetPath).href);
     });
 
-    handleTrustedIpc("voxavatar:get-snapshot", () => latestEvent);
+    handleTrustedAvatarIpc("voxavatar:get-snapshot", () => latestEvent);
     handleTrustedIpc("voxavatar:settings-get", () => settingsStore.getSnapshot());
-    handleTrustedIpc("voxavatar:settings-import-model", async (_event, metadata) => {
+    handleTrustedSettingsIpc("voxavatar:settings-import-model", async (_event, metadata) => {
       const filePath = await selectAssetFile("model");
       if (!filePath) return null;
       return publishSettings(
         settingsStore.importModel({ filePath, model_name: metadata?.model_name }),
       );
     });
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-import-models-from-directory",
       async (_event, metadata) => {
         const rootDir = await selectAssetDirectory("選擇含 VRM 的資料夾");
@@ -1059,10 +1099,10 @@ if (!app.requestSingleInstanceLock()) {
         };
       },
     );
-    handleTrustedIpc("voxavatar:settings-create-animation", (_event, metadata) =>
+    handleTrustedSettingsIpc("voxavatar:settings-create-animation", (_event, metadata) =>
       publishSettings(settingsStore.createAnimation(metadata)),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-add-animation-clips",
       async (_event, animationId) => {
         const filePaths = await selectAssetFile("animation", true);
@@ -1072,7 +1112,7 @@ if (!app.requestSingleInstanceLock()) {
         );
       },
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-add-animation-clips-from-directory",
       async (_event, animationId) => {
         const rootDir = await selectAssetDirectory("選擇含 VRMA 的資料夾");
@@ -1178,12 +1218,12 @@ if (!app.requestSingleInstanceLock()) {
         };
       },
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-set-vrma-quality-gate",
       (_event, value) =>
         publishSettings(settingsStore.setVrmaQualityGate(value)),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-choose-vrma-report-dir",
       async () => {
         const selected = await selectAssetDirectory(
@@ -1193,33 +1233,33 @@ if (!app.requestSingleInstanceLock()) {
         return publishSettings(settingsStore.setVrmaReportDir(selected));
       },
     );
-    handleTrustedIpc("voxavatar:settings-clear-vrma-report-dir", () =>
+    handleTrustedSettingsIpc("voxavatar:settings-clear-vrma-report-dir", () =>
       publishSettings(settingsStore.setVrmaReportDir(null)),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-update-animation",
       (_event, animationId, metadata) =>
         publishSettings(
           settingsStore.updateAnimation(animationId, metadata),
         ),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-delete-animation",
       (_event, animationId) =>
         publishSettings(settingsStore.deleteAnimation(animationId)),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-delete-animation-clip",
       (_event, animationId, clipId) =>
         publishSettings(
           settingsStore.deleteAnimationClip(animationId, clipId),
         ),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-reset-packaged-animations",
       () => publishSettings(settingsStore.resetPackagedAnimations()),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-delete-model",
       (_event, modelId) => {
         const model = settingsStore
@@ -1231,36 +1271,36 @@ if (!app.requestSingleInstanceLock()) {
         return publishSettings(settingsStore.deleteModel(modelId));
       },
     );
-    handleTrustedIpc("voxavatar:settings-delete-all-user-models", () =>
+    handleTrustedSettingsIpc("voxavatar:settings-delete-all-user-models", () =>
       publishSettings(settingsStore.deleteAllUserModels()),
     );
-    handleTrustedIpc("voxavatar:settings-delete-all-user-animation-clips", () =>
+    handleTrustedSettingsIpc("voxavatar:settings-delete-all-user-animation-clips", () =>
       publishSettings(settingsStore.deleteAllUserAnimationClips()),
     );
-    handleTrustedIpc("voxavatar:settings-set-default-model", (_event, modelId) =>
+    handleTrustedSettingsIpc("voxavatar:settings-set-default-model", (_event, modelId) =>
       publishSettings(settingsStore.setDefaultModel(modelId)),
     );
-    handleTrustedIpc("voxavatar:settings-set-character-size", (_event, size) =>
+    handleTrustedSettingsIpc("voxavatar:settings-set-character-size", (_event, size) =>
       publishSettings(settingsStore.setCharacterSize(size)),
     );
-    handleTrustedIpc("voxavatar:settings-set-idle-rest-ms", (_event, ms) =>
+    handleTrustedSettingsIpc("voxavatar:settings-set-idle-rest-ms", (_event, ms) =>
       publishSettings(settingsStore.setIdleRestMs(ms)),
     );
-    handleTrustedIpc("voxavatar:settings-set-ui-locale", (_event, locale) =>
+    handleTrustedSettingsIpc("voxavatar:settings-set-ui-locale", (_event, locale) =>
       publishSettings(settingsStore.setUiLocale(locale)),
     );
-    handleTrustedIpc("voxavatar:settings-get-app-info", () => ({
+    handleTrustedSettingsIpc("voxavatar:settings-get-app-info", () => ({
       version: app.getVersion(),
     }));
-    handleTrustedIpc("voxavatar:settings-show-about", async () => {
+    handleTrustedSettingsIpc("voxavatar:settings-show-about", async () => {
       showAboutDialog();
     });
-    handleTrustedIpc("voxavatar:settings-set-voice-source", (_event, voiceSource) => {
+    handleTrustedSettingsIpc("voxavatar:settings-set-voice-source", (_event, voiceSource) => {
       const snapshot = publishSettings(settingsStore.setVoiceSource(voiceSource));
       restartAudioListener();
       return snapshot;
     });
-    handleTrustedIpc("voxavatar:settings-list-voice-sources", async () => {
+    handleTrustedSettingsIpc("voxavatar:settings-list-voice-sources", async () => {
       try {
         return {
           ...(await listVoiceSources()),
@@ -1278,17 +1318,17 @@ if (!app.requestSingleInstanceLock()) {
         };
       }
     });
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-set-model-lighting",
       (_event, modelId, lighting) =>
         publishSettings(settingsStore.setModelLighting(modelId, lighting)),
     );
-    handleTrustedIpc(
+    handleTrustedSettingsIpc(
       "voxavatar:settings-reset-model-lighting",
       (_event, modelId) =>
         publishSettings(settingsStore.resetModelLighting(modelId)),
     );
-    handleTrustedIpc("voxavatar:settings-get-mcp-status", () =>
+    handleTrustedSettingsIpc("voxavatar:settings-get-mcp-status", () =>
       createMcpSettingsStatus({
         error: mcpServerError,
         health: mcpServerHealth,
@@ -1296,19 +1336,23 @@ if (!app.requestSingleInstanceLock()) {
         settingsSnapshot: settingsStore.getSnapshot(),
       }),
     );
-    handleTrustedIpc("voxavatar:settings-get-readiness", () =>
+    handleTrustedSettingsIpc("voxavatar:settings-get-readiness", () =>
       getAppReadinessSnapshot(),
     );
-    handleTrustedIpc("voxavatar:settings-get-diagnostic-summary", () => ({
+    handleTrustedSettingsIpc("voxavatar:settings-get-diagnostic-summary", () => ({
       text: getDiagnosticSummaryText(),
     }));
-    ipcMain.on("voxavatar:hide", () => void hideOverlay());
+    ipcMain.on("voxavatar:hide", (event) => {
+      if (!avatarWindow || avatarWindow.isDestroyed()) return;
+      if (event.sender !== avatarWindow.webContents) return;
+      void hideOverlay();
+    });
     ipcMain.on("voxavatar:set-ignore-mouse", (event, ignore) => {
       if (!avatarWindow || avatarWindow.isDestroyed()) return;
       if (event.sender !== avatarWindow.webContents) return;
       setAvatarMousePassthrough(Boolean(ignore));
     });
-    handleTrustedIpc("voxavatar:get-window-bounds", (event) => {
+    handleTrustedAvatarIpc("voxavatar:get-window-bounds", (event) => {
       if (!avatarWindow || avatarWindow.isDestroyed()) return null;
       if (event.sender !== avatarWindow.webContents) return null;
       return avatarWindow.getBounds();

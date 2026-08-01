@@ -19,6 +19,12 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 | `control_window` | `action`: `show`／`hide`／`toggle` | 控制角色視窗；hide 不會結束程式 |
 | `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）與版本化 `readiness`（設定頁同一語彙） |
 
+### Status／工具輸出 schema
+
+- `get_status` 內嵌 `readiness.schema_version`（目前為 `1`，定義於 `electron/app-readiness.cjs`）。
+- **相容政策**：同 MAJOR 下新增欄位為向後相容；移除或改語意欄位需升 `schema_version` 並在 CHANGELOG 說明。Agent 應優先讀結構化欄位（`readiness.steps`、`listener.state`），不要只解析人類可讀字串。
+- `list_animations`／`play_animation` 以目前設定 catalog 為準；設定變更後既有 MCP session 會更新工具描述。高頻 `play_animation` 經有界佇列合併同名請求，避免 renderer 被淹沒。
+
 建議先呼叫 `list_animations`，再把回傳的小寫連字號名稱傳給 `play_animation`。設定頁新增或移除動作後，現有 MCP session 會更新工具描述。
 
 MCP 只控制視覺狀態，不會合成或播放語音。

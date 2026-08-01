@@ -2,26 +2,7 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("voxavatarBridge", {
-  getSnapshot: () => ipcRenderer.invoke("voxavatar:get-snapshot"),
-  hide: () => ipcRenderer.send("voxavatar:hide"),
-  setIgnoreMouse: (ignore) =>
-    ipcRenderer.send("voxavatar:set-ignore-mouse", ignore),
-  getWindowBounds: () => ipcRenderer.invoke("voxavatar:get-window-bounds"),
-  moveWindow: (x, y) => ipcRenderer.send("voxavatar:move-window", { x, y }),
-  showContextMenu: () => ipcRenderer.send("voxavatar:avatar-context-menu"),
-  subscribeResetView: (listener) => {
-    const handler = () => listener();
-    ipcRenderer.on("voxavatar:reset-view", handler);
-    return () => ipcRenderer.off("voxavatar:reset-view", handler);
-  },
-  subscribe: (listener) => {
-    const handler = (_event, payload) => listener(payload);
-    ipcRenderer.on("voxavatar:event", handler);
-    return () => ipcRenderer.off("voxavatar:event", handler);
-  },
-});
-
+/** Settings 視窗：完整設定／資產／診斷 API；不含 avatar bridge。 */
 contextBridge.exposeInMainWorld("voxavatarSettings", {
   get: () => ipcRenderer.invoke("voxavatar:settings-get"),
   importModel: (metadata) =>

@@ -33,66 +33,17 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 
 | Area | Capability |
 | --- | --- |
-| Voice lip sync | WASAPI application/system-output loopback for lip sync and Speaking, with explicit helper states (`missing` / `target_missing` / `no_output` / `listening`) |
-| Desktop avatar | Transparent topmost window, transparent-area click-through, drag, zoom, rotate, show/hide, and tray controls (including reset view) |
-| Local media | Imports `.vrm` and `.vrma`, evaluate-and-import folders, VRM 0.x/1.0 and VRMA quality reports, strict gate, bulk deletion, and custom actions |
-| First-run setup | Settings checklist (model / optional actions / voice / MCP) and a copyable diagnostic summary with path and asset-name redaction |
-| Action system | Idle and Speaking system slots, random multi-clip playback, common presets, and a live MCP catalog |
-| Agent integration | Loopback-only MCP, versioned `get_status` readiness, HTTP event API, and the `voxavatar://` URL protocol |
-| Release quality | Windows CI, CodeQL, media-license gate, NSIS installer, and SHA-256 checksum |
+| Voice lip sync | App / custom matcher / external events / system-output (opt-in) loopback; searchable sources; sticky discovery and helper states (`missing` / `target_missing` / `no_output` / `listening`) |
+| Desktop avatar | Transparent topmost click-through, drag, zoom (min 30%), rotate, tray left/right menus, reset view, listen/speak preview, About |
+| Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports (`report` / `strict` / `off`); VRM 0.x / 1.0; one-click clear; recoverable load failures |
+| Action system | Idle / Speaking slots, random multi-clip (no immediate repeat), configurable Idle rest, custom actions and presets, live MCP catalog |
+| First-run setup | Progress checklist (model / optional actions / voice / MCP); copyable redacted diagnostics; shared readiness with `get_status` |
+| Agent integration | Loopback-only MCP (`voxavatar`, session TTL / capacity), HTTP event API, `voxavatar://` |
+| Release quality | Windows CI, CodeQL, media-license gate, NSIS, SHA-256; package only when `main` tip is tagged |
 
-## Capabilities unique to this fork
+## Relative to upstream
 
-Relative to [`xikhar/persona`](https://github.com/xikhar/persona), this fork is intentionally a **Windows-only local presence layer**, with the product capabilities below (see [`CHANGELOG.md`](CHANGELOG.md) and [`docs/DECISIONS.md`](docs/DECISIONS.md)):
-
-### Platform and identity
-
-- Maintains only Windows WASAPI, NSIS, and desktop behavior; does not restore PipeWire, Hyprland, macOS native, or Linux/macOS distribution targets.
-- Product identity is always **VoxAvatar / `voxavatar`** (appId, MCP CLI, `voxavatar://`, `VOXAVATAR_*`, `voxavatar-asset:`, native helper name).
-- Public docs default to Traditional Chinese, with English counterparts.
-
-### Desktop interaction
-
-- Transparent-area click-through; left-drag move, mouse-wheel zoom (minimum 30%), middle-drag rotate, and a right-click shortcut menu.
-- Reliable Windows tray: left-click show/hide; right-click menu (reset view, listening/speaking preview, settings, about).
-- Reset view from both tray and avatar menus; About shows the app version.
-
-### Voice and listener
-
-- Voice sources: default / selected application / custom process matcher / external events / **system-output mix (opt-in, privacy warning in Settings)**.
-- Searchable catalog of running local apps; sticky active root when multiple roots match.
-- Process discovery with PID-liveness fast path and adaptive backoff; custom matchers use a bounded safe subset (ReDoS resistant).
-- Explicit native helper states: `missing` / `launch_failed` / `target_missing` / `no_output` / `listening`.
-- Configurable Idle rest interval (default 8s, range 2–60s).
-
-### Media and actions
-
-- Releases **ship without** third-party VRM or Idle/Speaking VRMA by default; first launch opens Settings and guides lawful download then local import.
-- Recursive **evaluate-and-import** folders for VRM and VRMA; shared quality gate (`report` / `strict` / `off`) and Markdown reports (`voxavatar-vrm-report.md` / `voxavatar-vrma-report.md`).
-- Correct humanoid coverage for VRM 0.x (`humanBones` array) and VRM 1.0 (object map); VRMA defaults to strict thresholds (reject below 60, keep at 75+).
-- Import path: copy → GLB/extension validation → atomic rename; load failures return to a recoverable Settings surface.
-- Custom actions (name / description / trigger / multi-clip), common presets, and one-click delete of all user VRM/VRMA.
-- Idle picks from the non-speaking action pool without immediate repeats; MCP sees a live action catalog.
-
-### First-run and diagnostics
-
-- Settings first-run checklist: model, optional actions, voice source, MCP health, and completion.
-- Copyable diagnostic summary that redacts usernames, absolute paths, and `.vrm` / `.vrma` filenames, and never includes audio or model bytes.
-- Settings and MCP `get_status` share one readiness / helper-state vocabulary.
-
-### Agent and security hardening
-
-- MCP registration name is `voxavatar`; sessions have idle TTL (30 min) and a hard capacity of 32.
-- Privileged IPC validates renderer sender URLs; HTTP events / MCP POST reject non-JSON media types.
-- Local MCP/HTTP remain loopback-only, with no arbitrary command or arbitrary file access.
-
-### Release and maintenance baseline
-
-- Windows CI, CodeQL, media-license gate, Dependabot guarded auto-merge, NSIS, and SHA-256 Releases.
-- Packaging runs when the `main` tip already has the matching `v{version}` tag; after a successful new Release, only the latest public Release is kept.
-- Bilingual `ROADMAP` / `REVIEW` / `DECISIONS` and agent guidance (`AGENTS.md`) form the product and maintenance contract.
-
-Upstream may still offer cross-platform listeners or different settings paths. This project prioritizes the Windows local closed loop, media-license boundaries, and diagnosable first-run setup over tracking every upstream branch.
+Relative to [`xikhar/persona`](https://github.com/xikhar/persona): this project is **Windows-only** (no PipeWire / Hyprland / macOS distribution), renames product identity to **VoxAvatar / `voxavatar`**, ships **without** bundled third-party VRM/VRMA by default, and keeps upstream MIT attribution. Implemented product capabilities live in the feature overview above and in [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 ## How it works
 
@@ -164,7 +115,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-Latest is `v0.2.x`: includes system-output voice, folder quality gates, idle rest timing, discovery/matcher/MCP session/IPC sender hardening, VRM0 humanoid coverage fix, plus first-run readiness and copyable diagnostics. Next: versioned Windows smoke evidence, then media compatibility matrix and MCP contract / preload separation.
+Latest is `v0.2.x`: system-output voice, folder quality gates, readiness/diagnostics, preload separation, and animation command queueing. Next requires **Windows smoke evidence** (cannot be filled from this environment) and installer signing secrets before the media-compatibility matrix.
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones, completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 
@@ -193,7 +144,7 @@ npm run dist:windows
 ## Project structure
 
 ```text
-electron/        Electron main, preload, settings, MCP/HTTP, and Node tests
+electron/        Electron main, preload-avatar / preload-settings, settings, MCP/HTTP, and Node tests
 src/             React/Three.js renderer, action logic, and Vitest tests
 native/windows/  WASAPI process-loopback C++ helper
 scripts/         Build, media, docs, Dependabot, version, and checksum gates

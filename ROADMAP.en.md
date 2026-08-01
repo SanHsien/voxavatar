@@ -4,7 +4,7 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.2.8`
+Planning baseline: `v0.2.9`
 
 This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
 
@@ -90,7 +90,7 @@ Goal: `0.2.0` hardens listener, matcher, IPC, and MCP session reliability; later
 - [x] Replace fixed process discovery with a PID-liveness fast path and adaptive backoff, and define sticky active-source semantics for multiple matching roots (`0.2.0`).
 - [x] Restrict custom process matchers to a non-explosive safe subset (`0.2.0`).
 - [x] Add MCP session idle TTL, hard capacity, and testable eviction (pulled forward from `0.4` into `0.2.0`).
-- [x] Validate sender URL on privileged IPC (full preload split remains later).
+- [x] Validate sender URL on privileged IPC; avatar/Settings preload split and Settings webContents binding shipped in `0.2.9`.
 
 ### Completion criteria
 
@@ -130,8 +130,8 @@ Goal: agents do not guess tool capabilities, action names, or error states, and 
 - Add Codex and generic Streamable HTTP examples for port changes, reconnects, and troubleshooting.
 - Validate multiple local clients, long-session catalog refresh, and app close/restart behavior.
 - [x] Add idle TTL, a hard capacity limit, and testable eviction/close behavior for MCP sessions (shipped in `0.2.0`).
-- Separate avatar and Settings preload privileges; sender URL validation shipped in `0.2.0`, full separation remains.
-- Define bounded queueing or throttling for repeated high-frequency actions so the renderer cannot be flooded indefinitely.
+- [x] Separate avatar and Settings preload privileges; sender URL validation shipped in `0.2.0`, window binding in `0.2.9`.
+- [x] Define bounded queueing or throttling for repeated high-frequency actions so the renderer cannot be flooded indefinitely.
 - [x] Keep the visual-control scope. Do not add arbitrary commands, arbitrary files, network proxying, or speech generation.
 
 ### Completion criteria
@@ -141,7 +141,7 @@ Goal: agents do not guess tool capabilities, action names, or error states, and 
 - App restart, disconnect, multiple clients, and action updates have automated tests or reproducible smoke evidence.
 - [x] MCP remains loopback-only with complete boundary tests.
 - [x] Abandoned or excessive sessions cannot grow without bound.
-- The avatar renderer cannot call Settings or asset-management IPC (still needs preload split).
+- [x] The avatar renderer cannot call Settings or asset-management IPC (preload split and Settings webContents checks are in place).
 
 ## v0.5.x: maintainability and performance
 
@@ -229,4 +229,4 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 
 1. [x] **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
 2. [x] **Ship `0.2.0`–`0.2.7` hardening/readiness:** discovery/matcher/MCP session/IPC, first-run checklist, helper states, and diagnostics.
-3. **Add versioned Windows smoke evidence**, then advance the v0.3 media matrix and v0.4 preload split.
+3. **Add versioned Windows smoke evidence**, then advance the v0.3 media matrix and remaining MCP contract work.

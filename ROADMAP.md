@@ -4,7 +4,7 @@
 
 更新日期：2026-08-01
 
-規劃基準：`v0.2.8`
+規劃基準：`v0.2.9`
 
 這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成（可跨版本標示），`-` 表示尚未完成。
 
@@ -90,7 +90,7 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 - [x] 將 process discovery 改成 PID 存活快路徑與 adaptive backoff，並定義多個符合 root process 時的 sticky active source 語意（`0.2.0`）。
 - [x] 限制自訂 process matcher 為不會回溯爆炸的安全子集（`0.2.0`）。
 - [x] 為 MCP session 加入 idle TTL、容量上限與可測試淘汰（自 `0.4` 提前至 `0.2.0`）。
-- [x] privileged IPC 統一驗證 sender URL（完整拆 preload 仍屬後續）。
+- [x] privileged IPC 統一驗證 sender URL；avatar／settings preload 分權與 settings webContents 綁定於 `0.2.9`。
 
 ### 完成條件
 
@@ -130,8 +130,8 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 - 補齊 Codex 與通用 Streamable HTTP 用戶端範例、連接埠變更、重連與故障排除。
 - 驗證多個本機 MCP client、長 session catalog 更新與 app 關閉／重啟行為。
 - [x] 為 MCP session 加入 idle TTL、容量上限與可測試的淘汰／關閉行為（已於 `0.2.0` 落地）。
-- 將 avatar 與 settings preload 分權；sender URL 驗證已於 `0.2.0` 落地，完整分權仍待完成。
-- 對高頻重複動作加入有界佇列或節流語意，避免 renderer 被無限制事件淹沒。
+- [x] 將 avatar 與 settings preload 分權；sender URL 驗證已於 `0.2.0` 落地，視窗綁定於 `0.2.9` 完成。
+- [x] 對高頻重複動作加入有界佇列或節流語意，避免 renderer 被無限制事件淹沒。
 - [x] 保持視覺控制範圍，不加入任意命令、任意檔案、網路代理或語音生成。
 
 ### 完成條件
@@ -141,7 +141,7 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 - app 重啟、client 斷線、多 client 與動作更新都有自動測試或可重現 smoke。
 - [x] MCP 仍只監聽 loopback，安全邊界測試保持完整。
 - [x] 遺棄或大量 session 不會無界成長。
-- avatar renderer 無法呼叫設定／資產管理 IPC（仍待拆 preload）。
+- [x] avatar renderer 無法呼叫設定／資產管理 IPC（preload 分權與 settings webContents 驗證已落地）。
 
 ## v0.5.x：可維護性與效能
 
@@ -228,5 +228,5 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 ## 接下來三件事
 
 1. [x] **關閉 v0.1.x 信任缺口**：清除 CodeQL alerts、啟用 Dependabot security alerts、修正 MIT 偵測並完成本次穩定修正版。
-2. [x] **發行 `0.2.0`–`0.2.7` hardening／readiness**：discovery／matcher／MCP session／IPC、首次設定清單、helper 狀態與診斷摘要。
-3. **補版本化 Windows 實機證據**，再推進 v0.3 素材相容矩陣與 v0.4 preload 分權。
+2. [x] **發行 `0.2.0`–`0.2.9` hardening**：discovery／matcher／MCP session／IPC、readiness／診斷、preload 分權、動作有界佇列；README 功能一覽重整。
+3. **補版本化 Windows 實機證據**，再推進 v0.3 素材相容矩陣與其餘 MCP 契約工作。

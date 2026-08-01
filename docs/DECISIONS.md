@@ -96,4 +96,9 @@ Release 可由可信 `main` 的 `workflow_dispatch`，或在 **push `main` 且 `
 
 - **日期**：2026-08-01
 - **決定**：以 `electron/app-readiness.cjs`／`listener-status.cjs`／`diagnostic-summary.cjs` 作為設定頁與 MCP `get_status` 的共用語彙。helper 狀態為 `missing`／`launch_failed`／`target_missing`／`no_output`／`listening`（外加 `inactive`／`external`）。診斷摘要必須 redact 使用者名、絕對路徑與 `.vrm`／`.vrma` 檔名，且不得含音訊或模型內容。
-- **不在此決策**：Windows 實機證據矩陣、installer 簽署、preload 分權仍屬後續缺口。
+- **不在此決策**：Windows 實機證據矩陣、installer 簽署仍屬後續缺口；preload 分權已於 `0.2.9` 落地（見 D-22）。
+
+## D-22｜avatar／settings preload 分權與動作佇列
+
+- **日期**：2026-08-01
+- **決定**：avatar 使用 `preload-avatar.cjs`（bridge＋唯讀 settings）；settings 使用 `preload-settings.cjs`（完整管理 API）。設定寫入 IPC 除 URL 信任外，必須 `event.sender === settingsWindow.webContents`。MCP／protocol／HTTP 的 `play_animation` 經有界佇列（同名合併、容量上限、最小間隔）再送 renderer。

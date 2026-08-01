@@ -33,8 +33,20 @@ function assertTrustedIpcSender(event, allowedRendererUrls) {
   throw new Error("Unauthorized IPC sender.");
 }
 
+function assertTrustedIpcSenderContents(event, webContents) {
+  if (
+    webContents &&
+    !webContents.isDestroyed?.() &&
+    event?.sender === webContents
+  ) {
+    return;
+  }
+  throw new Error("Unauthorized IPC sender window.");
+}
+
 module.exports = {
   assertTrustedIpcSender,
+  assertTrustedIpcSenderContents,
   isTrustedIpcSender,
   senderUrlFromEvent,
 };

@@ -53,3 +53,19 @@ test("rejects unknown sender URLs", () => {
     /Unauthorized IPC sender/,
   );
 });
+
+test("requires matching webContents for window-bound IPC", () => {
+  const {
+    assertTrustedIpcSenderContents,
+  } = require("./ipc-guard.cjs");
+  const contents = { id: 1 };
+  assertTrustedIpcSenderContents({ sender: contents }, contents);
+  assert.throws(
+    () => assertTrustedIpcSenderContents({ sender: { id: 2 } }, contents),
+    /Unauthorized IPC sender window/,
+  );
+  assert.throws(
+    () => assertTrustedIpcSenderContents({ sender: contents }, null),
+    /Unauthorized IPC sender window/,
+  );
+});

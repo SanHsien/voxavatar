@@ -23,13 +23,13 @@ Electron main ── 設定／系統匣／MCP／HTTP／protocol
 React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 ```
 
-安全界線：main process 處理檔案、process discovery 與網路 listener；renderer 保持 sandbox、context isolation、無 Node integration。使用者媒體只透過登記 ID 的 `voxavatar-asset:` protocol 進入 renderer。avatar／settings preload 目前仍共用 allowlisted API；拆分權限與統一驗 sender 已列入 [`ROADMAP.md`](../ROADMAP.md)。
+安全界線：main process 處理檔案、process discovery 與網路 listener；renderer 保持 sandbox、context isolation、無 Node integration。使用者媒體只透過登記 ID 的 `voxavatar-asset:` protocol 進入 renderer。avatar 與 settings 使用不同 preload（`preload-avatar.cjs`／`preload-settings.cjs`）；設定寫入 IPC 另驗 settings 視窗 webContents。
 
 ## 目錄
 
 | 路徑 | 用途 |
 | --- | --- |
-| `electron/` | main、preload、設定、MCP／HTTP、語音來源與 Node tests |
+| `electron/` | main、preload-avatar／preload-settings、設定、MCP／HTTP、語音來源與 Node tests |
 | `src/` | React／Three.js renderer、動作邏輯與 Vitest |
 | `native/windows/` | WASAPI process-loopback C++ helper |
 | `scripts/` | 原生 build、自測、資產／文件／版本／checksum 驗證 |

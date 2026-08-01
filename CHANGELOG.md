@@ -2,6 +2,15 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.1.1 - 2026-08-01
+
+- 重寫繁中／英文 README，新增可驗證徽章、產品定位、架構、安全邊界、MCP 使用、開發分流、文件導覽與專案狀態。
+- 以雙語 `ROADMAP` 取代薄弱的 `PLAN`，新增版本里程碑、完成條件、風險、非目標、Windows 實機驗收與 Release evidence 規範；同步更新 review、決策與 agent 指引。
+- 強化 Release 信任根：只從 `main` dispatch，固定可信 SHA、重驗 immutable tag、隔離 `release` environment、最小化權限，並將 GitHub Actions 鎖定完整 commit SHA。
+- 強化 VRM／VRMA 匯入：先複製再完整驗證 GLB／extension 並 atomic rename；Scene 載入失敗改為可復原畫面，避免壞素材拖垮設定頁。
+- 清除 Windows-only 專案中的 Darwin／PipeWire 語音來源殘留，並讓 HTTP events／MCP POST 拒絕非 JSON media type。
+- 恢復 canonical MIT license 偵測、啟用 Dependabot security alerts／自動安全修補建議，並補齊文件、workflow 與 recovery regression tests。
+
 ## 0.1.0 - 2026-08-01
 
 - **第一個 stable release**：Windows overlay、WASAPI 語音輸出口型、本機 VRM／VRMA 管理、MCP／HTTP／URL protocol 與中英設定介面進入穩定基線。

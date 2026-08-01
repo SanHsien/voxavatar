@@ -103,12 +103,12 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 - Mouse wheel: zoom.
 - Left-drag on the avatar: move the window.
 - Middle-drag: rotate the view.
-- Right-click: open the shortcut menu.
-- Tray left-click: show or hide; tray right-click: open the menu.
+- Right-click the avatar: open the shortcut menu (reset view, settings, language, about).
+- Tray left-click: show or hide; tray right-click: open the menu (reset view, listening/speaking preview, settings, about).
 
 ## Project status and roadmap
 
-`v0.1.x` is the first stable baseline: Windows installers, application-output lip sync, local media management, four MCP tools, and automated quality gates are in place. The next priorities are real Windows installer validation, first-run diagnostics, a VRM/VRMA compatibility matrix, and a stable MCP contract, followed by component decomposition and measured performance work.
+Latest is `v0.2.x`: on top of the `0.1` stable baseline it adds system-output voice, stricter VRMA quality defaults, idle rest timing, discovery/matcher/MCP session/IPC sender hardening, and tray reset-view. Next: first-run readiness, copyable diagnostics, and versioned Windows smoke evidence, then media compatibility and deeper MCP contracts.
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones, completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 

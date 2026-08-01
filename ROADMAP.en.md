@@ -4,7 +4,7 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.2.0`
+Planning baseline: `v0.2.2`
 
 This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
 
@@ -219,12 +219,14 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 2. Record security, licensing, schema, and product tradeoffs in [`docs/DECISIONS.md`](docs/DECISIONS.md).
 3. Use automated tests for logic and real Windows smoke for WASAPI, transparent windows, tray behavior, and installers.
 4. Pass at least `npm run check`; native and Release work runs the full gate on a GitHub Windows runner.
-5. Keep Traditional Chinese and English public docs plus `CHANGELOG.md` synchronized.
+5. **Before every push**, review and sync Traditional Chinese / English public docs plus `CHANGELOG.md` (including `README`, `ROADMAP`, `SECURITY`, `REVIEW`, decisions, and process docs); confirm the review even when no edit is needed.
 6. After push, verify CI, CodeQL, published Latest Release, tag SHA, installer, and checksum.
-7. Mark roadmap work complete only when the completion criteria have evidence.
+7. Delete older Releases/tags only after a successful new Release, keeping only the latest; leave older ones untouched if the new Release fails.
+8. Mark roadmap work complete only when the completion criteria have evidence.
+9. After an interrupted session, agents must resume unfinished work automatically; see [`AGENTS.md`](AGENTS.md).
 
 ## Next three actions
 
 1. [x] **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
-2. [x] **Ship `0.2.0` hardening:** discovery backoff, safe matcher subset, MCP session limits, and IPC sender validation.
+2. [x] **Ship `0.2.0`–`0.2.1` hardening:** discovery/matcher/MCP session/IPC, plus tray reset-view.
 3. **Finish the `0.2.x` closed loop:** first-run readiness, copyable diagnostics, and versioned Windows smoke evidence.

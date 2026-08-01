@@ -48,6 +48,17 @@ npm run native:test
 
 原生、安裝或 protocol 變更另跑 `npm run dist:windows`，並記錄 Windows 手動驗收。資產變更必須更新 `public/assets/library.json`、`public/assets/manifest.json`、[`ASSET_LICENSES.md`](ASSET_LICENSES.md)，再執行 `npm run assets:release`。
 
+## 文件檢討
+
+每次準備送出變更前，檢討並視需要更新：
+
+- `CHANGELOG.md`（使用者可觀察變更）
+- `ROADMAP.md`／`ROADMAP.en.md`（完成項、基準版本、下一步）
+- `README.md`／`README.en.md`（能力與指引是否仍正確）
+- 若邊界改變：`SECURITY*`、`REVIEW.md`、`docs/DECISIONS.md`
+
+雙語公開文件請成對修改。細節見 [`AGENTS.md`](AGENTS.md)。
+
 ## Pull request
 
 一個 PR 聚焦一個主題，說明：

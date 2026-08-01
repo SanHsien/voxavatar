@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.2 - 2026-08-01
+
+- 將「每次 push 前文件檢討」與「中斷後自動接續未完成工作」寫入 `AGENTS.md`、`.cursorrules`、`CLAUDE.md`、雙語 ROADMAP／CONTRIBUTING、`docs/DECISIONS.md`（D-19）與 `docs/RELEASING.md`。
+- README 同步系統匣／角色右鍵含「重設視角」，專案狀態改以 `v0.2.x` 為準。
+- 發行政策：新版成功後只保留最新 Release／tag；清理時可暫關 immutable tag ruleset，完成後恢復。
+
 ## 0.2.1 - 2026-08-01
 
 - 系統匣右鍵選單補回「重設視角」（角色可見時可用）；與角色本體右鍵共用同一重置路徑。

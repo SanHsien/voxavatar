@@ -46,6 +46,12 @@ gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.1.0
 
 不得把 tag 移到另一個 commit 或只推 tag 不推版本 commit。Release 只接受從可信 `main` 手動 dispatch，GitHub `release` environment 也只允許 `main` 部署；workflow 在執行程式碼前驗證 workflow SHA、遠端 `main` 與 tag commit 三者相同，package／publish 固定 checkout 該 SHA，發布前再驗一次 tag 未移動。`scripts/check-release-tag.cjs` 另驗 tag 與 package 版號。
 
+每次準備 bump／push 前，依 [`AGENTS.md`](../AGENTS.md) 檢討 `CHANGELOG`、雙語 `README`／`ROADMAP`／`SECURITY`、`REVIEW` 與決策／流程文件。
+
+## 舊版清理
+
+新版 GitHub Release **成功且 Latest 指向新 tag 後**，刪除其餘舊 GitHub Release，並在 repository ruleset 允許時刪除對應舊 tag，只保留最新版。新版失敗則不動舊版。不可對既有 tag 做 force-update；「Immutable release tags」ruleset 禁止刪除時，先由擁有者暫時調整 ruleset／bypass，刪除後再恢復「禁止 force-update／誤刪」保護。
+
 ## GitHub Actions
 
 Release workflow 依序：

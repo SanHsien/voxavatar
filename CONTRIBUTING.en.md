@@ -48,6 +48,17 @@ npm run native:test
 
 For native, installer, or protocol changes, also run `npm run dist:windows` and record Windows manual validation. Asset changes must update `public/assets/library.json`, `public/assets/manifest.json`, and [`ASSET_LICENSES.md`](ASSET_LICENSES.md), then pass `npm run assets:release`.
 
+## Documentation review
+
+Before sending a change, review and update as needed:
+
+- `CHANGELOG.md` (user-visible changes)
+- `ROADMAP.md` / `ROADMAP.en.md` (completed items, planning baseline, next actions)
+- `README.md` / `README.en.md` (capabilities and guidance still accurate)
+- Boundary changes: `SECURITY*`, `REVIEW.md`, `docs/DECISIONS.md`
+
+Keep bilingual public docs in pairs. See [`AGENTS.md`](AGENTS.md).
+
 ## Pull requests
 
 Keep one concern per PR and explain the motivation, user-visible result, automated and manual verification, and security/licensing/Windows impact.

@@ -7,6 +7,7 @@
 - 以繁體中文回答。
 - 直接處理需求，不用冗長背景、技術選型或表演式推理拖延簡單工作。
 - 主人交代的要求（含執行中補充）必須做完；自行拆分的階段計畫可在合理關卡暫停。
+- **中斷後必須自動接續**：對話壓縮、session 重開、工具中斷或主人再說「繼續」時，先還原上一輪已計劃／進行中／未驗證的工作，立刻做完，**禁止**等主人再次提醒「繼續未完成工作」。接續順序：查 git／CI／Release／todo 現況 → 從中斷點執行 → 驗證 → 依本檔交付。
 
 ## 完成、推送與發行
 
@@ -14,8 +15,26 @@
 
 1. 完成要求後直接 commit 並 `git push origin main`，不要預設只開 PR。
 2. 推上 `main` 後主動 bump `package.json` 版號、同步 lockfile、更新 `CHANGELOG.md`，再 commit／push。
-3. 建立並推送 `v{version}` tag，讓 GitHub Actions 打包及發布；依 [`docs/RELEASING.md`](docs/RELEASING.md) 驗證公開 Release、Latest、target commit 與資產。
-4. 只有密鑰、未授權破壞性操作或互相矛盾的需求才停下詢問。
+3. 建立並推送 `v{version}` tag，依 [`docs/RELEASING.md`](docs/RELEASING.md) 手動 dispatch Release，並驗證公開 Release、Latest、target commit 與資產。
+4. 新版 Release **成功後**才刪除其餘舊 GitHub Release 與對應 tag，只保留最新版；新版失敗則不動舊版。
+5. 只有密鑰、未授權破壞性操作或互相矛盾的需求才停下詢問。
+
+### 每次 push 前的文件檢討（必做）
+
+每次準備 commit／push（含 release bump）前，必須檢討並視需要更新相關文件，不可只改程式：
+
+| 檔案 | 檢討重點 |
+| --- | --- |
+| `CHANGELOG.md` | 使用者可觀察變更是否已寫入對應版本 |
+| `ROADMAP.md`／`ROADMAP.en.md` | 完成項勾選、規劃基準、接下來三件事、SemVer 節奏是否仍正確 |
+| `README.md`／`README.en.md` | 產品敘述、能力、安全邊界、安裝／開發指引是否與現況一致 |
+| `SECURITY.md`／`SECURITY.en.md` | 隱私／IPC／MCP／語音模式邊界是否跟上 |
+| `REVIEW.md` | 最新健康狀態；已修項目勿留在「尚未關閉」 |
+| `docs/DECISIONS.md` | 新取捨是否需決策條目 |
+| `CONTRIBUTING*`／`docs/DEVELOPMENT.md`／`docs/RELEASING.md` | 流程或指令是否漂移 |
+| `AGENTS.md`／`.cursorrules` | agent 行為規則是否需同步 |
+
+雙語公開文件成對修改。無使用者可見變更時可在 CHANGELOG 略過，但仍須在 commit 說明或工作紀錄確認「已檢討、無需改」。
 
 ## 產品
 

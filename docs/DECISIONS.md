@@ -78,3 +78,10 @@ Release 只允許從可信 `main` workflow 手動 dispatch，`release` environme
 - **決定**：語音來源新增 `output` 模式，以 WASAPI 預設 render endpoint loopback 監聽目前輸出裝置混音。預設仍為指定應用程式／自動偵測。
 - **隱私**：必須在 Settings 明示「隱私邊界警告」——會聽到音樂、影片、遊戲、系統音與其他應用，不只語音助理；音量僅本機轉口型／動作、不上傳。使用者需主動選擇該模式。
 - **配套**：角色縮放最小 30%；Idle 間隔預設 8 秒（可調 2–60 秒）；VRMA 品質門檻淘汰低於 60、保留 75 以上，預設嚴格模式；匣／右鍵／設定提供「關於」顯示版本。
+
+## D-19｜每次 push 的文件檢討與中斷接續
+
+- **日期**：2026-08-01
+- **決定**：每次 commit／push 前必須檢討 `CHANGELOG`、雙語 `README`／`ROADMAP`／`SECURITY`、`REVIEW`、`docs/DECISIONS` 及相關流程文件；無變更也要確認已檢討。Agent 在對話壓縮或工具中斷後必須自動接續未完成工作，不得等主人再次提醒。
+- **發行清理**：新版 GitHub Release 成功後才刪除其餘舊 Release／tag，只保留最新；失敗則保留舊版。不可變 tag 的「禁止 force-update」仍成立；刪除舊 tag 僅在主人政策允許且新版已驗證成功時執行。
+- **權威來源**：[`AGENTS.md`](../AGENTS.md)、[`.cursorrules`](../.cursorrules)、[`ROADMAP.md`](../ROADMAP.md) 執行規則。

@@ -4,7 +4,7 @@
 
 更新日期：2026-08-01
 
-規劃基準：`v0.2.0`
+規劃基準：`v0.2.2`
 
 這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成（可跨版本標示），`-` 表示尚未完成。
 
@@ -219,12 +219,14 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 2. 安全、授權、schema 或產品取捨寫入 [`docs/DECISIONS.md`](docs/DECISIONS.md)。
 3. 純邏輯用自動測試；WASAPI、透明視窗、系統匣與 installer 用 Windows 實機 smoke。
 4. 至少通過 `npm run check`；原生與 Release 由 GitHub Windows runner 執行完整 gate。
-5. 同步繁中／英文公開文件與 `CHANGELOG.md`。
+5. **每次 push 前**檢討並同步繁中／英文公開文件與 `CHANGELOG.md`（含 `README`、`ROADMAP`、`SECURITY`、`REVIEW`、決策與流程文件）；無變更也要確認已檢討。
 6. push 後驗 CI、CodeQL、published Latest Release、tag SHA、installer 與 checksum。
-7. 只有完成條件有證據時，才把項目標為完成。
+7. 新版 Release 成功後才刪除其餘舊 Release／tag，只留最新；失敗則保留舊版。
+8. 只有完成條件有證據時，才把項目標為完成。
+9. Agent／維護者在對話中斷後必須自動接續未完成工作，見 [`AGENTS.md`](AGENTS.md)。
 
 ## 接下來三件事
 
 1. [x] **關閉 v0.1.x 信任缺口**：清除 CodeQL alerts、啟用 Dependabot security alerts、修正 MIT 偵測並完成本次穩定修正版。
-2. [x] **發行 `0.2.0` hardening**：discovery backoff、matcher 安全子集、MCP session 上限、IPC sender 驗證。
+2. [x] **發行 `0.2.0`–`0.2.1` hardening**：discovery／matcher／MCP session／IPC，並補回系統匣重設視角。
 3. **完成 `0.2.x` 閉環**：首次設定 readiness、可複製診斷摘要、版本化 Windows 實機證據。

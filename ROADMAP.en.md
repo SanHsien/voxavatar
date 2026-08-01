@@ -4,7 +4,7 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.4.0` (accumulated on `main`; Latest Release may still point at an earlier tag—see D-23)
+Planning baseline: `v0.5.0` (accumulated on `main`; Latest Release may still point at an earlier tag—see D-23)
 
 This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
 
@@ -109,6 +109,7 @@ Goal: users can understand availability, quality, and migration results before r
 ### Work
 
 - Publish a verified VRM 0.x/1.0 and common VRMA exporter matrix covering skeleton, expression, texture, and motion results.
+- [x] Publish a public compatibility matrix skeleton with synthetic fixtures ([`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md)); real exporter names and manual evidence remain.
 - [x] Show format and quality summaries before import and write to the catalog only after confirmation (folder-import dialog; failure reasons and strict skip behavior remain).
 - [x] Add explicit schema versions and migration fixtures for the settings catalog across the last two MINOR releases (schema 4/5→6; back up the original file when migration is not possible).
 - [x] Improve clip reordering and quality-report navigation (move up/down, reveal report in File Explorer).
@@ -149,19 +150,19 @@ Goal: new features do not turn one Settings page, the main process, and the sett
 
 ### Work
 
-- Split `SettingsPage.tsx`, `electron/main.cjs`, and `settings-store.cjs` by responsibility, preserving behavior tests before moving code.
+- [x] Begin responsibility-based splits: `settings-migration` / `settings-sanitize`, `renderer-windows`, `SettingsModelsSection`; further splits of `SettingsPage`, `main`, and store CRUD remain.
 - [x] Extract folder-import evaluate helper (`directory-import.cjs`); continue splitting Settings, main, and store.
-- Benchmark cold launch, first avatar display, model switching, long idle sessions, and large libraries.
+- [x] Add a renderer bundle baseline script (`npm run baseline:bundle`); cold launch, idle, and real-machine memory baselines remain.
 - [x] Lazy-load Settings (`React.lazy`) without sacrificing overlay first paint; quality-report and other non-first-frame splits remain.
 - Add Windows keyboard, focus-order, scaling, and high-DPI acceptance checks.
 - Give native COM/WASAPI capture failures typed errors and non-zero exits, with real-machine playback, device-switch, and recovery tests.
-- Add component tests for App, Settings, and Scene recovery plus desktop smoke for protocol, tray, and MCP behavior.
-- [x] Provide a production dependency SBOM script (`npm run sbom`); release-evidence manifest and installer inventory remain.
+- [x] Add a Scene error-recovery `resetKey` component test; App/Settings integration and protocol/tray desktop smoke remain.
+- [x] Provide a production dependency SBOM (`npm run sbom`) and a release-evidence manifest template (`npm run evidence:manifest`); filled real-machine records remain deferred.
 
 ### Completion criteria
 
-- Large files have clear module ownership, and common changes do not require simultaneous renderer, main, and store edits.
-- Performance improvements include before/after data; silencing a bundle warning is not itself success.
+- Large-file responsibilities have begun splitting; common changes may still span files—continue converging.
+- [x] Bundle improvements can be compared against baseline data (silencing a warning alone is not success).
 - Core keyboard flows at 100%, 150%, and 225% DPI have no blocking clipping or focus failures.
 - A release can provide installer, checksum, dependency inventory, and version evidence together.
 
@@ -230,4 +231,5 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 
 1. [x] **Close v0.1.x / v0.2.x baseline and hardening** (including preload split and bounded action queue).
 2. [x] **Advance v0.3 / v0.4:** migration fixtures, import confirmation summaries, clip ordering / report navigation, MCP schema JSON, multi-client tests, integration docs.
-3. **Continue v0.5:** split large modules, error-recovery component tests, performance benchmarks; defer exporter matrix, real-machine, and signing evidence.
+3. [x] **Advance v0.5 maintainability:** module-split start, bundle baseline, Scene resetKey test, compatibility matrix skeleton, evidence manifest template.
+4. **Keep converging:** further Settings/main splits, real exporter matrix, App integration tests; signing and real-machine evidence remain deferred.

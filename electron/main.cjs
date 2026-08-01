@@ -66,17 +66,8 @@ const {
   buildDirectoryImportSummary,
   evaluateDirectoryImport,
 } = require("./directory-import.cjs");
+const { createRendererWindows } = require("./renderer-windows.cjs");
 
-const WINDOW_WIDTH = 430;
-const WINDOW_HEIGHT = 680;
-const SETTINGS_WINDOW_WIDTH = 1180;
-const SETTINGS_WINDOW_HEIGHT = 780;
-// Chromium paints this behind newly exposed areas during a resize, so it must
-// track the renderer's --bg-window token in src/styles.css.
-const SETTINGS_WINDOW_BACKGROUND = {
-  dark: "#0d0e12",
-  light: "#e6e8ec",
-};
 const VOXAVATAR_ASSET_SCHEME = "voxavatar-asset";
 const startInBackground = process.argv.includes("--background");
 const startInSettings = process.argv.includes("--settings");
@@ -106,6 +97,50 @@ let mcpServerPort = Number(
 );
 let mcpAnimationCatalogSignature = null;
 const pendingRendererEvents = new Map();
+
+const {
+  createSettingsWindow,
+  createWindow,
+  rendererUrl,
+  settingsWindowBackground,
+  trustedRendererUrls,
+} = createRendererWindows({
+  path,
+  pathToFileURL,
+  BrowserWindow,
+  shell,
+  nativeTheme,
+  isAllowedRendererNavigation,
+  createSettingsWindowPresentationGate,
+  electronDir: __dirname,
+  devServerUrl: process.env.VITE_DEV_SERVER_URL,
+  preloadAvatarPath: path.join(__dirname, "preload-avatar.cjs"),
+  preloadSettingsPath: path.join(__dirname, "preload-settings.cjs"),
+  getIsQuitting: () => isQuitting,
+  getAvatarMousePassthrough: () => avatarMousePassthrough,
+  setAvatarMousePassthroughFlag: (value) => {
+    avatarMousePassthrough = value;
+  },
+  onAvatarWindowClosed: () => {
+    rendererLoadHookAttached = false;
+  },
+  positionWindow,
+  setAvatarMousePassthrough,
+  hideOverlay,
+  focusSettingsWindow,
+  getAvatarWindow: () => avatarWindow,
+  setAvatarWindow: (window) => {
+    avatarWindow = window;
+  },
+  getSettingsWindow: () => settingsWindow,
+  setSettingsWindow: (window) => {
+    settingsWindow = window;
+  },
+  getSettingsWindowPresentationGate: () => settingsWindowPresentationGate,
+  setSettingsWindowPresentationGate: (gate) => {
+    settingsWindowPresentationGate = gate;
+  },
+});
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -408,19 +443,6 @@ function buildAvatarContextMenu() {
   ]);
 }
 
-function rendererUrl(view = null) {
-  const url = new URL(
-    process.env.VITE_DEV_SERVER_URL ||
-      pathToFileURL(path.join(__dirname, "..", "dist", "index.html")).href,
-  );
-  if (view) url.searchParams.set("view", view);
-  return url.href;
-}
-
-function trustedRendererUrls() {
-  return [rendererUrl(), rendererUrl("settings")];
-}
-
 function handleTrustedIpc(channel, handler) {
   ipcMain.handle(channel, async (event, ...args) => {
     assertTrustedIpcSender(event, trustedRendererUrls());
@@ -442,145 +464,6 @@ function handleTrustedAvatarIpc(channel, handler) {
     assertTrustedIpcSenderContents(event, avatarWindow?.webContents);
     return handler(event, ...args);
   });
-}
-
-function secureRendererWindow(window, allowedRendererUrl) {
-  window.webContents.setWindowOpenHandler(({ url }) => {
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
-        void shell.openExternal(parsed.toString());
-      }
-    } catch {
-      // ignore invalid URLs
-    }
-    return { action: "deny" };
-  });
-  window.webContents.on("will-navigate", (event, targetUrl) => {
-    if (!isAllowedRendererNavigation(targetUrl, allowedRendererUrl)) {
-      event.preventDefault();
-      try {
-        const parsed = new URL(targetUrl);
-        if (parsed.protocol === "https:" || parsed.protocol === "http:") {
-          void shell.openExternal(parsed.toString());
-        }
-      } catch {
-        // ignore
-      }
-    }
-  });
-}
-
-function createWindow() {
-  if (avatarWindow && !avatarWindow.isDestroyed()) return avatarWindow;
-
-  const window = new BrowserWindow({
-    width: WINDOW_WIDTH,
-    height: WINDOW_HEIGHT,
-    minWidth: 320,
-    minHeight: 480,
-    show: false,
-    frame: false,
-    transparent: true,
-    backgroundColor: "#00000000",
-    hasShadow: false,
-    roundedCorners: false,
-    autoHideMenuBar: true,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    title: "VoxAvatar",
-    webPreferences: {
-      preload: path.join(__dirname, "preload-avatar.cjs"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-  avatarWindow = window;
-
-  window.setAlwaysOnTop(true, "floating");
-  window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  window.setOpacity(1);
-  // Transparent pixels click through; renderer re-enables hit-testing over the avatar.
-  window.setIgnoreMouseEvents(true, { forward: true });
-  avatarMousePassthrough = true;
-  window.once("ready-to-show", () => {
-    if (window.isDestroyed()) return;
-    positionWindow(window);
-  });
-  window.on("show", () => {
-    if (window.isDestroyed()) return;
-    window.setAlwaysOnTop(true, "floating");
-    window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-    window.setOpacity(1);
-    setAvatarMousePassthrough(avatarMousePassthrough);
-  });
-  window.on("close", (event) => {
-    if (isQuitting) return;
-    event.preventDefault();
-    void hideOverlay();
-  });
-  window.on("closed", () => {
-    if (avatarWindow !== window) return;
-    rendererLoadHookAttached = false;
-    avatarWindow = null;
-  });
-
-  const avatarRendererUrl = rendererUrl();
-  secureRendererWindow(window, avatarRendererUrl);
-  void window.loadURL(avatarRendererUrl);
-  return window;
-}
-
-function settingsWindowBackground(theme) {
-  return SETTINGS_WINDOW_BACKGROUND[theme] ?? SETTINGS_WINDOW_BACKGROUND.dark;
-}
-
-function createSettingsWindow() {
-  if (settingsWindow && !settingsWindow.isDestroyed()) return settingsWindow;
-
-  const window = new BrowserWindow({
-    width: SETTINGS_WINDOW_WIDTH,
-    height: SETTINGS_WINDOW_HEIGHT,
-    minWidth: 920,
-    minHeight: 640,
-    show: false,
-    title: "VoxAvatar Settings",
-    // Best guess until the renderer reports the theme it actually resolved,
-    // which it does before the window is shown on ready-to-show.
-    backgroundColor: settingsWindowBackground(
-      nativeTheme.shouldUseDarkColors ? "dark" : "light",
-    ),
-    autoHideMenuBar: true,
-    webPreferences: {
-      preload: path.join(__dirname, "preload-settings.cjs"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-  const presentationGate = createSettingsWindowPresentationGate();
-  settingsWindow = window;
-  settingsWindowPresentationGate = presentationGate;
-
-  const settingsRendererUrl = rendererUrl("settings");
-  secureRendererWindow(window, settingsRendererUrl);
-  window.once("ready-to-show", () => {
-    if (
-      settingsWindow !== window ||
-      settingsWindowPresentationGate !== presentationGate
-    ) {
-      return;
-    }
-    if (presentationGate.markReadyToShow()) focusSettingsWindow();
-  });
-  window.on("closed", () => {
-    if (settingsWindow !== window) return;
-    settingsWindow = null;
-    settingsWindowPresentationGate = null;
-  });
-  void window.loadURL(settingsRendererUrl);
-  return window;
 }
 
 function focusSettingsWindow() {

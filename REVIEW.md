@@ -2,13 +2,13 @@
 
 覆核日期：2026-08-01
 
-覆核基準：`v0.4.0`／`main`（v0.3 素材生命週期＋v0.4 MCP schema；Latest GitHub Release 可能仍為較早 tag，見 D-23）
+覆核基準：`v0.5.0`／`main`（v0.5 模組拆分、bundle 基準、相容矩陣骨架；Latest GitHub Release 可能仍為較早 tag，見 D-23）
 
 ## 結論
 
-VoxAvatar 已越過 `0.2.x` hardening，並在本機可驗證範圍內推進 v0.3／v0.4。沒有已知未解 P0／P1。Windows 實機／簽署／native capture 缺口**延後、不阻塞**後續路線圖。
+VoxAvatar 已越過 `0.2.x` hardening，並在本機可驗證範圍內推進 v0.3／v0.4／v0.5 收斂。沒有已知未解 P0／P1。Windows 實機／簽署／native capture 缺口**延後、不阻塞**後續路線圖。
 
-## 本輪已修正（含至 0.4.0）
+## 本輪已修正（含至 0.5.0）
 
 | 嚴重度 | 問題 | 處理 |
 | --- | --- | --- |
@@ -18,6 +18,9 @@ VoxAvatar 已越過 `0.2.x` hardening，並在本機可驗證範圍內推進 v0.
 | P2 | settings migration／匯入確認／片段排序／報告導覽 | `0.3.0` |
 | P2 | MCP 工具輸出需解析人類文字 | `0.4.0` JSON schema＋多 client 測試 |
 | P3 | 設定頁同步打包進 overlay | `React.lazy`；SBOM 腳本 |
+| P3 | 大型模組難以維護 | `0.5.0` 開始拆分 migration／sanitize／renderer-windows／SettingsModelsSection |
+| P3 | 無 bundle 基準與 release 證據模板 | `baseline:bundle`、`evidence:manifest` |
+| P3 | 相容矩陣與 Scene 錯誤復原缺測 | 合成 fixture 矩陣骨架；Scene `resetKey` component test |
 
 ## 延後（不阻塞 v0.3+）
 
@@ -28,9 +31,10 @@ VoxAvatar 已越過 `0.2.x` hardening，並在本機可驗證範圍內推進 v0.
 
 ## 仍開放的開發項
 
-1. VRM／VRMA exporter 相容矩陣與 fixture。
-2. 大型模組繼續拆分（`SettingsPage`／`main`／`settings-store`）。
-3. 啟動／Idle／bundle 效能基準與錯誤復原 component tests。
+1. 大型模組繼續拆分（`SettingsPage`／`main`／`settings-store` CRUD）。
+2. 真實 VRM／VRMA exporter 相容矩陣與人工證據。
+3. App／Settings 整合 component tests 與 protocol／tray 桌面 smoke。
+4. 冷啟動／Idle／真機記憶體效能基準。
 
 ## 發行與治理判定
 

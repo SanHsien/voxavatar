@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic VRM/VRMA compatibility cases mapped to electron quality tests. No binary media is committed; builders generate GLB at test time.",
+  "syntheticOnly": true,
+  "realExporterMatrixDeferred": true,
+  "cases": [
+    {
+      "id": "vrm-complete",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": {},
+      "expectedVerdict": ["keep", "review"],
+      "expectedScoreMin": 70,
+      "expectedIssueCodes": [],
+      "tests": ["complete VRM scores as keep or mild review"]
+    },
+    {
+      "id": "vrm0-array-bones",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "vrm0ArrayHumanoid": true },
+      "expectedVerdict": ["keep"],
+      "expectedScoreMin": 75,
+      "expectedIssueCodes": [],
+      "mustNotIncludeIssueCodes": ["low_bone_coverage"],
+      "tests": [
+        "VRM0 array humanBones is parsed for coverage (not false low_bone_coverage)"
+      ]
+    },
+    {
+      "id": "vrm-missing-extension",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeExtension": false },
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["missing_vrm_extension"],
+      "tests": ["missing VRM extension is rejected"]
+    },
+    {
+      "id": "vrm-missing-humanoid",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeHumanoid": false },
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodes": ["missing_humanoid"],
+      "tests": ["missing humanoid is review or reject"]
+    },
+    {
+      "id": "vrm-broken",
+      "kind": "vrm",
+      "builder": null,
+      "builderOptions": null,
+      "notes": "Uses raw bytes 'not-a-glb' instead of builder output.",
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["parse_error"],
+      "tests": ["broken file is rejected"]
+    },
+    {
+      "id": "vrma-smooth-loop",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": {},
+      "expectedVerdict": ["keep", "review"],
+      "expectedScoreMin": 70,
+      "expectedIssueCodes": [],
+      "tests": ["smooth looping VRMA scores as keep or mild review"]
+    },
+    {
+      "id": "vrma-velocity-spike",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "spike": true, "angle": 0.15 },
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodePrefix": "velocity",
+      "tests": ["velocity spike VRMA is marked review or reject"]
+    },
+    {
+      "id": "vrma-broken",
+      "kind": "vrma",
+      "builder": null,
+      "builderOptions": null,
+      "notes": "Uses raw bytes 'not-a-glb' instead of builder output.",
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["parse_error"],
+      "tests": ["broken file is rejected"]
+    }
+  ]
+}

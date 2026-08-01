@@ -99,6 +99,10 @@ gh api repos/SanHsien/voxavatar/releases/latest
 
 只有 tag 或 workflow 綠燈，不等於 Release 已完成。
 
+## 基準、證據與 SBOM
+
+Release 前或稽核時可搭配三個腳本：`npm run baseline:bundle` 產生 renderer bundle 基準供回歸對照；`npm run evidence:manifest` 產生 release-evidence 填寫模板（見 [`release-evidence/README.md`](release-evidence/README.md)）；`npm run sbom` 從 lockfile 產生 production 依賴清單。三者皆僅使用 Node 內建模組，不另裝外部工具；bundle 基準與 manifest 模板不等同於已填寫的 Windows 實機證據。
+
 ## SBOM（依賴清單）
 
 Release 前或稽核時可從 `package-lock.json` 產生 production 依賴 SBOM（不含 devDependencies）：

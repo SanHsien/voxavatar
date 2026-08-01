@@ -6,25 +6,36 @@ const path = require("node:path");
 const {
   ANIMATION_NAME_PATTERN,
   SYSTEM_ANIMATION_IDS,
-  inferAnimationType,
   readPackagedLibrary,
 } = require("./library-catalog.cjs");
 const {
-  DEFAULT_VOICE_SOURCE,
   normalizeVoiceSource,
   sanitizeVoiceSource,
 } = require("./voice-source.cjs");
 const { normalizeUiLocale } = require("./i18n.cjs");
 const {
-  QUALITY_GATE,
   normalizeQualityGate,
   normalizeReportDir,
 } = require("./vrma-quality.cjs");
-
-const SETTINGS_SCHEMA_VERSION = 6;
-const DEFAULT_IDLE_REST_MS = 8000;
-const MIN_IDLE_REST_MS = 2000;
-const MAX_IDLE_REST_MS = 60000;
+const {
+  DEFAULT_IDLE_REST_MS,
+  MAX_IDLE_REST_MS,
+  MIN_IDLE_REST_MS,
+  SETTINGS_SCHEMA_VERSION,
+  migrateLegacyAnimations,
+  normalizeIdleRestMs,
+  safeReadState,
+} = require("./settings-migration.cjs");
+const {
+  DEFAULT_MODEL_LIGHTING,
+  MODEL_LIGHTING_RANGES,
+  completeModelLighting,
+  nextClipName,
+  roundedLightingNumber,
+  sanitizeModelLighting,
+  singleLine,
+  validateAnimationMetadata,
+} = require("./settings-sanitize.cjs");
 const DEFAULT_PACKAGED_LIBRARY_PATH = path.join(
   __dirname,
   "..",
@@ -40,85 +51,6 @@ const GLB_JSON_CHUNK_TYPE = 0x4e4f534a;
 const MAX_CUSTOM_MODELS = 50;
 const MAX_CUSTOM_ANIMATIONS = 100;
 const MAX_CUSTOM_ANIMATION_CLIPS = 300;
-const ASSET_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const DEFAULT_MODEL_LIGHTING = Object.freeze({
-  tone_mapping: "none",
-  exposure: 1,
-  environment_enabled: true,
-  environment_intensity: 1,
-  key_light_intensity: Math.PI,
-  ambient_intensity: Math.PI,
-});
-const MODEL_LIGHTING_RANGES = Object.freeze({
-  exposure: [0.1, 3],
-  environment_intensity: [0, 2],
-  key_light_intensity: [0, 4],
-  ambient_intensity: [0, 4],
-});
-
-function defaultState(packagedLibrary) {
-  return {
-    schema_version: SETTINGS_SCHEMA_VERSION,
-    default_model_id: packagedLibrary.default_model_id,
-    character_size: 1,
-    ui_locale: "zh-TW",
-    model_lighting: {},
-    models: [],
-    animations: [],
-    animation_clips: {},
-    packaged_animation_overrides: {},
-    hidden_packaged_animation_ids: [],
-    voice_source: { ...DEFAULT_VOICE_SOURCE },
-    vrma_quality_gate: QUALITY_GATE.STRICT,
-    vrma_report_dir: null,
-    idle_rest_ms: DEFAULT_IDLE_REST_MS,
-  };
-}
-
-function normalizeIdleRestMs(value) {
-  const ms = Number(value);
-  if (!Number.isFinite(ms)) return DEFAULT_IDLE_REST_MS;
-  return Math.round(
-    Math.max(MIN_IDLE_REST_MS, Math.min(MAX_IDLE_REST_MS, ms)),
-  );
-}
-
-function singleLine(value, field, maxLength) {
-  if (typeof value !== "string") throw new Error(`${field} is required.`);
-  const normalized = value.trim().replace(/\s+/g, " ");
-  if (!normalized) throw new Error(`${field} is required.`);
-  if (normalized.length > maxLength) {
-    throw new Error(`${field} must be ${maxLength} characters or fewer.`);
-  }
-  return normalized;
-}
-
-function validateAnimationMetadata(metadata) {
-  const animation_name = singleLine(
-    metadata?.animation_name,
-    "Animation name",
-    48,
-  ).toLowerCase();
-  if (!ANIMATION_NAME_PATTERN.test(animation_name)) {
-    throw new Error(
-      "Animation name must use lowercase letters, numbers, and single hyphens.",
-    );
-  }
-  return {
-    animation_name,
-    animation_description: singleLine(
-      metadata?.animation_description,
-      "Animation description",
-      240,
-    ),
-    animation_trigger_scenario: singleLine(
-      metadata?.animation_trigger_scenario,
-      "Animation trigger scenario",
-      240,
-    ),
-  };
-}
 
 function validateGlbFile(filePath, expectedExtension) {
   if (typeof filePath !== "string") throw new Error("No asset file was selected.");
@@ -197,338 +129,6 @@ function copyValidatedGlbFile(sourcePath, destinationPath, expectedExtension) {
     fs.renameSync(temporaryPath, destinationPath);
   } finally {
     fs.rmSync(temporaryPath, { force: true });
-  }
-}
-
-function validStoredAsset(record, extension) {
-  return (
-    ASSET_ID_PATTERN.test(record?.id) &&
-    record.stored_filename === `${record.id}${extension}`
-  );
-}
-
-function sanitizeModels(models) {
-  if (!Array.isArray(models)) return [];
-  return models.flatMap((model) => {
-    if (!validStoredAsset(model, ".vrm")) return [];
-    try {
-      return [
-        {
-          ...model,
-          model_name: singleLine(model.model_name, "Model name", 80),
-        },
-      ];
-    } catch {
-      return [];
-    }
-  });
-}
-
-function roundedLightingNumber(
-  value,
-  [minimum, maximum],
-  defaultValue = null,
-) {
-  if (
-    typeof value !== "number" ||
-    !Number.isFinite(value) ||
-    value < minimum ||
-    value > maximum
-  ) {
-    return null;
-  }
-  return value === defaultValue
-    ? defaultValue
-    : Math.round(value * 100) / 100;
-}
-
-function completeModelLighting(value) {
-  const source =
-    value != null && typeof value === "object" && !Array.isArray(value)
-      ? value
-      : {};
-  const lighting = { ...DEFAULT_MODEL_LIGHTING };
-  if (source.tone_mapping === "none" || source.tone_mapping === "aces") {
-    lighting.tone_mapping = source.tone_mapping;
-  }
-  if (typeof source.environment_enabled === "boolean") {
-    lighting.environment_enabled = source.environment_enabled;
-  }
-  for (const [field, range] of Object.entries(MODEL_LIGHTING_RANGES)) {
-    const normalized = roundedLightingNumber(
-      source[field],
-      range,
-      DEFAULT_MODEL_LIGHTING[field],
-    );
-    if (normalized != null) lighting[field] = normalized;
-  }
-  return lighting;
-}
-
-function sanitizeModelLighting(modelLighting, knownModelIds) {
-  if (
-    modelLighting == null ||
-    typeof modelLighting !== "object" ||
-    Array.isArray(modelLighting)
-  ) {
-    return {};
-  }
-  return Object.fromEntries(
-    Object.entries(modelLighting)
-      .filter(([modelId]) => knownModelIds.has(modelId))
-      .map(([modelId, lighting]) => [
-        modelId,
-        completeModelLighting(lighting),
-      ]),
-  );
-}
-
-function sanitizeUserAnimations(animations) {
-  if (!Array.isArray(animations)) return [];
-  return animations.flatMap((animation) => {
-    if (!ASSET_ID_PATTERN.test(animation?.id)) return [];
-    try {
-      return [
-        {
-          id: animation.id,
-          ...validateAnimationMetadata(animation),
-        },
-      ];
-    } catch {
-      return [];
-    }
-  });
-}
-
-function sanitizeAnimationClips(animationClips, knownAnimationIds) {
-  if (animationClips == null || typeof animationClips !== "object") return {};
-  const sanitized = {};
-  for (const [animationId, clips] of Object.entries(animationClips)) {
-    if (!knownAnimationIds.has(animationId) || !Array.isArray(clips)) continue;
-    const valid = clips.flatMap((clip) => {
-      if (!validStoredAsset(clip, ".vrma")) return [];
-      try {
-        const clip_name = singleLine(clip.clip_name, "Clip name", 64).toLowerCase();
-        if (!ANIMATION_NAME_PATTERN.test(clip_name)) return [];
-        return [{ id: clip.id, stored_filename: clip.stored_filename, clip_name }];
-      } catch {
-        return [];
-      }
-    });
-    if (valid.length > 0) sanitized[animationId] = valid;
-  }
-  return sanitized;
-}
-
-function packagedUserLayers(parsed, packagedLibrary) {
-  const packagedIds = new Set(
-    packagedLibrary.animations.map((animation) => animation.id),
-  );
-  const overrides = {};
-  if (
-    parsed.packaged_animation_overrides != null &&
-    typeof parsed.packaged_animation_overrides === "object"
-  ) {
-    for (const [id, metadata] of Object.entries(
-      parsed.packaged_animation_overrides,
-    )) {
-      if (!packagedIds.has(id) || SYSTEM_ANIMATION_IDS.has(id)) continue;
-      try {
-        overrides[id] = validateAnimationMetadata(metadata);
-      } catch {
-        // Ignore an invalid user override and retain the packaged metadata.
-      }
-    }
-  }
-
-  const hidden = Array.isArray(parsed.hidden_packaged_animation_ids)
-    ? [
-        ...new Set(
-          parsed.hidden_packaged_animation_ids.filter(
-            (id) => packagedIds.has(id) && !SYSTEM_ANIMATION_IDS.has(id),
-          ),
-        ),
-      ]
-    : [];
-  return { hidden, overrides };
-}
-
-function nextClipName(animationName, existingNames) {
-  let index = 1;
-  while (existingNames.has(`${animationName}${index}`)) index += 1;
-  const clipName = `${animationName}${index}`;
-  existingNames.add(clipName);
-  return clipName;
-}
-
-function migrateLegacyAnimations(animations, packagedLibrary) {
-  const userAnimations = [];
-  const animationClips = {};
-  const systemByType = new Map(
-    packagedLibrary.animations
-      .filter((animation) => SYSTEM_ANIMATION_IDS.has(animation.id))
-      .map((animation) => [animation.animation_type, animation]),
-  );
-  const usedClipNames = new Map();
-
-  for (const animation of Array.isArray(animations) ? animations : []) {
-    if (!validStoredAsset(animation, ".vrma")) continue;
-    let metadata;
-    try {
-      metadata = validateAnimationMetadata(animation);
-    } catch {
-      continue;
-    }
-
-    const inferredType = inferAnimationType(metadata.animation_name);
-    const systemAnimation =
-      inferredType === "IDLE" || inferredType === "TALK"
-        ? systemByType.get(inferredType)
-        : null;
-    const animationId = systemAnimation?.id ?? animation.id;
-    const animationName =
-      systemAnimation?.animation_name ?? metadata.animation_name;
-    if (
-      !systemAnimation &&
-      !userAnimations.some((candidate) => candidate.id === animationId)
-    ) {
-      userAnimations.push({ id: animationId, ...metadata });
-    }
-
-    const names = usedClipNames.get(animationId) ?? new Set();
-    usedClipNames.set(animationId, names);
-    const clips = animationClips[animationId] ?? [];
-    clips.push({
-      id: animation.id,
-      stored_filename: animation.stored_filename,
-      clip_name: nextClipName(animationName, names),
-    });
-    animationClips[animationId] = clips;
-  }
-
-  return { animationClips, userAnimations };
-}
-
-function safeReadState(settingsPath, packagedLibrary) {
-  const fallback = defaultState(packagedLibrary);
-  try {
-    const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-    if (
-      ![1, 2, 3, 4, 5, SETTINGS_SCHEMA_VERSION].includes(
-        parsed?.schema_version,
-      )
-    ) {
-      try {
-        fs.copyFileSync(
-          settingsPath,
-          `${settingsPath}.unmigratable-backup`,
-        );
-      } catch {
-        // 無法備份時仍回退至預設狀態。
-      }
-      return {
-        migrated: false,
-        state: fallback,
-        migration_error: "unsupported_schema",
-      };
-    }
-    const { hidden, overrides } = packagedUserLayers(parsed, packagedLibrary);
-    const models = sanitizeModels(parsed.models);
-    const knownModelIds = new Set([
-      ...packagedLibrary.models.map((model) => model.id),
-      ...models.map((model) => model.id),
-    ]);
-    const voiceSource = normalizeVoiceSource(parsed.voice_source);
-    const common = {
-      ...fallback,
-      default_model_id:
-        typeof parsed.default_model_id === "string"
-          ? parsed.default_model_id
-          : fallback.default_model_id,
-      character_size: parsed.character_size,
-      ui_locale: normalizeUiLocale(parsed.ui_locale),
-      model_lighting: sanitizeModelLighting(
-        parsed.model_lighting,
-        knownModelIds,
-      ),
-      models,
-      packaged_animation_overrides: overrides,
-      hidden_packaged_animation_ids: hidden,
-      voice_source: voiceSource,
-      vrma_quality_gate: normalizeQualityGate(parsed.vrma_quality_gate),
-      vrma_report_dir: normalizeReportDir(parsed.vrma_report_dir),
-      idle_rest_ms: normalizeIdleRestMs(parsed.idle_rest_ms),
-    };
-
-    if (parsed.schema_version !== SETTINGS_SCHEMA_VERSION) {
-      if (parsed.schema_version === 5) {
-        const animations = sanitizeUserAnimations(parsed.animations);
-        const knownAnimationIds = new Set([
-          ...packagedLibrary.animations.map((animation) => animation.id),
-          ...animations.map((animation) => animation.id),
-        ]);
-        return {
-          migrated: true,
-          state: {
-            ...common,
-            animations,
-            animation_clips: sanitizeAnimationClips(
-              parsed.animation_clips,
-              knownAnimationIds,
-            ),
-          },
-        };
-      }
-      if (parsed.schema_version === 3) {
-        const animations = sanitizeUserAnimations(parsed.animations);
-        const knownAnimationIds = new Set([
-          ...packagedLibrary.animations.map((animation) => animation.id),
-          ...animations.map((animation) => animation.id),
-        ]);
-        return {
-          migrated: true,
-          state: {
-            ...common,
-            animations,
-            animation_clips: sanitizeAnimationClips(
-              parsed.animation_clips,
-              knownAnimationIds,
-            ),
-          },
-        };
-      }
-      const migrated = migrateLegacyAnimations(
-        parsed.animations,
-        packagedLibrary,
-      );
-      return {
-        migrated: true,
-        state: {
-          ...common,
-          animations: migrated.userAnimations,
-          animation_clips: migrated.animationClips,
-        },
-      };
-    }
-
-    const animations = sanitizeUserAnimations(parsed.animations);
-    const knownAnimationIds = new Set([
-      ...packagedLibrary.animations.map((animation) => animation.id),
-      ...animations.map((animation) => animation.id),
-    ]);
-    return {
-      migrated: false,
-      state: {
-        ...common,
-        animations,
-        animation_clips: sanitizeAnimationClips(
-          parsed.animation_clips,
-          knownAnimationIds,
-        ),
-      },
-    };
-  } catch {
-    return { migrated: false, state: fallback };
   }
 }
 

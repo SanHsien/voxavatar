@@ -115,7 +115,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-`main` is at `0.4.0` (import confirm / migration / MCP JSON schema). The GitHub Latest Release may still be an earlier tag under the batch-release policy. Next: continue v0.5 maintainability. Windows smoke evidence and installer signing do **not** block development (D-23).
+`main` is at `0.5.0` (module splits, compatibility matrix skeleton, bundle baseline, Scene error-recovery test). The GitHub Latest Release may still be an earlier tag under the batch-release policy. Next: continue v0.5 convergence (further splits, App tests, real exporter matrix). Windows smoke evidence and installer signing do **not** block development (D-23).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones, completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 
@@ -161,6 +161,7 @@ docs/            Development, integration, decisions, and release docs
 | [`REVIEW.md`](REVIEW.md) | Latest repository review and open validation gaps (Traditional Chinese) |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Architecture, directories, toolchain, and validation matrix |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP, HTTP event API, and URL protocol |
+| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM/VRMA compatibility matrix skeleton and synthetic fixtures |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | Versioning, GitHub Actions, assets, and post-release verification |
 | [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Real-machine installer, desktop, audio, MCP, and signing checks (Traditional Chinese) |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Fork, privacy, licensing, and maintenance decisions |

@@ -120,7 +120,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前 `main` 版號為 `0.4.0`（素材匯入確認／migration／MCP JSON schema）；GitHub Latest Release 依批次政策可能仍為較早 tag。下一階段繼續 v0.5 可維護性；Windows 實機證據與 installer 簽署**不阻塞**開發（D-23）。
+目前 `main` 版號為 `0.5.0`（模組拆分、相容矩陣骨架、bundle 基準、Scene 錯誤復原測試）；GitHub Latest Release 依批次政策可能仍為較早 tag。下一階段繼續 v0.5 收斂（進一步拆分、App 測試、真實 exporter 矩陣）；Windows 實機證據與 installer 簽署**不阻塞**開發（D-23）。
 
 版本里程碑、完成條件、風險與明確不做的範圍見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與仍需實機驗證的項目見 [`REVIEW.md`](REVIEW.md)。
 
@@ -166,6 +166,7 @@ docs/            開發、整合、路線圖決策與發行文件
 | [`REVIEW.md`](REVIEW.md) | 最新一次專案 review 與未解驗證缺口 |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | 架構、目錄、工具鏈與驗證矩陣 |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP、HTTP 事件 API 與 URL protocol |
+| [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | VRM／VRMA 相容矩陣骨架與 synthetic fixture |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | 版本、GitHub Actions、資產與發布後驗證 |
 | [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | 安裝、桌面、語音、MCP 與簽章實機驗收 |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | fork、隱私、授權與維護決策 |

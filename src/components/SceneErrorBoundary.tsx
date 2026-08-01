@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
-interface SceneErrorBoundaryProps {
+export interface SceneErrorBoundaryProps {
   children: ReactNode;
   fallback: ReactNode;
   onError?: (error: Error, info: ErrorInfo) => void;

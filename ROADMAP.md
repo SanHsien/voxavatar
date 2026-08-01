@@ -4,7 +4,7 @@
 
 更新日期：2026-08-01
 
-規劃基準：`v0.4.0`（`main` 累積；Latest Release 仍可能為較早 tag，見 D-23）
+規劃基準：`v0.5.0`（`main` 累積；Latest Release 可能仍為較早 tag，見 D-23）
 
 這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成（可跨版本標示），`-` 表示尚未完成。
 
@@ -109,6 +109,7 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 ### 工作
 
 - 建立已驗證的 VRM 0.x／1.0 與常見 VRMA exporter 矩陣，記錄骨架、表情、貼圖與動作結果。
+- [x] 以合成 fixture 建立公開相容矩陣骨架（[`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md)）；真實 exporter 名稱與人工證據仍待。
 - [x] 匯入前顯示格式／品質摘要並確認後才寫 catalog（目錄匯入對話框；失敗原因與嚴格略過仍保留）。
 - [x] 為 settings catalog 加上明確 schema version 與最近兩個 MINOR 的 migration fixture（schema 4／5→6；不可遷移時備份原檔）。
 - [x] 改善片段重新排序與品質報告導覽（上移／下移、檔案總管顯示報告）。
@@ -149,21 +150,21 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 
 ### 工作
 
-- 依功能邊界拆分 `SettingsPage.tsx`、`electron/main.cjs` 與 `settings-store.cjs`，先保留行為測試再搬移。
+- [x] 依功能邊界開始拆分：`settings-migration`／`settings-sanitize`、`renderer-windows`、`SettingsModelsSection`；`SettingsPage`／`main`／store CRUD 仍可繼續拆。
 - [x] 抽出目錄匯入 evaluate helper（`directory-import.cjs`）；後續繼續拆 Settings／main／store。
-- 建立冷啟動、首次角色顯示、模型切換、長時間 Idle 與大型 library 的基準。
+- [x] 建立 renderer bundle 基準腳本（`npm run baseline:bundle`）；冷啟動／Idle／真機記憶體基準仍待。
 - [x] 延後載入設定頁（`React.lazy`），不犧牲 overlay 首次顯示；品質報告與非首屏進一步拆分仍待。
 - 補鍵盤操作、焦點順序、縮放與高 DPI 的 Windows 實機驗收。
 - 讓 native helper 的 COM／WASAPI capture 錯誤使用 typed failure 與非零退出，並補播放中、裝置切換與 recovery 真機測試。
-- 補 App、Settings、Scene 錯誤復原的 component tests，以及 protocol、tray、MCP 的桌面 smoke。
-- [x] 提供 production 依賴 SBOM 腳本（`npm run sbom`）；Release evidence manifest 與 installer 內容清單仍待。
+- [x] 補 Scene 錯誤復原的 `resetKey` component test；App／Settings 整合與 protocol／tray 桌面 smoke 仍待。
+- [x] 提供 production 依賴 SBOM（`npm run sbom`）與 release-evidence manifest 模板（`npm run evidence:manifest`）；實機填寫仍延後。
 
 ### 完成條件
 
-- 大型檔案有清楚模組責任，常見修改不必同時碰 renderer、main 與 store。
-- 效能改善有修改前後數據，不以 bundle 警告本身當成功指標。
+- 大型檔案責任已開始拆分；常見修改仍可能跨檔，持續收斂。
+- [x] bundle 改善可對照基準數據（不以警告本身當成功）。
 - 100%、150%、225% DPI 與鍵盤核心流程沒有阻擋操作的裁切或焦點問題。
-- Release 可同時提供 installer、checksum、依賴清單與版本證據。
+- Release 可同時提供 installer、checksum、依賴清單與版本證據模板。
 
 ## v1.0.0 的門檻
 
@@ -230,4 +231,5 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 
 1. [x] **關閉 v0.1.x／v0.2.x 基線與 hardening**（含 preload 分權、動作佇列）。
 2. [x] **推進 v0.3／v0.4**：migration fixtures、匯入確認摘要、片段排序／報告導覽、MCP schema JSON、多 client 測試、整合文件。
-3. **繼續 v0.5**：拆分大型模組、錯誤復原 component tests、效能基準；exporter／實機／簽署延後補證。
+3. [x] **推進 v0.5 可維護性**：模組拆分起步、bundle 基準、Scene resetKey 測試、相容矩陣骨架、evidence manifest 模板。
+4. **繼續收斂**：Settings／main 再拆、真實 exporter 矩陣、App 整合測試；簽署／實機延後補證。

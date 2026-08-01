@@ -27,7 +27,7 @@ function writeEmptyPackagedLibrary(root) {
 }
 
 function fixture(context) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "persona-settings-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-settings-"));
   const userDataPath = path.join(root, "user-data");
   const packagedLibraryPath = writeEmptyPackagedLibrary(root);
   context.after(() => fs.rmSync(root, { force: true, recursive: true }));
@@ -76,6 +76,7 @@ test("starts with permanent empty Idle and Speaking actions", (context) => {
   const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
 
   assert.equal(snapshot.character_size, 1);
+  assert.equal(snapshot.ui_locale, "zh-TW");
   assert.equal(snapshot.packaged_animation_change_count, 0);
   assert.equal(snapshot.default_model_id, null);
   assert.deepEqual(snapshot.models, []);
@@ -150,12 +151,12 @@ test("imports, persists, resolves, and deletes user assets", (context) => {
     animation.clips.map((clip) => clip.animation_name),
     ["wave-hello1"],
   );
-  assert.match(animation.asset_urls[0], /^persona-asset:\/\/animation\//);
+  assert.match(animation.asset_urls[0], /^voxavatar-asset:\/\/animation\//);
   const storedAnimation = store.resolveAssetRequest(animation.asset_urls[0]);
   assert.ok(storedAnimation);
   assert.equal(fs.existsSync(storedAnimation), true);
   assert.equal(
-    store.resolveAssetRequest("persona-asset://animation/../settings.json"),
+    store.resolveAssetRequest("voxavatar-asset://animation/../settings.json"),
     null,
   );
 
@@ -213,7 +214,7 @@ test("keeps user library records when migrating the earlier settings schema", (c
   );
 
   const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
-  assert.equal(snapshot.schema_version, 4);
+  assert.equal(snapshot.schema_version, 5);
   assert.equal(snapshot.default_model_id, modelId);
   assert.equal(snapshot.character_size, 1.15);
   assert.ok(snapshot.models.some((model) => model.id === modelId));
@@ -316,6 +317,8 @@ test("validates custom metadata, files, duplicates, and character size", (contex
   );
   assert.throws(() => store.setCharacterSize(2), /between/);
   assert.equal(store.setCharacterSize(1.25).character_size, 1.25);
+  assert.equal(store.setUiLocale("en").ui_locale, "en");
+  assert.equal(store.setUiLocale("nope").ui_locale, "zh-TW");
 
   const invalidModel = path.join(root, "invalid.vrm");
   fs.writeFileSync(invalidModel, "not glTF");
@@ -458,14 +461,14 @@ test("migrates reserved legacy uploads into the permanent system actions", (cont
           id: idleId,
           animation_name: "idle",
           animation_description: "A relaxed standing loop.",
-          animation_trigger_scenario: "Use while Persona is waiting.",
+          animation_trigger_scenario: "Use while VoxAvatar is waiting.",
           stored_filename: `${idleId}.vrma`,
         },
         {
           id: speakingId,
           animation_name: "talk1",
           animation_description: "A conversational motion.",
-          animation_trigger_scenario: "Use while Persona is speaking.",
+          animation_trigger_scenario: "Use while VoxAvatar is speaking.",
           stored_filename: `${speakingId}.vrma`,
         },
       ],
@@ -533,22 +536,26 @@ test("groups multiple uploaded clips under one action and removes them independe
   );
 });
 
-test("persists a custom voice source and migrates older settings to schema 4", (context) => {
+test("persists a custom voice source and migrates older settings to schema 5", (context) => {
   const { userDataPath, packagedLibraryPath } = fixture(context);
   const store = createSettingsStore({ userDataPath, packagedLibraryPath });
   assert.deepEqual(store.getSnapshot().voice_source, {
     mode: "default",
     process_pattern: null,
+    source_id: null,
+    source_name: null,
   });
 
   let snapshot = store.setVoiceSource({
     mode: "custom",
     process_pattern: "  local-tts|open-webui  ",
   });
-  assert.equal(snapshot.schema_version, 4);
+  assert.equal(snapshot.schema_version, 5);
   assert.deepEqual(snapshot.voice_source, {
     mode: "custom",
     process_pattern: "local-tts|open-webui",
+    source_id: null,
+    source_name: null,
   });
   assert.throws(
     () => store.setVoiceSource({ mode: "custom", process_pattern: "[" }),
@@ -559,6 +566,8 @@ test("persists a custom voice source and migrates older settings to schema 4", (
   assert.deepEqual(snapshot.voice_source, {
     mode: "default",
     process_pattern: null,
+    source_id: null,
+    source_name: null,
   });
 
   fs.writeFileSync(
@@ -575,9 +584,101 @@ test("persists a custom voice source and migrates older settings to schema 4", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 4);
+  assert.equal(migrated.schema_version, 5);
   assert.deepEqual(migrated.voice_source, {
     mode: "default",
     process_pattern: null,
+    source_id: null,
+    source_name: null,
   });
+  assert.equal(migrated.vrma_quality_gate, "report");
+  assert.equal(migrated.vrma_report_dir, null);
+});
+
+test("persists VRMA quality gate and report directory", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  assert.equal(store.getSnapshot().vrma_quality_gate, "report");
+  assert.equal(store.getSnapshot().vrma_report_dir, null);
+
+  let snapshot = store.setVrmaQualityGate("strict");
+  assert.equal(snapshot.vrma_quality_gate, "strict");
+  snapshot = store.setVrmaQualityGate("nope");
+  assert.equal(snapshot.vrma_quality_gate, "report");
+
+  const reportDir = path.join(userDataPath, "reports");
+  fs.mkdirSync(reportDir, { recursive: true });
+  snapshot = store.setVrmaReportDir(reportDir);
+  assert.equal(snapshot.vrma_report_dir, path.resolve(reportDir));
+  snapshot = store.setVrmaReportDir(null);
+  assert.equal(snapshot.vrma_report_dir, null);
+
+  const reloaded = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(reloaded.vrma_quality_gate, "report");
+});
+
+test("deletes all user models and all uploaded VRMA clips in one step", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const modelA = path.join(root, "a.vrm");
+  const modelB = path.join(root, "b.vrm");
+  const clipA = path.join(root, "a.vrma");
+  const clipB = path.join(root, "b.vrma");
+  for (const filePath of [modelA, modelB, clipA, clipB]) {
+    fs.writeFileSync(
+      filePath,
+      Buffer.concat([
+        Buffer.from("glTF"),
+        Buffer.from([2, 0, 0, 0]),
+        Buffer.from([12, 0, 0, 0]),
+      ]),
+    );
+  }
+
+  store.importModel({ filePath: modelA, model_name: "Alpha" });
+  store.importModel({ filePath: modelB, model_name: "Beta" });
+  const idle = store
+    .getSnapshot()
+    .animations.find((animation) => animation.id === "system-idle");
+  assert.ok(idle);
+  store.addAnimationClips(idle.id, [clipA, clipB]);
+  assert.equal(
+    store.getSnapshot().models.filter((model) => model.origin === "user").length,
+    2,
+  );
+  assert.equal(
+    store
+      .getSnapshot()
+      .animations.find((animation) => animation.id === "system-idle")
+      .clips.filter((clip) => clip.origin === "user").length,
+    2,
+  );
+
+  let snapshot = store.deleteAllUserModels();
+  assert.equal(
+    snapshot.models.filter((model) => model.origin === "user").length,
+    0,
+  );
+  assert.equal(snapshot.default_model_id, null);
+  assert.equal(
+    fs.readdirSync(path.join(userDataPath, "assets", "models")).length,
+    0,
+  );
+
+  snapshot = store.deleteAllUserAnimationClips();
+  assert.equal(
+    snapshot.animations.find((animation) => animation.id === "system-idle")
+      .clips.length,
+    0,
+  );
+  assert.equal(
+    fs.readdirSync(path.join(userDataPath, "assets", "animations")).length,
+    0,
+  );
+  assert.ok(
+    snapshot.animations.some((animation) => animation.id === "system-idle"),
+  );
 });

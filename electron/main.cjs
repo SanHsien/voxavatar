@@ -14,18 +14,15 @@ const {
   nativeTheme,
   protocol,
   screen,
+  shell,
   Tray,
 } = require("electron");
 const { createBridgeServer, DEFAULT_PORT } = require("./bridge-server.cjs");
-const { createPersonaMcpHandler } = require("./mcp-server.cjs");
+const { createVoxAvatarMcpHandler } = require("./mcp-server.cjs");
 const {
   createMcpSettingsStatus,
 } = require("./mcp-settings-status.cjs");
 const { createSettingsStore } = require("./settings-store.cjs");
-const {
-  configureHyprlandWindow,
-  getHyprlandWindowPlacement,
-} = require("./hyprland-window.cjs");
 const { createAudioListener } = require("./audio-listener.cjs");
 const { isAllowedRendererNavigation } = require("./navigation-policy.cjs");
 const { snapshotHasConfiguredModel } = require("./model-readiness.cjs");
@@ -34,9 +31,21 @@ const {
   createSettingsWindowPresentationGate,
 } = require("./settings-window-presentation.cjs");
 const {
+  normalizeVoiceSource,
   resolveVoiceSourcePattern,
   settingsPatternFromVoiceSource,
 } = require("./voice-source.cjs");
+const { listVoiceSources } = require("./voice-source-discovery.cjs");
+const { menuStrings, normalizeUiLocale } = require("./i18n.cjs");
+const { collectAssetFiles } = require("./asset-scan.cjs");
+const {
+  QUALITY_GATE,
+  VERDICT,
+  analyzeVrmaFiles,
+  normalizeQualityGate,
+  summarizeReports,
+  writeMarkdownReport,
+} = require("./vrma-quality.cjs");
 
 const WINDOW_WIDTH = 430;
 const WINDOW_HEIGHT = 680;
@@ -48,11 +57,11 @@ const SETTINGS_WINDOW_BACKGROUND = {
   dark: "#0d0e12",
   light: "#e6e8ec",
 };
-const PERSONA_ASSET_SCHEME = "persona-asset";
+const VOXAVATAR_ASSET_SCHEME = "voxavatar-asset";
 const startInBackground = process.argv.includes("--background");
 const startInSettings = process.argv.includes("--settings");
-const protocolScheme = "persona";
-const debugEnabled = process.env.PERSONA_DEBUG === "1";
+const protocolScheme = "voxavatar";
+const debugEnabled = process.env.VOXAVATAR_DEBUG === "1";
 
 let avatarWindow = null;
 let settingsWindow = null;
@@ -66,25 +75,21 @@ let latestListenerStatus = null;
 let latestVoiceState = null;
 let audioListener = null;
 let tray = null;
-let hyprlandConfigured = false;
-let hyprlandConfiguring = false;
-let hyprlandConfigurationTimer = null;
-let hyprlandLastPosition = null;
-let hyprlandConfigurationGeneration = 0;
+let avatarMousePassthrough = true;
 let rendererLoadHookAttached = false;
 let animationCommandRequestId = 0;
 let modelConfigured = false;
 let mcpServerError = null;
 let mcpServerHealth = "starting";
 let mcpServerPort = Number(
-  process.env.PERSONA_BRIDGE_PORT || DEFAULT_PORT,
+  process.env.VOXAVATAR_BRIDGE_PORT || DEFAULT_PORT,
 );
 let mcpAnimationCatalogSignature = null;
 const pendingRendererEvents = new Map();
 
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: PERSONA_ASSET_SCHEME,
+    scheme: VOXAVATAR_ASSET_SCHEME,
     privileges: {
       standard: true,
       secure: true,
@@ -93,10 +98,10 @@ protocol.registerSchemesAsPrivileged([
     },
   },
 ]);
-app.setName("Persona");
+app.setName("VoxAvatar");
 
 function debugLog(...values) {
-  if (debugEnabled) console.error("[persona]", ...values);
+  if (debugEnabled) console.error("[voxavatar]", ...values);
 }
 
 function positionWindow(window) {
@@ -114,58 +119,6 @@ function hasConfiguredModel() {
   return modelConfigured;
 }
 
-function scheduleHyprlandWindowConfiguration({
-  attempt = 0,
-  force = false,
-  position = null,
-  reposition = !hyprlandConfigured,
-} = {}) {
-  if (
-    (hyprlandConfigured && !force) ||
-    hyprlandConfiguring ||
-    !avatarWindow ||
-    avatarWindow.isDestroyed()
-  ) {
-    return;
-  }
-  clearTimeout(hyprlandConfigurationTimer);
-  const generation = hyprlandConfigurationGeneration;
-  const targetWindow = avatarWindow;
-  const delays = [0, 80, 200, 500, 1000];
-  hyprlandConfigurationTimer = setTimeout(async () => {
-    hyprlandConfigurationTimer = null;
-    if (
-      generation !== hyprlandConfigurationGeneration ||
-      !avatarWindow ||
-      avatarWindow !== targetWindow ||
-      avatarWindow.isDestroyed()
-    ) {
-      return;
-    }
-    hyprlandConfiguring = true;
-    const configured = await configureHyprlandWindow({
-      pid: process.pid,
-      width: WINDOW_WIDTH,
-      height: WINDOW_HEIGHT,
-      onDebug: debugLog,
-      position,
-      reposition,
-    });
-    if (generation !== hyprlandConfigurationGeneration) return;
-    hyprlandConfigured = configured;
-    hyprlandConfiguring = false;
-    if (!hyprlandConfigured && attempt + 1 < delays.length) {
-      scheduleHyprlandWindowConfiguration({
-        attempt: attempt + 1,
-        force: true,
-        position,
-        reposition,
-      });
-    }
-  }, delays[attempt] ?? delays.at(-1));
-  hyprlandConfigurationTimer.unref?.();
-}
-
 function showOverlay({ focus = false } = {}) {
   if (!hasConfiguredModel()) {
     showSettings();
@@ -179,28 +132,16 @@ function showOverlay({ focus = false } = {}) {
   } else if (!window.isVisible()) {
     window.showInactive();
   }
-  scheduleHyprlandWindowConfiguration();
 }
 
 async function hideOverlay() {
   debugLog("hide overlay");
   const targetWindow = avatarWindow;
   if (!targetWindow || targetWindow.isDestroyed()) return;
-  const placement = await getHyprlandWindowPlacement(process.pid);
-  if (avatarWindow !== targetWindow || targetWindow.isDestroyed()) return;
-  if (placement) {
-    hyprlandLastPosition = { x: placement.x, y: placement.y };
-  }
   targetWindow.hide();
 }
 
 function destroyOverlayForSetup() {
-  clearTimeout(hyprlandConfigurationTimer);
-  hyprlandConfigurationGeneration += 1;
-  hyprlandConfigurationTimer = null;
-  hyprlandConfigured = false;
-  hyprlandConfiguring = false;
-  hyprlandLastPosition = null;
   rendererLoadHookAttached = false;
   pendingRendererEvents.clear();
   if (avatarWindow && !avatarWindow.isDestroyed()) {
@@ -214,8 +155,156 @@ function toggleOverlay() {
     showSettings();
     return;
   }
-  if (avatarWindow?.isVisible()) void hideOverlay();
-  else showOverlay({ focus: true });
+  if (avatarWindow && !avatarWindow.isDestroyed() && avatarWindow.isVisible()) {
+    void hideOverlay();
+  } else {
+    showOverlay({ focus: true });
+  }
+}
+
+function setAvatarMousePassthrough(ignore) {
+  if (!avatarWindow || avatarWindow.isDestroyed()) return;
+  const next = Boolean(ignore);
+  if (next === avatarMousePassthrough && avatarWindow.isVisible()) {
+    // Still re-apply after show/hide; Windows can drop the flag.
+  }
+  avatarMousePassthrough = next;
+  avatarWindow.setIgnoreMouseEvents(next, { forward: true });
+}
+
+function currentMenuStrings() {
+  return menuStrings(settingsStore?.getSnapshot()?.ui_locale);
+}
+
+function buildTrayMenuTemplate() {
+  const t = currentMenuStrings();
+  const ready = hasConfiguredModel();
+  const quitItem = {
+    label: t.quit,
+    click: () => {
+      isQuitting = true;
+      app.quit();
+    },
+  };
+  const languageSubmenu = [
+    {
+      label: t.languageZh,
+      type: "radio",
+      checked: normalizeUiLocale(settingsStore?.getSnapshot()?.ui_locale) === "zh-TW",
+      click: () => {
+        if (!settingsStore) return;
+        publishSettings(settingsStore.setUiLocale("zh-TW"));
+      },
+    },
+    {
+      label: t.languageEn,
+      type: "radio",
+      checked: normalizeUiLocale(settingsStore?.getSnapshot()?.ui_locale) === "en",
+      click: () => {
+        if (!settingsStore) return;
+        publishSettings(settingsStore.setUiLocale("en"));
+      },
+    },
+  ];
+  if (!ready) {
+    return [
+      { label: t.setup, click: showSettings },
+      { type: "separator" },
+      { label: t.language, submenu: languageSubmenu },
+      { type: "separator" },
+      quitItem,
+    ];
+  }
+  const visible = Boolean(avatarWindow && !avatarWindow.isDestroyed() && avatarWindow.isVisible());
+  return [
+    {
+      label: visible ? t.hide : t.show,
+      click: () => toggleOverlay(),
+    },
+    { label: t.settings, click: showSettings },
+    { type: "separator" },
+    {
+      label: t.previewListening,
+      click: () => handleBridgeEvent(voiceState("listening")),
+    },
+    {
+      label: t.previewSpeaking,
+      click: () => handleBridgeEvent(voiceState("speaking")),
+    },
+    { type: "separator" },
+    { label: t.language, submenu: languageSubmenu },
+    { type: "separator" },
+    quitItem,
+  ];
+}
+
+function popupTrayMenu() {
+  if (!tray) return;
+  const menu = Menu.buildFromTemplate(buildTrayMenuTemplate());
+  // Rebuild each time; avoid setContextMenu so left-click keeps working on Windows.
+  setTimeout(() => {
+    if (!tray) return;
+    tray.popUpContextMenu(menu);
+  }, 50);
+}
+
+function buildAvatarContextMenu() {
+  const t = currentMenuStrings();
+  return Menu.buildFromTemplate([
+    {
+      label: t.hide,
+      click: () => void hideOverlay(),
+    },
+    {
+      label: t.resetView,
+      click: () => {
+        if (!avatarWindow || avatarWindow.isDestroyed()) return;
+        avatarWindow.webContents.send("voxavatar:reset-view");
+      },
+    },
+    { type: "separator" },
+    {
+      label: t.zoomHint,
+      enabled: false,
+    },
+    {
+      label: t.clickThroughHint,
+      enabled: false,
+    },
+    { type: "separator" },
+    { label: t.settings, click: showSettings },
+    {
+      label: t.language,
+      submenu: [
+        {
+          label: t.languageZh,
+          type: "radio",
+          checked: normalizeUiLocale(settingsStore?.getSnapshot()?.ui_locale) === "zh-TW",
+          click: () => {
+            if (!settingsStore) return;
+            publishSettings(settingsStore.setUiLocale("zh-TW"));
+          },
+        },
+        {
+          label: t.languageEn,
+          type: "radio",
+          checked: normalizeUiLocale(settingsStore?.getSnapshot()?.ui_locale) === "en",
+          click: () => {
+            if (!settingsStore) return;
+            publishSettings(settingsStore.setUiLocale("en"));
+          },
+        },
+      ],
+    },
+    { type: "separator" },
+    {
+      label: t.quit,
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
 }
 
 function rendererUrl(view = null) {
@@ -228,10 +317,28 @@ function rendererUrl(view = null) {
 }
 
 function secureRendererWindow(window, allowedRendererUrl) {
-  window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+        void shell.openExternal(parsed.toString());
+      }
+    } catch {
+      // ignore invalid URLs
+    }
+    return { action: "deny" };
+  });
   window.webContents.on("will-navigate", (event, targetUrl) => {
     if (!isAllowedRendererNavigation(targetUrl, allowedRendererUrl)) {
       event.preventDefault();
+      try {
+        const parsed = new URL(targetUrl);
+        if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+          void shell.openExternal(parsed.toString());
+        }
+      } catch {
+        // ignore
+      }
     }
   });
 }
@@ -253,7 +360,7 @@ function createWindow() {
     autoHideMenuBar: true,
     alwaysOnTop: true,
     skipTaskbar: true,
-    title: "Persona",
+    title: "VoxAvatar",
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
@@ -266,21 +373,19 @@ function createWindow() {
   window.setAlwaysOnTop(true, "floating");
   window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   window.setOpacity(1);
+  // Transparent pixels click through; renderer re-enables hit-testing over the avatar.
+  window.setIgnoreMouseEvents(true, { forward: true });
+  avatarMousePassthrough = true;
   window.once("ready-to-show", () => {
     if (window.isDestroyed()) return;
     positionWindow(window);
-    scheduleHyprlandWindowConfiguration();
   });
   window.on("show", () => {
     if (window.isDestroyed()) return;
     window.setAlwaysOnTop(true, "floating");
     window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     window.setOpacity(1);
-    scheduleHyprlandWindowConfiguration({
-      force: true,
-      position: hyprlandLastPosition,
-      reposition: !hyprlandConfigured || hyprlandLastPosition != null,
-    });
+    setAvatarMousePassthrough(avatarMousePassthrough);
   });
   window.on("close", (event) => {
     if (isQuitting) return;
@@ -289,10 +394,6 @@ function createWindow() {
   });
   window.on("closed", () => {
     if (avatarWindow !== window) return;
-    clearTimeout(hyprlandConfigurationTimer);
-    hyprlandConfigurationTimer = null;
-    hyprlandConfigured = false;
-    hyprlandConfiguring = false;
     rendererLoadHookAttached = false;
     avatarWindow = null;
   });
@@ -316,7 +417,7 @@ function createSettingsWindow() {
     minWidth: 920,
     minHeight: 640,
     show: false,
-    title: "Persona Settings",
+    title: "VoxAvatar Settings",
     // Best guess until the renderer reports the theme it actually resolved,
     // which it does before the window is shown on ready-to-show.
     backgroundColor: settingsWindowBackground(
@@ -394,7 +495,7 @@ function publishSettings(snapshot) {
   }
   for (const window of [avatarWindow, settingsWindow]) {
     if (window && !window.isDestroyed() && !window.webContents.isLoading()) {
-      window.webContents.send("persona:settings-updated", snapshot);
+      window.webContents.send("voxavatar:settings-updated", snapshot);
     }
   }
   refreshTrayMenu();
@@ -413,17 +514,21 @@ function publishSettings(snapshot) {
 }
 
 function resolveListenerProcessPattern(snapshot = settingsStore?.getSnapshot()) {
+  const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
+  if (!["default", "custom"].includes(voiceSource.mode)) return null;
   return resolveVoiceSourcePattern({
     environment: process.env,
-    settingsPattern: settingsPatternFromVoiceSource(snapshot?.voice_source),
+    settingsPattern: settingsPatternFromVoiceSource(voiceSource),
   });
 }
 
-function createConfiguredAudioListener() {
+function createConfiguredAudioListener(snapshot = settingsStore?.getSnapshot()) {
+  const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
   return createAudioListener({
     isPackaged: app.isPackaged,
     resourcesPath: process.resourcesPath,
-    processPattern: resolveListenerProcessPattern(),
+    processPattern: resolveListenerProcessPattern(snapshot),
+    voiceSource,
     onActivity: (activity) => {
       debugLog("listener activity", activity);
       handleBridgeEvent(voiceState(activity));
@@ -441,17 +546,30 @@ function createConfiguredAudioListener() {
   });
 }
 
+function reportInactiveListenerStatus(snapshot = settingsStore?.getSnapshot()) {
+  const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
+  handleListenerStatus({
+    available: voiceSource.mode === "external",
+    capturing: false,
+    monitoring: false,
+    source: voiceSource.mode === "external" ? "External integration" : null,
+  });
+}
+
 function restartAudioListener() {
   audioListener?.stop();
   audioListener = createConfiguredAudioListener();
-  if (audioListener && modelConfigured) void audioListener.start();
-  if (!audioListener) {
+  if (audioListener && modelConfigured) {
+    void audioListener.start();
+  } else if (audioListener) {
     handleListenerStatus({
-      available: false,
+      available: true,
       capturing: false,
       monitoring: false,
       source: null,
     });
+  } else {
+    reportInactiveListenerStatus();
   }
 }
 
@@ -476,31 +594,109 @@ function playConfiguredAnimation(animationName) {
   return true;
 }
 
+async function withAvatarAlwaysOnTopPaused(operation) {
+  const avatarOnTop =
+    avatarWindow &&
+    !avatarWindow.isDestroyed() &&
+    typeof avatarWindow.isAlwaysOnTop === "function" &&
+    avatarWindow.isAlwaysOnTop();
+  if (avatarOnTop) {
+    try {
+      avatarWindow.setAlwaysOnTop(false);
+    } catch {
+      // ignore
+    }
+  }
+  try {
+    if (settingsWindow && !settingsWindow.isDestroyed()) {
+      settingsWindow.focus();
+    }
+    return await operation();
+  } finally {
+    if (avatarOnTop && avatarWindow && !avatarWindow.isDestroyed()) {
+      try {
+        avatarWindow.setAlwaysOnTop(true);
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
 async function selectAssetFile(kind, multiple = false) {
   const extension = kind === "model" ? "vrm" : "vrma";
   const options = {
-    title: kind === "model" ? "Add a VRM model" : "Add a VRMA animation",
+    title: kind === "model" ? "選擇 VRM 角色檔" : "選擇 VRMA 動作檔",
     properties: ["openFile", ...(multiple ? ["multiSelections"] : [])],
     filters: [
       {
         name: kind === "model" ? "VRM models" : "VRMA animations",
         extensions: [extension],
       },
+      { name: "All files", extensions: ["*"] },
     ],
   };
-  const result =
-    settingsWindow && !settingsWindow.isDestroyed()
-      ? await dialog.showOpenDialog(settingsWindow, options)
-      : await dialog.showOpenDialog(options);
-  if (result.canceled) return multiple ? [] : null;
-  return multiple ? result.filePaths : result.filePaths[0] ?? null;
+
+  return withAvatarAlwaysOnTopPaused(async () => {
+    const result =
+      settingsWindow && !settingsWindow.isDestroyed()
+        ? await dialog.showOpenDialog(settingsWindow, options)
+        : await dialog.showOpenDialog(options);
+    if (result.canceled) return multiple ? [] : null;
+    return multiple ? result.filePaths : result.filePaths[0] ?? null;
+  });
+}
+
+async function selectAssetDirectory(title) {
+  const options = {
+    title,
+    properties: ["openDirectory"],
+  };
+  return withAvatarAlwaysOnTopPaused(async () => {
+    const result =
+      settingsWindow && !settingsWindow.isDestroyed()
+        ? await dialog.showOpenDialog(settingsWindow, options)
+        : await dialog.showOpenDialog(options);
+    if (result.canceled) return null;
+    return result.filePaths[0] ?? null;
+  });
+}
+
+function buildDirectoryImportSummary({
+  kind,
+  rootDir,
+  scanned,
+  truncated,
+  imported,
+  skippedQuality,
+  skippedInvalid,
+  skippedLimit,
+  failed,
+  quality,
+  reportPath,
+  reportError,
+}) {
+  return {
+    kind,
+    root_dir: rootDir,
+    scanned,
+    truncated: Boolean(truncated),
+    imported,
+    skipped_quality: skippedQuality,
+    skipped_invalid: skippedInvalid,
+    skipped_limit: skippedLimit,
+    failed,
+    quality,
+    report_path: reportPath,
+    report_error: reportError,
+  };
 }
 
 function flushPendingRendererEvents() {
   rendererLoadHookAttached = false;
   if (!avatarWindow || avatarWindow.isDestroyed() || avatarWindow.webContents.isLoading()) return;
   for (const event of pendingRendererEvents.values()) {
-    avatarWindow.webContents.send("persona:event", event);
+    avatarWindow.webContents.send("voxavatar:event", event);
   }
   pendingRendererEvents.clear();
 }
@@ -526,7 +722,7 @@ function emitToRenderer(event) {
     ensureRendererLoadHook();
     return;
   }
-  avatarWindow.webContents.send("persona:event", event);
+  avatarWindow.webContents.send("voxavatar:event", event);
   pendingRendererEvents.delete(event.type);
 }
 
@@ -609,37 +805,8 @@ function handleProtocolArgv(argv) {
 
 function refreshTrayMenu() {
   if (!tray) return;
-  const ready = hasConfiguredModel();
-  const quitItem = {
-    label: "Quit",
-    click: () => {
-      isQuitting = true;
-      app.quit();
-    },
-  };
-  const template = ready
-    ? [
-        { label: "Show Persona", click: () => showOverlay({ focus: true }) },
-        { label: "Hide Persona", click: () => void hideOverlay() },
-        { label: "Settings…", click: showSettings },
-        { type: "separator" },
-        {
-          label: "Preview listening",
-          click: () => handleBridgeEvent(voiceState("listening")),
-        },
-        {
-          label: "Preview speaking",
-          click: () => handleBridgeEvent(voiceState("speaking")),
-        },
-        { type: "separator" },
-        quitItem,
-      ]
-    : [
-        { label: "Set up Persona…", click: showSettings },
-        { type: "separator" },
-        quitItem,
-      ];
-  tray.setContextMenu(Menu.buildFromTemplate(template));
+  const t = currentMenuStrings();
+  tray.setToolTip(`${t.trayTooltip} — ${t.zoomHint}`);
 }
 
 function createTray() {
@@ -652,9 +819,10 @@ function createTray() {
   );
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 20, height: 20 });
   tray = new Tray(icon);
-  tray.setToolTip("Persona");
   refreshTrayMenu();
-  tray.on("click", toggleOverlay);
+  // Do not call setContextMenu — on Windows it breaks repeated left-click toggle.
+  tray.on("click", () => toggleOverlay());
+  tray.on("right-click", () => popupTrayMenu());
 }
 
 if (!app.requestSingleInstanceLock()) {
@@ -673,8 +841,7 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(async () => {
-    app.setAppUserModelId("com.xikhar.persona");
-    app.dock?.hide();
+    app.setAppUserModelId("com.sanhsien.voxavatar");
     if (app.isPackaged) app.setAsDefaultProtocolClient(protocolScheme);
     settingsStore = createSettingsStore({
       userDataPath: app.getPath("userData"),
@@ -691,7 +858,7 @@ if (!app.requestSingleInstanceLock()) {
     mcpAnimationCatalogSignature = animationCatalogSignature(
       initialSettingsSnapshot,
     );
-    protocol.handle(PERSONA_ASSET_SCHEME, (request) => {
+    protocol.handle(VOXAVATAR_ASSET_SCHEME, (request) => {
       const assetPath = settingsStore?.resolveAssetRequest(request.url);
       if (!assetPath) {
         return new Response("Asset not found", { status: 404 });
@@ -699,20 +866,77 @@ if (!app.requestSingleInstanceLock()) {
       return net.fetch(pathToFileURL(assetPath).href);
     });
 
-    ipcMain.handle("persona:get-snapshot", () => latestEvent);
-    ipcMain.handle("persona:settings-get", () => settingsStore.getSnapshot());
-    ipcMain.handle("persona:settings-import-model", async (_event, metadata) => {
+    ipcMain.handle("voxavatar:get-snapshot", () => latestEvent);
+    ipcMain.handle("voxavatar:settings-get", () => settingsStore.getSnapshot());
+    ipcMain.handle("voxavatar:settings-import-model", async (_event, metadata) => {
       const filePath = await selectAssetFile("model");
       if (!filePath) return null;
       return publishSettings(
         settingsStore.importModel({ filePath, model_name: metadata?.model_name }),
       );
     });
-    ipcMain.handle("persona:settings-create-animation", (_event, metadata) =>
+    ipcMain.handle(
+      "voxavatar:settings-import-models-from-directory",
+      async (_event, metadata) => {
+        const rootDir = await selectAssetDirectory("選擇含 VRM 的資料夾");
+        if (!rootDir) return null;
+        const scan = collectAssetFiles(rootDir, { extensions: [".vrm"] });
+        if (scan.files.length === 0) {
+          return {
+            snapshot: settingsStore.getSnapshot(),
+            summary: buildDirectoryImportSummary({
+              kind: "model",
+              rootDir,
+              scanned: 0,
+              truncated: scan.truncated,
+              imported: 0,
+              skippedQuality: 0,
+              skippedInvalid: 0,
+              skippedLimit: 0,
+              failed: [],
+              quality: null,
+              reportPath: null,
+              reportError: null,
+            }),
+          };
+        }
+        const { snapshot, results } = settingsStore.importModelsFromPaths(
+          scan.files,
+          { model_name: metadata?.model_name },
+        );
+        publishSettings(snapshot);
+        const imported = results.filter((item) => item.ok).length;
+        const skippedLimit = results.filter((item) => item.reason === "limit").length;
+        const failed = results
+          .filter((item) => !item.ok && item.reason !== "limit")
+          .map((item) => ({
+            path: item.filePath,
+            error: item.error,
+          }));
+        return {
+          snapshot,
+          summary: buildDirectoryImportSummary({
+            kind: "model",
+            rootDir,
+            scanned: scan.files.length,
+            truncated: scan.truncated,
+            imported,
+            skippedQuality: 0,
+            skippedInvalid: 0,
+            skippedLimit,
+            failed,
+            quality: null,
+            reportPath: null,
+            reportError: null,
+          }),
+        };
+      },
+    );
+    ipcMain.handle("voxavatar:settings-create-animation", (_event, metadata) =>
       publishSettings(settingsStore.createAnimation(metadata)),
     );
     ipcMain.handle(
-      "persona:settings-add-animation-clips",
+      "voxavatar:settings-add-animation-clips",
       async (_event, animationId) => {
         const filePaths = await selectAssetFile("animation", true);
         if (filePaths.length === 0) return null;
@@ -722,30 +946,154 @@ if (!app.requestSingleInstanceLock()) {
       },
     );
     ipcMain.handle(
-      "persona:settings-update-animation",
+      "voxavatar:settings-add-animation-clips-from-directory",
+      async (_event, animationId) => {
+        const rootDir = await selectAssetDirectory("選擇含 VRMA 的資料夾");
+        if (!rootDir) return null;
+
+        const scan = collectAssetFiles(rootDir, { extensions: [".vrma"] });
+        const gate = normalizeQualityGate(
+          settingsStore.getSnapshot().vrma_quality_gate,
+        );
+        const preferredReportDir = settingsStore.getSnapshot().vrma_report_dir;
+
+        let quality = null;
+        let reportPath = null;
+        let reportError = null;
+        let importCandidates = scan.files;
+        let skippedQuality = 0;
+
+        if (scan.files.length === 0) {
+          return {
+            snapshot: settingsStore.getSnapshot(),
+            summary: buildDirectoryImportSummary({
+              kind: "animation",
+              rootDir,
+              scanned: 0,
+              truncated: scan.truncated,
+              imported: 0,
+              skippedQuality: 0,
+              skippedInvalid: 0,
+              skippedLimit: 0,
+              failed: [],
+              quality: null,
+              reportPath: null,
+              reportError: null,
+            }),
+          };
+        }
+
+        if (gate !== QUALITY_GATE.OFF) {
+          const reports = analyzeVrmaFiles(scan.files);
+          quality = summarizeReports(reports);
+          try {
+            ({ reportPath } = writeMarkdownReport(reports, {
+              reportDir: preferredReportDir,
+              sourceDir: rootDir,
+              gate,
+            }));
+          } catch (error) {
+            reportError =
+              error instanceof Error ? error.message : String(error);
+          }
+          if (gate === QUALITY_GATE.STRICT) {
+            const rejected = new Set(
+              reports
+                .filter((report) => report.verdict === VERDICT.REJECT)
+                .map((report) => report.filePath),
+            );
+            skippedQuality = rejected.size;
+            importCandidates = scan.files.filter(
+              (filePath) => !rejected.has(filePath),
+            );
+          }
+        }
+
+        let snapshot = settingsStore.getSnapshot();
+        let results = [];
+        if (importCandidates.length > 0) {
+          ({ snapshot, results } = settingsStore.addAnimationClipsBestEffort(
+            animationId,
+            importCandidates,
+          ));
+          publishSettings(snapshot);
+        }
+        const imported = results.filter((item) => item.ok).length;
+        const skippedInvalid = results.filter(
+          (item) => item.reason === "invalid",
+        ).length;
+        const skippedLimit = results.filter(
+          (item) => item.reason === "limit",
+        ).length;
+        const failed = results
+          .filter((item) => !item.ok && item.reason !== "limit")
+          .map((item) => ({
+            path: item.filePath,
+            error: item.error,
+          }));
+
+        return {
+          snapshot,
+          summary: buildDirectoryImportSummary({
+            kind: "animation",
+            rootDir,
+            scanned: scan.files.length,
+            truncated: scan.truncated,
+            imported,
+            skippedQuality,
+            skippedInvalid,
+            skippedLimit,
+            failed,
+            quality,
+            reportPath,
+            reportError,
+          }),
+        };
+      },
+    );
+    ipcMain.handle(
+      "voxavatar:settings-set-vrma-quality-gate",
+      (_event, value) =>
+        publishSettings(settingsStore.setVrmaQualityGate(value)),
+    );
+    ipcMain.handle(
+      "voxavatar:settings-choose-vrma-report-dir",
+      async () => {
+        const selected = await selectAssetDirectory(
+          "選擇 VRMA 品質報告儲存資料夾",
+        );
+        if (!selected) return null;
+        return publishSettings(settingsStore.setVrmaReportDir(selected));
+      },
+    );
+    ipcMain.handle("voxavatar:settings-clear-vrma-report-dir", () =>
+      publishSettings(settingsStore.setVrmaReportDir(null)),
+    );
+    ipcMain.handle(
+      "voxavatar:settings-update-animation",
       (_event, animationId, metadata) =>
         publishSettings(
           settingsStore.updateAnimation(animationId, metadata),
         ),
     );
     ipcMain.handle(
-      "persona:settings-delete-animation",
+      "voxavatar:settings-delete-animation",
       (_event, animationId) =>
         publishSettings(settingsStore.deleteAnimation(animationId)),
     );
     ipcMain.handle(
-      "persona:settings-delete-animation-clip",
+      "voxavatar:settings-delete-animation-clip",
       (_event, animationId, clipId) =>
         publishSettings(
           settingsStore.deleteAnimationClip(animationId, clipId),
         ),
     );
     ipcMain.handle(
-      "persona:settings-reset-packaged-animations",
+      "voxavatar:settings-reset-packaged-animations",
       () => publishSettings(settingsStore.resetPackagedAnimations()),
     );
     ipcMain.handle(
-      "persona:settings-delete-model",
+      "voxavatar:settings-delete-model",
       (_event, modelId) => {
         const model = settingsStore
           .getSnapshot()
@@ -756,28 +1104,55 @@ if (!app.requestSingleInstanceLock()) {
         return publishSettings(settingsStore.deleteModel(modelId));
       },
     );
-    ipcMain.handle("persona:settings-set-default-model", (_event, modelId) =>
+    ipcMain.handle("voxavatar:settings-delete-all-user-models", () =>
+      publishSettings(settingsStore.deleteAllUserModels()),
+    );
+    ipcMain.handle("voxavatar:settings-delete-all-user-animation-clips", () =>
+      publishSettings(settingsStore.deleteAllUserAnimationClips()),
+    );
+    ipcMain.handle("voxavatar:settings-set-default-model", (_event, modelId) =>
       publishSettings(settingsStore.setDefaultModel(modelId)),
     );
-    ipcMain.handle("persona:settings-set-character-size", (_event, size) =>
+    ipcMain.handle("voxavatar:settings-set-character-size", (_event, size) =>
       publishSettings(settingsStore.setCharacterSize(size)),
     );
-    ipcMain.handle("persona:settings-set-voice-source", (_event, voiceSource) => {
+    ipcMain.handle("voxavatar:settings-set-ui-locale", (_event, locale) =>
+      publishSettings(settingsStore.setUiLocale(locale)),
+    );
+    ipcMain.handle("voxavatar:settings-set-voice-source", (_event, voiceSource) => {
       const snapshot = publishSettings(settingsStore.setVoiceSource(voiceSource));
       restartAudioListener();
       return snapshot;
     });
+    ipcMain.handle("voxavatar:settings-list-voice-sources", async () => {
+      try {
+        return {
+          ...(await listVoiceSources()),
+          error: null,
+          events_url: `http://127.0.0.1:${mcpServerPort}/events`,
+          listener: latestListenerStatus,
+        };
+      } catch (error) {
+        return {
+          platform: process.platform,
+          sources: [],
+          error: error instanceof Error ? error.message : String(error),
+          events_url: `http://127.0.0.1:${mcpServerPort}/events`,
+          listener: latestListenerStatus,
+        };
+      }
+    });
     ipcMain.handle(
-      "persona:settings-set-model-lighting",
+      "voxavatar:settings-set-model-lighting",
       (_event, modelId, lighting) =>
         publishSettings(settingsStore.setModelLighting(modelId, lighting)),
     );
     ipcMain.handle(
-      "persona:settings-reset-model-lighting",
+      "voxavatar:settings-reset-model-lighting",
       (_event, modelId) =>
         publishSettings(settingsStore.resetModelLighting(modelId)),
     );
-    ipcMain.handle("persona:settings-get-mcp-status", () =>
+    ipcMain.handle("voxavatar:settings-get-mcp-status", () =>
       createMcpSettingsStatus({
         error: mcpServerError,
         health: mcpServerHealth,
@@ -785,11 +1160,41 @@ if (!app.requestSingleInstanceLock()) {
         settingsSnapshot: settingsStore.getSnapshot(),
       }),
     );
-    ipcMain.on("persona:hide", () => void hideOverlay());
+    ipcMain.on("voxavatar:hide", () => void hideOverlay());
+    ipcMain.on("voxavatar:set-ignore-mouse", (event, ignore) => {
+      if (!avatarWindow || avatarWindow.isDestroyed()) return;
+      if (event.sender !== avatarWindow.webContents) return;
+      setAvatarMousePassthrough(Boolean(ignore));
+    });
+    ipcMain.handle("voxavatar:get-window-bounds", (event) => {
+      if (!avatarWindow || avatarWindow.isDestroyed()) return null;
+      if (event.sender !== avatarWindow.webContents) return null;
+      return avatarWindow.getBounds();
+    });
+    ipcMain.on("voxavatar:move-window", (event, payload) => {
+      if (!avatarWindow || avatarWindow.isDestroyed()) return;
+      if (event.sender !== avatarWindow.webContents) return;
+      const x = Number(payload?.x);
+      const y = Number(payload?.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      avatarWindow.setPosition(Math.round(x), Math.round(y));
+    });
+    ipcMain.on("voxavatar:avatar-context-menu", (event) => {
+      if (!avatarWindow || avatarWindow.isDestroyed()) return;
+      if (event.sender !== avatarWindow.webContents) return;
+      setAvatarMousePassthrough(false);
+      buildAvatarContextMenu().popup({
+        window: avatarWindow,
+        callback: () => {
+          // 下一幀 pointermove 會依 hit-test 重設；先回到穿透較安全。
+          setAvatarMousePassthrough(true);
+        },
+      });
+    });
     // The resolved theme lives in renderer storage, so the window chrome can
     // only be corrected once the settings renderer reports it. Accepts the two
     // known theme names and never a caller-supplied colour.
-    ipcMain.on("persona:settings-set-window-theme", (event, theme) => {
+    ipcMain.on("voxavatar:settings-set-window-theme", (event, theme) => {
       if (theme !== "dark" && theme !== "light") return;
       if (!settingsWindow || settingsWindow.isDestroyed()) return;
       if (event.sender !== settingsWindow.webContents) return;
@@ -801,7 +1206,7 @@ if (!app.requestSingleInstanceLock()) {
       }
     });
 
-    mcpHandler = createPersonaMcpHandler({
+    mcpHandler = createVoxAvatarMcpHandler({
       onAnimation: playConfiguredAnimation,
       onWindowAction: handleMcpWindowAction,
       getStatus: getMcpStatus,
@@ -827,7 +1232,7 @@ if (!app.requestSingleInstanceLock()) {
       mcpServerError =
         error instanceof Error ? error.message : String(error);
       console.error(
-        "[persona] local integration server unavailable:",
+        "[voxavatar] local integration server unavailable:",
         mcpServerError,
       );
       bridge = null;
@@ -861,7 +1266,6 @@ app.on("activate", () => showOverlay({ focus: true }));
 
 app.on("before-quit", () => {
   isQuitting = true;
-  clearTimeout(hyprlandConfigurationTimer);
   audioListener?.stop();
   globalShortcut.unregisterAll();
   void mcpHandler?.close();
@@ -871,5 +1275,5 @@ app.on("before-quit", () => {
 });
 
 app.on("window-all-closed", () => {
-  // The tray, protocol handler, and adapter server keep Persona available.
+  // The tray, protocol handler, and adapter server keep VoxAvatar available.
 });

@@ -12,10 +12,16 @@ const {
 const {
   DEFAULT_VOICE_SOURCE,
   normalizeVoiceSource,
-  sanitizeVoiceSourcePattern,
+  sanitizeVoiceSource,
 } = require("./voice-source.cjs");
+const { normalizeUiLocale } = require("./i18n.cjs");
+const {
+  QUALITY_GATE,
+  normalizeQualityGate,
+  normalizeReportDir,
+} = require("./vrma-quality.cjs");
 
-const SETTINGS_SCHEMA_VERSION = 4;
+const SETTINGS_SCHEMA_VERSION = 5;
 const DEFAULT_PACKAGED_LIBRARY_PATH = path.join(
   __dirname,
   "..",
@@ -51,6 +57,7 @@ function defaultState(packagedLibrary) {
     schema_version: SETTINGS_SCHEMA_VERSION,
     default_model_id: packagedLibrary.default_model_id,
     character_size: 1,
+    ui_locale: "zh-TW",
     model_lighting: {},
     models: [],
     animations: [],
@@ -58,6 +65,8 @@ function defaultState(packagedLibrary) {
     packaged_animation_overrides: {},
     hidden_packaged_animation_ids: [],
     voice_source: { ...DEFAULT_VOICE_SOURCE },
+    vrma_quality_gate: QUALITY_GATE.REPORT,
+    vrma_report_dir: null,
   };
 }
 
@@ -337,7 +346,7 @@ function safeReadState(settingsPath, packagedLibrary) {
   const fallback = defaultState(packagedLibrary);
   try {
     const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-    if (![1, 2, 3, SETTINGS_SCHEMA_VERSION].includes(parsed?.schema_version)) {
+    if (![1, 2, 3, 4, SETTINGS_SCHEMA_VERSION].includes(parsed?.schema_version)) {
       return { migrated: false, state: fallback };
     }
     const { hidden, overrides } = packagedUserLayers(parsed, packagedLibrary);
@@ -354,6 +363,7 @@ function safeReadState(settingsPath, packagedLibrary) {
           ? parsed.default_model_id
           : fallback.default_model_id,
       character_size: parsed.character_size,
+      ui_locale: normalizeUiLocale(parsed.ui_locale),
       model_lighting: sanitizeModelLighting(
         parsed.model_lighting,
         knownModelIds,
@@ -362,6 +372,8 @@ function safeReadState(settingsPath, packagedLibrary) {
       packaged_animation_overrides: overrides,
       hidden_packaged_animation_ids: hidden,
       voice_source: voiceSource,
+      vrma_quality_gate: normalizeQualityGate(parsed.vrma_quality_gate),
+      vrma_report_dir: normalizeReportDir(parsed.vrma_report_dir),
     };
 
     if (parsed.schema_version !== SETTINGS_SCHEMA_VERSION) {
@@ -445,7 +457,7 @@ function createSettingsStore({
 
   function userAssetUrl(kind, record) {
     const extension = kind === "model" ? ".vrm" : ".vrma";
-    return `persona-asset://${kind}/${record.id}${extension}`;
+    return `voxavatar-asset://${kind}/${record.id}${extension}`;
   }
 
   function packagedAssetUrl(relativePath) {
@@ -572,6 +584,7 @@ function createSettingsStore({
         characterSize <= MAX_CHARACTER_SIZE
           ? characterSize
           : 1,
+      ui_locale: normalizeUiLocale(state.ui_locale),
       packaged_animation_change_count: changedPackagedIds.size,
       models,
       animations: availableAnimations(),
@@ -580,6 +593,8 @@ function createSettingsStore({
         modelIds,
       ),
       voice_source: normalizeVoiceSource(state.voice_source),
+      vrma_quality_gate: normalizeQualityGate(state.vrma_quality_gate),
+      vrma_report_dir: normalizeReportDir(state.vrma_report_dir),
     };
   }
 
@@ -591,18 +606,42 @@ function createSettingsStore({
     );
   }
 
-  function importModel({ filePath, model_name }) {
-    if (state.models.length >= MAX_CUSTOM_MODELS) {
-      throw new Error("Persona supports up to 50 custom models.");
+  function uniqueModelName(desiredName) {
+    const base = singleLine(desiredName, "Model name", 80);
+    const existing = new Set(
+      availableModels().map((model) => model.model_name.toLowerCase()),
+    );
+    if (!existing.has(base.toLowerCase())) return base;
+    for (let index = 2; index < 10000; index += 1) {
+      const suffix = `-${index}`;
+      const truncated = base.slice(0, Math.max(1, 80 - suffix.length));
+      const candidate = `${truncated}${suffix}`;
+      if (!existing.has(candidate.toLowerCase())) return candidate;
     }
-    const normalizedName = singleLine(model_name, "Model name", 80);
-    if (
-      availableModels().some(
-        (model) =>
-          model.model_name.toLowerCase() === normalizedName.toLowerCase(),
-      )
-    ) {
-      throw new Error("A model with this name already exists.");
+    throw new Error("Unable to allocate a unique model name.");
+  }
+
+  function importModel({ filePath, model_name, allowRename = false }) {
+    if (state.models.length >= MAX_CUSTOM_MODELS) {
+      throw new Error("VoxAvatar supports up to 50 custom models.");
+    }
+    const trimmedName =
+      typeof model_name === "string" ? model_name.trim() : "";
+    const fallbackName = path.basename(filePath, path.extname(filePath)) || "Model";
+    let normalizedName = singleLine(
+      trimmedName || fallbackName,
+      "Model name",
+      80,
+    );
+    const nameTaken = availableModels().some(
+      (model) =>
+        model.model_name.toLowerCase() === normalizedName.toLowerCase(),
+    );
+    if (nameTaken) {
+      if (!allowRename) {
+        throw new Error("A model with this name already exists.");
+      }
+      normalizedName = uniqueModelName(normalizedName);
     }
     validateGlbFile(filePath, ".vrm");
     const id = nodeCrypto.randomUUID();
@@ -620,9 +659,48 @@ function createSettingsStore({
     return getSnapshot();
   }
 
+  function importModelsFromPaths(filePaths, { model_name } = {}) {
+    if (!Array.isArray(filePaths) || filePaths.length === 0) {
+      throw new Error("No VRM files were selected.");
+    }
+    const results = [];
+    let snapshot = getSnapshot();
+    for (const filePath of filePaths) {
+      try {
+        if (state.models.length >= MAX_CUSTOM_MODELS) {
+          results.push({
+            filePath,
+            ok: false,
+            error: `VoxAvatar supports up to ${MAX_CUSTOM_MODELS} custom models.`,
+            reason: "limit",
+          });
+          continue;
+        }
+        const useSharedName =
+          typeof model_name === "string" &&
+          model_name.trim() &&
+          filePaths.length === 1;
+        snapshot = importModel({
+          filePath,
+          model_name: useSharedName ? model_name.trim() : "",
+          allowRename: true,
+        });
+        results.push({ filePath, ok: true, error: null, reason: null });
+      } catch (error) {
+        results.push({
+          filePath,
+          ok: false,
+          error: error instanceof Error ? error.message : String(error),
+          reason: "error",
+        });
+      }
+    }
+    return { snapshot, results };
+  }
+
   function createAnimation(metadata) {
     if (state.animations.length >= MAX_CUSTOM_ANIMATIONS) {
-      throw new Error("Persona supports up to 100 custom animation actions.");
+      throw new Error("VoxAvatar supports up to 100 custom animation actions.");
     }
     const normalized = validateAnimationMetadata(metadata);
     if (animationNameTaken(normalized.animation_name)) {
@@ -647,7 +725,7 @@ function createSettingsStore({
     );
     if (clipCount + filePaths.length > MAX_CUSTOM_ANIMATION_CLIPS) {
       throw new Error(
-        `Persona supports up to ${MAX_CUSTOM_ANIMATION_CLIPS} uploaded animation clips.`,
+        `VoxAvatar supports up to ${MAX_CUSTOM_ANIMATION_CLIPS} uploaded animation clips.`,
       );
     }
     for (const filePath of filePaths) validateGlbFile(filePath, ".vrma");
@@ -677,6 +755,64 @@ function createSettingsStore({
       ...(state.animation_clips[animationId] ?? []),
       ...added,
     ];
+    writeState();
+    return getSnapshot();
+  }
+
+  function addAnimationClipsBestEffort(animationId, filePaths) {
+    const animation = availableAnimations().find(
+      (candidate) => candidate.id === animationId,
+    );
+    if (!animation) throw new Error("Animation action is not installed.");
+    if (!Array.isArray(filePaths) || filePaths.length === 0) {
+      throw new Error("No VRMA files were selected.");
+    }
+
+    const results = [];
+    const accepted = [];
+    for (const filePath of filePaths) {
+      const clipCount = Object.values(state.animation_clips).reduce(
+        (count, clips) => count + clips.length,
+        0,
+      );
+      if (clipCount + accepted.length >= MAX_CUSTOM_ANIMATION_CLIPS) {
+        results.push({
+          filePath,
+          ok: false,
+          error: `VoxAvatar supports up to ${MAX_CUSTOM_ANIMATION_CLIPS} uploaded animation clips.`,
+          reason: "limit",
+        });
+        continue;
+      }
+      try {
+        validateGlbFile(filePath, ".vrma");
+        accepted.push(filePath);
+        results.push({ filePath, ok: true, error: null, reason: null });
+      } catch (error) {
+        results.push({
+          filePath,
+          ok: false,
+          error: error instanceof Error ? error.message : String(error),
+          reason: "invalid",
+        });
+      }
+    }
+
+    let snapshot = getSnapshot();
+    if (accepted.length > 0) {
+      snapshot = addAnimationClips(animationId, accepted);
+    }
+    return { snapshot, results };
+  }
+
+  function setVrmaQualityGate(value) {
+    state.vrma_quality_gate = normalizeQualityGate(value);
+    writeState();
+    return getSnapshot();
+  }
+
+  function setVrmaReportDir(value) {
+    state.vrma_report_dir = normalizeReportDir(value);
     writeState();
     return getSnapshot();
   }
@@ -804,6 +940,32 @@ function createSettingsStore({
     return getSnapshot();
   }
 
+  function deleteAllUserModels() {
+    const removed = [...state.models];
+    for (const model of removed) {
+      removeStoredFile(modelDirectory, model.stored_filename);
+      delete state.model_lighting[model.id];
+    }
+    state.models = [];
+    state.default_model_id =
+      packagedLibrary.default_model_id ??
+      packagedLibrary.models[0]?.id ??
+      null;
+    writeState();
+    return getSnapshot();
+  }
+
+  function deleteAllUserAnimationClips() {
+    for (const clips of Object.values(state.animation_clips)) {
+      for (const clip of clips) {
+        removeStoredFile(animationDirectory, clip.stored_filename);
+      }
+    }
+    state.animation_clips = {};
+    writeState();
+    return getSnapshot();
+  }
+
   function setDefaultModel(modelId) {
     if (!availableModels().some((model) => model.id === modelId)) {
       throw new Error("Selected model is not installed.");
@@ -829,17 +991,14 @@ function createSettingsStore({
     return getSnapshot();
   }
 
+  function setUiLocale(value) {
+    state.ui_locale = normalizeUiLocale(value);
+    writeState();
+    return getSnapshot();
+  }
+
   function setVoiceSource(value) {
-    const mode = value?.mode === "custom" ? "custom" : "default";
-    if (mode === "default") {
-      state.voice_source = { ...DEFAULT_VOICE_SOURCE };
-      writeState();
-      return getSnapshot();
-    }
-    state.voice_source = {
-      mode: "custom",
-      process_pattern: sanitizeVoiceSourcePattern(value?.process_pattern),
-    };
+    state.voice_source = sanitizeVoiceSource(value);
     writeState();
     return getSnapshot();
   }
@@ -941,7 +1100,7 @@ function createSettingsStore({
     } catch {
       return null;
     }
-    if (url.protocol !== "persona-asset:" || url.search || url.hash) return null;
+    if (url.protocol !== "voxavatar-asset:" || url.search || url.hash) return null;
     const kind = url.hostname;
     const requestedFilename = url.pathname.replace(/^\/+/, "");
     if (kind === "model") {
@@ -965,17 +1124,24 @@ function createSettingsStore({
 
   return {
     addAnimationClips,
+    addAnimationClipsBestEffort,
     createAnimation,
     deleteAnimation,
     deleteAnimationClip,
+    deleteAllUserAnimationClips,
+    deleteAllUserModels,
     deleteModel,
     getAnimation,
     getSnapshot,
     importModel,
+    importModelsFromPaths,
     resetPackagedAnimations,
     resolveAssetRequest,
     setCharacterSize,
+    setUiLocale,
     setVoiceSource,
+    setVrmaQualityGate,
+    setVrmaReportDir,
     setDefaultModel,
     setModelLighting,
     resetModelLighting,

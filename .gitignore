@@ -54,3 +54,8 @@ Desktop.ini
 
 # Original local implementation brief
 INSTRUCTIONS.md
+
+# Local third-party unpack (do not commit full packs)
+_vendor/
+.tmp-booth/
+

@@ -11,7 +11,7 @@ const {
 } = require("./check-assets.cjs");
 
 function createFixture(context) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "persona-assets-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-assets-"));
   const assetRoot = path.join(root, "assets");
   fs.mkdirSync(assetRoot, { recursive: true });
   const libraryPath = path.join(assetRoot, "library.json");
@@ -128,7 +128,9 @@ test("development rejects a partial local media set", (context) => {
   );
 });
 
-test("test-only assets are rejected by the release gate", () => {
-  const errors = validateAssets({ release: true });
+test("test-only assets are rejected by the release gate", (context) => {
+  const fixture = createFixture(context);
+  configureFixtureAssets(fixture);
+  const errors = validateAssets({ ...fixture, release: true });
   assert.ok(errors.some((error) => error.includes("distribution is disabled")));
 });

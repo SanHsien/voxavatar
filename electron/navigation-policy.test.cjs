@@ -7,15 +7,15 @@ const { isAllowedRendererNavigation } = require("./navigation-policy.cjs");
 test("allows only the renderer entry or its development origin", () => {
   assert.equal(
     isAllowedRendererNavigation(
-      "file:///opt/Persona/resources/app.asar/dist/index.html#view",
-      "file:///opt/Persona/resources/app.asar/dist/index.html",
+      "file:///opt/VoxAvatar/resources/app.asar/dist/index.html#view",
+      "file:///opt/VoxAvatar/resources/app.asar/dist/index.html",
     ),
     true,
   );
   assert.equal(
     isAllowedRendererNavigation(
-      "file:///opt/Persona/resources/app.asar/dist/other.html",
-      "file:///opt/Persona/resources/app.asar/dist/index.html",
+      "file:///opt/VoxAvatar/resources/app.asar/dist/other.html",
+      "file:///opt/VoxAvatar/resources/app.asar/dist/index.html",
     ),
     false,
   );

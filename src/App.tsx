@@ -6,6 +6,7 @@ import {
 } from 'react';
 import { Scene } from './components/Scene';
 import {
+  ambientIdleMotionUrls,
   animationUrlsForType,
   immediateVoiceAnimation,
   type AnimationType,
@@ -35,11 +36,12 @@ export function App() {
   const [voiceAnimation, setVoiceAnimation] = useState<AnimationType>('IDLE');
   const [bodyOverride, setBodyOverride] =
     useState<BodyAnimationOverride | null>(null);
+  const [idleCycle, setIdleCycle] = useState(0);
   const [settings, setSettings] =
-    useState<PersonaSettingsSnapshot>(SETTINGS_FALLBACK);
+    useState<VoxAvatarSettingsSnapshot>(SETTINGS_FALLBACK);
 
   useEffect(() => {
-    const bridge = window.personaBridge;
+    const bridge = window.voxavatarBridge;
     if (!bridge) return;
     void bridge.getSnapshot().then((event) => {
       if (event?.type === 'state') setVoice(event.state);
@@ -65,7 +67,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const settingsBridge = window.personaSettings;
+    const settingsBridge = window.voxavatarSettings;
     if (!settingsBridge) {
       void loadPackagedSettingsFallback().then(setSettings);
       return;
@@ -101,20 +103,33 @@ export function App() {
       : settings.models.find(
           (model) => model.id === settings.default_model_id,
         );
-  const animationRequest = bodyOverride?.requestId ?? 0;
-  const configuredAnimationUrls = useMemo(
+  const ambientUrls = useMemo(
+    () => ambientIdleMotionUrls(settings.animations),
+    [settings.animations],
+  );
+  const roleUrls = useMemo(
     () => animationUrlsForType(settings.animations, animation),
     [animation, settings.animations],
   );
+  // 待機：從 Idle＋其他非說話動作池隨機抽；說話：只用 TALK 池。
+  const configuredAnimationUrls =
+    !bodyOverride && animation === 'IDLE' ? ambientUrls : roleUrls;
   const animationUrls =
     bodyOverride?.animationUrls ?? configuredAnimationUrls;
+  // 有素材就 once 播完再隨機重抽，絕不固定順序 loop 同一支。
+  const cycleRandomMotions =
+    !bodyOverride && animation === 'IDLE' && animationUrls.length > 0;
+  const animationRequest = bodyOverride?.requestId ?? idleCycle;
   const overrideRequestId = bodyOverride?.requestId ?? null;
   const handleAnimationComplete = useCallback(() => {
-    if (overrideRequestId == null) return;
-    setBodyOverride((current) =>
-      finishBodyAnimationOverride(current, overrideRequestId),
-    );
-  }, [overrideRequestId]);
+    if (overrideRequestId != null) {
+      setBodyOverride((current) =>
+        finishBodyAnimationOverride(current, overrideRequestId),
+      );
+      return;
+    }
+    if (cycleRandomMotions) setIdleCycle((value) => value + 1);
+  }, [cycleRandomMotions, overrideRequestId]);
 
   return defaultModel ? (
     <main className="app">
@@ -124,10 +139,11 @@ export function App() {
         animationUrls={animationUrls}
         audioLevel={audioLevel}
         characterSize={settings.character_size}
+        interactiveOverlay
         lighting={settings.model_lighting[defaultModel.id]}
         modelUrl={defaultModel.asset_url}
         onAnimationComplete={handleAnimationComplete}
-        playback={bodyOverride ? 'once' : 'loop'}
+        playback={bodyOverride || cycleRandomMotions ? 'once' : 'loop'}
         speaking={speaking}
       />
     </main>

@@ -18,7 +18,7 @@ const {
 const MCP_PATH = "/mcp";
 const WINDOW_ACTIONS = ["show", "hide", "toggle"];
 const SERVER_INSTRUCTIONS =
-  "Persona controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle Persona. Persona never speaks or plays audio. get_status and list_animations are read-only.";
+  "VoxAvatar controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle VoxAvatar. VoxAvatar never speaks or plays audio. get_status and list_animations are read-only.";
 
 function textResult(text) {
   return {
@@ -28,7 +28,7 @@ function textResult(text) {
 
 function animationToolDescription(animations) {
   return [
-    "Play one randomly selected clip from an installed character action. This shows Persona and temporarily takes priority over voice-driven body motion.",
+    "Play one randomly selected clip from an installed character action. This shows VoxAvatar and temporarily takes priority over voice-driven body motion.",
     "Playable actions:",
     describeAnimations(animations),
   ].join("\n");
@@ -46,7 +46,7 @@ function animationInputSchema(animations) {
     );
 }
 
-function createPersonaMcpServer({
+function createVoxAvatarMcpServer({
   onAnimation,
   onWindowAction,
   getStatus,
@@ -55,7 +55,7 @@ function createPersonaMcpServer({
   const animations = getAnimations();
   const server = new McpServer(
     {
-      name: "Persona",
+      name: "VoxAvatar",
       version,
     },
     {
@@ -66,7 +66,7 @@ function createPersonaMcpServer({
   const animationTool = server.registerTool(
     "play_animation",
     {
-      title: "Play Persona animation",
+      title: "Play VoxAvatar animation",
       description: animationToolDescription(animations),
       inputSchema: {
         animation: animationInputSchema(animations),
@@ -94,21 +94,21 @@ function createPersonaMcpServer({
       if (played === false) {
         return {
           ...textResult(
-            "Persona cannot play that action until a model and at least one clip are configured.",
+            "VoxAvatar cannot play that action until a model and at least one clip are configured.",
           ),
           isError: true,
         };
       }
-      return textResult(`Persona is playing the ${animation} action.`);
+      return textResult(`VoxAvatar is playing the ${animation} action.`);
     },
   );
 
   server.registerTool(
     "list_animations",
     {
-      title: "List Persona animations",
+      title: "List VoxAvatar animations",
       description:
-        "Read the current playable Persona action names, descriptions, and trigger scenarios. The result reflects Settings changes immediately.",
+        "Read the current playable VoxAvatar action names, descriptions, and trigger scenarios. The result reflects Settings changes immediately.",
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -122,9 +122,9 @@ function createPersonaMcpServer({
   server.registerTool(
     "control_window",
     {
-      title: "Control Persona window",
+      title: "Control VoxAvatar window",
       description:
-        "Show, hide, or toggle the local Persona window. Hiding the window does not quit Persona.",
+        "Show, hide, or toggle the local VoxAvatar window. Hiding the window does not quit VoxAvatar.",
       inputSchema: {
         action: z.enum(WINDOW_ACTIONS).describe("The window action to perform."),
       },
@@ -137,16 +137,16 @@ function createPersonaMcpServer({
     },
     async ({ action }) => {
       const visible = await onWindowAction(action);
-      return textResult(`Persona's window is now ${visible ? "visible" : "hidden"}.`);
+      return textResult(`VoxAvatar's window is now ${visible ? "visible" : "hidden"}.`);
     },
   );
 
   server.registerTool(
     "get_status",
     {
-      title: "Get Persona status",
+      title: "Get VoxAvatar status",
       description:
-        "Read Persona's window visibility, voice state, and local listener status.",
+        "Read VoxAvatar's window visibility, voice state, and local listener status.",
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -170,7 +170,7 @@ function createPersonaMcpServer({
   return server;
 }
 
-function createPersonaMcpHandler(controller) {
+function createVoxAvatarMcpHandler(controller) {
   const sessions = new Map();
 
   const handler = async (request, response, parsedBody) => {
@@ -185,7 +185,7 @@ function createPersonaMcpHandler(controller) {
         isInitializeRequest(parsedBody)
       ) {
         let transport;
-        const server = createPersonaMcpServer(controller);
+        const server = createVoxAvatarMcpServer(controller);
         transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: randomUUID,
           enableJsonResponse: true,
@@ -259,6 +259,6 @@ module.exports = {
   MCP_PATH,
   SERVER_INSTRUCTIONS,
   WINDOW_ACTIONS,
-  createPersonaMcpHandler,
-  createPersonaMcpServer,
+  createVoxAvatarMcpHandler,
+  createVoxAvatarMcpServer,
 };

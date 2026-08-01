@@ -33,7 +33,7 @@ test("NDJSON parser buffers partial messages and rejects malformed lines", () =>
   assert.deepEqual(invalid, ["not-json"]);
 });
 
-test("resolves development and packaged helper locations on both native platforms", () => {
+test("resolves development and packaged Windows helper locations", () => {
   assert.equal(
     resolveNativeHelperPath({
       platform: "win32",
@@ -41,7 +41,7 @@ test("resolves development and packaged helper locations on both native platform
       isPackaged: true,
       resourcesPath: "C:\\resources",
     }),
-    "C:\\resources\\native\\win32\\persona-audio-listener.exe",
+    "C:\\resources\\native\\win32\\voxavatar-audio-listener.exe",
   );
   assert.equal(
     resolveNativeHelperPath({
@@ -49,16 +49,9 @@ test("resolves development and packaged helper locations on both native platform
       projectRoot: "C:\\project",
       isPackaged: false,
     }),
-    "C:\\project\\native\\bin\\win32\\persona-audio-listener.exe",
+    "C:\\project\\native\\bin\\win32\\voxavatar-audio-listener.exe",
   );
-  assert.equal(
-    resolveNativeHelperPath({
-      platform: "darwin",
-      projectRoot: "/project",
-      isPackaged: false,
-    }),
-    "/project/native/bin/darwin/persona-audio-listener",
-  );
+  assert.equal(resolveNativeHelperPath({ platform: "darwin" }), null);
 });
 
 test("native listener activates on audio, smooths speech, and never hides the window", async () => {
@@ -67,7 +60,7 @@ test("native listener activates on audio, smooths speech, and never hides the wi
   const statuses = [];
   const child = fakeChild();
   const listener = new NativeProcessAudioListener({
-    platform: "darwin",
+    platform: "win32",
     helperPath: __filename,
     processDiscovery: async () => ({ pids: [10, 11], rootPids: [10] }),
     spawnProcess: () => child,
@@ -97,7 +90,7 @@ test("native listener cannot attach after it is stopped during discovery", async
   let finishDiscovery;
   let spawnCount = 0;
   const listener = new NativeProcessAudioListener({
-    platform: "darwin",
+    platform: "win32",
     helperPath: __filename,
     processDiscovery: () =>
       new Promise((resolve) => {

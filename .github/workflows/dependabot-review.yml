@@ -1,0 +1,79 @@
+name: Dependabot risk review
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  actions: write
+  checks: write
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  classify:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.repository == 'SanHsien/voxavatar' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out trusted base policy
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Read Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      - name: Classify update risk
+        id: policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          file_args=()
+          while IFS= read -r file; do file_args+=(--changed-file "$file"); done \
+            < <(gh pr view "$PR_NUMBER" --json files --jq '.files[].path')
+          node scripts/dependabot-policy.cjs \
+            --ecosystem "${{ steps.metadata.outputs.package-ecosystem }}" \
+            --dependency-type "${{ steps.metadata.outputs.dependency-type }}" \
+            --update-type "${{ steps.metadata.outputs.update-type }}" \
+            --dependency-names "${{ steps.metadata.outputs.dependency-names }}" \
+            --github-output "${file_args[@]}"
+
+      - name: Publish head-bound policy check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          DECISION: ${{ steps.policy.outputs.decision }}
+          REASON: ${{ steps.policy.outputs.reason }}
+        run: |
+          if [[ "$DECISION" == "auto_merge" ]]; then conclusion=success; else conclusion=neutral; fi
+          jq -n --arg head_sha "$HEAD_SHA" --arg conclusion "$conclusion" --arg summary "$REASON" \
+            '{name:"Dependabot policy",head_sha:$head_sha,status:"completed",conclusion:$conclusion,output:{title:"Dependency risk classification",summary:$summary}}' |
+            gh api --method POST "repos/$GITHUB_REPOSITORY/check-runs" --input -
+
+      - name: Apply decision label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DECISION_LABEL: ${{ steps.policy.outputs.label }}
+        run: |
+          gh label create dependencies-auto-merge --color 1f883d --force
+          gh label create dependencies-manual-review --color d4a72c --force
+          gh label create dependencies-rebase-requested --color 0969da --force
+          gh pr edit "$PR_NUMBER" --remove-label dependencies-auto-merge 2>/dev/null || true
+          gh pr edit "$PR_NUMBER" --remove-label dependencies-manual-review 2>/dev/null || true
+          gh pr edit "$PR_NUMBER" --remove-label dependencies-rebase-requested 2>/dev/null || true
+          gh pr edit "$PR_NUMBER" --add-label "$DECISION_LABEL"
+
+      - name: Start guarded merge gate
+        if: steps.policy.outputs.decision == 'auto_merge'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run dependabot-merge.yml --ref main

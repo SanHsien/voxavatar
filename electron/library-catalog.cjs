@@ -20,7 +20,7 @@ const SYSTEM_ANIMATIONS = Object.freeze([
     animation_name: "idle",
     animation_description: "A calm resting motion for the character.",
     animation_trigger_scenario:
-      "Used automatically while Persona is waiting and not speaking.",
+      "Used automatically while VoxAvatar is waiting and not speaking.",
     animation_type: "IDLE",
     asset_paths: Object.freeze([]),
   }),

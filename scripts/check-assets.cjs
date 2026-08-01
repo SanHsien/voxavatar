@@ -127,8 +127,8 @@ if (require.main === module) {
   } else {
     console.log(
       release
-        ? "Persona assets are complete and marked for distribution."
-        : "Persona asset contract is valid (local character media may be absent).",
+        ? "VoxAvatar assets are complete and marked for distribution."
+        : "VoxAvatar asset contract is valid (local character media may be absent).",
     );
   }
 }

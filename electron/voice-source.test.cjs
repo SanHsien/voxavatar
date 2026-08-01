@@ -8,16 +8,19 @@ const {
   compileVoiceSourcePattern,
   configuredPattern,
   normalizeVoiceSource,
+  processMatchesSource,
   resolveVoiceSourcePattern,
+  sanitizeVoiceSource,
   sanitizeVoiceSourcePattern,
   settingsPatternFromVoiceSource,
+  sourceFromProcess,
 } = require("./voice-source.cjs");
 
 test("compiles the shared default ChatGPT and Codex pattern", () => {
   assert.equal(DEFAULT_VOICE_APP_PATTERN.test("Codex"), true);
   assert.equal(DEFAULT_VOICE_APP_PATTERN.test("ChatGPT.exe"), true);
   assert.equal(DEFAULT_VOICE_APP_PATTERN.test("openai-codex"), true);
-  assert.equal(DEFAULT_VOICE_APP_PATTERN.test("persona"), false);
+  assert.equal(DEFAULT_VOICE_APP_PATTERN.test("notepad"), false);
   assert.equal(
     compileVoiceSourcePattern("[").source,
     DEFAULT_VOICE_APP_PATTERN.source,
@@ -26,7 +29,7 @@ test("compiles the shared default ChatGPT and Codex pattern", () => {
 
 test("prefers the environment override, then settings, then the default", () => {
   const fromEnv = resolveVoiceSourcePattern({
-    environment: { PERSONA_TARGET_PROCESS_PATTERN: "local-tts" },
+    environment: { VOXAVATAR_TARGET_PROCESS_PATTERN: "local-tts" },
     settingsPattern: "settings-app",
   });
   assert.equal(fromEnv.test("local-tts"), true);
@@ -54,7 +57,12 @@ test("sanitizes and normalizes persisted voice source values", () => {
   assert.deepEqual(normalizeVoiceSource(null), DEFAULT_VOICE_SOURCE);
   assert.deepEqual(
     normalizeVoiceSource({ mode: "custom", process_pattern: "local-tts" }),
-    { mode: "custom", process_pattern: "local-tts" },
+    {
+      mode: "custom",
+      process_pattern: "local-tts",
+      source_id: null,
+      source_name: null,
+    },
   );
   assert.deepEqual(
     normalizeVoiceSource({ mode: "custom", process_pattern: "[" }),
@@ -67,8 +75,58 @@ test("sanitizes and normalizes persisted voice source values", () => {
     }),
     "local-tts",
   );
+  assert.equal(settingsPatternFromVoiceSource(DEFAULT_VOICE_SOURCE), null);
+});
+
+test("normalizes all voice modes and rejects arbitrary application IDs", () => {
+  assert.deepEqual(
+    sanitizeVoiceSource({
+      mode: "external",
+      process_pattern: "ignored",
+      source_id: "ignored",
+      source_name: "Ignored",
+    }),
+    {
+      mode: "external",
+      process_pattern: null,
+      source_id: null,
+      source_name: null,
+    },
+  );
+  assert.deepEqual(
+    normalizeVoiceSource({
+      mode: "application",
+      source_id: "arbitrary",
+      source_name: "Voice",
+    }),
+    DEFAULT_VOICE_SOURCE,
+  );
+  assert.throws(
+    () =>
+      sanitizeVoiceSource({
+        mode: "application",
+        source_id: "arbitrary",
+        source_name: "Voice",
+      }),
+    /valid application/,
+  );
+});
+
+test("creates stable native process sources and matches Windows paths case-insensitively", () => {
+  const source = sourceFromProcess("win32", {
+    name: "Voice.exe",
+    executable: "C:\\Apps\\Voice\\Voice.exe",
+  });
+  assert.equal(source.name, "Voice");
   assert.equal(
-    settingsPatternFromVoiceSource({ mode: "default", process_pattern: null }),
-    null,
+    processMatchesSource(
+      {
+        name: "voice.exe",
+        executable: "c:\\apps\\voice\\voice.exe",
+      },
+      "win32",
+      source.id,
+    ),
+    true,
   );
 });

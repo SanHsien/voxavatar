@@ -1,44 +1,34 @@
-# Persona asset licenses
+# VoxAvatar 資產授權
 
-The MIT license covers Persona's application source. It does not grant rights
-to the VRM or VRMA files under `public/assets/`.
+程式碼採 MIT License；VRM、VRMA、圖片與環境貼圖各自遵循來源授權。**使用者可以合法下載後本機匯入，不代表專案可以再散布原檔。**
 
-## Bundled environment
+## 目前發行內容
 
-Persona includes the `dawn.exr` environment from `@pmndrs/assets`. The asset
-collection is published under CC0 1.0 and sources its HDR environments from
-Poly Haven.
+| 類型 | 狀態 | 說明 |
+| --- | --- | --- |
+| 角色 VRM | 無 | `public/assets/library.json` 的 `models` 為空，首次啟動由使用者匯入 |
+| Idle／Speaking VRMA | 無 | 系統動作槽存在，但不附身體動作素材 |
+| `public/assets/avatar.png` | 專案 UI 圖示 | 僅作為應用程式與 repo 視覺識別 |
+| `@pmndrs/assets` 環境貼圖 | CC0 1.0 資源集 | 執行時由套件提供，來源包含 Poly Haven |
 
-## Local development media
+## 使用者本機匯入
 
-VRM and VRMA files are intentionally ignored by Git. Any local files without a
-verified redistribution license are development inputs only. Therefore:
+可從 [VRoid Hub](https://hub.vroid.com/)、[BOOTH](https://booth.pm/) 或角色官方網站取得素材，也可用 [VRoid Studio](https://vroid.com/studio) 建立原創 VRM。下載前逐一確認：
 
-- do not publish unverified files in a source repository;
-- do not attach a package containing them to a release;
-- do not represent the MIT license as covering them; and
-- do not set `distributionAllowed` to `true` for these files.
+- 是否允許下載與 Avatar 使用。
+- 是否限制個人／商用、直播、改作或署名。
+- 是否禁止再配布或以可取出狀態包入其他軟體。
 
-The automated release gate enforces the last two requirements, but repository
-authors remain responsible for not committing restricted files.
+官方 VRoid Photo Booth VRMA [BOOTH 5512385](https://booth.pm/en/items/5512385) 適合本機匯入，但不可直接提交到本 repo 或安裝包。匯入方式見 [`docs/IDLE_MOTIONS.md`](docs/IDLE_MOTIONS.md)。
 
-`public/assets/library.json.example` and
-`public/assets/manifest.json.example` describe the current ignored local test
-files for development. They do not grant distribution rights; the example
-manifest intentionally leaves distribution disabled and license provenance
-incomplete.
+## 新增打包媒體的發行閘門
 
-## Replacing assets
+任何 VRM／VRMA 進入 Git 或 Release 前，必須同時完成：
 
-Declare the packaged media and its product metadata in
-`public/assets/library.json`. Then mirror every declared media path in
-`public/assets/manifest.json`:
+1. 保存可稽核的官方來源與授權版本。
+2. 明確確認允許 GitHub 公開散布及安裝包再散布。
+3. 在 `public/assets/library.json` 宣告用途，在 `public/assets/manifest.json` 記錄來源、授權、credit 與 `distributionAllowed: true`。
+4. 更新本檔的媒體清單與必要署名。
+5. 執行 `npm run assets:release`；任何缺漏都必須 fail closed。
 
-1. Set each asset's `license` to its SPDX identifier or clear license name.
-2. Set each asset's `source` to a public source or author-provided provenance.
-3. Confirm the license permits redistribution in this application.
-4. Set `distributionAllowed` to `true`.
-5. Run `npm run assets:release`.
-
-If an asset requires attribution, add the complete attribution to this file
-before release.
+本機測試媒體、使用者匯入媒體與來源不明媒體不可提交或發行。

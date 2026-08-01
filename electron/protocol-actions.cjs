@@ -14,7 +14,7 @@ function voiceState(activity, phase = "active") {
   };
 }
 
-function parseProtocolUrl(rawUrl, protocolScheme = "persona") {
+function parseProtocolUrl(rawUrl, protocolScheme = "voxavatar") {
   try {
     const url = new URL(rawUrl);
     if (url.protocol !== `${protocolScheme}:`) return null;

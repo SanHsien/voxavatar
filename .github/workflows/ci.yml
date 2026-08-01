@@ -13,21 +13,11 @@ concurrency:
 
 jobs:
   test:
-    name: Test on ${{ matrix.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Linux x64
-            runner: ubuntu-latest
-          - name: Windows x64
-            runner: windows-latest
-          - name: macOS arm64
-            runner: macos-15
-    runs-on: ${{ matrix.runner }}
+    name: Test on Windows x64
+    runs-on: windows-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
         uses: actions/setup-node@v7

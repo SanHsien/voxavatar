@@ -39,7 +39,7 @@ function createMcpSettingsStatus({
     local_only: true,
     playable_actions: playableActions,
     server_url: serverUrl,
-    setup_command: `codex mcp add persona --url ${serverUrl}`,
+    setup_command: `codex mcp add voxavatar --url ${serverUrl}`,
     tools: [...MCP_TOOL_NAMES],
     transport: MCP_TRANSPORT,
     version,

@@ -4,7 +4,7 @@ const nodeCrypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const RELEASE_EXTENSIONS = new Set([".AppImage", ".deb", ".dmg", ".exe", ".zip"]);
+const RELEASE_EXTENSIONS = new Set([".exe"]);
 
 function releaseFiles(directory) {
   return fs
@@ -16,7 +16,7 @@ function releaseFiles(directory) {
 
 function writeChecksums(directory) {
   const files = releaseFiles(directory);
-  if (files.length === 0) throw new Error(`No Persona release files found in ${directory}`);
+  if (files.length === 0) throw new Error(`No VoxAvatar release files found in ${directory}`);
   const lines = files.map((filename) => {
     const contents = fs.readFileSync(path.join(directory, filename));
     const digest = nodeCrypto.createHash("sha256").update(contents).digest("hex");

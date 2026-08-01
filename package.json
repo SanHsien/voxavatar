@@ -1,21 +1,20 @@
 {
-  "name": "persona",
-  "version": "0.1.0-beta.0",
-  "description": "A realtime character presence for desktop voice experiences.",
+  "name": "voxavatar",
+  "version": "0.1.0",
+  "description": "Windows desktop VRM avatar companion for voice experiences.",
   "author": {
-    "name": "xikhar",
-    "email": "xikhar@users.noreply.github.com"
+    "name": "SanHsien",
+    "email": "SanHsien@users.noreply.github.com"
   },
-  "desktopName": "persona.desktop",
   "private": true,
   "license": "MIT",
-  "homepage": "https://github.com/xikhar/persona#readme",
+  "homepage": "https://github.com/SanHsien/voxavatar#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xikhar/persona.git"
+    "url": "git+https://github.com/SanHsien/voxavatar.git"
   },
   "bugs": {
-    "url": "https://github.com/xikhar/persona/issues"
+    "url": "https://github.com/SanHsien/voxavatar/issues"
   },
   "engines": {
     "node": ">=24"
@@ -36,6 +35,7 @@
     "test:node": "node --test electron/*.test.cjs scripts/*.test.cjs",
     "test:renderer": "vitest run",
     "lint": "eslint .",
+    "docs:check": "node scripts/check-docs.cjs",
     "start": "electron .",
     "demo": "npm run build && electron .",
     "assets:check": "node scripts/check-assets.cjs",
@@ -43,11 +43,9 @@
     "native:build": "node scripts/build-native.cjs",
     "native:test": "node scripts/test-native.cjs",
     "audit:production": "npm audit --omit=dev --audit-level=high",
-    "check": "npm run lint && npm test && npm run assets:check && npm run audit:production && npm run build",
-    "dist:linux": "npm run build && node scripts/build-linux.cjs",
-    "dist:appimage": "npm run build && electron-builder --linux AppImage --publish never",
-    "dist:windows": "npm run native:build && npm run native:test && npm run build && electron-builder --win nsis --publish never",
-    "dist:mac": "npm run native:build && npm run native:test && npm run build && electron-builder --mac dmg zip --publish never"
+    "check": "npm run lint && npm run docs:check && npm test && npm run assets:check && npm run audit:production && npm run build",
+    "dist": "npm run dist:windows",
+    "dist:windows": "npm run native:build && npm run native:test && npm run build && electron-builder --win nsis --publish never"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -79,17 +77,17 @@
     "wait-on": "^9.0.3"
   },
   "build": {
-    "appId": "com.xikhar.persona",
-    "productName": "Persona",
+    "appId": "com.sanhsien.voxavatar",
+    "productName": "VoxAvatar",
     "asar": true,
     "directories": {
       "output": "release"
     },
     "protocols": [
       {
-        "name": "Persona",
+        "name": "VoxAvatar",
         "schemes": [
-          "persona"
+          "voxavatar"
         ]
       }
     ],
@@ -100,31 +98,20 @@
       "LICENSE",
       "package.json"
     ],
-    "linux": {
-      "category": "Utility",
-      "executableName": "persona",
-      "icon": "public/assets/avatar.png",
-      "syncDesktopName": true,
-      "artifactName": "Persona-${version}-linux-${arch}.${ext}",
-      "target": [
-        "AppImage",
-        "deb"
-      ]
-    },
     "win": {
       "target": [
         "nsis"
       ],
-      "artifactName": "Persona-${version}-windows-${arch}-setup.${ext}",
+      "artifactName": "VoxAvatar-${version}-windows-${arch}-setup.${ext}",
       "icon": "public/assets/avatar.png",
       "requestedExecutionLevel": "asInvoker",
       "signExts": [
-        "persona-audio-listener.exe"
+        "voxavatar-audio-listener.exe"
       ],
       "extraResources": [
         {
-          "from": "native/bin/win32/persona-audio-listener.exe",
-          "to": "native/win32/persona-audio-listener.exe"
+          "from": "native/bin/win32/voxavatar-audio-listener.exe",
+          "to": "native/win32/voxavatar-audio-listener.exe"
         }
       ]
     },
@@ -133,32 +120,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Persona"
-    },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "artifactName": "Persona-${version}-macos-${arch}.${ext}",
-      "category": "public.app-category.utilities",
-      "icon": "public/assets/avatar.png",
-      "minimumSystemVersion": "14.2.0",
-      "hardenedRuntime": true,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "binaries": [
-        "Contents/Resources/native/darwin/persona-audio-listener"
-      ],
-      "extendInfo": {
-        "NSAudioCaptureUsageDescription": "Persona listens to supported voice-app output levels to animate your character. Audio is processed in memory and is never stored."
-      },
-      "extraResources": [
-        {
-          "from": "native/bin/darwin/persona-audio-listener",
-          "to": "native/darwin/persona-audio-listener"
-        }
-      ]
+      "shortcutName": "VoxAvatar"
     }
   },
   "dependencies": {

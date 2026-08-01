@@ -1,207 +1,100 @@
 <p align="center">
-  <img src="./public/assets/avatar.png" alt="Persona avatar" width="144" />
+  <img src="./public/assets/avatar.png" alt="VoxAvatar" width="144" />
 </p>
 
-<h1 align="center">Persona</h1>
+<h1 align="center">VoxAvatar</h1>
+
+<p align="center">Windows 本機 VRM 桌面角色陪伴：跟隨助理語音做口型與動作，並提供 MCP 視覺控制。</p>
 
 <p align="center">
-  A realtime character presence for desktop voice experiences.
+  <a href="./README.en.md">English</a> ·
+  <a href="https://github.com/SanHsien/voxavatar/releases/latest">下載最新版</a> ·
+  <a href="./docs/INTEGRATIONS.md">整合說明</a>
 </p>
 
----
+> VoxAvatar 衍生自 [`xikhar/persona`](https://github.com/xikhar/persona)，由 [`SanHsien/voxavatar`](https://github.com/SanHsien/voxavatar) 獨立維護；本 fork 僅支援 Windows。署名見 [`NOTICE.md`](NOTICE.md)。
 
-Persona is a cross-platform desktop character that gives voice conversations
-an expressive visual identity alongside your work.
+## 能做什麼
 
-## Platform support
+- 從指定 Windows 應用程式的**播放輸出**計算音量，驅動 VRM 口型與 Speaking 動作。
+- 透明置頂角色視窗支援點穿、拖曳、縮放、旋轉與系統匣控制。
+- 在設定頁匯入 `.vrm`／`.vrma`，支援目錄批次匯入、VRMA 品質報告與自訂動作。
+- 提供 loopback-only MCP、HTTP 事件 API 與 `voxavatar://` protocol。
+- 所有角色、動作與設定都留在本機；VoxAvatar 不執行語言模型。
 
-| Platform    | Automatic voice output listener | Distribution               |
-| ----------- | ------------------------------- | -------------------------- |
-| Linux       | PipeWire process-stream capture | AppImage and DEB           |
-| Windows     | WASAPI process-loopback capture | NSIS installer             |
-| macOS 14.2+ | Core Audio process tap          | DMG and ZIP, arm64 and x64 |
+VoxAvatar **不擷取麥克風、不錄音、不轉錄、不保存或傳送音訊**。
 
-Linux requires `pw-dump` and `pw-record` on `PATH`. Windows process-loopback
-requires Windows 10 build 20348 or newer. macOS asks once for System Audio
-Recording permission.
+## 系統需求
 
-Each listener is scoped to the supported application's playback process. Persona
-does not capture the microphone, save audio, produce speech, transcribe content,
-or send audio over the network.
+| 項目 | 需求 |
+| --- | --- |
+| 作業系統 | Windows 10 build 20348 以上或 Windows 11 x64 |
+| 顯示 | 支援硬體加速的桌面環境 |
+| 原始碼開發 | Node.js 24+、npm、Visual Studio Build Tools C++ 桌面工作負載 |
 
-## Try Persona locally
+## 快速開始
 
-Requirements:
+1. 從 [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest) 下載 Windows 安裝程式。
+2. 啟動 VoxAvatar；首次沒有模型時會自動開啟設定頁。
+3. 在「模型」匯入你有權使用的 `.vrm`。安裝包預設不內建第三方角色。
+4. 在 Idle／Speaking 或自訂動作加入 `.vrma`；沒有 VRMA 時仍可做口型。
+5. 在「語音」選擇會播放助理聲音的應用程式。
 
-- Node.js 24 or newer
-- npm
-- A desktop session with hardware-accelerated graphics
+模型與動作可從 [VRoid Hub](https://hub.vroid.com/)、[BOOTH](https://booth.pm/) 或 [VRoid Studio](https://vroid.com/studio) 合法取得。每個素材的下載、Avatar、商用與再散布條款各自不同；詳見 [`ASSET_LICENSES.md`](ASSET_LICENSES.md) 與 [`docs/IDLE_MOTIONS.md`](docs/IDLE_MOTIONS.md)。
 
-The packaged character catalog is intentionally empty while the distributable
-defaults are being selected. Persona opens Settings on first launch so you can
-import a local `.vrm` model; ignored media files under `public/assets/` are not
-loaded unless they are declared in the catalog.
+## 角色操作
 
-To exercise the packaged-library path with the current ignored local test
-media, copy the provided examples over the active empty catalogs:
+- 滾輪：縮放角色。
+- 左鍵拖曳角色：移動視窗。
+- 中鍵拖曳：旋轉視角。
+- 右鍵：開啟快捷選單。
+- 系統匣左鍵：顯示／隱藏角色；右鍵：開啟功能選單。
 
-```bash
-cp public/assets/library.json.example public/assets/library.json
-cp public/assets/manifest.json.example public/assets/manifest.json
+## 連接 Codex
+
+保持 VoxAvatar 開啟，執行一次：
+
+```powershell
+codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 ```
 
-Both example files are directly usable and also document the complete catalog
-format. Their media remains test-only: the example manifest deliberately keeps
-distribution disabled and its license fields incomplete.
+重新啟動 Codex 或建立新任務後，可以直接說：
 
-Packaged VRM files belong under `public/assets/models/`; packaged VRMA files
-belong under `public/assets/animations/`. A catalog can declare multiple
-packaged models. When `default_model_id` is `null`, Persona selects the first
-model record as the packaged default.
+- 「請用 VoxAvatar 列出可播放動作。」
+- 「請讓 VoxAvatar 播放 `wave-hello`。」
+- 「請顯示／隱藏 VoxAvatar。」
+- 「請查詢 VoxAvatar 狀態。」
 
-```bash
-npm install
-npm run demo
-```
+MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_status`。完整輸入與其他整合方式見 [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)。
 
-`npm run demo` builds the current renderer and launches Persona with normal
-automatic voice-output detection.
+## 從原始碼執行
 
-For a background launch:
-
-```bash
-npm start -- --background
-```
-
-## Customize Persona
-
-Open **Settings…** from Persona's tray menu to manage the character library,
-choose the voice audio source, and register MCP. You can preview installed
-models and animation actions together, choose the default model, set the
-character's initial size, and add your own `.vrm` and `.vrma` files.
-
-Until a default model exists, Persona does not create the avatar window or
-start its voice-output listener. The first imported model becomes the default
-automatically.
-
-Persona always provides **Idle** and **Speaking** action slots. They begin
-without media, so the model keeps its normal pose until you add clips. Each
-action can contain multiple `.vrma` files; uploads receive numbered names such
-as `idle1`, `idle2`, `speaking1`, or `wave1`. Persona chooses a clip from the
-action whenever that action runs.
-
-Custom actions include a name, description, and trigger scenario. Persona adds
-that metadata to its MCP animation tool so a connected agent can understand
-what the action expresses and when to use it. Imported media and configuration
-changes stay in Persona's local application data.
-
-Packaged media is immutable. Editing or removing a packaged action creates a
-user-level override without changing the installed application. **Reset
-packaged actions** restores shipped metadata and visibility while leaving
-user-created actions and uploaded clips untouched.
-
-## Connect Persona to Codex
-
-With Persona running, register its local MCP server:
-
-```bash
-codex mcp add persona --url http://127.0.0.1:47831/mcp
-```
-
-New Codex sessions can then ask Persona to play an installed animation, show or
-hide its window, and report whether the local character and voice listener are
-active. Persona remains a separate desktop application; the MCP connection
-only exposes its own visual controls.
-
-## Local voice apps
-
-Persona does not run language models. To use it with a local model stack, open
-**Settings → Voice** and point the automatic listener at the app that plays
-assistant audio, or drive lip sync from your pipeline through the loopback HTTP
-API and `persona://` URLs. Any compatible MCP client can use the same animation
-tools as Codex. See [Integrations](docs/INTEGRATIONS.md).
-
-The window intentionally contains no controls:
-
-- Scroll to zoom.
-- Left-drag to orbit.
-- Right-drag to pan.
-- Use your window manager's move gesture to reposition the window.
-
-On Hyprland, Persona also applies floating, pinned, topmost, full-opacity,
-no-blur, no-shadow, and decoration-free properties. macOS uses an all-Spaces
-topmost window. Other desktops use the strongest supported Electron window
-hints.
-
-## Build native packages
-
-Build on the operating system you are targeting:
-
-```bash
-npm run dist:linux
-npm run dist:windows
-npm run dist:mac
-```
-
-Outputs are written to `release/`. Windows needs Visual Studio Build Tools with
-the C++ desktop workload. macOS needs Xcode Command Line Tools and macOS 14.2+
-SDK support.
-
-GitHub Actions runs the full JavaScript, renderer, native compile, and native
-self-test suite on Linux, Windows, and macOS. Prerelease tags shaped like
-`v0.1.0-beta.0` create native packages and a checksum file, but only after the
-asset release gate passes. See [Releasing](docs/RELEASING.md).
-
-## Replace the character assets before publishing
-
-Character media is intentionally excluded from Git. Local test files must not
-be distributed. The packaged library is declared without a hard-coded filename
-contract in source code:
-
-```text
-public/assets/
-├── library.json
-├── library.json.example
-├── manifest.json
-├── manifest.json.example
-├── models/
-│   └── <model files declared by library.json>
-└── animations/
-    └── <animation files declared by library.json>
-```
-
-Define each packaged model and animation action in `library.json`. Action
-records carry their public name, description, trigger scenario, runtime type,
-and zero or more asset paths. The permanent `system-idle` and
-`system-speaking` records may have empty asset lists. Mirror every declared
-media path in `manifest.json`, then
-complete its license and source fields and set `distributionAllowed` to `true`.
-Remove the VRM and VRMA ignore rules only when the chosen files are safe to
-publish. The release workflow will fail closed until then. Read
-[Asset licenses](ASSET_LICENSES.md).
-
-## Development
-
-```bash
-npm run check
+```powershell
+git clone https://github.com/SanHsien/voxavatar.git
+cd voxavatar
+npm ci
 npm run native:build
-npm run native:test
+npm run dev
 ```
 
-The native listener is required before running Persona from source on macOS or
-Windows. Linux captures activity through PipeWire and does not build a helper.
+常用驗證與打包：
 
-Contributions are welcome. Read the [contribution
-guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before
-opening an issue or pull request.
+```powershell
+npm run check
+npm run native:test
+npm run dist:windows
+```
 
-More detail:
+`npm run check` 會執行 lint、Markdown 連結／內容檢查、Node 與 renderer 測試、資產契約、安全稽核及正式 build。Windows 安裝檔輸出至 `release/`。
 
-- [Architecture and development](docs/DEVELOPMENT.md)
-- [Codex and integration API](docs/INTEGRATIONS.md)
-- [Release process](docs/RELEASING.md)
-- [Security policy](SECURITY.md)
+## 文件
 
-Persona application source is licensed under the [MIT License](LICENSE).
-Bundled character assets are excluded from that license and remain test-only
-until replaced and documented.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md)：貢獻流程與邊界
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)：架構、目錄與開發流程
+- [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)：MCP、HTTP、URL protocol
+- [`docs/RELEASING.md`](docs/RELEASING.md)：版本與發行流程
+- [`SECURITY.md`](SECURITY.md)：安全模型與漏洞回報
+- [`ASSET_LICENSES.md`](ASSET_LICENSES.md)：媒體授權閘門
+- [`docs/DECISIONS.md`](docs/DECISIONS.md)：fork 決策紀錄
+
+程式碼採 [MIT License](LICENSE)。第三方媒體不因匯入或打包而自動改採 MIT。

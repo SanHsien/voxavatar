@@ -13,10 +13,10 @@ const { createBridgeServer } = require("./bridge-server.cjs");
 const {
   SERVER_INSTRUCTIONS,
   WINDOW_ACTIONS,
-  createPersonaMcpHandler,
+  createVoxAvatarMcpHandler,
 } = require("./mcp-server.cjs");
 
-test("Persona MCP exposes and executes the local character tools", async (context) => {
+test("VoxAvatar MCP exposes and executes the local character tools", async (context) => {
   const playedAnimations = [];
   const configuredAnimations = [
     {
@@ -39,7 +39,7 @@ test("Persona MCP exposes and executes the local character tools", async (contex
     monitoring: true,
     source: null,
   };
-  const mcpHandler = createPersonaMcpHandler({
+  const mcpHandler = createVoxAvatarMcpHandler({
     onAnimation: (animation) => playedAnimations.push(animation),
     onWindowAction: (action) => {
       windowActions.push(action);
@@ -57,7 +57,7 @@ test("Persona MCP exposes and executes the local character tools", async (contex
     mcpHandler,
   });
   const address = await bridge.listen();
-  const client = new Client({ name: "persona-test", version: "1.0.0" });
+  const client = new Client({ name: "voxavatar-test", version: "1.0.0" });
   const transport = new StreamableHTTPClientTransport(
     new URL(`http://127.0.0.1:${address.port}/mcp`),
   );
@@ -121,7 +121,7 @@ test("Persona MCP exposes and executes the local character tools", async (contex
   });
 });
 
-test("Persona MCP exposes custom animation metadata in its tool contract", async (context) => {
+test("VoxAvatar MCP exposes custom animation metadata in its tool contract", async (context) => {
   const animations = [
     {
       animation_name: "wave-hello",
@@ -132,7 +132,7 @@ test("Persona MCP exposes custom animation metadata in its tool contract", async
   const bridge = createBridgeServer({
     port: 0,
     onEvent: () => {},
-    mcpHandler: createPersonaMcpHandler({
+    mcpHandler: createVoxAvatarMcpHandler({
       onAnimation: () => {},
       onWindowAction: () => false,
       getStatus: () => ({}),
@@ -140,7 +140,7 @@ test("Persona MCP exposes custom animation metadata in its tool contract", async
     }),
   });
   const address = await bridge.listen();
-  const client = new Client({ name: "persona-test", version: "1.0.0" });
+  const client = new Client({ name: "voxavatar-test", version: "1.0.0" });
   const transport = new StreamableHTTPClientTransport(
     new URL(`http://127.0.0.1:${address.port}/mcp`),
   );
@@ -163,7 +163,7 @@ test("Persona MCP exposes custom animation metadata in its tool contract", async
   assert.match(tool.description, /Use when greeting the user/);
 });
 
-test("Persona MCP refreshes animation actions inside an active client session", async (context) => {
+test("VoxAvatar MCP refreshes animation actions inside an active client session", async (context) => {
   const playedAnimations = [];
   const configuredAnimations = [
     {
@@ -172,7 +172,7 @@ test("Persona MCP refreshes animation actions inside an active client session", 
       animation_trigger_scenario: "Use when greeting the user.",
     },
   ];
-  const mcpHandler = createPersonaMcpHandler({
+  const mcpHandler = createVoxAvatarMcpHandler({
     onAnimation: (animation) => playedAnimations.push(animation),
     onWindowAction: () => false,
     getStatus: () => ({}),
@@ -184,7 +184,7 @@ test("Persona MCP refreshes animation actions inside an active client session", 
     mcpHandler,
   });
   const address = await bridge.listen();
-  const client = new Client({ name: "persona-test", version: "1.0.0" });
+  const client = new Client({ name: "voxavatar-test", version: "1.0.0" });
   const transport = new StreamableHTTPClientTransport(
     new URL(`http://127.0.0.1:${address.port}/mcp`),
   );
@@ -240,12 +240,12 @@ test("Persona MCP refreshes animation actions inside an active client session", 
   );
 });
 
-test("Persona MCP rejects unknown animation names before invoking the app", async (context) => {
+test("VoxAvatar MCP rejects unknown animation names before invoking the app", async (context) => {
   const animations = [];
   const bridge = createBridgeServer({
     port: 0,
     onEvent: () => {},
-    mcpHandler: createPersonaMcpHandler({
+    mcpHandler: createVoxAvatarMcpHandler({
       onAnimation: (animation) => animations.push(animation),
       onWindowAction: () => false,
       getStatus: () => ({
@@ -256,7 +256,7 @@ test("Persona MCP rejects unknown animation names before invoking the app", asyn
     }),
   });
   const address = await bridge.listen();
-  const client = new Client({ name: "persona-test", version: "1.0.0" });
+  const client = new Client({ name: "voxavatar-test", version: "1.0.0" });
   const transport = new StreamableHTTPClientTransport(
     new URL(`http://127.0.0.1:${address.port}/mcp`),
   );
@@ -275,11 +275,11 @@ test("Persona MCP rejects unknown animation names before invoking the app", asyn
   assert.deepEqual(animations, []);
 });
 
-test("Persona MCP reports an inactive animation command without a model", async (context) => {
+test("VoxAvatar MCP reports an inactive animation command without a model", async (context) => {
   const bridge = createBridgeServer({
     port: 0,
     onEvent: () => {},
-    mcpHandler: createPersonaMcpHandler({
+    mcpHandler: createVoxAvatarMcpHandler({
       onAnimation: () => false,
       onWindowAction: () => false,
       getStatus: () => ({}),
@@ -293,7 +293,7 @@ test("Persona MCP reports an inactive animation command without a model", async 
     }),
   });
   const address = await bridge.listen();
-  const client = new Client({ name: "persona-test", version: "1.0.0" });
+  const client = new Client({ name: "voxavatar-test", version: "1.0.0" });
   const transport = new StreamableHTTPClientTransport(
     new URL(`http://127.0.0.1:${address.port}/mcp`),
   );

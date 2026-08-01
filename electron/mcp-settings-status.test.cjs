@@ -25,7 +25,7 @@ test("MCP settings status describes the live local endpoint", () => {
   assert.equal(status.health_url, "http://127.0.0.1:49152/health");
   assert.equal(
     status.setup_command,
-    "codex mcp add persona --url http://127.0.0.1:49152/mcp",
+    "codex mcp add voxavatar --url http://127.0.0.1:49152/mcp",
   );
   assert.deepEqual(status.tools, MCP_TOOL_NAMES);
   assert.deepEqual(status.playable_actions, ["idle", "wave-hello"]);

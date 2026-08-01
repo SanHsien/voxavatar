@@ -5,9 +5,8 @@ const { spawnSync } = require("node:child_process");
 const { resolveNativeHelperPath } = require("../electron/native-process-audio-listener.cjs");
 
 function testNative(platform = process.platform) {
-  if (!["darwin", "win32"].includes(platform)) {
-    console.log("Persona's Linux listener is covered by the Node test suite.");
-    return;
+  if (platform !== "win32") {
+    throw new Error("VoxAvatar native listener tests are supported only on Windows.");
   }
   const executable = resolveNativeHelperPath({
     platform,

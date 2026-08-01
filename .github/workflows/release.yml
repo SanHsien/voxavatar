@@ -15,10 +15,10 @@ concurrency:
 jobs:
   release-gate:
     name: Validate release inputs
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -33,39 +33,15 @@ jobs:
         run: npm run assets:release
 
       - name: Require tag to match package version
-        run: node scripts/check-release-tag.cjs "${GITHUB_REF_NAME}"
+        run: node scripts/check-release-tag.cjs "${env:GITHUB_REF_NAME}"
 
   package:
-    name: Package ${{ matrix.name }}
+    name: Package Windows x64
     needs: release-gate
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Linux x64
-            platform: linux
-            runner: ubuntu-latest
-            artifact: persona-linux-x64
-            command: npm run dist:linux
-          - name: Windows x64
-            platform: windows
-            runner: windows-latest
-            artifact: persona-windows-x64
-            command: npm run dist:windows
-          - name: macOS arm64
-            platform: macos
-            runner: macos-15
-            artifact: persona-macos-arm64
-            command: npm run dist:mac -- --arm64
-          - name: macOS x64
-            platform: macos
-            runner: macos-15-intel
-            artifact: persona-macos-x64
-            command: npm run dist:mac -- --x64
-    runs-on: ${{ matrix.runner }}
+    runs-on: windows-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -80,36 +56,27 @@ jobs:
         run: npm run check
 
       - name: Build native installer
-        run: ${{ matrix.command }}
+        run: npm run dist:windows
         env:
-          CSC_LINK: ${{ matrix.platform == 'macos' && secrets.MAC_CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ matrix.platform == 'macos' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
-          APPLE_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_ID || '' }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.platform == 'macos' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
-          APPLE_TEAM_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_TEAM_ID || '' }}
-          WIN_CSC_LINK: ${{ matrix.platform == 'windows' && secrets.WIN_CSC_LINK || '' }}
-          WIN_CSC_KEY_PASSWORD: ${{ matrix.platform == 'windows' && secrets.WIN_CSC_KEY_PASSWORD || '' }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Upload installers
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.artifact }}
+          name: voxavatar-windows-x64
           path: |
-            release/*.AppImage
-            release/*.deb
-            release/*.dmg
             release/*.exe
-            release/*.zip
           if-no-files-found: error
           compression-level: 0
 
   publish:
     name: Publish GitHub release
     needs: package
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -119,7 +86,7 @@ jobs:
       - name: Download native installers
         uses: actions/download-artifact@v8
         with:
-          pattern: persona-*
+          pattern: voxavatar-*
           path: release-artifacts
           merge-multiple: true
 
@@ -129,13 +96,13 @@ jobs:
       - name: Create the GitHub release
         uses: softprops/action-gh-release@v3
         with:
+          name: VoxAvatar ${{ github.ref_name }}
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          # 不要因 tag 含 -beta 就標 Pre-release：GitHub 首頁 Latest 會略過，
+          # 看起來像「只有 tag、沒有 Release」。beta 版號仍寫在 tag／標題裡。
+          prerelease: false
+          make_latest: true
           fail_on_unmatched_files: true
           files: |
-            release-artifacts/*.AppImage
-            release-artifacts/*.deb
-            release-artifacts/*.dmg
             release-artifacts/*.exe
-            release-artifacts/*.zip
             release-artifacts/SHA256SUMS.txt

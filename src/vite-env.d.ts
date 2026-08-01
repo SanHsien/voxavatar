@@ -21,7 +21,7 @@ interface AudioListenerStatus {
   source: string | null;
 }
 
-interface PersonaLightingSettings {
+interface VoxAvatarLightingSettings {
   tone_mapping: 'none' | 'aces';
   exposure: number;
   environment_enabled: boolean;
@@ -30,7 +30,7 @@ interface PersonaLightingSettings {
   ambient_intensity: number;
 }
 
-type PersonaAnimationType =
+type VoxAvatarAnimationType =
   | 'IDLE'
   | 'GREETING'
   | 'TALK'
@@ -38,7 +38,7 @@ type PersonaAnimationType =
   | 'FINGER_GUN'
   | 'DANCE';
 
-interface PersonaModelSettings {
+interface VoxAvatarModelSettings {
   id: string;
   model_name: string;
   origin: 'packaged' | 'user';
@@ -46,22 +46,22 @@ interface PersonaModelSettings {
   asset_url: string;
 }
 
-interface PersonaAnimationSettings {
+interface VoxAvatarAnimationSettings {
   id: string;
   animation_name: string;
   animation_description: string;
   animation_trigger_scenario: string;
-  animation_type: PersonaAnimationType | null;
+  animation_type: VoxAvatarAnimationType | null;
   origin: 'packaged' | 'user';
   system: boolean;
   editable: boolean;
   modified: boolean;
   removable: boolean;
-  clips: PersonaAnimationClipSettings[];
+  clips: VoxAvatarAnimationClipSettings[];
   asset_urls: string[];
 }
 
-interface PersonaAnimationClipSettings {
+interface VoxAvatarAnimationClipSettings {
   id: string;
   animation_name: string;
   origin: 'packaged' | 'user';
@@ -69,23 +69,72 @@ interface PersonaAnimationClipSettings {
   asset_url: string;
 }
 
-interface PersonaVoiceSourceSettings {
-  mode: 'default' | 'custom';
+interface VoxAvatarVoiceSourceSettings {
+  mode: 'default' | 'application' | 'custom' | 'external';
   process_pattern: string | null;
+  source_id: string | null;
+  source_name: string | null;
 }
 
-interface PersonaSettingsSnapshot {
+interface VoxAvatarVoiceSourceCatalogEntry {
+  id: string;
+  name: string;
+  detail: string;
+  platform: string;
+}
+
+interface VoxAvatarVoiceSourceCatalog {
+  platform: string;
+  sources: VoxAvatarVoiceSourceCatalogEntry[];
+  error?: string | null;
+  events_url?: string;
+  listener?: AudioListenerStatus | null;
+}
+
+type VoxAvatarSettingsSnapshot = {
   schema_version: number;
   default_model_id: string | null;
   character_size: number;
+  ui_locale: 'zh-TW' | 'en';
   packaged_animation_change_count: number;
-  models: PersonaModelSettings[];
-  animations: PersonaAnimationSettings[];
-  model_lighting: Record<string, PersonaLightingSettings>;
-  voice_source: PersonaVoiceSourceSettings;
+  models: VoxAvatarModelSettings[];
+  animations: VoxAvatarAnimationSettings[];
+  model_lighting: Record<string, VoxAvatarLightingSettings>;
+  voice_source: VoxAvatarVoiceSourceSettings;
+  vrma_quality_gate: 'report' | 'strict' | 'off';
+  vrma_report_dir: string | null;
+};
+
+type VoxAvatarDirectoryImportKind = 'model' | 'animation';
+
+interface VoxAvatarVrmaQualityCounts {
+  total: number;
+  keep: number;
+  review: number;
+  reject: number;
 }
 
-interface PersonaMcpStatus {
+interface VoxAvatarDirectoryImportSummary {
+  kind: VoxAvatarDirectoryImportKind;
+  root_dir: string;
+  scanned: number;
+  truncated: boolean;
+  imported: number;
+  skipped_quality: number;
+  skipped_invalid: number;
+  skipped_limit: number;
+  failed: Array<{ path: string; error: string | null }>;
+  quality: VoxAvatarVrmaQualityCounts | null;
+  report_path: string | null;
+  report_error: string | null;
+}
+
+interface VoxAvatarDirectoryImportResult {
+  snapshot: VoxAvatarSettingsSnapshot;
+  summary: VoxAvatarDirectoryImportSummary;
+}
+
+interface VoxAvatarMcpStatus {
   checked_at: string;
   error: string | null;
   health: 'starting' | 'online' | 'unavailable';
@@ -110,7 +159,7 @@ type AvatarBridgeEvent =
   | { type: 'audio-level'; level: number; bands?: Record<string, number> }
   | {
       type: 'animation';
-      animation: PersonaAnimationType | 'CUSTOM';
+      animation: VoxAvatarAnimationType | 'CUSTOM';
       animationName?: string;
       animationUrls?: string[];
       source?: 'command';
@@ -119,48 +168,75 @@ type AvatarBridgeEvent =
   | { type: 'listener-status'; status: AudioListenerStatus }
   | { type: 'bridge-status'; connected: boolean };
 
+interface WindowBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface Window {
-  personaBridge?: {
+  voxavatarBridge?: {
     getSnapshot(): Promise<AvatarBridgeEvent | null>;
     hide(): void;
+    setIgnoreMouse?(ignore: boolean): void;
+    getWindowBounds?(): Promise<WindowBounds | null>;
+    moveWindow?(x: number, y: number): void;
+    showContextMenu?(): void;
+    subscribeResetView?(listener: () => void): () => void;
     subscribe(listener: (event: AvatarBridgeEvent) => void): () => void;
   };
-  personaSettings?: {
-    get(): Promise<PersonaSettingsSnapshot>;
+  voxavatarSettings?: {
+    get(): Promise<VoxAvatarSettingsSnapshot>;
     importModel(
       metadata: { model_name: string },
-    ): Promise<PersonaSettingsSnapshot | null>;
+    ): Promise<VoxAvatarSettingsSnapshot | null>;
+    importModelsFromDirectory?(
+      metadata: { model_name: string },
+    ): Promise<VoxAvatarDirectoryImportResult | null>;
     createAnimation(
       metadata: CustomAnimationMetadata,
-    ): Promise<PersonaSettingsSnapshot>;
+    ): Promise<VoxAvatarSettingsSnapshot>;
     addAnimationClips(
       animationId: string,
-    ): Promise<PersonaSettingsSnapshot | null>;
+    ): Promise<VoxAvatarSettingsSnapshot | null>;
+    addAnimationClipsFromDirectory?(
+      animationId: string,
+    ): Promise<VoxAvatarDirectoryImportResult | null>;
+    setVrmaQualityGate?(
+      value: 'report' | 'strict' | 'off',
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    chooseVrmaReportDir?(): Promise<VoxAvatarSettingsSnapshot | null>;
+    clearVrmaReportDir?(): Promise<VoxAvatarSettingsSnapshot>;
     updateAnimation(
       animationId: string,
       metadata: CustomAnimationMetadata,
-    ): Promise<PersonaSettingsSnapshot>;
-    deleteAnimation(animationId: string): Promise<PersonaSettingsSnapshot>;
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    deleteAnimation(animationId: string): Promise<VoxAvatarSettingsSnapshot>;
     deleteAnimationClip(
       animationId: string,
       clipId: string,
-    ): Promise<PersonaSettingsSnapshot>;
-    resetPackagedAnimations(): Promise<PersonaSettingsSnapshot>;
-    deleteModel(modelId: string): Promise<PersonaSettingsSnapshot>;
-    setDefaultModel(modelId: string): Promise<PersonaSettingsSnapshot>;
-    setCharacterSize(size: number): Promise<PersonaSettingsSnapshot>;
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    resetPackagedAnimations(): Promise<VoxAvatarSettingsSnapshot>;
+    deleteModel(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
+    deleteAllUserModels?(): Promise<VoxAvatarSettingsSnapshot>;
+    deleteAllUserAnimationClips?(): Promise<VoxAvatarSettingsSnapshot>;
+    setDefaultModel(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
+    setCharacterSize(size: number): Promise<VoxAvatarSettingsSnapshot>;
+    setUiLocale?(locale: 'zh-TW' | 'en'): Promise<VoxAvatarSettingsSnapshot>;
     setVoiceSource(
-      voiceSource: PersonaVoiceSourceSettings,
-    ): Promise<PersonaSettingsSnapshot>;
+      voiceSource: VoxAvatarVoiceSourceSettings,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    listVoiceSources(): Promise<VoxAvatarVoiceSourceCatalog>;
     setModelLighting(
       modelId: string,
-      lighting: Partial<PersonaLightingSettings>,
-    ): Promise<PersonaSettingsSnapshot>;
-    resetModelLighting(modelId: string): Promise<PersonaSettingsSnapshot>;
-    getMcpStatus(): Promise<PersonaMcpStatus>;
+      lighting: Partial<VoxAvatarLightingSettings>,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    resetModelLighting(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
+    getMcpStatus(): Promise<VoxAvatarMcpStatus>;
     setWindowTheme(theme: 'light' | 'dark'): void;
     subscribe(
-      listener: (snapshot: PersonaSettingsSnapshot) => void,
+      listener: (snapshot: VoxAvatarSettingsSnapshot) => void,
     ): () => void;
   };
 }

@@ -22,7 +22,7 @@ interface AvatarProps {
 function AvatarModel({
   animation,
   animationRequest,
-  animationUrls,
+  animationUrls = [],
   audioLevel,
   modelUrl,
   onAnimationComplete,

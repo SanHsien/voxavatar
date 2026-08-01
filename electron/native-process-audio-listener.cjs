@@ -5,11 +5,12 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { AudioActivityGate, DEFAULT_SPEECH_RELEASE_MS } = require("./audio-activity-gate.cjs");
 const { discoverVoiceProcesses } = require("./process-discovery.cjs");
+const { normalizeVoiceSource } = require("./voice-source.cjs");
 
 const SESSION_IDLE_MS = 8_000;
 
-function helperExecutableName(platform) {
-  return platform === "win32" ? "persona-audio-listener.exe" : "persona-audio-listener";
+function helperExecutableName() {
+  return "voxavatar-audio-listener.exe";
 }
 
 function resolveNativeHelperPath({
@@ -19,10 +20,10 @@ function resolveNativeHelperPath({
   projectRoot = path.join(__dirname, ".."),
 } = {}) {
   const executable = helperExecutableName(platform);
-  const platformPath = platform === "win32" ? path.win32 : path.posix;
+  if (platform !== "win32") return null;
   return isPackaged
-    ? platformPath.join(resourcesPath, "native", platform, executable)
-    : platformPath.join(projectRoot, "native", "bin", platform, executable);
+    ? path.win32.join(resourcesPath, "native", "win32", executable)
+    : path.win32.join(projectRoot, "native", "bin", "win32", executable);
 }
 
 function createNdjsonParser(onMessage, onInvalid = () => {}) {
@@ -59,12 +60,14 @@ class NativeProcessAudioListener {
     sessionIdleMs = SESSION_IDLE_MS,
     speechReleaseMs = DEFAULT_SPEECH_RELEASE_MS,
     processPattern = null,
+    voiceSource = null,
   } = {}) {
     this.platform = platform;
     this.helperPath =
       helperPath ?? resolveNativeHelperPath({ platform, isPackaged, resourcesPath });
     this.processDiscovery = processDiscovery;
     this.processPattern = processPattern;
+    this.voiceSource = normalizeVoiceSource(voiceSource);
     this.spawnProcess = spawnProcess;
     this.onActivity = onActivity;
     this.onDebug = onDebug;
@@ -96,7 +99,7 @@ class NativeProcessAudioListener {
   }
 
   async start() {
-    if (!["darwin", "win32"].includes(this.platform) || !this.stopped) return;
+    if (this.platform !== "win32" || !this.stopped) return;
     this.stopped = false;
     if (!fs.existsSync(this.helperPath)) {
       this.reportStatus({
@@ -125,11 +128,11 @@ class NativeProcessAudioListener {
     try {
       const processes = await this.processDiscovery({
         platform: this.platform,
+        voiceSource: this.voiceSource,
         ...(this.processPattern ? { pattern: this.processPattern } : {}),
       });
       if (this.stopped) return;
-      const selectedPids =
-        this.platform === "win32" ? processes.rootPids.slice(0, 1) : processes.pids;
+      const selectedPids = processes.rootPids.slice(0, 1);
       const key = selectedPids.join(",");
       if (!key) {
         this.detach();

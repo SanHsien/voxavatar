@@ -47,6 +47,11 @@ const {
   summarizeReports,
   writeMarkdownReport,
 } = require("./vrma-quality.cjs");
+const {
+  analyzeVrmFiles,
+  summarizeReports: summarizeVrmReports,
+  writeMarkdownReport: writeVrmMarkdownReport,
+} = require("./vrm-quality.cjs");
 
 const WINDOW_WIDTH = 430;
 const WINDOW_HEIGHT = 680;
@@ -928,6 +933,17 @@ if (!app.requestSingleInstanceLock()) {
         const rootDir = await selectAssetDirectory("選擇含 VRM 的資料夾");
         if (!rootDir) return null;
         const scan = collectAssetFiles(rootDir, { extensions: [".vrm"] });
+        const gate = normalizeQualityGate(
+          settingsStore.getSnapshot().vrma_quality_gate,
+        );
+        const preferredReportDir = settingsStore.getSnapshot().vrma_report_dir;
+
+        let quality = null;
+        let reportPath = null;
+        let reportError = null;
+        let importCandidates = scan.files;
+        let skippedQuality = 0;
+
         if (scan.files.length === 0) {
           return {
             snapshot: settingsStore.getSnapshot(),
@@ -947,13 +963,49 @@ if (!app.requestSingleInstanceLock()) {
             }),
           };
         }
-        const { snapshot, results } = settingsStore.importModelsFromPaths(
-          scan.files,
-          { model_name: metadata?.model_name },
-        );
-        publishSettings(snapshot);
+
+        if (gate !== QUALITY_GATE.OFF) {
+          const reports = analyzeVrmFiles(scan.files);
+          quality = summarizeVrmReports(reports);
+          try {
+            ({ reportPath } = writeVrmMarkdownReport(reports, {
+              reportDir: preferredReportDir,
+              sourceDir: rootDir,
+              gate,
+            }));
+          } catch (error) {
+            reportError =
+              error instanceof Error ? error.message : String(error);
+          }
+          if (gate === QUALITY_GATE.STRICT) {
+            const rejected = new Set(
+              reports
+                .filter((report) => report.verdict === VERDICT.REJECT)
+                .map((report) => report.filePath),
+            );
+            skippedQuality = rejected.size;
+            importCandidates = scan.files.filter(
+              (filePath) => !rejected.has(filePath),
+            );
+          }
+        }
+
+        let snapshot = settingsStore.getSnapshot();
+        let results = [];
+        if (importCandidates.length > 0) {
+          ({ snapshot, results } = settingsStore.importModelsFromPaths(
+            importCandidates,
+            { model_name: metadata?.model_name },
+          ));
+          publishSettings(snapshot);
+        }
         const imported = results.filter((item) => item.ok).length;
-        const skippedLimit = results.filter((item) => item.reason === "limit").length;
+        const skippedInvalid = results.filter(
+          (item) => item.reason === "invalid",
+        ).length;
+        const skippedLimit = results.filter(
+          (item) => item.reason === "limit",
+        ).length;
         const failed = results
           .filter((item) => !item.ok && item.reason !== "limit")
           .map((item) => ({
@@ -968,13 +1020,13 @@ if (!app.requestSingleInstanceLock()) {
             scanned: scan.files.length,
             truncated: scan.truncated,
             imported,
-            skippedQuality: 0,
-            skippedInvalid: 0,
+            skippedQuality,
+            skippedInvalid,
             skippedLimit,
             failed,
-            quality: null,
-            reportPath: null,
-            reportError: null,
+            quality,
+            reportPath,
+            reportError,
           }),
         };
       },

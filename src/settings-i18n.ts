@@ -69,6 +69,8 @@ const ZH_TW: MessageDictionary = {
   'notice.copyFailed': '無法複製 {label}。',
   'notice.modelAdded': '模型已加入資料庫。',
   'notice.modelsImported':
+    '已從目錄匯入 {imported}／{scanned} 個 VRM（保留 {keep}／觀察 {review}／淘汰 {reject}）。',
+  'notice.modelsImportedOff':
     '已從目錄匯入 {imported}／{scanned} 個 VRM。',
   'notice.animationCreated':
     '動作已建立。請加入至少一個 VRMA 片段才能播放。',
@@ -159,9 +161,9 @@ const ZH_TW: MessageDictionary = {
   'models.namePlaceholder': '空白則用 VRM 檔名',
   'models.chooseVrm': '選擇 VRM 檔案',
   'models.chooseVrmHint': '選擇 VRM 檔案',
-  'models.chooseVrmFolder': '從目錄批次匯入',
+  'models.chooseVrmFolder': '從目錄評估匯入',
   'models.chooseVrmFolderHint':
-    '選擇資料夾後，會自動掃描所有子目錄中的 .vrm 並加入資料庫（檔名重複時自動更名）。',
+    '選擇資料夾後掃描所有子目錄的 .vrm，依品質把關分析並可寫入 Markdown 報告（檔名 voxavatar-vrm-report.md）。嚴格模式會略過淘汰檔；檔名重複時自動更名。',
   'models.desktopOnly': '檔案匯入僅在 VoxAvatar 桌面程式可用。',
 
   'actions.idleGuideTitle': '更豐富的待機動作',
@@ -192,13 +194,13 @@ const ZH_TW: MessageDictionary = {
   'actions.addClipsFolder': '+ 從目錄批次加入',
   'actions.qualityGateTitle': '目錄匯入品質把關',
   'actions.qualityGateDesc':
-    '從目錄批次加入 VRMA 時套用。預設嚴格模式：分數低於 60 淘汰、60–74 觀察、75 以上保留。會檢查時長、關鍵幀密度、旋轉突波、循環接縫與運動量，並可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
+    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。預設嚴格模式：分數低於 60 淘汰、60–74 觀察、75 以上保留。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
   'actions.qualityGate.report': '分析並寫報告（全部匯入）',
   'actions.qualityGate.strict': '嚴格：略過評為「淘汰」的檔案',
   'actions.qualityGate.off': '關閉分析（最快）',
   'actions.reportDirTitle': '報告儲存位置',
   'actions.reportDirDesc':
-    '預設寫入你選的掃描目錄（檔名 voxavatar-vrma-report.md）。也可指定固定資料夾。',
+    '預設寫入你選的掃描目錄（VRM：voxavatar-vrm-report.md；VRMA：voxavatar-vrma-report.md）。也可指定固定資料夾。',
   'actions.reportDirScan': '掃描目錄（預設）',
   'actions.reportDirChoose': '選擇…',
   'actions.reportDirClear': '重設',
@@ -446,6 +448,8 @@ const EN: MessageDictionary = {
   'notice.copyFailed': 'Unable to copy {label}.',
   'notice.modelAdded': 'Model added to your library.',
   'notice.modelsImported':
+    'Imported {imported}/{scanned} VRM file(s) from the folder (keep {keep} / review {review} / reject {reject}).',
+  'notice.modelsImportedOff':
     'Imported {imported}/{scanned} VRM file(s) from the folder.',
   'notice.animationCreated':
     'Animation action created. Add one or more VRMA clips to make it playable.',
@@ -537,9 +541,9 @@ const EN: MessageDictionary = {
   'models.namePlaceholder': 'Leave blank to use the VRM filename',
   'models.chooseVrm': 'Choose VRM file',
   'models.chooseVrmHint': 'Choose VRM file',
-  'models.chooseVrmFolder': 'Import folder',
+  'models.chooseVrmFolder': 'Evaluate & import folder',
   'models.chooseVrmFolderHint':
-    'Pick a folder to recursively import every .vrm under it (duplicate names are auto-renamed).',
+    'Pick a folder to recursively scan .vrm files, run the shared quality gate, and optionally write a Markdown report (voxavatar-vrm-report.md). Strict mode skips rejects; duplicate names are auto-renamed.',
   'models.desktopOnly': 'File import is available only in the VoxAvatar desktop app.',
 
   'actions.idleGuideTitle': 'Richer idle motions',
@@ -570,13 +574,13 @@ const EN: MessageDictionary = {
   'actions.addClipsFolder': '+ Add from folder',
   'actions.qualityGateTitle': 'Folder-import quality gate',
   'actions.qualityGateDesc':
-    'Applied when adding VRMA clips from a folder. Default strict mode: reject below 60, review 60–74, keep at 75+. Checks duration, keyframe density, rotation spikes, loop seams, and motion amount, and can write a Markdown report. Heuristic only — trust the live preview.',
+    'Applied when importing VRM or VRMA from a folder (one shared setting). Default strict mode: reject below 60, review 60–74, keep at 75+. VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
   'actions.qualityGate.report': 'Analyze and write report (import all)',
   'actions.qualityGate.strict': 'Strict: skip clips judged “reject”',
   'actions.qualityGate.off': 'Disable analysis (fastest)',
   'actions.reportDirTitle': 'Report save location',
   'actions.reportDirDesc':
-    'By default the report is written into the folder you scanned (filename voxavatar-vrma-report.md). You can also pick a fixed folder.',
+    'By default the report is written into the folder you scanned (VRM: voxavatar-vrm-report.md; VRMA: voxavatar-vrma-report.md). You can also pick a fixed folder.',
   'actions.reportDirScan': 'Scanned folder (default)',
   'actions.reportDirChoose': 'Choose…',
   'actions.reportDirClear': 'Reset',

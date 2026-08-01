@@ -35,7 +35,7 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 | --- | --- |
 | Voice lip sync | Uses WASAPI application loopback to measure playback from a selected Windows app and drive lip sync and Speaking state |
 | Desktop avatar | Transparent topmost window, transparent-area click-through, drag, zoom, rotate, show/hide, and tray controls |
-| Local media | Imports `.vrm` and `.vrma`, supports folder import, VRMA quality reports, bulk deletion, and custom actions |
+| Local media | Imports `.vrm` and `.vrma`, supports evaluate-and-import folders, VRM/VRMA quality reports, bulk deletion, and custom actions |
 | Action system | Idle and Speaking system slots, random multi-clip playback, common presets, and a live MCP catalog |
 | Agent integration | Loopback-only MCP, HTTP event API, and the `voxavatar://` URL protocol |
 | Release quality | Windows CI, CodeQL, media-license gate, NSIS installer, and SHA-256 checksum |

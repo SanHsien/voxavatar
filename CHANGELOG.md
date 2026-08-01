@@ -2,6 +2,11 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.3 - 2026-08-01
+
+- 模型目錄匯入比照動作：共用品質把關（report／strict／off），新增 VRM 啟發式評分與 `voxavatar-vrm-report.md`；嚴格模式略過淘汰檔。
+- 設定頁模型區可調整同一把關設定；匯入通知顯示保留／觀察／淘汰摘要。
+
 ## 0.2.2 - 2026-08-01
 
 - 將「每次 push 前文件檢討」與「中斷後自動接續未完成工作」寫入 `AGENTS.md`、`.cursorrules`、`CLAUDE.md`、雙語 ROADMAP／CONTRIBUTING、`docs/DECISIONS.md`（D-19）與 `docs/RELEASING.md`。

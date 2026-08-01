@@ -35,7 +35,7 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | --- | --- |
 | 語音口型 | 以 WASAPI application loopback 讀取指定 Windows 應用程式的播放音量，驅動嘴型與 Speaking 狀態 |
 | 桌面角色 | 透明置頂、透明區點穿、拖曳、縮放、旋轉、顯示／隱藏與系統匣控制 |
-| 本機素材 | 匯入 `.vrm`／`.vrma`、目錄批次匯入、VRMA 品質報告、一鍵清除與自訂動作 |
+| 本機素材 | 匯入 `.vrm`／`.vrma`、目錄評估匯入、VRM／VRMA 品質報告、一鍵清除與自訂動作 |
 | 動作系統 | Idle／Speaking 系統槽、多片段隨機播放、常用動作預設與 MCP 即時 catalog |
 | Agent 整合 | loopback-only MCP、HTTP 事件 API 與 `voxavatar://` URL protocol |
 | 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS 安裝包與 SHA-256 checksum |

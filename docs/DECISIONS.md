@@ -85,3 +85,9 @@ Release 只允許從可信 `main` workflow 手動 dispatch，`release` environme
 - **決定**：每次 commit／push 前必須檢討 `CHANGELOG`、雙語 `README`／`ROADMAP`／`SECURITY`、`REVIEW`、`docs/DECISIONS` 及相關流程文件；無變更也要確認已檢討。Agent 在對話壓縮或工具中斷後必須自動接續未完成工作，不得等主人再次提醒。
 - **發行清理**：新版 GitHub Release 成功後才刪除其餘舊 Release／tag，只保留最新；失敗則保留舊版。不可變 tag 的「禁止 force-update」仍成立；刪除舊 tag 僅在主人政策允許且新版已驗證成功時執行。
 - **權威來源**：[`AGENTS.md`](../AGENTS.md)、[`.cursorrules`](../.cursorrules)、[`ROADMAP.md`](../ROADMAP.md) 執行規則。
+
+## D-20｜VRM 目錄評估匯入共用品質 gate
+
+- **日期**：2026-08-01
+- **決定**：VRM 從目錄匯入比照 VRMA，共用 `vrma_quality_gate`／`vrma_report_dir`（不另開設定鍵）。報告檔名為 `voxavatar-vrm-report.md`；評分檢查 VRM 擴充、humanoid、mesh、體積與粗估三角面等。單檔選 VRM 仍只做 GLB／extension 驗證。
+- **嚴格模式**：`verdict === reject` 不匯入；`report` 仍全部匯入並寫報告；`off` 不做分析。

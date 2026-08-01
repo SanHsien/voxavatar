@@ -189,6 +189,7 @@ export function SettingsPage() {
     useState<VoxAvatarVoiceSourceCatalog | null>(null);
   const [voiceSourcesLoading, setVoiceSourcesLoading] = useState(false);
   const [voiceSourceSearch, setVoiceSourceSearch] = useState('');
+  const [appVersion, setAppVersion] = useState<string | null>(null);
   const [confirmation, setConfirmation] =
     useState<ConfirmationRequest | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -233,6 +234,9 @@ export function SettingsPage() {
         .catch((error: unknown) => setNotice(errorMessage(error)));
       return;
     }
+    void bridge.getAppInfo?.().then((info) => {
+      if (info?.version) setAppVersion(info.version);
+    });
     void bridge
       .get()
       .then((snapshot) => {
@@ -377,7 +381,7 @@ export function SettingsPage() {
 
   const chooseVoiceMode = (mode: VoxAvatarVoiceSourceSettings['mode']) => {
     setVoiceMode(mode);
-    if (mode === 'default' || mode === 'external') {
+    if (mode === 'default' || mode === 'external' || mode === 'output') {
       void saveVoiceSource(
         {
           mode,
@@ -385,7 +389,11 @@ export function SettingsPage() {
           source_id: null,
           source_name: null,
         },
-        mode === 'default' ? t('notice.voiceDefault') : t('notice.voiceExternal'),
+        mode === 'default'
+          ? t('notice.voiceDefault')
+          : mode === 'output'
+            ? t('notice.voiceOutput')
+            : t('notice.voiceExternal'),
       );
     }
   };
@@ -860,6 +868,25 @@ export function SettingsPage() {
     );
   };
 
+  const previewIdleRestMs = (ms: number) => {
+    setSettings((current) => ({ ...current, idle_rest_ms: ms }));
+  };
+
+  const saveIdleRestMs = async (ms: number) => {
+    const setIdleRestMs = bridge?.setIdleRestMs;
+    if (!setIdleRestMs) return;
+    await run(
+      () => setIdleRestMs(ms),
+      t('notice.idleRestSet', {
+        seconds: Math.round(ms / 1000),
+      }),
+    );
+  };
+
+  const showAbout = () => {
+    void bridge?.showAbout?.();
+  };
+
   const saveUiLocale = async (locale: 'zh-TW' | 'en') => {
     const setUiLocale = bridge?.setUiLocale;
     if (!setUiLocale) return;
@@ -990,7 +1017,9 @@ export function SettingsPage() {
         ? t('voice.heading.custom')
         : settings.voice_source.mode === 'external'
           ? t('voice.heading.external')
-          : t('voice.heading.default');
+          : settings.voice_source.mode === 'output'
+            ? t('voice.heading.output')
+            : t('voice.heading.default');
 
   const headingSummary =
     section === 'mcp'
@@ -1003,7 +1032,11 @@ export function SettingsPage() {
       : section === 'voice'
         ? settings.voice_source.mode === 'custom'
           ? t('summary.voiceCustom')
-          : t('summary.voiceDefault')
+          : settings.voice_source.mode === 'output'
+            ? t('summary.voiceOutput')
+            : settings.voice_source.mode === 'external'
+              ? t('summary.voiceExternal')
+              : t('summary.voiceDefault')
         : t('summary.customLibrary', {
             models: customModelCount,
             actions: customAnimationCount,
@@ -1027,6 +1060,11 @@ export function SettingsPage() {
           <div className="settings-brand-copy">
             <strong>VoxAvatar</strong>
             <span>{t('app.brandSubtitle')}</span>
+            <small className="settings-app-version">
+              {appVersion
+                ? t('app.aboutVersion', { version: appVersion })
+                : t('app.versionUnknown')}
+            </small>
           </div>
         </div>
 
@@ -1054,6 +1092,14 @@ export function SettingsPage() {
         <div className="settings-sidebar-status">
           <span className="status-dot" />
           <span className="settings-status-copy">{t('app.sidebarStatus')}</span>
+          <button
+            className="settings-about-button"
+            disabled={!bridge?.showAbout}
+            onClick={showAbout}
+            type="button"
+          >
+            {t('app.about')}
+          </button>
         </div>
       </aside>
 
@@ -1928,7 +1974,7 @@ export function SettingsPage() {
                   aria-label={t('appearance.sizeAria')}
                   className="size-slider"
                   max="1.6"
-                  min="0.7"
+                  min="0.3"
                   onBlur={(event) =>
                     void saveCharacterSize(Number(event.currentTarget.value))
                   }
@@ -1953,6 +1999,49 @@ export function SettingsPage() {
                   <span>{t('appearance.sizeMin')}</span>
                   <span>{t('appearance.sizeDefault')}</span>
                   <span>{t('appearance.sizeMax')}</span>
+                </div>
+              </section>
+
+              <section className="settings-panel appearance-panel">
+                <div className="panel-heading">
+                  <div>
+                    <h2>{t('appearance.idleRestTitle')}</h2>
+                    <p>{t('appearance.idleRestDesc')}</p>
+                  </div>
+                  <strong className="size-value">
+                    {t('appearance.idleRestValue', {
+                      seconds: Math.round((settings.idle_rest_ms ?? 8000) / 1000),
+                    })}
+                  </strong>
+                </div>
+                <input
+                  aria-label={t('appearance.idleRestAria')}
+                  className="size-slider"
+                  max="60"
+                  min="2"
+                  onBlur={(event) =>
+                    void saveIdleRestMs(Number(event.currentTarget.value) * 1000)
+                  }
+                  onChange={(event) =>
+                    previewIdleRestMs(Number(event.currentTarget.value) * 1000)
+                  }
+                  onKeyUp={(event) => {
+                    if (event.key.startsWith('Arrow')) {
+                      void saveIdleRestMs(
+                        Number(event.currentTarget.value) * 1000,
+                      );
+                    }
+                  }}
+                  onPointerUp={(event) =>
+                    void saveIdleRestMs(Number(event.currentTarget.value) * 1000)
+                  }
+                  step="1"
+                  type="range"
+                  value={Math.round((settings.idle_rest_ms ?? 8000) / 1000)}
+                />
+                <div className="slider-labels">
+                  <span>{t('appearance.idleRestMin')}</span>
+                  <span>{t('appearance.idleRestMax')}</span>
                 </div>
               </section>
 
@@ -2289,6 +2378,19 @@ export function SettingsPage() {
                     <small>{t('voice.mode.application.desc')}</small>
                   </button>
                   <button
+                    aria-pressed={voiceMode === 'output'}
+                    data-testid="voice-mode-output"
+                    disabled={busy || !bridge}
+                    onClick={() => chooseVoiceMode('output')}
+                    type="button"
+                  >
+                    <span className="voice-mode-icon" aria-hidden="true">
+                      ♪
+                    </span>
+                    <strong>{t('voice.mode.output.title')}</strong>
+                    <small>{t('voice.mode.output.desc')}</small>
+                  </button>
+                  <button
                     aria-pressed={voiceMode === 'custom'}
                     data-testid="voice-mode-custom"
                     disabled={busy || !bridge}
@@ -2316,6 +2418,22 @@ export function SettingsPage() {
                   </button>
                 </div>
               </section>
+
+              {(voiceMode === 'output' ||
+                settings.voice_source.mode === 'output') && (
+                <section
+                  className="settings-panel voice-privacy-panel"
+                  data-testid="voice-output-privacy"
+                  role="note"
+                >
+                  <div className="panel-heading">
+                    <div>
+                      <h2>{t('voice.outputPrivacyTitle')}</h2>
+                      <p>{t('voice.outputPrivacyWarn')}</p>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {voiceMode === 'application' && (
                 <section className="settings-panel voice-application-panel">

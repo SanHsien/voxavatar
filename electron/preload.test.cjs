@@ -82,6 +82,7 @@ test("preload exposes only narrow VoxAvatar and settings IPC operations", async 
   await settings.deleteAllUserAnimationClips();
   await settings.setDefaultModel("model-id");
   await settings.setCharacterSize(1.2);
+  await settings.setIdleRestMs(8000);
   await settings.setUiLocale("en");
   await settings.setVoiceSource({
     mode: "custom",
@@ -94,6 +95,8 @@ test("preload exposes only narrow VoxAvatar and settings IPC operations", async 
   });
   await settings.resetModelLighting("model-id");
   await settings.getMcpStatus();
+  await settings.getAppInfo();
+  await settings.showAbout();
   settings.setWindowTheme("light");
 
   bridge.setIgnoreMouse(true);
@@ -148,6 +151,7 @@ test("preload exposes only narrow VoxAvatar and settings IPC operations", async 
       ["voxavatar:settings-delete-all-user-animation-clips"],
       ["voxavatar:settings-set-default-model", "model-id"],
       ["voxavatar:settings-set-character-size", 1.2],
+      ["voxavatar:settings-set-idle-rest-ms", 8000],
       ["voxavatar:settings-set-ui-locale", "en"],
       [
         "voxavatar:settings-set-voice-source",
@@ -164,6 +168,8 @@ test("preload exposes only narrow VoxAvatar and settings IPC operations", async 
       ],
       ["voxavatar:settings-reset-model-lighting", "model-id"],
       ["voxavatar:settings-get-mcp-status"],
+      ["voxavatar:settings-get-app-info"],
+      ["voxavatar:settings-show-about"],
       ["voxavatar:get-window-bounds"],
     ]),
   );

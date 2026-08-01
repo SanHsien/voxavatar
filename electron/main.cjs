@@ -176,6 +176,30 @@ function currentMenuStrings() {
   return menuStrings(settingsStore?.getSnapshot()?.ui_locale);
 }
 
+function showAboutDialog() {
+  const t = currentMenuStrings();
+  const version = app.getVersion();
+  const parent =
+    settingsWindow && !settingsWindow.isDestroyed()
+      ? settingsWindow
+      : avatarWindow && !avatarWindow.isDestroyed()
+        ? avatarWindow
+        : undefined;
+  const options = {
+    type: "info",
+    title: t.aboutTitle,
+    message: "VoxAvatar",
+    detail: String(t.aboutDetail).replaceAll("{version}", version),
+    buttons: [t.aboutOk],
+    noLink: true,
+  };
+  if (parent) {
+    void dialog.showMessageBox(parent, options);
+  } else {
+    void dialog.showMessageBox(options);
+  }
+}
+
 function buildTrayMenuTemplate() {
   const t = currentMenuStrings();
   const ready = hasConfiguredModel();
@@ -186,6 +210,7 @@ function buildTrayMenuTemplate() {
       app.quit();
     },
   };
+  const aboutItem = { label: t.about, click: () => showAboutDialog() };
   const languageSubmenu = [
     {
       label: t.languageZh,
@@ -212,6 +237,7 @@ function buildTrayMenuTemplate() {
       { type: "separator" },
       { label: t.language, submenu: languageSubmenu },
       { type: "separator" },
+      aboutItem,
       quitItem,
     ];
   }
@@ -234,6 +260,7 @@ function buildTrayMenuTemplate() {
     { type: "separator" },
     { label: t.language, submenu: languageSubmenu },
     { type: "separator" },
+    aboutItem,
     quitItem,
   ];
 }
@@ -297,6 +324,7 @@ function buildAvatarContextMenu() {
       ],
     },
     { type: "separator" },
+    { label: t.about, click: () => showAboutDialog() },
     {
       label: t.quit,
       click: () => {
@@ -1116,9 +1144,18 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle("voxavatar:settings-set-character-size", (_event, size) =>
       publishSettings(settingsStore.setCharacterSize(size)),
     );
+    ipcMain.handle("voxavatar:settings-set-idle-rest-ms", (_event, ms) =>
+      publishSettings(settingsStore.setIdleRestMs(ms)),
+    );
     ipcMain.handle("voxavatar:settings-set-ui-locale", (_event, locale) =>
       publishSettings(settingsStore.setUiLocale(locale)),
     );
+    ipcMain.handle("voxavatar:settings-get-app-info", () => ({
+      version: app.getVersion(),
+    }));
+    ipcMain.handle("voxavatar:settings-show-about", async () => {
+      showAboutDialog();
+    });
     ipcMain.handle("voxavatar:settings-set-voice-source", (_event, voiceSource) => {
       const snapshot = publishSettings(settingsStore.setVoiceSource(voiceSource));
       restartAudioListener();

@@ -70,7 +70,7 @@ interface VoxAvatarAnimationClipSettings {
 }
 
 interface VoxAvatarVoiceSourceSettings {
-  mode: 'default' | 'application' | 'custom' | 'external';
+  mode: 'default' | 'application' | 'custom' | 'external' | 'output';
   process_pattern: string | null;
   source_id: string | null;
   source_name: string | null;
@@ -103,6 +103,7 @@ type VoxAvatarSettingsSnapshot = {
   voice_source: VoxAvatarVoiceSourceSettings;
   vrma_quality_gate: 'report' | 'strict' | 'off';
   vrma_report_dir: string | null;
+  idle_rest_ms: number;
 };
 
 type VoxAvatarDirectoryImportKind = 'model' | 'animation';
@@ -223,6 +224,7 @@ interface Window {
     deleteAllUserAnimationClips?(): Promise<VoxAvatarSettingsSnapshot>;
     setDefaultModel(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
     setCharacterSize(size: number): Promise<VoxAvatarSettingsSnapshot>;
+    setIdleRestMs?(ms: number): Promise<VoxAvatarSettingsSnapshot>;
     setUiLocale?(locale: 'zh-TW' | 'en'): Promise<VoxAvatarSettingsSnapshot>;
     setVoiceSource(
       voiceSource: VoxAvatarVoiceSourceSettings,
@@ -234,6 +236,8 @@ interface Window {
     ): Promise<VoxAvatarSettingsSnapshot>;
     resetModelLighting(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
     getMcpStatus(): Promise<VoxAvatarMcpStatus>;
+    getAppInfo?(): Promise<{ version: string }>;
+    showAbout?(): Promise<void>;
     setWindowTheme(theme: 'light' | 'dark'): void;
     subscribe(
       listener: (snapshot: VoxAvatarSettingsSnapshot) => void,

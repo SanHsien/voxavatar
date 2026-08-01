@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { Scene } from './components/Scene';
@@ -30,6 +31,7 @@ const INITIAL_STATE: VoiceState = {
 };
 
 const BODY_IDLE_DELAY_MS = 650;
+const DEFAULT_IDLE_REST_MS = 8000;
 
 export function App() {
   const [voice, setVoice] = useState<VoiceState>(INITIAL_STATE);
@@ -40,6 +42,7 @@ export function App() {
   const [idleCycle, setIdleCycle] = useState(0);
   const [settings, setSettings] =
     useState<VoxAvatarSettingsSnapshot>(SETTINGS_FALLBACK);
+  const idleRestTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const bridge = window.voxavatarBridge;
@@ -76,6 +79,14 @@ export function App() {
     void settingsBridge.get().then(setSettings);
     return settingsBridge.subscribe(setSettings);
   }, []);
+
+  const clearIdleRestTimer = useCallback(() => {
+    if (idleRestTimerRef.current == null) return;
+    window.clearTimeout(idleRestTimerRef.current);
+    idleRestTimerRef.current = null;
+  }, []);
+
+  useEffect(() => () => clearIdleRestTimer(), [clearIdleRestTimer]);
 
   const speaking =
     voice.phase === 'active' &&
@@ -117,11 +128,19 @@ export function App() {
     !bodyOverride && animation === 'IDLE' ? ambientUrls : roleUrls;
   const animationUrls =
     bodyOverride?.animationUrls ?? configuredAnimationUrls;
-  // 有素材就 once 播完再隨機重抽，絕不固定順序 loop 同一支。
+  // 有素材就 once 播完，休息後再隨機重抽，絕不固定順序 loop 同一支。
   const cycleRandomMotions =
     !bodyOverride && animation === 'IDLE' && animationUrls.length > 0;
   const animationRequest = bodyOverride?.requestId ?? idleCycle;
   const overrideRequestId = bodyOverride?.requestId ?? null;
+  const idleRestMs = Number.isFinite(settings.idle_rest_ms)
+    ? Math.max(2000, Math.min(60000, settings.idle_rest_ms))
+    : DEFAULT_IDLE_REST_MS;
+
+  useEffect(() => {
+    if (!cycleRandomMotions) clearIdleRestTimer();
+  }, [clearIdleRestTimer, cycleRandomMotions]);
+
   const handleAnimationComplete = useCallback(() => {
     if (overrideRequestId != null) {
       setBodyOverride((current) =>
@@ -129,8 +148,13 @@ export function App() {
       );
       return;
     }
-    if (cycleRandomMotions) setIdleCycle((value) => value + 1);
-  }, [cycleRandomMotions, overrideRequestId]);
+    if (!cycleRandomMotions) return;
+    clearIdleRestTimer();
+    idleRestTimerRef.current = window.setTimeout(() => {
+      idleRestTimerRef.current = null;
+      setIdleCycle((value) => value + 1);
+    }, idleRestMs);
+  }, [clearIdleRestTimer, cycleRandomMotions, idleRestMs, overrideRequestId]);
 
   return defaultModel ? (
     <SceneErrorBoundary

@@ -82,7 +82,7 @@ export function resolveLightingSettings(
 }
 
 export const SETTINGS_FALLBACK: VoxAvatarSettingsSnapshot = {
-  schema_version: 5,
+  schema_version: 6,
   default_model_id: null,
   character_size: 1,
   ui_locale: 'zh-TW',
@@ -96,8 +96,9 @@ export const SETTINGS_FALLBACK: VoxAvatarSettingsSnapshot = {
     source_id: null,
     source_name: null,
   },
-  vrma_quality_gate: 'report',
+  vrma_quality_gate: 'strict',
   vrma_report_dir: null,
+  idle_rest_ms: 8000,
 };
 
 function packagedAssetUrl(relativePath: string): string {

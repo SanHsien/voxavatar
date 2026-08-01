@@ -6,7 +6,7 @@
 
 規劃基準：`v0.1.1`
 
-這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。
+這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成（可跨版本標示），`-` 表示尚未完成。
 
 ## 產品判斷
 
@@ -35,12 +35,12 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 
 ## 已有基礎，不重做
 
-- Windows-only Electron overlay、透明區點穿、角色拖曳／縮放／旋轉與可靠系統匣。
-- WASAPI application-loopback helper，只計算指定應用程式播放輸出的音量。
-- VRM／VRMA 本機匯入、目錄批次匯入、品質報告、自訂動作與常用預設。
-- loopback-only MCP、HTTP 事件 API、`voxavatar://` protocol 與即時動作 catalog。
-- 繁中／英文設定介面，首次無模型時開啟設定與合法素材指引。
-- CI、CodeQL、Dependabot guarded auto-merge、資產授權 gate、NSIS 與 SHA-256 Release。
+- [x] Windows-only Electron overlay、透明區點穿、角色拖曳／縮放／旋轉與可靠系統匣。
+- [x] WASAPI application-loopback helper，只計算指定應用程式播放輸出的音量。
+- [x] VRM／VRMA 本機匯入、目錄批次匯入、品質報告、自訂動作與常用預設。
+- [x] loopback-only MCP、HTTP 事件 API、`voxavatar://` protocol 與即時動作 catalog。
+- [x] 繁中／英文設定介面，首次無模型時開啟設定與合法素材指引。
+- [x] CI、CodeQL、Dependabot guarded auto-merge、資產授權 gate、NSIS 與 SHA-256 Release。
 
 新工作應先補齊既有能力的使用者閉環。例如，先讓 listener 失敗能被診斷，而不是再加第二種音訊管線。
 
@@ -59,19 +59,20 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 
 ### 工作
 
-- 清除現有 CodeQL 警示，讓資產驗證使用已開啟檔案的 descriptor 取得 metadata，並移除無效函式參數。
-- 啟用 GitHub Dependabot security alerts 與自動安全修補建議；一般依賴更新仍遵守既有風險分類。
-- 維持 canonical MIT `LICENSE`，把第三方媒體排除與再散布條件留在 `NOTICE.md`／`ASSET_LICENSES.md`。
-- 將一般 Node／Electron 開發與原生 C++／安裝包工具鏈分開，避免要求所有貢獻者安裝 Visual Studio Build Tools。
-- 建立下載後 installer smoke 記錄格式，至少涵蓋安裝、首次啟動、模型匯入、語音來源、系統匣、MCP、升級與移除。
+- [x] 清除現有 CodeQL 警示，讓資產驗證使用已開啟檔案的 descriptor 取得 metadata，並移除無效函式參數。
+- [x] 啟用 GitHub Dependabot security alerts 與自動安全修補建議；一般依賴更新仍遵守既有風險分類。
+- [x] 維持 canonical MIT `LICENSE`，把第三方媒體排除與再散布條件留在 `NOTICE.md`／`ASSET_LICENSES.md`。
+- [x] 將一般 Node／Electron 開發與原生 C++／安裝包工具鏈分開，避免要求所有貢獻者安裝 Visual Studio Build Tools。
+- [x] 建立下載後 installer smoke 記錄格式，至少涵蓋安裝、首次啟動、模型匯入、語音來源、系統匣、MCP、升級與移除。
 
 ### 完成條件
 
-- `main` 沒有未處理的 CodeQL security／quality alert。
-- Dependabot security alerts 已啟用，production audit 保持 0 個 high 以上漏洞。
-- GitHub 能辨識 MIT License；媒體授權 gate 仍 fail closed。
-- GitHub Release 的 tag、package 版號、installer、Latest 與 SHA-256 一致。
-- 真實 Windows smoke 有可追溯記錄；未簽署安裝包不宣稱已通過 SmartScreen 簽章驗收。
+- [x] `main` 沒有未處理的 CodeQL security／quality alert。
+- [x] Dependabot security alerts 已啟用，production audit 保持 0 個 high 以上漏洞。
+- [x] GitHub 能辨識 MIT License；媒體授權 gate 仍 fail closed。
+- [x] GitHub Release 的 tag、package 版號、installer、Latest 與 SHA-256 一致。
+- [x] 未簽署安裝包不宣稱已通過 SmartScreen 簽章驗收。
+- 真實 Windows smoke 有可追溯記錄（格式已有，尚缺版本化實機填寫）。
 
 ## v0.2.0：首次設定與可修復診斷
 
@@ -106,12 +107,12 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - 匯入前顯示格式、大小與品質摘要；失敗時保留可理解原因，不留下半完成 catalog 紀錄。
 - 為 settings／library catalog 加上明確 schema version 與最近兩個 MINOR 的 migration fixture。
 - 改善動作預覽、片段重新排序與品質報告到實際動作的導覽。
-- 維持「使用者本機匯入」與「專案可以再散布」兩套不同授權判定。
+- [x] 維持「使用者本機匯入」與「專案可以再散布」兩套不同授權判定。
 
 ### 完成條件
 
 - 支援矩陣中的素材都有自動 fixture 或版本化人工證據。
-- 匯入中斷、重名、損壞、過大與不相容素材不會破壞既有 library。
+- [x] 匯入中斷、重名、損壞、過大與不相容素材不會破壞既有 library。
 - 最近兩個 MINOR 的設定與 catalog 可以安全升級；不可遷移時會保留原資料並說明。
 
 ## v0.4.0：穩定的本機 MCP 契約
@@ -126,14 +127,14 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - 為 MCP session 加入 idle TTL、容量上限與可測試的淘汰／關閉行為。
 - 將 avatar 與 settings preload 分權，所有 privileged IPC 統一驗證 sender、frame 與 app URL。
 - 對高頻重複動作加入有界佇列或節流語意，避免 renderer 被無限制事件淹沒。
-- 保持視覺控制範圍，不加入任意命令、任意檔案、網路代理或語音生成。
+- [x] 保持視覺控制範圍，不加入任意命令、任意檔案、網路代理或語音生成。
 
 ### 完成條件
 
 - 支援的 client 不需解析人類文字來判斷狀態。
 - schema 破壞性變更有版本與 migration 說明。
 - app 重啟、client 斷線、多 client 與動作更新都有自動測試或可重現 smoke。
-- MCP 仍只監聽 loopback，安全邊界測試保持完整。
+- [x] MCP 仍只監聽 loopback，安全邊界測試保持完整。
 - 遺棄或大量 session 不會無界成長；avatar renderer 無法呼叫設定／資產管理 IPC。
 
 ## v0.5.0：可維護性與效能
@@ -161,13 +162,13 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 
 `1.0.0` 代表使用者可以長期信任產品契約，不代表功能堆到最多。
 
-- 沒有已知 P0／P1，CodeQL 與 production security alerts 無未處理 high 風險。
+- [x] 沒有已知 P0／P1，CodeQL 與 production security alerts 無未處理 high 風險。
 - Windows 10／11 的安裝、升級、移除、首次設定、語音口型、素材與 MCP 都有實機證據。
 - 已簽署 installer 的 publisher、SmartScreen 與更新路徑完成驗證；若仍未簽署，不能進入 1.0。
 - settings、catalog、MCP status 與工具 schema 有穩定版本政策及最近兩個 MINOR migration 測試。
 - 常見 VRM／VRMA exporter 有公開相容矩陣，失敗不造成資料遺失。
 - 所有主動操作都有成功或失敗回饋，沒有已知靜默失敗。
-- 隱私、loopback、媒體授權、Windows-only 與上游 attribution 邊界維持可驗證。
+- [x] 隱私、loopback、媒體授權、Windows-only 與上游 attribution 邊界維持可驗證。
 
 ## 衡量方式
 
@@ -198,13 +199,13 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 
 ## 明確不做
 
-- 不擷取麥克風、不錄音、不保存／上傳／轉錄音訊。
-- 不把 MCP 或 HTTP bridge 開到 LAN／Internet。
-- 不加入任意命令、任意檔案讀寫、網路代理或遠端桌面能力。
-- 不內建或散布未確認授權的 VRM／VRMA。
-- 不恢復 Linux、PipeWire、Hyprland、macOS native 或跨平台發行。
-- 不在 VoxAvatar 內執行 LLM、管理模型帳號或取代聊天用戶端。
-- 不以角色、動作或 agent 數量作為產品成功指標。
+- [x] 不擷取麥克風、不錄音、不保存／上傳／轉錄音訊。
+- [x] 不把 MCP 或 HTTP bridge 開到 LAN／Internet。
+- [x] 不加入任意命令、任意檔案讀寫、網路代理或遠端桌面能力。
+- [x] 不內建或散布未確認授權的 VRM／VRMA。
+- [x] 不恢復 Linux、PipeWire、Hyprland、macOS native 或跨平台發行。
+- [x] 不在 VoxAvatar 內執行 LLM、管理模型帳號或取代聊天用戶端。
+- [x] 不以角色、動作或 agent 數量作為產品成功指標。
 
 ## 執行規則
 
@@ -218,6 +219,6 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 
 ## 接下來三件事
 
-1. **關閉 v0.1.x 信任缺口**：清除 CodeQL alerts、啟用 Dependabot security alerts、修正 MIT 偵測並完成本次穩定修正版。
+1. [x] **關閉 v0.1.x 信任缺口**：清除 CodeQL alerts、啟用 Dependabot security alerts、修正 MIT 偵測並完成本次穩定修正版。
 2. **建立 Release 實機證據格式**：從 GitHub 下載 installer，記錄 Windows build、安裝／移除、首次啟動、語音來源與 MCP smoke。
 3. **設計 v0.2 readiness 模型**：讓設定頁與 `get_status` 對模型、helper、語音來源與 MCP 使用同一套狀態與修復語彙。

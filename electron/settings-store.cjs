@@ -21,7 +21,10 @@ const {
   normalizeReportDir,
 } = require("./vrma-quality.cjs");
 
-const SETTINGS_SCHEMA_VERSION = 5;
+const SETTINGS_SCHEMA_VERSION = 6;
+const DEFAULT_IDLE_REST_MS = 8000;
+const MIN_IDLE_REST_MS = 2000;
+const MAX_IDLE_REST_MS = 60000;
 const DEFAULT_PACKAGED_LIBRARY_PATH = path.join(
   __dirname,
   "..",
@@ -29,7 +32,7 @@ const DEFAULT_PACKAGED_LIBRARY_PATH = path.join(
   "assets",
   "library.json",
 );
-const MIN_CHARACTER_SIZE = 0.7;
+const MIN_CHARACTER_SIZE = 0.3;
 const MAX_CHARACTER_SIZE = 1.6;
 const MAX_ASSET_BYTES = 200 * 1024 * 1024;
 const MAX_GLB_JSON_BYTES = 16 * 1024 * 1024;
@@ -67,9 +70,18 @@ function defaultState(packagedLibrary) {
     packaged_animation_overrides: {},
     hidden_packaged_animation_ids: [],
     voice_source: { ...DEFAULT_VOICE_SOURCE },
-    vrma_quality_gate: QUALITY_GATE.REPORT,
+    vrma_quality_gate: QUALITY_GATE.STRICT,
     vrma_report_dir: null,
+    idle_rest_ms: DEFAULT_IDLE_REST_MS,
   };
+}
+
+function normalizeIdleRestMs(value) {
+  const ms = Number(value);
+  if (!Number.isFinite(ms)) return DEFAULT_IDLE_REST_MS;
+  return Math.round(
+    Math.max(MIN_IDLE_REST_MS, Math.min(MAX_IDLE_REST_MS, ms)),
+  );
 }
 
 function singleLine(value, field, maxLength) {
@@ -401,7 +413,11 @@ function safeReadState(settingsPath, packagedLibrary) {
   const fallback = defaultState(packagedLibrary);
   try {
     const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-    if (![1, 2, 3, 4, SETTINGS_SCHEMA_VERSION].includes(parsed?.schema_version)) {
+    if (
+      ![1, 2, 3, 4, 5, SETTINGS_SCHEMA_VERSION].includes(
+        parsed?.schema_version,
+      )
+    ) {
       return { migrated: false, state: fallback };
     }
     const { hidden, overrides } = packagedUserLayers(parsed, packagedLibrary);
@@ -429,9 +445,28 @@ function safeReadState(settingsPath, packagedLibrary) {
       voice_source: voiceSource,
       vrma_quality_gate: normalizeQualityGate(parsed.vrma_quality_gate),
       vrma_report_dir: normalizeReportDir(parsed.vrma_report_dir),
+      idle_rest_ms: normalizeIdleRestMs(parsed.idle_rest_ms),
     };
 
     if (parsed.schema_version !== SETTINGS_SCHEMA_VERSION) {
+      if (parsed.schema_version === 5) {
+        const animations = sanitizeUserAnimations(parsed.animations);
+        const knownAnimationIds = new Set([
+          ...packagedLibrary.animations.map((animation) => animation.id),
+          ...animations.map((animation) => animation.id),
+        ]);
+        return {
+          migrated: true,
+          state: {
+            ...common,
+            animations,
+            animation_clips: sanitizeAnimationClips(
+              parsed.animation_clips,
+              knownAnimationIds,
+            ),
+          },
+        };
+      }
       if (parsed.schema_version === 3) {
         const animations = sanitizeUserAnimations(parsed.animations);
         const knownAnimationIds = new Set([
@@ -650,6 +685,7 @@ function createSettingsStore({
       voice_source: normalizeVoiceSource(state.voice_source),
       vrma_quality_gate: normalizeQualityGate(state.vrma_quality_gate),
       vrma_report_dir: normalizeReportDir(state.vrma_report_dir),
+      idle_rest_ms: normalizeIdleRestMs(state.idle_rest_ms),
     };
   }
 
@@ -1057,6 +1093,12 @@ function createSettingsStore({
     return getSnapshot();
   }
 
+  function setIdleRestMs(value) {
+    state.idle_rest_ms = normalizeIdleRestMs(value);
+    writeState();
+    return getSnapshot();
+  }
+
   function setVoiceSource(value) {
     state.voice_source = sanitizeVoiceSource(value);
     writeState();
@@ -1198,6 +1240,7 @@ function createSettingsStore({
     resetPackagedAnimations,
     resolveAssetRequest,
     setCharacterSize,
+    setIdleRestMs,
     setUiLocale,
     setVoiceSource,
     setVrmaQualityGate,
@@ -1214,8 +1257,12 @@ module.exports = {
   DEFAULT_MODEL_LIGHTING,
   DEFAULT_PACKAGED_LIBRARY_PATH,
   MAX_CHARACTER_SIZE,
+  DEFAULT_IDLE_REST_MS,
+  MAX_IDLE_REST_MS,
   MIN_CHARACTER_SIZE,
+  MIN_IDLE_REST_MS,
   SETTINGS_SCHEMA_VERSION,
+  normalizeIdleRestMs,
   createSettingsStore,
   validateAnimationMetadata,
   validateGlbFile,

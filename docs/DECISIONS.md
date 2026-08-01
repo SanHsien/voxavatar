@@ -71,3 +71,10 @@ Dependabot 可使用高權限 workflow，但必須 fail closed：只信任 `depe
 ## D-17｜Release 與素材匯入信任邊界
 
 Release 只允許從可信 `main` workflow 手動 dispatch，`release` environment 也只允許 `main` 部署；在執行程式碼前，workflow SHA、遠端 `main` 與 tag commit 必須完全相同，後續 checkout 固定該 SHA，發布前再驗 tag 未移動。checkout 不保留 credentials，只有 publish job 取得 `contents: write`；已發布 tag 另由 active tag ruleset 禁止刪除或 force-update。素材匯入先複製到 app-controlled 暫存檔，再從同一個 file descriptor 驗證實際／宣告 GLB 長度、bounded JSON chunk、glTF 2.0 與 VRM／VRMA extension，最後 atomic rename；renderer 載入錯誤必須保留可回復的設定入口。
+
+## D-18｜輸出裝置全音監聽（opt-in）
+
+- **日期**：2026-08-01
+- **決定**：語音來源新增 `output` 模式，以 WASAPI 預設 render endpoint loopback 監聽目前輸出裝置混音。預設仍為指定應用程式／自動偵測。
+- **隱私**：必須在 Settings 明示「隱私邊界警告」——會聽到音樂、影片、遊戲、系統音與其他應用，不只語音助理；音量僅本機轉口型／動作、不上傳。使用者需主動選擇該模式。
+- **配套**：角色縮放最小 30%；Idle 間隔預設 8 秒（可調 2–60 秒）；VRMA 品質門檻淘汰低於 60、保留 75 以上，預設嚴格模式；匣／右鍵／設定提供「關於」顯示版本。

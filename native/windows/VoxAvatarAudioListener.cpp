@@ -134,6 +134,27 @@ HRESULT activateProcessLoopback(DWORD processId, ComPtr<IAudioClient>& audioClie
   return S_OK;
 }
 
+// 預設輸出裝置混音（含所有應用播放），非單一程序 loopback。
+HRESULT activateEndpointLoopback(ComPtr<IAudioClient>& audioClient) {
+  ComPtr<IMMDeviceEnumerator> enumerator;
+  HRESULT result = CoCreateInstance(
+      __uuidof(MMDeviceEnumerator),
+      nullptr,
+      CLSCTX_ALL,
+      IID_PPV_ARGS(&enumerator));
+  if (FAILED(result)) return result;
+
+  ComPtr<IMMDevice> device;
+  result = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+  if (FAILED(result)) return result;
+
+  return device->Activate(
+      __uuidof(IAudioClient),
+      CLSCTX_ALL,
+      nullptr,
+      &audioClient);
+}
+
 double packetSquareSum(
     const BYTE* data,
     UINT32 frames,
@@ -155,16 +176,22 @@ double packetSquareSum(
 
 int wmain(int argc, wchar_t* argv[]) {
   DWORD processId = 0;
+  bool useOutputDevice = false;
   for (int index = 1; index < argc; ++index) {
     if (wcscmp(argv[index], L"--self-test") == 0) {
       emitReady("Windows self-test");
       return 0;
     }
+    if (wcscmp(argv[index], L"--output") == 0) {
+      useOutputDevice = true;
+    }
     if (wcscmp(argv[index], L"--pid") == 0 && index + 1 < argc) {
       processId = wcstoul(argv[++index], nullptr, 10);
     }
   }
-  if (processId == 0) return fail("A valid --pid is required.");
+  if (!useOutputDevice && processId == 0) {
+    return fail("A valid --pid or --output is required.");
+  }
 
   SetConsoleOutputCP(CP_UTF8);
   SetConsoleCtrlHandler(handleConsoleSignal, TRUE);
@@ -172,10 +199,16 @@ int wmain(int argc, wchar_t* argv[]) {
   if (FAILED(result)) return fail("Unable to initialize COM.", result);
 
   ComPtr<IAudioClient> audioClient;
-  result = activateProcessLoopback(processId, audioClient);
+  result = useOutputDevice
+      ? activateEndpointLoopback(audioClient)
+      : activateProcessLoopback(processId, audioClient);
   if (FAILED(result)) {
     CoUninitialize();
-    return fail("Unable to activate Windows process-loopback audio.", result);
+    return fail(
+        useOutputDevice
+            ? "Unable to activate Windows output-device loopback audio."
+            : "Unable to activate Windows process-loopback audio.",
+        result);
   }
 
   WAVEFORMATEX format{};
@@ -199,7 +232,11 @@ int wmain(int argc, wchar_t* argv[]) {
   if (FAILED(result)) {
     audioClient.Reset();
     CoUninitialize();
-    return fail("Unable to initialize Windows process-loopback audio.", result);
+    return fail(
+        useOutputDevice
+            ? "Unable to initialize Windows output-device loopback audio."
+            : "Unable to initialize Windows process-loopback audio.",
+        result);
   }
 
   HANDLE sampleReady = CreateEventW(nullptr, FALSE, FALSE, nullptr);
@@ -217,10 +254,14 @@ int wmain(int argc, wchar_t* argv[]) {
     captureClient.Reset();
     audioClient.Reset();
     CoUninitialize();
-    return fail("Unable to start Windows process-loopback audio.", result);
+    return fail(
+        useOutputDevice
+            ? "Unable to start Windows output-device loopback audio."
+            : "Unable to start Windows process-loopback audio.",
+        result);
   }
 
-  emitReady("Windows process audio");
+  emitReady(useOutputDevice ? "Windows output device audio" : "Windows process audio");
   while (running.load(std::memory_order_relaxed)) {
     const DWORD wait = WaitForSingleObject(sampleReady, 250);
     if (wait != WAIT_OBJECT_0 && wait != WAIT_TIMEOUT) break;

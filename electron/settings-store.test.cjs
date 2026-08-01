@@ -228,7 +228,7 @@ test("keeps user library records when migrating the earlier settings schema", (c
   );
 
   const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
-  assert.equal(snapshot.schema_version, 5);
+  assert.equal(snapshot.schema_version, 6);
   assert.equal(snapshot.default_model_id, modelId);
   assert.equal(snapshot.character_size, 1.15);
   assert.ok(snapshot.models.some((model) => model.id === modelId));
@@ -330,7 +330,12 @@ test("validates custom metadata, files, duplicates, and character size", (contex
     /lowercase letters/,
   );
   assert.throws(() => store.setCharacterSize(2), /between/);
+  assert.throws(() => store.setCharacterSize(0.29), /between/);
+  assert.equal(store.setCharacterSize(0.3).character_size, 0.3);
   assert.equal(store.setCharacterSize(1.25).character_size, 1.25);
+  assert.equal(store.setIdleRestMs(500).idle_rest_ms, 2000);
+  assert.equal(store.setIdleRestMs(8000).idle_rest_ms, 8000);
+  assert.equal(store.setIdleRestMs(120000).idle_rest_ms, 60000);
   assert.equal(store.setUiLocale("en").ui_locale, "en");
   assert.equal(store.setUiLocale("nope").ui_locale, "zh-TW");
 
@@ -572,7 +577,7 @@ test("groups multiple uploaded clips under one action and removes them independe
   );
 });
 
-test("persists a custom voice source and migrates older settings to schema 5", (context) => {
+test("persists a custom voice source and migrates older settings to schema 6", (context) => {
   const { userDataPath, packagedLibraryPath } = fixture(context);
   const store = createSettingsStore({ userDataPath, packagedLibraryPath });
   assert.deepEqual(store.getSnapshot().voice_source, {
@@ -586,7 +591,8 @@ test("persists a custom voice source and migrates older settings to schema 5", (
     mode: "custom",
     process_pattern: "  local-tts|open-webui  ",
   });
-  assert.equal(snapshot.schema_version, 5);
+  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.idle_rest_ms, 8000);
   assert.deepEqual(snapshot.voice_source, {
     mode: "custom",
     process_pattern: "local-tts|open-webui",
@@ -606,6 +612,14 @@ test("persists a custom voice source and migrates older settings to schema 5", (
     source_name: null,
   });
 
+  snapshot = store.setVoiceSource({ mode: "output" });
+  assert.deepEqual(snapshot.voice_source, {
+    mode: "output",
+    process_pattern: null,
+    source_id: null,
+    source_name: null,
+  });
+
   fs.writeFileSync(
     path.join(userDataPath, "settings.json"),
     JSON.stringify({
@@ -620,7 +634,8 @@ test("persists a custom voice source and migrates older settings to schema 5", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 5);
+  assert.equal(migrated.schema_version, 6);
+  assert.equal(migrated.idle_rest_ms, 8000);
   assert.deepEqual(migrated.voice_source, {
     mode: "default",
     process_pattern: null,
@@ -634,10 +649,12 @@ test("persists a custom voice source and migrates older settings to schema 5", (
 test("persists VRMA quality gate and report directory", (context) => {
   const { userDataPath, packagedLibraryPath } = fixture(context);
   const store = createSettingsStore({ userDataPath, packagedLibraryPath });
-  assert.equal(store.getSnapshot().vrma_quality_gate, "report");
+  assert.equal(store.getSnapshot().vrma_quality_gate, "strict");
   assert.equal(store.getSnapshot().vrma_report_dir, null);
 
-  let snapshot = store.setVrmaQualityGate("strict");
+  let snapshot = store.setVrmaQualityGate("report");
+  assert.equal(snapshot.vrma_quality_gate, "report");
+  snapshot = store.setVrmaQualityGate("strict");
   assert.equal(snapshot.vrma_quality_gate, "strict");
   snapshot = store.setVrmaQualityGate("nope");
   assert.equal(snapshot.vrma_quality_gate, "report");

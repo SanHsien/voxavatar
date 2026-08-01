@@ -11,6 +11,9 @@ const ZH_TW: MessageDictionary = {
   'app.documentTitle': 'VoxAvatar 設定',
   'app.brandSubtitle': '設定',
   'app.sidebarStatus': '變更會自動儲存',
+  'app.about': '關於…',
+  'app.aboutVersion': '版本 {version}',
+  'app.versionUnknown': '版本 —',
   'app.dismissNotice': '關閉通知',
 
   'sections.models.label': '模型',
@@ -32,6 +35,8 @@ const ZH_TW: MessageDictionary = {
   'summary.customLibrary': '{models} 個自訂模型 · {actions} 個自訂動作',
   'summary.voiceCustom': '自訂程序比對',
   'summary.voiceDefault': 'ChatGPT / Codex',
+  'summary.voiceOutput': '輸出裝置全音',
+  'summary.voiceExternal': '外部事件',
   'summary.mcpTools': '{tools} 個工具 · {actions} 個可播放動作',
   'summary.mcpConnection': '本機代理連線',
 
@@ -88,12 +93,15 @@ const ZH_TW: MessageDictionary = {
   'notice.clipDeleted': '已移除 {name}。',
   'notice.packagedRestored': '內建動作已還原。',
   'notice.characterSizeSet': '預設角色大小已設為 {percent}%。',
+  'notice.idleRestSet': '待機動作間隔已設為 {seconds} 秒。',
   'notice.uiLocaleZh': '介面語系已設為繁體中文。',
   'notice.uiLocaleEn': '介面語系已設為 English。',
   'notice.lightingUpdated': '光照已更新。',
   'notice.lightingReset': '光照已重設為 VoxAvatar 預設值。',
   'notice.voiceDefault': '已啟用 ChatGPT 與 Codex 自動偵測。',
   'notice.voiceExternal': '已啟用外部語音整合。',
+  'notice.voiceOutput':
+    '已啟用輸出裝置全音監聽（請確認你接受隱私邊界警告）。',
   'notice.voiceApplication': '語音輸出來源已設為 {name}。',
   'notice.voicePatternSaved': '進階程序比對已儲存。',
 
@@ -184,7 +192,7 @@ const ZH_TW: MessageDictionary = {
   'actions.addClipsFolder': '+ 從目錄批次加入',
   'actions.qualityGateTitle': '目錄匯入品質把關',
   'actions.qualityGateDesc':
-    '從目錄批次加入 VRMA 時套用。會檢查時長、關鍵幀密度、旋轉突波、循環接縫與運動量，並可寫入 Markdown 報告供你自行判斷。啟發式僅供參考，請以即時預覽為準。',
+    '從目錄批次加入 VRMA 時套用。預設嚴格模式：分數低於 60 淘汰、60–74 觀察、75 以上保留。會檢查時長、關鍵幀密度、旋轉突波、循環接縫與運動量，並可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
   'actions.qualityGate.report': '分析並寫報告（全部匯入）',
   'actions.qualityGate.strict': '嚴格：略過評為「淘汰」的檔案',
   'actions.qualityGate.off': '關閉分析（最快）',
@@ -241,9 +249,16 @@ const ZH_TW: MessageDictionary = {
   'appearance.sizeDesc':
     '即時角色的初始構圖大小。在桌面疊層上：滾輪（中鍵滾動）縮放；左鍵拖曳移動視窗；中鍵拖曳旋轉；右鍵快捷選單。透明像素可點穿桌面。',
   'appearance.sizeAria': '預設角色大小',
-  'appearance.sizeMin': '70%',
+  'appearance.sizeMin': '30%',
   'appearance.sizeDefault': '預設',
   'appearance.sizeMax': '160%',
+  'appearance.idleRestTitle': '待機動作間隔',
+  'appearance.idleRestDesc':
+    '一段待機 VRMA 播完後，休息多久再播下一支。拉長可減少「過動」感。',
+  'appearance.idleRestAria': '待機動作間隔秒數',
+  'appearance.idleRestValue': '{seconds} 秒',
+  'appearance.idleRestMin': '2 秒',
+  'appearance.idleRestMax': '60 秒',
   'appearance.lightingTitle': '光照',
   'appearance.lightingDesc':
     '調整環境光與主光，改善 VRM 過曝或過暗。',
@@ -259,16 +274,21 @@ const ZH_TW: MessageDictionary = {
 
   'voice.chooseTitle': '選擇語音來源',
   'voice.chooseDesc':
-    'VoxAvatar 監聽單一語音應用程式的播放，並將音量轉為動畫與口型。',
+    'VoxAvatar 預設只監聽單一語音應用程式的播放，並將音量轉為動畫與口型。',
   'voice.modeAria': '語音來源模式',
   'voice.mode.default.title': '自動',
   'voice.mode.default.desc': '偵測 ChatGPT 或 Codex 輸出。',
   'voice.mode.application.title': '應用程式',
   'voice.mode.application.desc': '選擇執行中的 Windows 應用程式。',
+  'voice.mode.output.title': '輸出裝置',
+  'voice.mode.output.desc': '監聽目前預設播放裝置上的所有聲音。',
   'voice.mode.custom.title': '進階',
   'voice.mode.custom.desc': '以正則比對程序。',
   'voice.mode.external.title': '外部',
   'voice.mode.external.desc': '由管線直接傳送音量。',
+  'voice.outputPrivacyTitle': '隱私邊界警告',
+  'voice.outputPrivacyWarn':
+    '此模式會監聽「目前預設輸出裝置」混出的所有聲音（含音樂、影片、遊戲、系統提示、其他應用），不只語音助理。音量僅在本機轉成口型／動作觸發，不上傳；但仍可能對旁人語音或媒體有反應。請僅在你接受此邊界時啟用。',
   'voice.applicationTitle': '應用程式輸出',
   'voice.applicationDesc': '先啟動目標語音應用程式，再選取其執行中的程序。',
   'voice.filterLabel': '篩選應用程式',
@@ -301,6 +321,8 @@ const ZH_TW: MessageDictionary = {
   'voice.heading.application': '已選應用程式',
   'voice.heading.custom': '進階程序比對',
   'voice.heading.external': '外部事件',
+  'voice.heading.output': '輸出裝置全音',
+  'voice.heading.automatic': '自動偵測',
   'voice.heading.default': '自動偵測',
   'voice.detail.loopback': 'Loopback 事件 API',
   'voice.detail.chatgptCodex': 'ChatGPT 與 Codex',
@@ -366,6 +388,9 @@ const EN: MessageDictionary = {
   'app.documentTitle': 'VoxAvatar Settings',
   'app.brandSubtitle': 'Settings',
   'app.sidebarStatus': 'Changes save automatically',
+  'app.about': 'About…',
+  'app.aboutVersion': 'Version {version}',
+  'app.versionUnknown': 'Version —',
   'app.dismissNotice': 'Dismiss notification',
 
   'sections.models.label': 'Models',
@@ -387,6 +412,8 @@ const EN: MessageDictionary = {
   'summary.customLibrary': '{models} custom models · {actions} custom actions',
   'summary.voiceCustom': 'Custom process pattern',
   'summary.voiceDefault': 'ChatGPT / Codex',
+  'summary.voiceOutput': 'Output device mix',
+  'summary.voiceExternal': 'External events',
   'summary.mcpTools': '{tools} tools · {actions} playable actions',
   'summary.mcpConnection': 'Local agent connection',
 
@@ -443,12 +470,15 @@ const EN: MessageDictionary = {
   'notice.clipDeleted': '{name} removed.',
   'notice.packagedRestored': 'Packaged animation actions restored.',
   'notice.characterSizeSet': 'Default character size set to {percent}%.',
+  'notice.idleRestSet': 'Idle motion gap set to {seconds}s.',
   'notice.uiLocaleZh': 'Menu language set to Traditional Chinese.',
   'notice.uiLocaleEn': 'Menu language set to English.',
   'notice.lightingUpdated': 'Lighting updated.',
   'notice.lightingReset': 'Lighting reset to VoxAvatar defaults.',
   'notice.voiceDefault': 'Automatic ChatGPT and Codex detection enabled.',
   'notice.voiceExternal': 'External voice integration enabled.',
+  'notice.voiceOutput':
+    'Output-device listening enabled (confirm you accept the privacy warning).',
   'notice.voiceApplication': 'Voice output source set to {name}.',
   'notice.voicePatternSaved': 'Advanced process pattern saved.',
 
@@ -540,7 +570,7 @@ const EN: MessageDictionary = {
   'actions.addClipsFolder': '+ Add from folder',
   'actions.qualityGateTitle': 'Folder-import quality gate',
   'actions.qualityGateDesc':
-    'Applied when adding VRMA clips from a folder. Checks duration, keyframe density, rotation spikes, loop seams, and motion amount, and can write a Markdown report for you to review. Heuristic only — trust the live preview.',
+    'Applied when adding VRMA clips from a folder. Default strict mode: reject below 60, review 60–74, keep at 75+. Checks duration, keyframe density, rotation spikes, loop seams, and motion amount, and can write a Markdown report. Heuristic only — trust the live preview.',
   'actions.qualityGate.report': 'Analyze and write report (import all)',
   'actions.qualityGate.strict': 'Strict: skip clips judged “reject”',
   'actions.qualityGate.off': 'Disable analysis (fastest)',
@@ -599,9 +629,16 @@ const EN: MessageDictionary = {
   'appearance.sizeDesc':
     'Initial framing size for the live avatar. On the desktop overlay, use the mouse wheel (middle-button scroll) to zoom the character; left-drag the character to move the window; middle-drag to rotate; right-click for the shortcut menu. Transparent pixels click through to the desktop.',
   'appearance.sizeAria': 'Default character size',
-  'appearance.sizeMin': '70%',
+  'appearance.sizeMin': '30%',
   'appearance.sizeDefault': 'Default',
   'appearance.sizeMax': '160%',
+  'appearance.idleRestTitle': 'Idle motion gap',
+  'appearance.idleRestDesc':
+    'How long to rest after an idle VRMA finishes before picking the next clip. Longer gaps feel less hyperactive.',
+  'appearance.idleRestAria': 'Idle motion gap in seconds',
+  'appearance.idleRestValue': '{seconds}s',
+  'appearance.idleRestMin': '2s',
+  'appearance.idleRestMax': '60s',
   'appearance.lightingTitle': 'Lighting',
   'appearance.lightingDesc':
     'Adjust environment and key light for VRM models that look overexposed or too dark.',
@@ -617,16 +654,22 @@ const EN: MessageDictionary = {
 
   'voice.chooseTitle': 'Choose a voice source',
   'voice.chooseDesc':
-    'VoxAvatar listens to playback from one voice application and turns its volume into animation and lip sync.',
+    'By default VoxAvatar listens to playback from one voice application and turns its volume into animation and lip sync.',
   'voice.modeAria': 'Voice source mode',
   'voice.mode.default.title': 'Automatic',
   'voice.mode.default.desc': 'Detect ChatGPT or Codex output.',
   'voice.mode.application.title': 'Application',
   'voice.mode.application.desc': 'Pick a running Windows app.',
+  'voice.mode.output.title': 'Output device',
+  'voice.mode.output.desc':
+    'Listen to all audio on the current default playback device.',
   'voice.mode.custom.title': 'Advanced',
   'voice.mode.custom.desc': 'Match processes with a regular expression.',
   'voice.mode.external.title': 'External',
   'voice.mode.external.desc': 'Receive levels directly from a pipeline.',
+  'voice.outputPrivacyTitle': 'Privacy boundary warning',
+  'voice.outputPrivacyWarn':
+    'This mode listens to everything mixed on the current default output device (music, video, games, system sounds, other apps)—not just a voice assistant. Levels stay on-device for lip sync / motion triggers and are not uploaded, but the avatar may still react to nearby speech or media. Enable only if you accept this boundary.',
   'voice.applicationTitle': 'Application output',
   'voice.applicationDesc':
     'Start the target voice app, then select its running process.',
@@ -660,6 +703,7 @@ const EN: MessageDictionary = {
   'voice.heading.application': 'Selected application',
   'voice.heading.custom': 'Advanced process pattern',
   'voice.heading.external': 'External events',
+  'voice.heading.output': 'Output device mix',
   'voice.heading.default': 'Automatic detection',
   'voice.detail.loopback': 'Loopback event API',
   'voice.detail.chatgptCodex': 'ChatGPT and Codex',

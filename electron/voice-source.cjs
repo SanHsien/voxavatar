@@ -7,6 +7,7 @@ const VOICE_SOURCE_MODES = new Set([
   "application",
   "custom",
   "external",
+  "output",
 ]);
 const VOICE_SOURCE_ID_PATTERN =
   /^process:win32:[A-Za-z0-9_-]{1,2048}$/;
@@ -114,6 +115,9 @@ function sanitizeVoiceSource(value) {
       source_id: sourceId,
       source_name: sourceName,
     };
+  }
+  if (value.mode === "output") {
+    return emptyVoiceSource("output");
   }
   return emptyVoiceSource(value.mode);
 }

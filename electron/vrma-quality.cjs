@@ -39,6 +39,11 @@ const VERDICT = Object.freeze({
   REJECT: "reject",
 });
 
+/** 分數低於此值（或 critical）→ 淘汰 */
+const REJECT_SCORE_BELOW = 60;
+/** 分數低於此值（或 high）→ 觀察；達標且無高嚴重度 → 保留 */
+const KEEP_SCORE_AT_LEAST = 75;
+
 const QUALITY_GATE = Object.freeze({
   REPORT: "report",
   STRICT: "strict",
@@ -460,12 +465,15 @@ function scoreReport(filePath, parsed, tracks) {
   score = Math.max(0, Math.min(100, Math.round(score)));
   let verdict = VERDICT.KEEP;
   if (
-    score < 40 ||
+    score < REJECT_SCORE_BELOW ||
     issues.some((issue) => issue.severity === "critical") ||
     issues.some((issue) => issue.code === "no_animation")
   ) {
     verdict = VERDICT.REJECT;
-  } else if (score < 70 || issues.some((issue) => issue.severity === "high")) {
+  } else if (
+    score < KEEP_SCORE_AT_LEAST ||
+    issues.some((issue) => issue.severity === "high")
+  ) {
     verdict = VERDICT.REVIEW;
   }
 
@@ -569,9 +577,9 @@ function formatMarkdownReport(reports, options = {}) {
     "",
     "| 結果 | 條件概要 |",
     "| --- | --- |",
-    "| 保留 | 分數 ≥ 70，且無高嚴重度問題 |",
-    "| 觀察 | 分數 40–69，或有高嚴重度問題 |",
-    "| 淘汰 | 分數 < 40，或無法解析／無動畫 |",
+    "| 保留 | 分數 ≥ 75，且無高嚴重度問題 |",
+    "| 觀察 | 分數 60–74，或有高嚴重度問題 |",
+    "| 淘汰 | 分數 < 60，或無法解析／無動畫 |",
     "",
     "主要檢查：時長、關鍵幀密度、旋轉突波、循環接縫、運動量、人形骨骼覆蓋。",
     "",
@@ -657,7 +665,9 @@ function summarizeReports(reports) {
 module.exports = {
   CORE_BONES,
   DEFAULT_REPORT_FILENAME,
+  KEEP_SCORE_AT_LEAST,
   QUALITY_GATE,
+  REJECT_SCORE_BELOW,
   VERDICT,
   analyzeVrmaFile,
   analyzeVrmaFiles,

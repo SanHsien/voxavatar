@@ -362,6 +362,14 @@ button {
   font-size: var(--fs-sm);
 }
 
+.settings-app-version {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-tertiary);
+  font-size: var(--fs-xs);
+  opacity: 0.85;
+}
+
 .settings-sidebar nav {
   display: flex;
   flex-direction: column;
@@ -454,6 +462,7 @@ button {
 
 .settings-sidebar-status {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-top: auto;
@@ -461,6 +470,36 @@ button {
   border-top: 1px solid var(--border);
   color: var(--text-tertiary);
   font-size: var(--fs-xs);
+}
+
+.settings-about-button {
+  margin-left: auto;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.settings-about-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.settings-about-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voice-privacy-panel {
+  border-color: color-mix(in srgb, #c9a227 55%, var(--border));
+  background: color-mix(in srgb, #c9a227 12%, var(--panel));
+}
+
+.voice-privacy-panel h2 {
+  color: #c9a227;
 }
 
 .status-dot,

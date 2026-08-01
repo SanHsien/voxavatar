@@ -83,6 +83,7 @@ class NativeProcessAudioListener {
     this.stopped = true;
     this.pollInFlight = false;
     this.lastStatusKey = null;
+    this.outputRetryTimer = null;
     this.gate = new AudioActivityGate({
       onActivity,
       onLevel,
@@ -109,6 +110,16 @@ class NativeProcessAudioListener {
         source: null,
         error: `Native listener is missing: ${this.helperPath}`,
       });
+      return;
+    }
+    if (this.voiceSource.mode === "output") {
+      this.reportStatus({
+        available: true,
+        capturing: false,
+        monitoring: true,
+        source: null,
+      });
+      this.startOutputCapture();
       return;
     }
     this.reportStatus({
@@ -156,6 +167,29 @@ class NativeProcessAudioListener {
 
   startCapture(processIds, key) {
     const args = processIds.flatMap((processId) => ["--pid", String(processId)]);
+    this.spawnCapture(args, key);
+  }
+
+  startOutputCapture() {
+    clearTimeout(this.outputRetryTimer);
+    this.outputRetryTimer = null;
+    if (this.stopped) return;
+    if (this.capture && this.captureKey === "output") return;
+    this.detach({ sessionEnded: false });
+    this.spawnCapture(["--output"], "output");
+  }
+
+  scheduleOutputRetry() {
+    if (this.stopped || this.voiceSource.mode !== "output") return;
+    clearTimeout(this.outputRetryTimer);
+    this.outputRetryTimer = setTimeout(() => {
+      this.outputRetryTimer = null;
+      this.startOutputCapture();
+    }, 2_000);
+    this.outputRetryTimer.unref?.();
+  }
+
+  spawnCapture(args, key) {
     const child = this.spawnProcess(this.helperPath, args, {
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
@@ -194,6 +228,13 @@ class NativeProcessAudioListener {
           ? { error: `Native listener exited with code ${code}${signal ? ` (${signal})` : ""}.` }
           : {}),
       });
+      if (
+        !this.stopped &&
+        this.voiceSource.mode === "output" &&
+        this.captureKey == null
+      ) {
+        this.scheduleOutputRetry();
+      }
     });
   }
 
@@ -265,6 +306,8 @@ class NativeProcessAudioListener {
     this.stopped = true;
     clearInterval(this.pollTimer);
     this.pollTimer = null;
+    clearTimeout(this.outputRetryTimer);
+    this.outputRetryTimer = null;
     this.detach();
   }
 }

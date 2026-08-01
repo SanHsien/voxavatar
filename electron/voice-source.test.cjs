@@ -94,6 +94,20 @@ test("normalizes all voice modes and rejects arbitrary application IDs", () => {
     },
   );
   assert.deepEqual(
+    sanitizeVoiceSource({
+      mode: "output",
+      process_pattern: "ignored",
+      source_id: "ignored",
+      source_name: "Ignored",
+    }),
+    {
+      mode: "output",
+      process_pattern: null,
+      source_id: null,
+      source_name: null,
+    },
+  );
+  assert.deepEqual(
     normalizeVoiceSource({
       mode: "application",
       source_id: "arbitrary",

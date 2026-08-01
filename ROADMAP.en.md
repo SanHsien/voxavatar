@@ -6,7 +6,7 @@ Updated: 2026-08-01
 
 Planning baseline: `v0.1.1`
 
-This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health.
+This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
 
 ## Product judgment
 
@@ -35,12 +35,12 @@ v1.0: a Windows desktop avatar and local agent interface users can trust long-te
 
 ## Existing foundation, do not rebuild it
 
-- Windows-only Electron overlay, transparent-area click-through, avatar drag/zoom/rotate, and reliable tray controls.
-- A WASAPI application-loopback helper that measures only selected-app playback level.
-- Local VRM/VRMA import, folder import, quality reports, custom actions, and common presets.
-- Loopback-only MCP, HTTP event API, `voxavatar://` protocol, and a live action catalog.
-- Traditional Chinese and English settings UI. Settings opens when no model is configured, with lawful-media guidance.
-- CI, CodeQL, guarded Dependabot auto-merge, media-license gates, NSIS, and SHA-256 releases.
+- [x] Windows-only Electron overlay, transparent-area click-through, avatar drag/zoom/rotate, and reliable tray controls.
+- [x] A WASAPI application-loopback helper that measures only selected-app playback level.
+- [x] Local VRM/VRMA import, folder import, quality reports, custom actions, and common presets.
+- [x] Loopback-only MCP, HTTP event API, `voxavatar://` protocol, and a live action catalog.
+- [x] Traditional Chinese and English settings UI. Settings opens when no model is configured, with lawful-media guidance.
+- [x] CI, CodeQL, guarded Dependabot auto-merge, media-license gates, NSIS, and SHA-256 releases.
 
 New work should close user loops around these capabilities. Make listener failures diagnosable before adding a second audio path.
 
@@ -59,19 +59,20 @@ Goal: prove the `0.1.0` promise through code, GitHub state, and downloaded artif
 
 ### Work
 
-- Clear current CodeQL alerts by reading asset metadata from an already-open file descriptor and removing an unused function argument.
-- Enable GitHub Dependabot security alerts and automated security-fix proposals while retaining the existing risk policy for normal updates.
-- Keep `LICENSE` as canonical MIT text; keep third-party media exclusions and redistribution rules in `NOTICE.md` and `ASSET_LICENSES.md`.
-- Separate regular Node/Electron development from native C++ and installer tooling so every contributor does not need Visual Studio Build Tools.
-- Define a downloaded-installer smoke record covering install, first launch, model import, voice source, tray, MCP, upgrade, and uninstall.
+- [x] Clear current CodeQL alerts by reading asset metadata from an already-open file descriptor and removing an unused function argument.
+- [x] Enable GitHub Dependabot security alerts and automated security-fix proposals while retaining the existing risk policy for normal updates.
+- [x] Keep `LICENSE` as canonical MIT text; keep third-party media exclusions and redistribution rules in `NOTICE.md` and `ASSET_LICENSES.md`.
+- [x] Separate regular Node/Electron development from native C++ and installer tooling so every contributor does not need Visual Studio Build Tools.
+- [x] Define a downloaded-installer smoke record covering install, first launch, model import, voice source, tray, MCP, upgrade, and uninstall.
 
 ### Completion criteria
 
-- `main` has no unresolved CodeQL security or quality alerts.
-- Dependabot security alerts are enabled and production audit has no high-or-higher vulnerability.
-- GitHub recognizes the MIT license while the media-license gate remains fail closed.
-- Release tag, package version, installer, Latest status, and SHA-256 agree.
-- Real Windows smoke evidence is traceable; unsigned installers are not presented as SmartScreen-signing validated.
+- [x] `main` has no unresolved CodeQL security or quality alerts.
+- [x] Dependabot security alerts are enabled and production audit has no high-or-higher vulnerability.
+- [x] GitHub recognizes the MIT license while the media-license gate remains fail closed.
+- [x] Release tag, package version, installer, Latest status, and SHA-256 agree.
+- [x] Unsigned installers are not presented as SmartScreen-signing validated.
+- Real Windows smoke evidence is traceable (format exists; versioned filled records still needed).
 
 ## v0.2.0: first-run setup and recoverable diagnostics
 
@@ -106,12 +107,12 @@ Goal: users can understand availability, quality, and migration results before r
 - Show format, size, and quality summaries before import; failures must not leave partial catalog records.
 - Add explicit schema versions and migration fixtures for Settings and the library catalog across the last two MINOR releases.
 - Improve action preview, clip ordering, and navigation from a quality report to the affected action.
-- Preserve separate decisions for lawful local import and project redistribution permission.
+- [x] Preserve separate decisions for lawful local import and project redistribution permission.
 
 ### Completion criteria
 
 - Every matrix entry has an automated fixture or versioned manual evidence.
-- Interrupted, duplicate, corrupt, oversized, or incompatible imports cannot damage the existing library.
+- [x] Interrupted, duplicate, corrupt, oversized, or incompatible imports cannot damage the existing library.
 - Settings and catalogs from the last two MINOR releases migrate safely; failed migrations preserve original data and explain the problem.
 
 ## v0.4.0: a stable local MCP contract
@@ -126,14 +127,14 @@ Goal: agents do not guess tool capabilities, action names, or error states, and 
 - Add idle TTL, a hard capacity limit, and testable eviction/close behavior for MCP sessions.
 - Separate avatar and Settings preload privileges, and validate sender, frame, and app URL for every privileged IPC handler.
 - Define bounded queueing or throttling for repeated high-frequency actions so the renderer cannot be flooded indefinitely.
-- Keep the visual-control scope. Do not add arbitrary commands, arbitrary files, network proxying, or speech generation.
+- [x] Keep the visual-control scope. Do not add arbitrary commands, arbitrary files, network proxying, or speech generation.
 
 ### Completion criteria
 
 - Supported clients never need to parse human prose to determine state.
 - Breaking schema changes include version and migration guidance.
 - App restart, disconnect, multiple clients, and action updates have automated tests or reproducible smoke evidence.
-- MCP remains loopback-only with complete boundary tests.
+- [x] MCP remains loopback-only with complete boundary tests.
 - Abandoned or excessive sessions cannot grow without bound, and the avatar renderer cannot call Settings or asset-management IPC.
 
 ## v0.5.0: maintainability and performance
@@ -161,13 +162,13 @@ Goal: new features do not turn one Settings page, the main process, and the sett
 
 `1.0.0` means users can trust the product contract long-term. It does not mean maximizing feature count.
 
-- No known P0/P1, unresolved high CodeQL alert, or unresolved high production security alert.
+- [x] No known P0/P1, unresolved high CodeQL alert, or unresolved high production security alert.
 - Windows 10/11 install, upgrade, uninstall, first-run setup, lip sync, media, and MCP have real-machine evidence.
 - Signed-installer publisher, SmartScreen, and update-path validation are complete. An unsigned release cannot qualify for 1.0.
 - Settings, catalog, MCP status, and tool schemas have stable version policies and migration tests for the last two MINOR releases.
 - Common VRM/VRMA exporters have a public compatibility matrix, and failures do not lose data.
 - Every user-triggered operation reports success or failure; no known silent failure remains.
-- Privacy, loopback, media licensing, Windows-only scope, and upstream attribution remain verifiable.
+- [x] Privacy, loopback, media licensing, Windows-only scope, and upstream attribution remain verifiable.
 
 ## Measurement
 
@@ -198,13 +199,13 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 
 ## Explicit non-goals
 
-- No microphone capture, recording, audio retention, upload, or transcription.
-- No LAN or Internet exposure for MCP or the HTTP bridge.
-- No arbitrary commands, arbitrary file access, network proxy, or remote-desktop capability.
-- No bundled or redistributed VRM/VRMA without verified permission.
-- No restored Linux, PipeWire, Hyprland, macOS-native, or cross-platform releases.
-- No embedded LLM, model-account management, or replacement chat client.
-- No product success metric based on the number of characters, actions, or agents.
+- [x] No microphone capture, recording, audio retention, upload, or transcription.
+- [x] No LAN or Internet exposure for MCP or the HTTP bridge.
+- [x] No arbitrary commands, arbitrary file access, network proxy, or remote-desktop capability.
+- [x] No bundled or redistributed VRM/VRMA without verified permission.
+- [x] No restored Linux, PipeWire, Hyprland, macOS-native, or cross-platform releases.
+- [x] No embedded LLM, model-account management, or replacement chat client.
+- [x] No product success metric based on the number of characters, actions, or agents.
 
 ## Execution rules
 
@@ -218,6 +219,6 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 
 ## Next three actions
 
-1. **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
+1. [x] **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
 2. **Define release smoke evidence:** download the GitHub installer and record Windows build, install/uninstall, first launch, voice source, and MCP results.
 3. **Design the v0.2 readiness model:** give Settings and `get_status` one vocabulary for model, helper, voice source, and MCP state.

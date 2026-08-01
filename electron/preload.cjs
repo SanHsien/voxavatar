@@ -72,6 +72,8 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
     ipcRenderer.invoke("voxavatar:settings-set-default-model", modelId),
   setCharacterSize: (size) =>
     ipcRenderer.invoke("voxavatar:settings-set-character-size", size),
+  setIdleRestMs: (ms) =>
+    ipcRenderer.invoke("voxavatar:settings-set-idle-rest-ms", ms),
   setUiLocale: (locale) =>
     ipcRenderer.invoke("voxavatar:settings-set-ui-locale", locale),
   setVoiceSource: (voiceSource) =>
@@ -88,6 +90,8 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
     ipcRenderer.invoke("voxavatar:settings-reset-model-lighting", modelId),
   getMcpStatus: () =>
     ipcRenderer.invoke("voxavatar:settings-get-mcp-status"),
+  getAppInfo: () => ipcRenderer.invoke("voxavatar:settings-get-app-info"),
+  showAbout: () => ipcRenderer.invoke("voxavatar:settings-show-about"),
   setWindowTheme: (theme) =>
     ipcRenderer.send("voxavatar:settings-set-window-theme", theme),
   subscribe: (listener) => {

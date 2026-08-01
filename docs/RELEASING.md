@@ -38,22 +38,25 @@ npm run dist:windows
 npm version 0.1.0 --no-git-tag-version
 git add package.json package-lock.json CHANGELOG.md
 git commit -m "chore: release v0.1.0"
-git push origin main
 git tag v0.1.0
+# 必須先推 tag、再推 main：release environment 只允許 main 部署；
+# main tip 已有 v{version} tag 時，push main 會觸發打包。
 git push origin v0.1.0
-gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.1.0
+git push origin main
+# 亦可在 main 上手動：
+# gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.1.0
 ```
 
-不得把 tag 移到另一個 commit 或只推 tag 不推版本 commit。Release 可由可信 `main` 手動 dispatch，或在 **tag 精確指向當前 `main` tip** 時由 `v*` tag push 觸發；兩者都在執行前驗證 workflow／`main`／tag commit 相同，package／publish 固定 checkout 該 SHA，發布前再驗 tag 未移動。`scripts/check-release-tag.cjs` 另驗 tag 與 package 版號。GitHub `release` environment 只允許 `main` 部署。
+不得把 tag 移到另一個 commit 或只推 tag 不推版本 commit。Release 可由可信 `main` 手動 dispatch，或在 **push `main` 且 `v{package.version}` tag 已精確指向該 tip** 時自動打包（一般 `main` push 若無對應 tip tag 會略過）。兩者都在執行前驗證 workflow／`main`／tag commit 相同，package／publish 固定 checkout 該 SHA，發布前再驗 tag 未移動。`scripts/check-release-tag.cjs` 另驗 tag 與 package 版號。GitHub `release` environment 只允許 `main` 部署，故不以 tag ref 觸發 packaging。
 
 推送流程（agent／本機皆可）：
 
 ```powershell
+git tag v0.2.5
+git push origin v0.2.5
 git push origin main
-git tag v0.2.4
-git push origin v0.2.4
-# tag push 會觸發 Release；亦可改手動：
-# gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.2.4
+# main tip 已 tagged 會觸發 Release；亦可改手動：
+# gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.2.5
 ```
 
 每次準備 bump／push 前，依 [`AGENTS.md`](../AGENTS.md) 檢討 `CHANGELOG`、雙語 `README`／`ROADMAP`／`SECURITY`、`REVIEW` 與決策／流程文件。

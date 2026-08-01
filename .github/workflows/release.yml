@@ -8,23 +8,87 @@ on:
         required: true
         type: string
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.sha }}
   cancel-in-progress: false
 
 jobs:
-  release-gate:
-    name: Validate release inputs
+  resolve-release:
+    name: Resolve release tag
     runs-on: windows-latest
     if: >
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    outputs:
+      should_release: ${{ steps.meta.outputs.should_release }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+    steps:
+      - name: Check out trusted main workflow source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve tag at main tip
+        id: meta
+        shell: pwsh
+        env:
+          DISPATCH_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          $mainSha = git rev-parse refs/remotes/origin/main
+          if ($env:GITHUB_SHA -ne $mainSha) {
+            throw "Release must run from main tip $mainSha."
+          }
+
+          if ($env:DISPATCH_TAG) {
+            $tag = $env:DISPATCH_TAG
+          } else {
+            $version = node -p "require('./package.json').version"
+            $tag = "v$version"
+          }
+
+          if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "Release tag has an invalid format: $tag"
+          }
+
+          git fetch --no-tags origin "+refs/tags/${tag}:refs/tags/${tag}" 2>&1 | Out-Host
+          if ($LASTEXITCODE -ne 0) {
+            if ($env:DISPATCH_TAG) {
+              throw "Release tag $tag was not found on the remote."
+            }
+            "should_release=false" >> $env:GITHUB_OUTPUT
+            "release_tag=" >> $env:GITHUB_OUTPUT
+            Write-Host "No release tag $tag at main tip; skipping release."
+            exit 0
+          }
+
+          $tagSha = git rev-parse "refs/tags/${tag}^{commit}"
+          if ($tagSha -ne $mainSha) {
+            if ($env:DISPATCH_TAG) {
+              throw "Tag $tag must point at main tip $mainSha (was $tagSha)."
+            }
+            "should_release=false" >> $env:GITHUB_OUTPUT
+            "release_tag=" >> $env:GITHUB_OUTPUT
+            Write-Host "Tag $tag does not point at main tip; skipping release."
+            exit 0
+          }
+
+          "should_release=true" >> $env:GITHUB_OUTPUT
+          "release_tag=$tag" >> $env:GITHUB_OUTPUT
+          Write-Host "Releasing $tag at $mainSha."
+
+  release-gate:
+    name: Validate release inputs
+    needs: resolve-release
+    if: needs.resolve-release.outputs.should_release == 'true'
+    runs-on: windows-latest
     steps:
       - name: Check out trusted main workflow source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -35,7 +99,7 @@ jobs:
       - name: Require the tag to point at the main tip
         shell: pwsh
         env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ needs.resolve-release.outputs.release_tag }}
         run: |
           $tag = $env:RELEASE_TAG
           if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
@@ -63,12 +127,15 @@ jobs:
 
       - name: Require tag to match package version
         env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ needs.resolve-release.outputs.release_tag }}
         run: node scripts/check-release-tag.cjs "$env:RELEASE_TAG"
 
   package:
     name: Package Windows x64
-    needs: release-gate
+    needs:
+      - resolve-release
+      - release-gate
+    if: needs.resolve-release.outputs.should_release == 'true'
     runs-on: windows-latest
     environment: release
     steps:
@@ -107,7 +174,10 @@ jobs:
 
   publish:
     name: Publish GitHub release
-    needs: package
+    needs:
+      - resolve-release
+      - package
+    if: needs.resolve-release.outputs.should_release == 'true'
     runs-on: windows-latest
     permissions:
       contents: write
@@ -123,7 +193,7 @@ jobs:
       - name: Recheck the immutable release tag
         shell: pwsh
         env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ needs.resolve-release.outputs.release_tag }}
         run: |
           $tag = $env:RELEASE_TAG
           if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
@@ -153,8 +223,8 @@ jobs:
       - name: Create the GitHub release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
-          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-          name: VoxAvatar ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          tag_name: ${{ needs.resolve-release.outputs.release_tag }}
+          name: VoxAvatar ${{ needs.resolve-release.outputs.release_tag }}
           generate_release_notes: true
           # 不要因 tag 含 -beta 就標 Pre-release：GitHub 首頁 Latest 會略過，
           # 看起來像「只有 tag、沒有 Release」。beta 版號仍寫在 tag／標題裡。

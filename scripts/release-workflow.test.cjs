@@ -13,12 +13,16 @@ const WORKFLOW_PATH = path.join(
   "release.yml",
 );
 
-test("release workflow accepts trusted main dispatch or matching tip tags", () => {
+test("release workflow accepts trusted main dispatch or tagged main tip push", () => {
   const workflow = fs.readFileSync(WORKFLOW_PATH, "utf8");
 
   assert.match(workflow, /workflow_dispatch:/u);
-  assert.match(workflow, /push:\s*\n\s+tags:\s*\n\s+-\s+"v\*"/u);
+  assert.match(workflow, /push:\s*\n\s+branches:\s*\n\s+-\s+main/u);
+  assert.doesNotMatch(workflow, /tags:\s*\n\s+-\s+"v\*"/u);
   assert.match(workflow, /permissions:\s*\n\s+contents: read/u);
+  assert.match(workflow, /resolve-release:/u);
+  assert.match(workflow, /should_release/u);
+  assert.match(workflow, /Resolve tag at main tip/u);
   assert.match(workflow, /Require the tag to point at the main tip/u);
   assert.match(workflow, /GITHUB_SHA.*mainSha.*tagSha.*mainSha/u);
   assert.match(
@@ -27,12 +31,16 @@ test("release workflow accepts trusted main dispatch or matching tip tags", () =
   );
   assert.match(
     workflow,
-    /github\.event_name == 'push' && startsWith\(github\.ref, 'refs\/tags\/v'\)/u,
+    /github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/u,
+  );
+  assert.match(
+    workflow,
+    /RELEASE_TAG: \$\{\{ needs\.resolve-release\.outputs\.release_tag \}\}/u,
   );
   assert.equal(
     [
       ...workflow.matchAll(
-        /RELEASE_TAG: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.tag \|\| github\.ref_name \}\}/gu,
+        /RELEASE_TAG: \$\{\{ needs\.resolve-release\.outputs\.release_tag \}\}/gu,
       ),
     ].length,
     3,
@@ -45,7 +53,7 @@ test("release workflow accepts trusted main dispatch or matching tip tags", () =
   assert.match(workflow, /tagSha -ne \$env:GITHUB_SHA/u);
   assert.equal(
     [...workflow.matchAll(/persist-credentials: false/gu)].length,
-    3,
+    4,
   );
   assert.match(
     workflow,
@@ -54,6 +62,10 @@ test("release workflow accepts trusted main dispatch or matching tip tags", () =
   assert.equal([...workflow.matchAll(/environment: release/gu)].length, 2);
   assert.match(
     workflow,
-    /tag_name: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.tag \|\| github\.ref_name \}\}/u,
+    /tag_name: \$\{\{ needs\.resolve-release\.outputs\.release_tag \}\}/u,
+  );
+  assert.match(
+    workflow,
+    /needs\.resolve-release\.outputs\.should_release == 'true'/u,
   );
 });

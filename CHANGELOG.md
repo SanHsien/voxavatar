@@ -2,9 +2,14 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.5 - 2026-08-01
+
+- Release 改為在 push `main` 且 tip 已有對應 `v{version}` tag 時自動打包（避開 `release` environment 只允許 `main` 部署、tag ref 無法進 packaging 的限制）；一般無 tip tag 的 `main` push 略過。
+- 含 `0.2.3`／`0.2.4`：VRM 目錄評估匯入；先前 tag-push 觸發路徑已汰換。
+
 ## 0.2.4 - 2026-08-01
 
-- Release 在維持「tag＝main tip」信任閘門下，支援 `v*` tag push 自動打包（無法 `workflow_dispatch` 時仍可完成發行）。
+- Release 曾支援 `v*` tag push 自動打包；因 environment 分支政策改由 `0.2.5` 的 main-tip 路徑取代。
 - 含 `0.2.3`：VRM 目錄評估匯入共用品質把關與 `voxavatar-vrm-report.md`。
 
 ## 0.2.3 - 2026-08-01

@@ -228,5 +228,5 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 ## Next three actions
 
 1. [x] **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
-2. [x] **Ship `0.2.0`–`0.2.7` hardening/readiness:** discovery/matcher/MCP session/IPC, first-run checklist, helper states, and diagnostics.
+2. [x] **Ship `0.2.0`–`0.2.9` hardening:** discovery/matcher/MCP session/IPC, readiness/diagnostics, preload split, bounded animation queue; README capability list reorganized.
 3. **Add versioned Windows smoke evidence**, then advance the v0.3 media matrix and remaining MCP contract work.

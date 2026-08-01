@@ -2,6 +2,10 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.1 - 2026-08-01
+
+- 系統匣右鍵選單補回「重設視角」（角色可見時可用）；與角色本體右鍵共用同一重置路徑。
+
 ## 0.2.0 - 2026-08-01
 
 - Process discovery 改為 PID 存活快路徑與 adaptive backoff；多 root 採 sticky active source。

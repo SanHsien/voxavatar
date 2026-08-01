@@ -201,6 +201,11 @@ function showAboutDialog() {
   }
 }
 
+function sendAvatarResetView() {
+  if (!avatarWindow || avatarWindow.isDestroyed()) return;
+  avatarWindow.webContents.send("voxavatar:reset-view");
+}
+
 function buildTrayMenuTemplate() {
   const t = currentMenuStrings();
   const ready = hasConfiguredModel();
@@ -248,6 +253,11 @@ function buildTrayMenuTemplate() {
       label: visible ? t.hide : t.show,
       click: () => toggleOverlay(),
     },
+    {
+      label: t.resetView,
+      enabled: visible,
+      click: () => sendAvatarResetView(),
+    },
     { label: t.settings, click: showSettings },
     { type: "separator" },
     {
@@ -285,10 +295,7 @@ function buildAvatarContextMenu() {
     },
     {
       label: t.resetView,
-      click: () => {
-        if (!avatarWindow || avatarWindow.isDestroyed()) return;
-        avatarWindow.webContents.send("voxavatar:reset-view");
-      },
+      click: () => sendAvatarResetView(),
     },
     { type: "separator" },
     {

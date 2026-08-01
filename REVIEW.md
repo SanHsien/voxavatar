@@ -2,7 +2,7 @@
 
 覆核日期：2026-08-01
 
-覆核基準：`v0.2.5`／`main`（含 VRM 目錄評估匯入；Release 改為 main tip 已 tagged 時打包）
+覆核基準：`v0.2.6`／`main`（VRM0 humanBones 陣列覆蓋修正；Release 改為 main tip 已 tagged 時打包）
 
 ## 結論
 

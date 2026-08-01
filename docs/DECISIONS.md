@@ -89,5 +89,5 @@ Release 可由可信 `main` 的 `workflow_dispatch`，或在 **push `main` 且 `
 ## D-20｜VRM 目錄評估匯入共用品質 gate
 
 - **日期**：2026-08-01
-- **決定**：VRM 從目錄匯入比照 VRMA，共用 `vrma_quality_gate`／`vrma_report_dir`（不另開設定鍵）。報告檔名為 `voxavatar-vrm-report.md`；評分檢查 VRM 擴充、humanoid、mesh、體積與粗估三角面等。單檔選 VRM 仍只做 GLB／extension 驗證。
+- **決定**：VRM 從目錄匯入比照 VRMA，共用 `vrma_quality_gate`／`vrma_report_dir`（不另開設定鍵）。報告檔名為 `voxavatar-vrm-report.md`；評分檢查 VRM 擴充、humanoid、mesh、體積與粗估三角面等。humanoid 同時支援 VRM 1.0 物件 map 與 VRM 0.x `[{ bone, node }]` 陣列。單檔選 VRM 仍只做 GLB／extension 驗證。
 - **嚴格模式**：`verdict === reject` 不匯入；`report` 仍全部匯入並寫報告；`off` 不做分析。

@@ -2,6 +2,10 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.6 - 2026-08-01
+
+- 修正 VRM 品質報告：VRM 0.x 的 `humanBones` 為陣列時誤把索引當骨名，導致「humanoid 54 卻覆蓋 0／13」、分數 80 卻判觀察；現正確解析陣列／物件兩種格式。
+
 ## 0.2.5 - 2026-08-01
 
 - Release 改為在 push `main` 且 tip 已有對應 `v{version}` tag 時自動打包（避開 `release` environment 只允許 `main` 部署、tag ref 無法進 packaging 的限制）；一般無 tip tag 的 `main` push 略過。

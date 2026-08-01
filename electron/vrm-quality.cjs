@@ -43,6 +43,22 @@ function hasVrmExtension(json) {
   return names.has("VRM") || names.has("VRMC_vrm");
 }
 
+/**
+ * 正規化 humanoid 骨骼名稱：VRM0／VRM1 皆為 camelCase（hips、leftUpperArm…）。
+ * 少數匯出工具會寫成 PascalCase，比對前統一成首字小寫。
+ */
+function normalizeHumanoidBoneName(name) {
+  const raw = String(name ?? "").trim();
+  if (!raw) return "";
+  return raw.charAt(0).toLowerCase() + raw.slice(1);
+}
+
+/**
+ * 讀取 VRM0／VRM1 humanoid 對應。
+ * - VRM 1.0（VRMC_vrm）：`humanBones` 為 { boneName: { node } }
+ * - VRM 0.x（VRM）：`humanBones` 為 [{ bone, node }, ...]
+ * 不可對陣列使用 Object.entries，否則會把索引當骨名、覆蓋永遠算成 0。
+ */
 function humanoidBoneMap(json) {
   const map = new Map();
   const humanBones =
@@ -51,15 +67,28 @@ function humanoidBoneMap(json) {
     null;
   if (!humanBones || typeof humanBones !== "object") return map;
 
+  const addBone = (boneName, nodeIndex) => {
+    const name = normalizeHumanoidBoneName(boneName);
+    if (!name || !Number.isInteger(nodeIndex)) return;
+    map.set(name, nodeIndex);
+  };
+
+  if (Array.isArray(humanBones)) {
+    for (const entry of humanBones) {
+      if (!entry || typeof entry !== "object") continue;
+      addBone(entry.bone, entry.node);
+    }
+    return map;
+  }
+
   for (const [boneName, entry] of Object.entries(humanBones)) {
-    const nodeIndex =
-      typeof entry === "number"
-        ? entry
-        : Number.isInteger(entry?.node)
-          ? entry.node
-          : null;
-    if (nodeIndex == null) continue;
-    map.set(String(boneName), nodeIndex);
+    if (typeof entry === "number") {
+      addBone(boneName, entry);
+      continue;
+    }
+    if (entry && typeof entry === "object" && Number.isInteger(entry.node)) {
+      addBone(boneName, entry.node);
+    }
   }
   return map;
 }
@@ -434,6 +463,7 @@ module.exports = {
   formatMarkdownReport,
   hasVrmExtension,
   humanoidBoneMap,
+  normalizeHumanoidBoneName,
   normalizeQualityGate,
   normalizeReportDir,
   resolveReportPath,

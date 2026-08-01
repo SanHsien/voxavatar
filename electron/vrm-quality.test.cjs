@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 const {
+  KEEP_SCORE_AT_LEAST,
   QUALITY_GATE,
   VERDICT,
   analyzeVrmFile,
@@ -39,46 +40,64 @@ function buildVrmGlb({
   includeMesh = true,
   includeExpressions = true,
   triangleVertices = 30,
+  vrm0ArrayHumanoid = false,
 } = {}) {
   const positions = [];
   for (let i = 0; i < triangleVertices; i += 1) {
     positions.push(i * 0.01, (i % 3) * 0.02, 0);
   }
   const binary = Buffer.from(new Float32Array(positions).buffer);
-  const humanBones = includeHumanoid
-    ? {
-        hips: { node: 0 },
-        spine: { node: 1 },
-        chest: { node: 2 },
-        neck: { node: 3 },
-        head: { node: 4 },
-        leftUpperArm: { node: 5 },
-        rightUpperArm: { node: 6 },
-        leftLowerArm: { node: 5 },
-        rightLowerArm: { node: 6 },
-        leftHand: { node: 5 },
-        rightHand: { node: 6 },
-        leftUpperLeg: { node: 0 },
-        rightUpperLeg: { node: 0 },
-      }
-    : undefined;
+  const humanBoneEntries = [
+    ["hips", 0],
+    ["spine", 1],
+    ["chest", 2],
+    ["neck", 3],
+    ["head", 4],
+    ["leftUpperArm", 5],
+    ["rightUpperArm", 6],
+    ["leftLowerArm", 5],
+    ["rightLowerArm", 6],
+    ["leftHand", 5],
+    ["rightHand", 6],
+    ["leftUpperLeg", 0],
+    ["rightUpperLeg", 0],
+  ];
 
   const extensions = {};
   const extensionsUsed = [];
   if (includeExtension) {
-    extensionsUsed.push("VRMC_vrm");
-    extensions.VRMC_vrm = {
-      specVersion: "1.0",
-      humanoid: includeHumanoid ? { humanBones } : {},
-      ...(includeExpressions
-        ? {
-            expressions: {
-              preset: { aa: { isBinary: false, morphTargetBinds: [] } },
-            },
-          }
-        : {}),
-      lookAt: { type: "bone" },
-    };
+    if (vrm0ArrayHumanoid) {
+      extensionsUsed.push("VRM");
+      const humanBones = includeHumanoid
+        ? humanBoneEntries.map(([bone, node]) => ({ bone, node }))
+        : [];
+      extensions.VRM = {
+        humanoid: { humanBones },
+        blendShapeMaster: includeExpressions
+          ? { blendShapeGroups: [{ name: "A", presetName: "a" }] }
+          : { blendShapeGroups: [] },
+        firstPerson: { lookAtTypeName: "Bone" },
+      };
+    } else {
+      extensionsUsed.push("VRMC_vrm");
+      const humanBones = includeHumanoid
+        ? Object.fromEntries(
+            humanBoneEntries.map(([bone, node]) => [bone, { node }]),
+          )
+        : undefined;
+      extensions.VRMC_vrm = {
+        specVersion: "1.0",
+        humanoid: includeHumanoid ? { humanBones } : {},
+        ...(includeExpressions
+          ? {
+              expressions: {
+                preset: { aa: { isBinary: false, morphTargetBinds: [] } },
+              },
+            }
+          : {}),
+        lookAt: { type: "bone" },
+      };
+    }
   }
 
   return packGlb(
@@ -148,6 +167,23 @@ test("complete VRM scores as keep or mild review", (context) => {
   assert.notEqual(report.verdict, VERDICT.REJECT);
   assert.ok(report.metrics.meshCount >= 1);
   assert.ok(report.metrics.humanoidBoneCount >= 7);
+});
+
+test("VRM0 array humanBones is parsed for coverage (not false low_bone_coverage)", (context) => {
+  const { filePath } = writeTempVrm(
+    context,
+    buildVrmGlb({ vrm0ArrayHumanoid: true }),
+    "vrm0.vrm",
+  );
+  const report = analyzeVrmFile(filePath);
+  assert.equal(report.metrics.humanoidBoneCount, 13);
+  assert.equal(report.metrics.coveredCoreBones.length, 13);
+  assert.ok(
+    !report.issues.some((issue) => issue.code === "low_bone_coverage"),
+    "must not mark full VRM0 humanoid as 0/13 coverage",
+  );
+  assert.ok(report.score >= KEEP_SCORE_AT_LEAST);
+  assert.equal(report.verdict, VERDICT.KEEP);
 });
 
 test("missing VRM extension is rejected", (context) => {

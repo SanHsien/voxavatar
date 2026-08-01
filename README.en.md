@@ -115,9 +115,9 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-`main` is at `0.5.0` (module splits, compatibility matrix skeleton, bundle baseline, Scene error-recovery test). The GitHub Latest Release may still be an earlier tag under the batch-release policy. Next: continue v0.5 convergence (further splits, App tests, real exporter matrix). Windows smoke evidence and installer signing do **not** block development (D-23).
+The GitHub Latest Release is **`v0.5.0`**; `main` is advancing **v0.6** (further Settings/main/store splits, scene-error-recovery tests, and the v0.6–v0.9 roadmap tracks). Windows smoke evidence and installer signing sit in the v0.9 track and do **not** block v0.6–v0.8 (D-23, D-24).
 
-See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones, completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
+See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones (completed v0.1–v0.5 summary plus v0.6–v1.0 tracks), completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 
 ## Run from source
 

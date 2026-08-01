@@ -2,13 +2,13 @@
 
 覆核日期：2026-08-01
 
-覆核基準：`v0.5.0`／`main`（v0.5 模組拆分、bundle 基準、相容矩陣骨架；Latest GitHub Release 可能仍為較早 tag，見 D-23）
+覆核基準：`v0.6.0`／`main`（路線圖重規劃、SettingsAnimations／Voice 拆分、settings-ipc／settings-asset-validation 抽出、scene-error-recovery helper＋測試；Latest GitHub Release 仍為 `v0.5.0`，見 D-23）
 
 ## 結論
 
-VoxAvatar 已越過 `0.2.x` hardening，並在本機可驗證範圍內推進 v0.3／v0.4／v0.5 收斂。沒有已知未解 P0／P1。Windows 實機／簽署／native capture 缺口**延後、不阻塞**後續路線圖。
+v0.1–v0.5 里程碑已收斂；路線圖重規劃完成，後續工作依 v0.6–v0.9 分軌推進。沒有已知未解 P0／P1。Windows 實機／簽署／native capture 缺口**延後、不阻塞** v0.6–v0.8（D-23、D-24）。
 
-## 本輪已修正（含至 0.5.0）
+## 本輪已修正（含至 0.6.0）
 
 | 嚴重度 | 問題 | 處理 |
 | --- | --- | --- |
@@ -18,23 +18,24 @@ VoxAvatar 已越過 `0.2.x` hardening，並在本機可驗證範圍內推進 v0.
 | P2 | settings migration／匯入確認／片段排序／報告導覽 | `0.3.0` |
 | P2 | MCP 工具輸出需解析人類文字 | `0.4.0` JSON schema＋多 client 測試 |
 | P3 | 設定頁同步打包進 overlay | `React.lazy`；SBOM 腳本 |
-| P3 | 大型模組難以維護 | `0.5.0` 開始拆分 migration／sanitize／renderer-windows／SettingsModelsSection |
+| P3 | 大型模組難以維護 | `0.5.0`–`0.6.0` 拆分 migration／sanitize／renderer-windows／SettingsModels／Animations／Voice；抽出 settings-ipc、settings-asset-validation |
 | P3 | 無 bundle 基準與 release 證據模板 | `baseline:bundle`、`evidence:manifest` |
-| P3 | 相容矩陣與 Scene 錯誤復原缺測 | 合成 fixture 矩陣骨架；Scene `resetKey` component test |
+| P3 | 相容矩陣與 Scene 錯誤復原缺測 | 合成 fixture 矩陣骨架；scene-error-recovery helper＋測試 |
+| P3 | 路線圖仍列大量已完成 v0.1–v0.5 細項 | 重寫 ROADMAP；未完成項對應 v0.6–v0.9（D-24） |
 
-## 延後（不阻塞 v0.3+）
+## 延後（不阻塞 v0.6–v0.8）
 
-1. Installer 簽署（需 `WIN_CSC_*`）。
-2. 版本化 Windows GUI smoke 證據。
-3. Native COM／WASAPI capture self-test（需 Windows＋C++）。
-4. 桌面 E2E／DPI／鍵盤實機驗收。
+1. Installer 簽署（需 `WIN_CSC_*`）→ **v0.9**
+2. 版本化 Windows GUI smoke 證據 → **v0.9**
+3. Native COM／WASAPI capture self-test（需 Windows＋C++）→ **v0.9**
+4. 桌面 E2E／DPI／鍵盤實機驗收 → **v0.9**
 
 ## 仍開放的開發項
 
-1. 大型模組繼續拆分（`SettingsPage`／`main`／`settings-store` CRUD）。
-2. 真實 VRM／VRMA exporter 相容矩陣與人工證據。
-3. App／Settings 整合 component tests 與 protocol／tray 桌面 smoke。
-4. 冷啟動／Idle／真機記憶體效能基準。
+1. **v0.6**：`SettingsPage`／`main`／`settings-store` 其餘 section 與 CRUD 拆分；App／Settings preview 錯誤復原整合測試。
+2. **v0.7**：bundle／啟動基準深化；非首屏進一步拆分；冷啟動／Idle 軟體側計時。
+3. **v0.8**：真實 VRM／VRMA exporter 相容矩陣擴充與合成案例回歸；人工證據可後補。
+4. **v0.9**：protocol／tray 桌面 smoke、簽署、native 真機驗收（有 Windows／密鑰再開）。
 
 ## 發行與治理判定
 

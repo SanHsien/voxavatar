@@ -109,3 +109,9 @@ Release 可由可信 `main` 的 `workflow_dispatch`，或在 **push `main` 且 `
 - **決定**：`main` 可累積多次 SemVer bump 與 CHANGELOG 條目，再一次性建立 `v{version}` tag 與 GitHub Release（batch cut）。禁止為空轉或無實質變更而頻繁 Release／tag。
 - **實機邊界**：Windows GUI smoke、installer 簽署、COM／WASAPI capture 真機矩陣仍須在可取得 Windows 桌面或密鑰時補證；**不得**因此阻塞 v0.3／v0.4 等後續路線圖開發。若環境無法完成實機步驟，應停止該項、回報缺口，繼續可驗證的程式／文件／CI 工作。
 - **權威來源**：[`AGENTS.md`](../AGENTS.md)、[`.cursorrules`](../.cursorrules)、[`docs/RELEASING.md`](RELEASING.md)、[`ROADMAP.md`](../ROADMAP.md)。
+
+## D-24｜v0.6 起路線圖分軌
+
+- **日期**：2026-08-01
+- **決定**：v0.5 完成後重寫 `ROADMAP`：v0.1–v0.5 以摘要表示已完成；原先散在 0.1–0.5 的未完成項移入 **v0.6**（模組收斂／可測試性）、**v0.7**（效能基準）、**v0.8**（exporter 相容矩陣）、**v0.9**（Windows 實機／簽署／native）。
+- **邊界**：v0.9 可整節延後開工，**不得**阻塞 v0.6–v0.8 的程式、文件與 CI 推進；v1.0 門檻仍要求 v0.9 實機證據與簽署（若未簽署不得進 1.0）。

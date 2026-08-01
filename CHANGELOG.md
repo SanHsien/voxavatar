@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，Release／tag 依批次政策累積後一次發布（見 D-23）。
 
+## 0.6.0 - 2026-08-01
+
+- 路線圖重規劃：v0.1–v0.5 收斂為已完成摘要；未完成項移入 v0.6–v0.9 與 v1.0 門檻（D-24）。
+- 設定頁抽出 `SettingsAnimationsSection`／`SettingsVoiceSection`；`SettingsPage` 行數下降。
+- `main.cjs` 抽出 `settings-ipc.cjs`（settings IPC 註冊與測試）；`settings-store` 抽出資產驗證邊界（`settings-asset-validation`＋測試）。
+- Scene 錯誤復原抽出 `scene-error-recovery` helper 與測試；`main.cjs` 行數下降。
+
 ## 0.5.0 - 2026-08-01
 
 - 依功能邊界拆分 `settings-migration`／`settings-sanitize`、`renderer-windows`、`SettingsModelsSection`；`SettingsPage`／`main`／store 仍可繼續拆。

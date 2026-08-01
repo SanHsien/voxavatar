@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { shouldResetSceneError } from '../scene-error-recovery';
 
 export interface SceneErrorBoundaryProps {
   children: ReactNode;
@@ -26,7 +27,13 @@ export class SceneErrorBoundary extends Component<
   }
 
   componentDidUpdate(previous: SceneErrorBoundaryProps) {
-    if (previous.resetKey !== this.props.resetKey && this.state.failed) {
+    if (
+      shouldResetSceneError(
+        previous.resetKey,
+        this.props.resetKey,
+        this.state.failed,
+      )
+    ) {
       this.setState({ failed: false });
     }
   }

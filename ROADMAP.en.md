@@ -4,9 +4,9 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.5.0` (accumulated on `main`; Latest Release may still point at an earlier tag—see D-23)
+Planning baseline: `v0.6.0` (accumulated on `main`; Latest Release is `v0.5.0`—see D-23).
 
-This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
+This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done; `-` means not done.
 
 ## Product judgment
 
@@ -22,159 +22,126 @@ The user's actual jobs are:
 4. **Stay in control:** keep media, settings, and level detection local, with explainable failures and explicit privacy and license boundaries.
 
 ```text
-v0.1.x  Stabilize the first Windows release baseline (complete through 0.1.2)
+v0.1–v0.5   Completed baseline → hardening → media/MCP → maintainability start (see "Completed milestones" below)
    │
-   ├─ v0.2.x  Diagnostics/discovery hardening → first-run and installer closed loop
-   ├─ v0.3.x  VRM/VRMA compatibility and media lifecycle
-   ├─ v0.4.x  MCP contracts, status, and multi-client reliability
-   └─ v0.5.x  Maintainability, startup, and renderer performance
-        │
-        ▼
-v1.0.0: a Windows desktop avatar and local agent interface users can trust long-term
+   ├─ v0.6.x  Module convergence and renderer/settings testability
+   ├─ v0.7.x  Performance baseline deepening and non-first-frame splits
+   ├─ v0.8.x  Asset exporter compatibility matrix (synthetic + public docs)
+   ├─ v0.9.x  Windows real-machine/signing/native acceptance track (may start later; does not block 0.6–0.8)
+   └─ v1.0.0  Long-term trust threshold
 ```
 
-SemVer pace: capability or security-boundary hardening ships as a **minor** (for example `0.1.2` → `0.2.0`); do not pile features into a long `0.1.x` series. Use patch only for pure fixes.
-
-## Existing foundation, do not rebuild it
-
-- [x] Windows-only Electron overlay, transparent-area click-through, avatar drag/zoom/rotate, and reliable tray controls.
-- [x] A WASAPI application-loopback helper that measures only selected-app playback level.
-- [x] Local VRM/VRMA import, folder import, quality reports, custom actions, and common presets.
-- [x] Loopback-only MCP, HTTP event API, `voxavatar://` protocol, and a live action catalog.
-- [x] Traditional Chinese and English settings UI. Settings opens when no model is configured, with lawful-media guidance.
-- [x] CI, CodeQL, guarded Dependabot auto-merge, media-license gates, NSIS, and SHA-256 releases.
-
-New work should close user loops around these capabilities. Make listener failures diagnosable before adding a second audio path.
+SemVer pace: capability or security-boundary hardening ships as a **minor**; use patch only for pure fixes. Windows real-machine work and signing **must not** block 0.6–0.8 (D-23).
 
 ## Priority order
 
 1. **Privacy, security, licensing, and release correctness**
 2. **First-run success and recoverable failures**
-3. **Windows, VRM/VRMA, and application compatibility**
-4. **MCP contract and status fidelity**
-5. **Maintainability, performance, and accessibility**
+3. **Maintainability and testability (locally verifiable)**
+4. **Asset compatibility documentation and synthetic matrix**
+5. **Windows real-machine/signing/native (when a desktop or signing keys are available)**
 6. **More visual or action features**
 
-## v0.1.x: close stable-baseline gaps
+## Existing foundation, do not rebuild it
 
-Goal: prove the `0.1.0` promise through code, GitHub state, and downloaded artifacts.
+- [x] Windows-only Electron overlay, transparent-area click-through, drag/zoom/rotate, and reliable tray controls.
+- [x] WASAPI application-loopback helper; first-run readiness/diagnostic summary; helper state model.
+- [x] VRM/VRMA import, folder import, quality reports, clip ordering, migration fixtures.
+- [x] Loopback-only MCP (JSON schema, session TTL, multi-client, action queue), HTTP/`voxavatar://`.
+- [x] Avatar/settings preload split; CI, CodeQL, Dependabot, NSIS, SHA-256, batch Release.
+- [x] Settings lazy-load, bundle/SBOM/evidence scripts, synthetic compatibility matrix skeleton.
 
-### Work
+## Completed milestones (summary)
 
-- [x] Clear current CodeQL alerts by reading asset metadata from an already-open file descriptor and removing an unused function argument.
-- [x] Enable GitHub Dependabot security alerts and automated security-fix proposals while retaining the existing risk policy for normal updates.
-- [x] Keep `LICENSE` as canonical MIT text; keep third-party media exclusions and redistribution rules in `NOTICE.md` and `ASSET_LICENSES.md`.
-- [x] Separate regular Node/Electron development from native C++ and installer tooling so every contributor does not need Visual Studio Build Tools.
-- [x] Define a downloaded-installer smoke record covering install, first launch, model import, voice source, tray, MCP, upgrade, and uninstall.
+| Series | Representative outcomes |
+| --- | --- |
+| v0.1.x | First stable Windows baseline, licensing/CI/Release trust root |
+| v0.2.x | Discovery/matcher/IPC/session, readiness, diagnostics, preload, action queue |
+| v0.3.x | Import confirmation, schema 4/5→6 fixtures, clip ordering, report navigation |
+| v0.4.x | MCP JSON schema, integration docs, multi-client tests |
+| v0.5.x | Migration/sanitize/renderer-windows/SettingsModels split start, bundle baseline, matrix skeleton |
 
-### Completion criteria
+Historical detail is in [`CHANGELOG.md`](CHANGELOG.md). The sections below list only **unfinished** and **newly planned** work.
 
-- [x] `main` has no unresolved CodeQL security or quality alerts.
-- [x] Dependabot security alerts are enabled and production audit has no high-or-higher vulnerability.
-- [x] GitHub recognizes the MIT license while the media-license gate remains fail closed.
-- [x] Release tag, package version, installer, Latest status, and SHA-256 agree.
-- [x] Unsigned installers are not presented as SmartScreen-signing validated.
-- ~~Real Windows smoke evidence is traceable~~ **Deferred (not a v0.3+ blocker, D-23)**: format exists; filled records wait for a Windows desktop.
+---
 
-## v0.2.x: diagnostics hardening and first-run closed loop
+## v0.6.x: module convergence and testability
 
-Goal: `0.2.0` hardens listener, matcher, IPC, and MCP session reliability; later `0.2.x` closes first-run progress, diagnostics, and the real-machine matrix.
-
-### Work
-
-- [x] Turn first-run setup into a progress checklist for model, optional actions, voice source, MCP health, and completion state.
-- [x] Give the native helper explicit states: missing, launch failed, target process missing, no output, and listening.
-- [x] Add a copyable diagnostic summary that redacts usernames, absolute paths, and media filenames by default and never includes audio or model content.
-- [x] Make `get_status` and Settings share one readiness and error vocabulary.
-- ~~Establish a real Windows 10/11 matrix for install, upgrade, uninstall, and protocol registration.~~ **Deferred (not a v0.3+ blocker, D-23)**: add versioned evidence when a Windows desktop is available.
-- [x] Replace fixed process discovery with a PID-liveness fast path and adaptive backoff, and define sticky active-source semantics for multiple matching roots (`0.2.0`).
-- [x] Restrict custom process matchers to a non-explosive safe subset (`0.2.0`).
-- [x] Add MCP session idle TTL, hard capacity, and testable eviction (pulled forward from `0.4` into `0.2.0`).
-- [x] Validate sender URL on privileged IPC; avatar/Settings preload split and Settings webContents binding shipped in `0.2.9`.
-
-### Completion criteria
-
-- [x] Every incomplete first-run step has a reason and an executable next action.
-- [x] Common helper and source failures are recognizable without opening DevTools.
-- [x] Settings and MCP cannot report contradictory states for the same condition.
-- [x] Diagnostic summaries pass sensitive-data tests and can be attached directly to an issue.
-- [x] Stable capture no longer launches a full PowerShell process scan on every poll, and multiple matching roots have predictable sticky selection.
-- [x] Malicious or pathological matchers cannot block the Electron main process.
-- [x] Abandoned or excessive MCP sessions cannot grow without bound.
-
-## v0.3.x: media compatibility and lifecycle
-
-Goal: users can understand availability, quality, and migration results before relying on assets from different exporters.
+Goal: keep splitting large files so common settings/IPC changes do not require touching all of `SettingsPage`/`main`/store at once; add error-recovery tests that can run on Linux CI.
 
 ### Work
 
-- Publish a verified VRM 0.x/1.0 and common VRMA exporter matrix covering skeleton, expression, texture, and motion results.
-- [x] Publish a public compatibility matrix skeleton with synthetic fixtures ([`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md)); real exporter names and manual evidence remain.
-- [x] Show format and quality summaries before import and write to the catalog only after confirmation (folder-import dialog; failure reasons and strict skip behavior remain).
-- [x] Add explicit schema versions and migration fixtures for the settings catalog across the last two MINOR releases (schema 4/5→6; back up the original file when migration is not possible).
-- [x] Improve clip reordering and quality-report navigation (move up/down, reveal report in File Explorer).
-- [x] Preserve separate decisions for lawful local import and project redistribution permission.
+- [x] Continue splitting `SettingsPage` sections: `SettingsAnimationsSection`, `SettingsVoiceSection` (appearance/mcp/preview can still split further).
+- [x] Extract settings IPC registration from `main.cjs` into `settings-ipc.cjs` (overlay lifecycle can still split further).
+- [x] Extract `settings-asset-validation.cjs`; store CRUD boundaries can keep converging.
+- [x] Add Scene/preview error-recovery pure-function tests (`scene-error-recovery`); jsdom App integration and protocol/tray desktop smoke remain later/v0.9.
+- Protocol/tray desktop smoke remains in v0.9 (real machine).
 
 ### Completion criteria
 
-- Every matrix entry has an automated fixture or versioned manual evidence.
-- [x] Interrupted, duplicate, corrupt, oversized, or incompatible imports cannot damage the existing library.
-- [x] Settings and catalogs from the last two MINOR releases upgrade safely; failed migrations preserve original data and explain the problem.
+- [x] `SettingsPage`/`main`/`settings-store` line counts drop meaningfully; sections/IPC/store have clear boundaries (further splits welcome).
+- [x] Scene/preview error recovery has automated coverage of the main path (pure helper + Scene boundary).
+- [x] `npm run check` stays green; Visual Studio Build Tools are not required for this work.
 
-## v0.4.x: a stable local MCP contract
+## v0.7.x: performance baseline deepening
 
-Goal: agents do not guess tool capabilities, action names, or error states, and long-lived sessions do not use stale catalogs.
+Goal: use repeatable data to guide bundle splits and deferred loading—not bundle warnings alone.
 
 ### Work
 
-- [x] Version MCP status and tool-output schemas, with an explicit SemVer compatibility policy (`status_schema_version` / `tools_schema_version`).
-- [x] Add Codex and generic Streamable HTTP client examples for port changes, reconnects, and troubleshooting (`docs/INTEGRATIONS.md`).
-- [x] Validate multiple local MCP clients, long-session catalog refresh, and handler close/restart behavior (automated tests).
-- [x] Add idle TTL, a hard capacity limit, and testable eviction/close behavior for MCP sessions (shipped in `0.2.0`).
-- [x] Separate avatar and Settings preload privileges; sender URL validation shipped in `0.2.0`, window binding completed in `0.2.9`.
-- [x] Define bounded queueing or throttling for repeated high-frequency actions so the renderer cannot be flooded indefinitely.
-- [x] Keep the visual-control scope. Do not add arbitrary commands, arbitrary files, network proxying, or speech generation.
+- Extend `baseline:bundle`: record historical comparisons and threshold guidance (documented, not telemetry).
+- Further split non-first-frame code (quality-report views, heavier settings sub-pages).
+- Software-side timing scripts for cold start, first avatar display, and large libraries (as much as can run without a desktop; real-machine memory belongs in v0.9).
+- Repeatable local baseline notes for long idle runs and model switching.
 
 ### Completion criteria
 
-- [x] Supported clients never need to parse human prose to determine state (tool results are parseable JSON).
-- [x] Breaking schema changes include version and migration guidance (INTEGRATIONS / DECISIONS).
-- [x] App restart, client disconnect, multiple clients, and action updates have automated tests or reproducible smoke evidence.
-- [x] MCP remains loopback-only with complete boundary tests.
-- [x] Abandoned or excessive sessions cannot grow without bound.
-- [x] The avatar renderer cannot call Settings or asset-management IPC (preload split and Settings webContents checks are in place).
+- At least two comparable bundle/startup baseline recording methods are documented in development docs.
+- After non-first-frame splits, the overlay first-frame chunk does not regress to pre-split levels (per `baseline:bundle`).
 
-## v0.5.x: maintainability and performance
+## v0.8.x: asset exporter compatibility matrix
 
-Goal: new features do not turn one Settings page, the main process, and the settings store into permanent change bottlenecks.
+Goal: expand the synthetic matrix into maintainable public compatibility documentation without committing unauthorized binary media.
 
 ### Work
 
-- [x] Begin responsibility-based splits: `settings-migration` / `settings-sanitize`, `renderer-windows`, `SettingsModelsSection`; further splits of `SettingsPage`, `main`, and store CRUD remain.
-- [x] Extract folder-import evaluate helper (`directory-import.cjs`); continue splitting Settings, main, and store.
-- [x] Add a renderer bundle baseline script (`npm run baseline:bundle`); cold launch, idle, and real-machine memory baselines remain.
-- [x] Lazy-load Settings (`React.lazy`) without sacrificing overlay first paint; quality-report and other non-first-frame splits remain.
-- Add Windows keyboard, focus-order, scaling, and high-DPI acceptance checks.
-- Give native COM/WASAPI capture failures typed errors and non-zero exits, with real-machine playback, device-switch, and recovery tests.
-- [x] Add a Scene error-recovery `resetKey` component test; App/Settings integration and protocol/tray desktop smoke remain.
-- [x] Provide a production dependency SBOM (`npm run sbom`) and a release-evidence manifest template (`npm run evidence:manifest`); filled real-machine records remain deferred.
+- Extend [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md): mark common exporters/versions and known limits from public information.
+- Add synthetic cases (skeleton coverage, expressions, missing textures, motion spikes, etc.) and wire them to automated tests.
+- Keep import failure/skip paths from breaking the existing library (regression tests).
+- Real vendor-file manual evidence may follow when lawful samples are available; it does **not** block this series' docs and synthetic tests.
 
 ### Completion criteria
 
-- Large-file responsibilities have begun splitting; common changes may still span files—continue converging.
-- [x] Bundle improvements can be compared against baseline data (silencing a warning alone is not success).
-- Core keyboard flows at 100%, 150%, and 225% DPI have no blocking clipping or focus failures.
-- A release can provide installer, checksum, dependency inventory, and version evidence together.
+- The public matrix covers main failure modes, and each case maps to an automated test or an explicit "manual pending" marker.
+- Incompatible imports do not leave half-finished catalog records.
+
+## v0.9.x: Windows real-machine/signing/native track
+
+Goal: collect real-machine and native work previously **extracted and deferred** from 0.1–0.5 into one acceptance track. The whole section may pause without a Windows desktop or signing keys; it does not block 0.6–0.8.
+
+### Work
+
+- Fill versioned `docs/release-evidence/v{version}/windows-smoke.md` (install/upgrade/uninstall, protocol, tray, MCP).
+- Real-machine acceptance on Windows 10/11, DPI (100%/150%/225%), and keyboard focus.
+- Installer signing (`WIN_CSC_*`) and SmartScreen/upgrade-path validation.
+- Native helper: COM/WASAPI capture typed failures and non-zero exits; real-machine playback, device switch, and recovery tests.
+- Protocol/tray/desktop E2E smoke.
+
+### Completion criteria
+
+- At least one release has complete smoke evidence and checksum cross-checks.
+- Signing status matches Release notes and SECURITY; unsigned builds must not claim SmartScreen pass.
+- Native failure paths have testable error types or exit-code contracts.
 
 ## v1.0.0 criteria
 
 `1.0.0` means users can trust the product contract long-term. It does not mean maximizing feature count.
 
-- [x] No known P0/P1, unresolved high CodeQL alert, or unresolved high production security alert.
-- Windows 10/11 install, upgrade, uninstall, first-run setup, lip sync, media, and MCP have real-machine evidence.
-- Signed-installer publisher, SmartScreen, and update-path validation are complete. An unsigned release cannot qualify for 1.0.
-- Settings, catalog, MCP status, and tool schemas have stable version policies and migration tests for the last two MINOR releases.
-- Common VRM/VRMA exporters have a public compatibility matrix, and failures do not lose data.
+- [x] No known P0/P1; no unresolved CodeQL/production high alerts (per current `REVIEW`).
+- Windows 10/11 install, upgrade, uninstall, first-run setup, lip sync, media, and MCP have real-machine evidence (v0.9).
+- Signed-installer publisher, SmartScreen, and update-path validation are complete; unsigned releases cannot qualify for 1.0.
+- [x] Settings/catalog/MCP schema have version policies and migration tests for the last two MINOR releases (may keep strengthening).
+- Common VRM/VRMA exporters have a public compatibility matrix; failures do not lose data (v0.8 + manual evidence).
 - Every user-triggered operation reports success or failure; no known silent failure remains.
 - [x] Privacy, loopback, media licensing, Windows-only scope, and upstream attribution remain verifiable.
 
@@ -187,23 +154,19 @@ VoxAvatar will not add telemetry. Metrics come from automated tests, benchmarks,
 | Unresolved P0/P1 | 0 |
 | High CodeQL security alerts | 0 |
 | High-or-higher production audit vulnerabilities | 0 |
-| Release tag/package/Latest/installer/checksum agreement | 100% |
-| Blocking defects in the verified Windows install matrix | 0 |
+| Release tag/package/Latest/installer/checksum agreement | 100% (on batch Release) |
 | Known existing-library data loss after failed import | 0 cases |
 | MCP boundary and tool-contract regression tests | All pass on every CI run |
-
-Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline instead of invented in advance.
 
 ## Main risks and defenses
 
 | Risk or dependency | Consequence | Defense and evidence |
 | --- | --- | --- |
-| Windows builds, audio drivers, and target apps differ | Listener has no output or cannot attach | Helper states, fixtures, and a Windows 10/11 real-machine matrix |
-| VRM/VRMA exporters differ | Broken avatar, expression, or motion | Import validation, compatibility matrix, and versioned fixtures |
-| Unsigned installer | SmartScreen friction and low trust | State signing status clearly; complete signing validation before 1.0 |
-| Local MCP has no authentication | Same-account processes can control the avatar | Loopback, Host/origin/schema bounds, and no sensitive capabilities |
-| Third-party media terms are complex | Redistribution violation | No bundled media by default, fail-closed manifests, and human license evidence |
-| Large renderer/main files continue growing | Cross-feature regressions become easier | Behavior-first tests, responsibility-based splits, and bundle/startup benchmarks |
+| Windows drivers and target apps differ | Listener fails | Helper states, v0.9 real-machine matrix |
+| VRM/VRMA exporters differ | Broken avatar, expression, or motion | Synthetic matrix, import validation, v0.8 docs |
+| Unsigned installer | SmartScreen friction | State signing status clearly; complete v0.9 signing before 1.0 |
+| Local MCP has no authentication | Same-account processes can control the avatar | Loopback/schema bounds; no privilege expansion |
+| Large files regress | Rising regression cost | v0.6 continued splits, behavior tests, bundle baseline |
 
 ## Explicit non-goals
 
@@ -219,17 +182,16 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 
 1. Write user-visible outcomes as acceptance criteria first.
 2. Record security, licensing, schema, and product tradeoffs in [`docs/DECISIONS.md`](docs/DECISIONS.md).
-3. Use automated tests for logic and real Windows smoke for WASAPI, transparent windows, tray behavior, and installers.
+3. Use automated tests for logic; use Windows real-machine smoke for WASAPI, transparent windows, tray behavior, and installers (v0.9).
 4. Pass at least `npm run check`; native and Release work runs the full gate on a GitHub Windows runner.
-5. **Before every push**, review and sync Traditional Chinese / English public docs plus `CHANGELOG.md` (including `README`, `ROADMAP`, `SECURITY`, `REVIEW`, decisions, and process docs); confirm the review even when no edit is needed.
-6. After push, verify CI and CodeQL; **on batch Release**, also verify published Latest, tag SHA, installer, and checksum (routine bumps do not publish).
+5. **Before every push**, review and sync Traditional Chinese/English public docs plus `CHANGELOG.md`.
+6. After push, verify CI and CodeQL; **on batch Release**, also verify published Latest, tag SHA, installer, and checksum.
 7. Delete older Releases/tags only after a successful new Release, keeping only the latest; leave older ones untouched if the new Release fails.
-8. Mark roadmap work complete only when the completion criteria have evidence; deferred Windows real-machine items do not block later milestones (D-23).
+8. Mark roadmap work complete only when completion criteria have evidence; v0.9 real-machine items do not block v0.6–0.8.
 9. After an interrupted session, agents and maintainers must resume unfinished work automatically; see [`AGENTS.md`](AGENTS.md).
 
 ## Next three actions
 
-1. [x] **Close v0.1.x / v0.2.x baseline and hardening** (including preload split and bounded action queue).
-2. [x] **Advance v0.3 / v0.4:** migration fixtures, import confirmation summaries, clip ordering / report navigation, MCP schema JSON, multi-client tests, integration docs.
-3. [x] **Advance v0.5 maintainability:** module-split start, bundle baseline, Scene resetKey test, compatibility matrix skeleton, evidence manifest template.
-4. **Keep converging:** further Settings/main splits, real exporter matrix, App integration tests; signing and real-machine evidence remain deferred.
+1. [x] **Finish this v0.6 slice:** further Settings/IPC/asset-validation splits, error-recovery tests, and roadmap replan.
+2. **Advance v0.7 / v0.8:** deepen bundle/startup baselines and expand the exporter compatibility matrix.
+3. **Open v0.9 only with Windows/secrets:** smoke evidence, signing, native capture; until then do not idle-spin Releases.

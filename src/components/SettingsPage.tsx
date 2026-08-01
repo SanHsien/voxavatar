@@ -39,6 +39,7 @@ import {
 } from './settings/SettingsAppearanceSection';
 import { SettingsMcpSection } from './settings/SettingsMcpSection';
 import { SettingsPreviewPanel } from './settings/SettingsPreviewPanel';
+import { SettingsConfirmationDialog } from './settings/SettingsConfirmationDialog';
 
 type SettingsSection = 'models' | 'animations' | 'appearance' | 'voice' | 'mcp';
 
@@ -1471,78 +1472,16 @@ export function SettingsPage() {
       />
 
       {confirmation && (
-        <div
-          className="settings-dialog-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !confirming) {
-              closeConfirmation();
-            }
-          }}
-        >
-          <div
-            aria-busy={confirming}
-            aria-describedby="settings-confirmation-detail"
-            aria-labelledby="settings-confirmation-title"
-            aria-modal="true"
-            className="settings-dialog"
-            onKeyDown={(event) => {
-              if (event.key === 'Escape' && !confirming) {
-                event.preventDefault();
-                closeConfirmation();
-                return;
-              }
-              if (event.key !== 'Tab') return;
-              const first = confirmationCancelRef.current;
-              const last = confirmationConfirmRef.current;
-              if (!first || !last) return;
-              if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-              } else if (
-                !event.shiftKey &&
-                document.activeElement === last
-              ) {
-                event.preventDefault();
-                first.focus();
-              }
-            }}
-            ref={confirmationDialogRef}
-            role="dialog"
-          >
-            <div className="settings-dialog-icon" aria-hidden="true">
-              !
-            </div>
-            <div className="settings-dialog-copy">
-              <span className="eyebrow">{t('common.confirmChange')}</span>
-              <h2 id="settings-confirmation-title">
-                {confirmation.title}
-              </h2>
-              <p id="settings-confirmation-detail">
-                {confirmation.detail}
-              </p>
-            </div>
-            <div className="settings-dialog-actions">
-              <button
-                className="secondary-button"
-                disabled={confirming}
-                onClick={closeConfirmation}
-                ref={confirmationCancelRef}
-                type="button"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                className="settings-dialog-confirm"
-                disabled={confirming}
-                onClick={() => void confirmPendingAction()}
-                ref={confirmationConfirmRef}
-                type="button"
-              >
-                {confirming ? t('common.working') : confirmation.confirmLabel}
-              </button>
-            </div>
-          </div>
-        </div>
+        <SettingsConfirmationDialog
+          cancelRef={confirmationCancelRef}
+          confirmation={confirmation}
+          confirming={confirming}
+          confirmRef={confirmationConfirmRef}
+          dialogRef={confirmationDialogRef}
+          onClose={closeConfirmation}
+          onConfirm={() => void confirmPendingAction()}
+          t={t}
+        />
       )}
     </main>
   );

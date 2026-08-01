@@ -7,6 +7,7 @@
 - 擴充合成 VRM／VRMA 相容矩陣：無 mesh／稀疏骨骼／無貼圖／無表情、過短／無動畫／loop seam 等案例，並掛到品質測試與 `manifest.json`。
 - 公開文件補 Exporter 備註（VRoid／UniVRM／Blender）；真實廠商樣本仍標 `pending-human-sample`。
 - `settings-store` 補強匯入失敗不留下半完成 catalog 的回歸測試。
+- 設定頁抽出 `SettingsConfirmationDialog`（與 Preview／Appearance／MCP 拆分同輪收斂）。
 
 ## 0.7.0 - 2026-08-01
 

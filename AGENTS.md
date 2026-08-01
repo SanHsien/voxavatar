@@ -15,7 +15,7 @@
 
 1. 完成要求後直接 commit 並 `git push origin main`，不要預設只開 PR。
 2. 推上 `main` 後主動 bump `package.json` 版號、同步 lockfile、更新 `CHANGELOG.md`，再 commit／push。
-3. 建立並推送 `v{version}` tag，依 [`docs/RELEASING.md`](docs/RELEASING.md) 手動 dispatch Release，並驗證公開 Release、Latest、target commit 與資產。
+3. 建立並推送 `v{version}` tag（tag 必須指向當前 `main` tip）；推送 tag 會觸發 Release，亦可依 [`docs/RELEASING.md`](docs/RELEASING.md) 手動 dispatch。驗證公開 Release、Latest、target commit 與資產。
 4. 新版 Release **成功後**才刪除其餘舊 GitHub Release 與對應 tag，只保留最新版；新版失敗則不動舊版。
 5. 只有密鑰、未授權破壞性操作或互相矛盾的需求才停下詢問。
 

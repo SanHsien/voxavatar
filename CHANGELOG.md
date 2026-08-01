@@ -2,6 +2,11 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.4 - 2026-08-01
+
+- Release 在維持「tag＝main tip」信任閘門下，支援 `v*` tag push 自動打包（無法 `workflow_dispatch` 時仍可完成發行）。
+- 含 `0.2.3`：VRM 目錄評估匯入共用品質把關與 `voxavatar-vrm-report.md`。
+
 ## 0.2.3 - 2026-08-01
 
 - 模型目錄匯入比照動作：共用品質把關（report／strict／off），新增 VRM 啟發式評分與 `voxavatar-vrm-report.md`；嚴格模式略過淘汰檔。

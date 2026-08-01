@@ -7,19 +7,24 @@ on:
         description: Existing v{package.version} tag at the current main tip
         required: true
         type: string
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ inputs.tag }}
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   release-gate:
     name: Validate release inputs
     runs-on: windows-latest
-    if: github.ref == 'refs/heads/main'
+    if: >
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
     steps:
       - name: Check out trusted main workflow source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -30,7 +35,7 @@ jobs:
       - name: Require the tag to point at the main tip
         shell: pwsh
         env:
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           $tag = $env:RELEASE_TAG
           if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
@@ -41,7 +46,7 @@ jobs:
           $mainSha = git rev-parse refs/remotes/origin/main
           $tagSha = git rev-parse "refs/tags/${tag}^{commit}"
           if ($env:GITHUB_SHA -ne $mainSha -or $tagSha -ne $mainSha) {
-            throw "Release must run from main, and tag $tag must point at its current tip $mainSha."
+            throw "Release must run from main tip, and tag $tag must point at its current tip $mainSha."
           }
 
       - name: Set up Node.js
@@ -58,7 +63,7 @@ jobs:
 
       - name: Require tag to match package version
         env:
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: node scripts/check-release-tag.cjs "$env:RELEASE_TAG"
 
   package:
@@ -118,7 +123,7 @@ jobs:
       - name: Recheck the immutable release tag
         shell: pwsh
         env:
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           $tag = $env:RELEASE_TAG
           if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
@@ -148,8 +153,8 @@ jobs:
       - name: Create the GitHub release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
-          tag_name: ${{ inputs.tag }}
-          name: VoxAvatar ${{ inputs.tag }}
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          name: VoxAvatar ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           generate_release_notes: true
           # 不要因 tag 含 -beta 就標 Pre-release：GitHub 首頁 Latest 會略過，
           # 看起來像「只有 tag、沒有 Release」。beta 版號仍寫在 tag／標題裡。

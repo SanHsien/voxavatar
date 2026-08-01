@@ -70,7 +70,7 @@ Dependabot 可使用高權限 workflow，但必須 fail closed：只信任 `depe
 
 ## D-17｜Release 與素材匯入信任邊界
 
-Release 只允許從可信 `main` workflow 手動 dispatch，`release` environment 也只允許 `main` 部署；在執行程式碼前，workflow SHA、遠端 `main` 與 tag commit 必須完全相同，後續 checkout 固定該 SHA，發布前再驗 tag 未移動。checkout 不保留 credentials，只有 publish job 取得 `contents: write`；已發布 tag 另由 active tag ruleset 禁止刪除或 force-update。素材匯入先複製到 app-controlled 暫存檔，再從同一個 file descriptor 驗證實際／宣告 GLB 長度、bounded JSON chunk、glTF 2.0 與 VRM／VRMA extension，最後 atomic rename；renderer 載入錯誤必須保留可回復的設定入口。
+Release 可由可信 `main` 的 `workflow_dispatch`，或在 **`v*` tag 精確指向當前 `main` tip** 時由 tag push 觸發（供無法 dispatch 的自動化／agent 使用）。`release` environment 只允許 `main` 相關部署；執行前驗證 workflow／遠端 `main`／tag commit 相同，後續 checkout 固定該 SHA，發布前再驗 tag 未移動。checkout 不保留 credentials，只有 publish job 取得 `contents: write`；已發布 tag 另由 active tag ruleset 禁止 force-update（刪除舊版僅在新版成功後、政策允許時暫關 ruleset）。素材匯入先複製到 app-controlled 暫存檔，再從同一個 file descriptor 驗證實際／宣告 GLB 長度、bounded JSON chunk、glTF 2.0 與 VRM／VRMA extension，最後 atomic rename；renderer 載入錯誤必須保留可回復的設定入口。
 
 ## D-18｜輸出裝置全音監聽（opt-in）
 

@@ -2,7 +2,7 @@
 
 覆核日期：2026-08-01
 
-覆核基準：`v0.2.3`／`main`（承接 VRM 目錄評估匯入）
+覆核基準：`v0.2.4`／`main`（含 VRM 目錄評估匯入與 tag-push Release）
 
 ## 結論
 
@@ -14,7 +14,7 @@ VoxAvatar 已有可信的 Windows stable 基線，並以 **minor `0.2.0`** 收�
 
 | 嚴重度 | 問題 | 處理 |
 | --- | --- | --- |
-| P1 | tag push 信任根不足 | 只從可信 `main` dispatch；workflow／main／tag SHA 對齊 |
+| P1 | tag push 信任根不足 | 改為要求 tag／main tip／workflow SHA 對齊；允許 tip 對齊的 `v*` tag push 或 `main` dispatch |
 | P1 | 匯入 GLB 驗證過淺 | 完整 descriptor／長度／JSON／extension 驗證後 atomic rename |
 | P2 | Darwin／PipeWire 殘留 | 移除並安全回退 |
 | P2 | Markdown／媒體型別／Actions SHA／Dependabot／MIT | 已納入 gate 與文件 |

@@ -44,7 +44,17 @@ git push origin v0.1.0
 gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.1.0
 ```
 
-不得把 tag 移到另一個 commit 或只推 tag 不推版本 commit。Release 只接受從可信 `main` 手動 dispatch，GitHub `release` environment 也只允許 `main` 部署；workflow 在執行程式碼前驗證 workflow SHA、遠端 `main` 與 tag commit 三者相同，package／publish 固定 checkout 該 SHA，發布前再驗一次 tag 未移動。`scripts/check-release-tag.cjs` 另驗 tag 與 package 版號。
+不得把 tag 移到另一個 commit 或只推 tag 不推版本 commit。Release 可由可信 `main` 手動 dispatch，或在 **tag 精確指向當前 `main` tip** 時由 `v*` tag push 觸發；兩者都在執行前驗證 workflow／`main`／tag commit 相同，package／publish 固定 checkout 該 SHA，發布前再驗 tag 未移動。`scripts/check-release-tag.cjs` 另驗 tag 與 package 版號。GitHub `release` environment 只允許 `main` 部署。
+
+推送流程（agent／本機皆可）：
+
+```powershell
+git push origin main
+git tag v0.2.4
+git push origin v0.2.4
+# tag push 會觸發 Release；亦可改手動：
+# gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.2.4
+```
 
 每次準備 bump／push 前，依 [`AGENTS.md`](../AGENTS.md) 檢討 `CHANGELOG`、雙語 `README`／`ROADMAP`／`SECURITY`、`REVIEW` 與決策／流程文件。
 

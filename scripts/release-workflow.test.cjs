@@ -13,17 +13,28 @@ const WORKFLOW_PATH = path.join(
   "release.yml",
 );
 
-test("release workflow dispatches only trusted main tags and scopes write access", () => {
+test("release workflow accepts trusted main dispatch or matching tip tags", () => {
   const workflow = fs.readFileSync(WORKFLOW_PATH, "utf8");
 
   assert.match(workflow, /workflow_dispatch:/u);
-  assert.doesNotMatch(workflow, /push:\s*\n\s+tags:/u);
+  assert.match(workflow, /push:\s*\n\s+tags:\s*\n\s+-\s+"v\*"/u);
   assert.match(workflow, /permissions:\s*\n\s+contents: read/u);
-  assert.match(workflow, /if: github\.ref == 'refs\/heads\/main'/u);
   assert.match(workflow, /Require the tag to point at the main tip/u);
   assert.match(workflow, /GITHUB_SHA.*mainSha.*tagSha.*mainSha/u);
+  assert.match(
+    workflow,
+    /github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main'/u,
+  );
+  assert.match(
+    workflow,
+    /github\.event_name == 'push' && startsWith\(github\.ref, 'refs\/tags\/v'\)/u,
+  );
   assert.equal(
-    [...workflow.matchAll(/RELEASE_TAG: \$\{\{ inputs\.tag \}\}/gu)].length,
+    [
+      ...workflow.matchAll(
+        /RELEASE_TAG: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.tag \|\| github\.ref_name \}\}/gu,
+      ),
+    ].length,
     3,
   );
   assert.doesNotMatch(workflow, /\$tag\s*=\s*['"]\$\{\{/u);
@@ -41,5 +52,8 @@ test("release workflow dispatches only trusted main tags and scopes write access
     /publish:[\s\S]*?permissions:\s*\n\s+contents: write/u,
   );
   assert.equal([...workflow.matchAll(/environment: release/gu)].length, 2);
-  assert.match(workflow, /tag_name: \$\{\{ inputs\.tag \}\}/u);
+  assert.match(
+    workflow,
+    /tag_name: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.tag \|\| github\.ref_name \}\}/u,
+  );
 });

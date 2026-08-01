@@ -41,6 +41,59 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 | Agent integration | Loopback-only MCP, versioned `get_status` readiness, HTTP event API, and the `voxavatar://` URL protocol |
 | Release quality | Windows CI, CodeQL, media-license gate, NSIS installer, and SHA-256 checksum |
 
+## Capabilities unique to this fork
+
+Relative to [`xikhar/persona`](https://github.com/xikhar/persona), this fork is intentionally a **Windows-only local presence layer**, with the product capabilities below (see [`CHANGELOG.md`](CHANGELOG.md) and [`docs/DECISIONS.md`](docs/DECISIONS.md)):
+
+### Platform and identity
+
+- Maintains only Windows WASAPI, NSIS, and desktop behavior; does not restore PipeWire, Hyprland, macOS native, or Linux/macOS distribution targets.
+- Product identity is always **VoxAvatar / `voxavatar`** (appId, MCP CLI, `voxavatar://`, `VOXAVATAR_*`, `voxavatar-asset:`, native helper name).
+- Public docs default to Traditional Chinese, with English counterparts.
+
+### Desktop interaction
+
+- Transparent-area click-through; left-drag move, mouse-wheel zoom (minimum 30%), middle-drag rotate, and a right-click shortcut menu.
+- Reliable Windows tray: left-click show/hide; right-click menu (reset view, listening/speaking preview, settings, about).
+- Reset view from both tray and avatar menus; About shows the app version.
+
+### Voice and listener
+
+- Voice sources: default / selected application / custom process matcher / external events / **system-output mix (opt-in, privacy warning in Settings)**.
+- Searchable catalog of running local apps; sticky active root when multiple roots match.
+- Process discovery with PID-liveness fast path and adaptive backoff; custom matchers use a bounded safe subset (ReDoS resistant).
+- Explicit native helper states: `missing` / `launch_failed` / `target_missing` / `no_output` / `listening`.
+- Configurable Idle rest interval (default 8s, range 2–60s).
+
+### Media and actions
+
+- Releases **ship without** third-party VRM or Idle/Speaking VRMA by default; first launch opens Settings and guides lawful download then local import.
+- Recursive **evaluate-and-import** folders for VRM and VRMA; shared quality gate (`report` / `strict` / `off`) and Markdown reports (`voxavatar-vrm-report.md` / `voxavatar-vrma-report.md`).
+- Correct humanoid coverage for VRM 0.x (`humanBones` array) and VRM 1.0 (object map); VRMA defaults to strict thresholds (reject below 60, keep at 75+).
+- Import path: copy → GLB/extension validation → atomic rename; load failures return to a recoverable Settings surface.
+- Custom actions (name / description / trigger / multi-clip), common presets, and one-click delete of all user VRM/VRMA.
+- Idle picks from the non-speaking action pool without immediate repeats; MCP sees a live action catalog.
+
+### First-run and diagnostics
+
+- Settings first-run checklist: model, optional actions, voice source, MCP health, and completion.
+- Copyable diagnostic summary that redacts usernames, absolute paths, and `.vrm` / `.vrma` filenames, and never includes audio or model bytes.
+- Settings and MCP `get_status` share one readiness / helper-state vocabulary.
+
+### Agent and security hardening
+
+- MCP registration name is `voxavatar`; sessions have idle TTL (30 min) and a hard capacity of 32.
+- Privileged IPC validates renderer sender URLs; HTTP events / MCP POST reject non-JSON media types.
+- Local MCP/HTTP remain loopback-only, with no arbitrary command or arbitrary file access.
+
+### Release and maintenance baseline
+
+- Windows CI, CodeQL, media-license gate, Dependabot guarded auto-merge, NSIS, and SHA-256 Releases.
+- Packaging runs when the `main` tip already has the matching `v{version}` tag; after a successful new Release, only the latest public Release is kept.
+- Bilingual `ROADMAP` / `REVIEW` / `DECISIONS` and agent guidance (`AGENTS.md`) form the product and maintenance contract.
+
+Upstream may still offer cross-platform listeners or different settings paths. This project prioritizes the Windows local closed loop, media-license boundaries, and diagnosable first-run setup over tracking every upstream branch.
+
 ## How it works
 
 ```text
@@ -59,9 +112,11 @@ React + Three.js ── VRM / VRMA / lip sync / desktop interaction
 ## Privacy and security boundaries
 
 - **No microphone capture**, recording, transcription, audio retention, or audio transmission.
-- The MCP and HTTP bridge binds only to `127.0.0.1` and constrains Host, origin, body size, and input schemas.
+- By default only the selected application's playback is measured. The optional **system-output** mode listens to the current render-endpoint mix (music, video, games, and other apps). Settings shows an explicit privacy warning; levels stay local and are never uploaded.
+- The MCP and HTTP bridge binds only to `127.0.0.1` and constrains Host, origin, body size, and input schemas. MCP sessions have idle TTL and a hard capacity limit.
 - MCP controls only avatar actions, window state, and status. It cannot execute arbitrary commands or read arbitrary files.
-- Imported media is copied to per-user app data. The renderer can read only registered asset IDs.
+- Custom process matchers are limited to a bounded safe subset that rejects obvious ReDoS patterns.
+- Imported media is copied to per-user app data. The renderer can read only registered asset IDs through `voxavatar-asset:`.
 - Releases ship without third-party characters or motions by default. Lawful local import does not grant this project redistribution rights.
 
 Other processes under the same Windows account can still connect to the unauthenticated local MCP endpoint. Never forward the port to a LAN or the Internet. See [`SECURITY.en.md`](SECURITY.en.md) for the complete model.
@@ -81,7 +136,7 @@ Visual Studio Build Tools is not required for normal UI, settings, MCP, document
 
 1. Download the Windows installer from [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest).
 2. Launch VoxAvatar. Settings opens automatically when no model is configured.
-3. Under **Models**, import a `.vrm` you are allowed to use.
+3. Under **Models**, import a `.vrm` you are allowed to use. Releases do not ship third-party characters by default.
 4. Add `.vrma` clips to Idle, Speaking, or custom actions. Lip sync still works without motion clips.
 5. Under **Voice**, select the application that plays assistant audio.
 

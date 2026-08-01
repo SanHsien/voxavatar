@@ -2,7 +2,7 @@
 
 覆核日期：2026-08-01
 
-覆核基準：`v0.2.7`／`main`（首次設定 readiness、helper 狀態、診斷摘要；VRM0 humanoid 覆蓋修正）
+覆核基準：`v0.2.8`／`main`（README 相對上游獨有能力補回；含 0.2.7 readiness／診斷）
 
 ## 結論
 

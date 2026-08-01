@@ -41,6 +41,59 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | Agent 整合 | loopback-only MCP、版本化 `get_status` readiness、HTTP 事件 API 與 `voxavatar://` URL protocol |
 | 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS 安裝包與 SHA-256 checksum |
 
+## 相對上游的獨有能力
+
+相對 [`xikhar/persona`](https://github.com/xikhar/persona)，本 fork 刻意做成 **Windows-only 的本機角色呈現層**，並累積下列產品能力（細節見 [`CHANGELOG.md`](CHANGELOG.md)、[`docs/DECISIONS.md`](docs/DECISIONS.md)）：
+
+### 平台與識別
+
+- 只維護 Windows WASAPI、NSIS 與桌面行為；不恢復 PipeWire、Hyprland、macOS native 或 Linux／macOS 發行。
+- 產品識別一律為 **VoxAvatar／`voxavatar`**（appId、MCP CLI、`voxavatar://`、`VOXAVATAR_*`、`voxavatar-asset:`、原生 helper 名稱）。
+- 公開文件以繁體中文為預設，並附英文對照。
+
+### 桌面互動
+
+- 透明區點穿；角色本體左鍵拖曳、滾輪縮放（下限 30%）、中鍵旋轉、右鍵快捷選單。
+- Windows 可靠系統匣：左鍵顯示／隱藏，右鍵功能選單（含重設視角、聆聽／說話預覽、設定、關於）。
+- 系統匣與角色選單可重設視角；「關於」顯示應用程式版本。
+
+### 語音與 listener
+
+- 語音來源：預設／指定應用／自訂 process matcher／外部事件／**系統輸出混音（opt-in，設定頁有隱私警告）**。
+- 可搜尋的本機執行中應用程式目錄；多符合來源採 sticky active root。
+- Process discovery：PID 存活快路徑與 adaptive backoff；自訂 matcher 為有界安全子集（防 ReDoS）。
+- Native helper 明確狀態：`missing`／`launch_failed`／`target_missing`／`no_output`／`listening`。
+- 可調 Idle 休息間隔（預設 8 秒，2–60 秒）。
+
+### 素材與動作
+
+- 安裝包**預設不內建**第三方 VRM／Idle／Speaking VRMA；首次無模型時開啟設定並引導合法下載後本機匯入。
+- VRM／VRMA **目錄遞迴評估匯入**；共用品質把關（report／strict／off）與 Markdown 報告（`voxavatar-vrm-report.md`／`voxavatar-vrma-report.md`）。
+- VRM 0.x（`humanBones` 陣列）與 VRM 1.0（物件 map）humanoid 覆蓋皆可正確評分；VRMA 預設嚴格門檻（淘汰低於 60、保留至少 75）。
+- 匯入採複製 → GLB／extension 驗證 → atomic rename；載入失敗可回到可回復設定畫面。
+- 自訂動作（名稱／描述／觸發情境／多片段）、常用動作預設、一鍵清除全部使用者 VRM／VRMA。
+- Idle 從可用非說話動作池隨機抽播並避免立即重複；MCP 即時看到動作 catalog。
+
+### 首次設定與診斷
+
+- 設定頁首次設定進度清單：模型、可選動作、語音來源、MCP 健康與完成狀態。
+- 可複製診斷摘要：遮罩使用者名、絕對路徑與 `.vrm`／`.vrma` 檔名，不含音訊或模型內容。
+- 設定頁與 MCP `get_status` 共用同一套 readiness／helper 狀態語彙。
+
+### Agent 與安全硬化
+
+- MCP 註冊名為 `voxavatar`；session 有 idle TTL（30 分）與容量上限（32）。
+- Privileged IPC 驗證 renderer sender URL；HTTP events／MCP 拒絕非 JSON media type。
+- 本機 MCP／HTTP 仍只綁定 loopback，不提供任意命令或任意檔案存取。
+
+### 發行與維護基線
+
+- Windows CI、CodeQL、資產授權 gate、Dependabot guarded auto-merge、NSIS 與 SHA-256 Release。
+- Release 在 `main` tip 已有對應 `v{version}` tag 時打包；新版成功後只保留最新公開 Release。
+- 雙語 `ROADMAP`／`REVIEW`／`DECISIONS` 與 agent 指引（`AGENTS.md`）作為產品與維護契約。
+
+上游仍可能提供跨平台 listener 或不同設定路徑；本專案以 Windows 本機閉環、素材授權邊界與可診斷首次設定為優先，不追求功能對齊上游每一支分支。
+
 ## 運作方式
 
 ```text
@@ -59,9 +112,11 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 ## 隱私與安全邊界
 
 - **不擷取麥克風**，不錄音、不轉錄、不保存或傳送音訊。
-- MCP／HTTP bridge 只綁定 `127.0.0.1`，限制 Host、origin、body 大小與輸入 schema。
+- 預設只聽指定應用程式的播放輸出；若改為「系統輸出」模式，會監聽目前輸出裝置混音（含音樂／影片／遊戲等），設定頁會顯示隱私邊界警告，且仍為本機計算、不上傳。
+- MCP／HTTP bridge 只綁定 `127.0.0.1`，限制 Host、origin、body 大小與輸入 schema；MCP session 有 idle TTL 與容量上限。
 - MCP 只控制角色動作、視窗與狀態，不執行任意命令，也不讀取任意檔案。
-- 使用者媒體複製到每使用者應用資料；renderer 只能以登記後的資產 ID 讀取。
+- 自訂 process matcher 為有界安全子集，拒絕明顯易 ReDoS 的 pattern。
+- 使用者媒體複製到每使用者應用資料；renderer 只能以登記後的資產 ID 經 `voxavatar-asset:` 讀取。
 - 安裝包預設不附第三方角色或動作。可本機匯入，不等於本專案可以再散布原檔。
 
 同一 Windows 帳號下的其他行程仍可連到未驗證身分的本機 MCP，請勿把連接埠轉發到區域網路或 Internet。完整模型見 [`SECURITY.md`](SECURITY.md)。
@@ -81,7 +136,7 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 
 1. 從 [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest) 下載 Windows 安裝程式。
 2. 啟動 VoxAvatar；首次沒有模型時會自動開啟設定頁。
-3. 在「模型」匯入你有權使用的 `.vrm`。
+3. 在「模型」匯入你有權使用的 `.vrm`。安裝包預設不內建第三方角色。
 4. 在 Idle／Speaking 或自訂動作加入 `.vrma`；沒有 VRMA 時仍可做口型。
 5. 在「語音」選擇會播放助理聲音的應用程式。
 

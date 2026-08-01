@@ -177,6 +177,7 @@ export function SettingsPage() {
     });
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [reportRevealPath, setReportRevealPath] = useState<string | null>(null);
   const [mcpStatus, setMcpStatus] = useState<VoxAvatarMcpStatus | null>(null);
   const [mcpLoading, setMcpLoading] = useState(false);
   const [readiness, setReadiness] = useState<VoxAvatarAppReadiness | null>(
@@ -275,7 +276,10 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 9000);
+    const timer = window.setTimeout(() => {
+      setNotice(null);
+      setReportRevealPath(null);
+    }, 9000);
     return () => window.clearTimeout(timer);
   }, [notice]);
 
@@ -323,6 +327,7 @@ export function SettingsPage() {
     ) => {
       setBusy(true);
       setNotice(null);
+      setReportRevealPath(null);
       try {
         const snapshot = await operation();
         if (snapshot) {
@@ -565,6 +570,7 @@ export function SettingsPage() {
     if (!bridge?.importModelsFromDirectory) return;
     setBusy(true);
     setNotice(null);
+    setReportRevealPath(null);
     try {
       const result = await bridge.importModelsFromDirectory({
         model_name: modelName.trim(),
@@ -586,7 +592,8 @@ export function SettingsPage() {
             }),
       ];
       if (result.summary.report_path) {
-        parts.push(t('notice.reportSaved', { path: result.summary.report_path }));
+        parts.push(t('notice.reportSavedShort'));
+        setReportRevealPath(result.summary.report_path);
       } else if (result.summary.report_error) {
         parts.push(
           t('notice.reportFailed', { error: result.summary.report_error }),
@@ -622,6 +629,7 @@ export function SettingsPage() {
     if (!bridge?.addAnimationClipsFromDirectory) return;
     setBusy(true);
     setNotice(null);
+    setReportRevealPath(null);
     try {
       const result = await bridge.addAnimationClipsFromDirectory(animation.id);
       if (!result) return;
@@ -649,7 +657,8 @@ export function SettingsPage() {
             }),
       ];
       if (result.summary.report_path) {
-        parts.push(t('notice.reportSaved', { path: result.summary.report_path }));
+        parts.push(t('notice.reportSavedShort'));
+        setReportRevealPath(result.summary.report_path);
       } else if (result.summary.report_error) {
         parts.push(
           t('notice.reportFailed', { error: result.summary.report_error }),
@@ -903,6 +912,37 @@ export function SettingsPage() {
         }
       },
     });
+  };
+
+  const reorderAnimationClip = async (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+    direction: 'up' | 'down',
+  ) => {
+    const reorder = bridge?.reorderAnimationClip;
+    if (!reorder || !clip.removable) return;
+    const snapshot = await run(
+      () => reorder(animation.id, clip.id, direction),
+      t('notice.clipReordered', { name: clip.animation_name }),
+    );
+    if (!snapshot) return;
+    const updated = snapshot.animations.find(
+      (candidate) => candidate.id === animation.id,
+    );
+    if (previewAnimation?.id === animation.id) {
+      setPreviewAnimation(updated ?? null);
+    }
+  };
+
+  const revealReportPath = async () => {
+    const reveal = bridge?.revealPath;
+    if (!reveal || !reportRevealPath) return;
+    try {
+      await reveal(reportRevealPath);
+    } catch (error) {
+      setNotice(errorMessage(error));
+      setReportRevealPath(null);
+    }
   };
 
   const resetPackagedAnimations = () => {
@@ -1208,13 +1248,27 @@ export function SettingsPage() {
         {notice && (
           <div className="settings-notice" role="status">
             <span>{notice}</span>
-            <button
-              aria-label={t('app.dismissNotice')}
-              onClick={() => setNotice(null)}
-              type="button"
-            >
-              ×
-            </button>
+            <div className="settings-notice-actions">
+              {reportRevealPath && bridge?.revealPath ? (
+                <button
+                  className="settings-notice-action"
+                  onClick={() => void revealReportPath()}
+                  type="button"
+                >
+                  {t('notice.revealReport')}
+                </button>
+              ) : null}
+              <button
+                aria-label={t('app.dismissNotice')}
+                onClick={() => {
+                  setNotice(null);
+                  setReportRevealPath(null);
+                }}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
           </div>
         )}
 
@@ -1805,7 +1859,7 @@ export function SettingsPage() {
                           </p>
                         ) : (
                           <div className="clip-list">
-                            {animation.clips.map((clip) => (
+                            {animation.clips.map((clip, clipIndex) => (
                               <div
                                 aria-label={t('actions.previewClip', {
                                   name: clip.animation_name,
@@ -1845,22 +1899,76 @@ export function SettingsPage() {
                                     : t('common.uploaded')}
                                 </small>
                                 {clip.removable && (
-                                  <button
-                                    aria-label={t('actions.deleteClip', {
-                                      name: clip.animation_name,
-                                    })}
-                                    className="clip-delete"
-                                    disabled={busy || !bridge}
-                                    onClick={() =>
-                                      void deleteAnimationClip(animation, clip)
-                                    }
-                                    title={t('actions.deleteClip', {
-                                      name: clip.animation_name,
-                                    })}
-                                    type="button"
-                                  >
-                                    ×
-                                  </button>
+                                  <div className="clip-controls">
+                                    <button
+                                      aria-label={t('actions.moveClipUp', {
+                                        name: clip.animation_name,
+                                      })}
+                                      className="clip-reorder"
+                                      disabled={
+                                        busy ||
+                                        !bridge?.reorderAnimationClip ||
+                                        clipIndex === 0
+                                      }
+                                      onClick={() =>
+                                        void reorderAnimationClip(
+                                          animation,
+                                          clip,
+                                          'up',
+                                        )
+                                      }
+                                      title={t('actions.moveClipUp', {
+                                        name: clip.animation_name,
+                                      })}
+                                      type="button"
+                                    >
+                                      ↑
+                                    </button>
+                                    <button
+                                      aria-label={t('actions.moveClipDown', {
+                                        name: clip.animation_name,
+                                      })}
+                                      className="clip-reorder"
+                                      disabled={
+                                        busy ||
+                                        !bridge?.reorderAnimationClip ||
+                                        clipIndex ===
+                                          animation.clips.length - 1
+                                      }
+                                      onClick={() =>
+                                        void reorderAnimationClip(
+                                          animation,
+                                          clip,
+                                          'down',
+                                        )
+                                      }
+                                      title={t('actions.moveClipDown', {
+                                        name: clip.animation_name,
+                                      })}
+                                      type="button"
+                                    >
+                                      ↓
+                                    </button>
+                                    <button
+                                      aria-label={t('actions.deleteClip', {
+                                        name: clip.animation_name,
+                                      })}
+                                      className="clip-delete"
+                                      disabled={busy || !bridge}
+                                      onClick={() =>
+                                        void deleteAnimationClip(
+                                          animation,
+                                          clip,
+                                        )
+                                      }
+                                      title={t('actions.deleteClip', {
+                                        name: clip.animation_name,
+                                      })}
+                                      type="button"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             ))}

@@ -2,6 +2,10 @@
 
 VoxAvatar 只從 `main` 的 `v{package.version}` tag 建立 Windows GitHub Release。workflow 位於 `.github/workflows/release.yml`。
 
+## 批次政策（D-23）
+
+`main` 可累積多次 SemVer bump 與 `CHANGELOG.md` 條目，**無需每次 bump 都 Release／tag**。僅在準備對外發布時做 batch cut：確認 tip 版號、補齊 CHANGELOG、推 `v{version}` tag 並觸發打包。禁止空轉或無實質變更的 Release。Windows 實機 smoke／簽署在無桌面或密鑰時不阻塞後續開發，但 Release 前仍應在能力範圍內完成可驗證步驟。
+
 ## 前置條件
 
 - 工作樹乾淨，`HEAD` 與 `origin/main` 同步。
@@ -94,3 +98,13 @@ gh api repos/SanHsien/voxavatar/releases/latest
 人工證據依 [`release-evidence/README.md`](release-evidence/README.md) 留存；不得用 GitHub runner 的 workflow 綠燈取代真實桌面驗收。
 
 只有 tag 或 workflow 綠燈，不等於 Release 已完成。
+
+## SBOM（依賴清單）
+
+Release 前或稽核時可從 `package-lock.json` 產生 production 依賴 SBOM（不含 devDependencies）：
+
+```powershell
+npm run sbom
+```
+
+預設寫入 `release/sbom.json`；可用 `--output <path>` 指定路徑。腳本僅使用 Node 內建模組，不另裝 SBOM 工具。

@@ -41,6 +41,15 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
       animationId,
       clipId,
     ),
+  reorderAnimationClip: (animationId, clipId, direction) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-reorder-animation-clip",
+      animationId,
+      clipId,
+      direction,
+    ),
+  revealPath: (targetPath) =>
+    ipcRenderer.invoke("voxavatar:settings-reveal-path", targetPath),
   resetPackagedAnimations: () =>
     ipcRenderer.invoke("voxavatar:settings-reset-packaged-animations"),
   deleteModel: (modelId) =>

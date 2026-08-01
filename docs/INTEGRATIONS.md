@@ -21,11 +21,82 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 
 ### Status／工具輸出 schema
 
-- `get_status` 內嵌 `readiness.schema_version`（目前為 `1`，定義於 `electron/app-readiness.cjs`）。
-- **相容政策**：同 MAJOR 下新增欄位為向後相容；移除或改語意欄位需升 `schema_version` 並在 CHANGELOG 說明。Agent 應優先讀結構化欄位（`readiness.steps`、`listener.state`），不要只解析人類可讀字串。
-- `list_animations`／`play_animation` 以目前設定 catalog 為準；設定變更後既有 MCP session 會更新工具描述。高頻 `play_animation` 經有界佇列合併同名請求，避免 renderer 被淹沒。
+所有 MCP 工具結果皆以 **JSON 文字** 回傳（`content[0].text` 為 `JSON.stringify` 結果）。請解析結構化欄位，並保留 `message` 供人類閱讀。
 
-建議先呼叫 `list_animations`，再把回傳的小寫連字號名稱傳給 `play_animation`。設定頁新增或移除動作後，現有 MCP session 會更新工具描述。
+| 常數 | 目前值 | 用途 |
+| --- | --- | --- |
+| `status_schema_version` | `1` | `get_status` 與設定頁 MCP 狀態區塊的外層 envelope |
+| `tools_schema_version` | `1` | `list_animations`、`play_animation`、`control_window` 的 envelope |
+| `readiness.schema_version` | `1` | `get_status.readiness` 內嵌步驟語彙（`electron/app-readiness.cjs`） |
+
+#### `get_status` 主要欄位
+
+- `status_schema_version`、`message`
+- `modelConfigured`、`windowVisible`、`voiceState`、`listener`
+- `readiness`：`complete`、`steps`、`next_step`、`listener_state`、`playable_actions` 等
+
+#### 其他工具主要欄位
+
+| 工具 | 結構化欄位 |
+| --- | --- |
+| `list_animations` | `schema_version`、`message`、`count`、`animations[]`（`animation_name`、`animation_description`、`animation_trigger_scenario`） |
+| `play_animation` | `schema_version`、`message`、`animation`、`played`；失敗時另有 `error`（`animation_not_playable` 或 `model_or_clips_missing`） |
+| `control_window` | `schema_version`、`message`、`action`、`visible` |
+
+#### SemVer 相容政策
+
+- **同 MAJOR**（例如仍為 `1`）：可新增 optional 欄位；Agent 應忽略未知欄位。
+- **升 MAJOR**：移除欄位、改名或改變語意時必須 bump `status_schema_version` 或 `tools_schema_version`，並在 CHANGELOG 說明。
+- `readiness.schema_version` 獨立演進；變更時一併檢查 `get_status` 文件與整合測試。
+- Agent 應優先讀 `readiness.steps`、`listener.state`／`readiness.listener_state` 與工具 JSON 欄位，不要只解析 `message` 字串。
+
+`list_animations`／`play_animation` 以目前設定 catalog 為準；設定變更後既有 MCP session 會收到 `tools/list_changed` 並更新 `play_animation` 描述。高頻 `play_animation` 經有界佇列合併同名請求，避免 renderer 被淹沒。
+
+建議先呼叫 `list_animations`，再把回傳的小寫連字號名稱傳給 `play_animation`。
+
+### Streamable HTTP 用戶端 sketch
+
+VoxAvatar bridge 使用 MCP **Streamable HTTP**（非 stdio）。端點：`POST http://127.0.0.1:<port>/mcp`，初始化後後續請求需帶 `Mcp-Session-Id` header。
+
+Node.js（`@modelcontextprotocol/sdk`）最小流程：
+
+```javascript
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+const client = new Client({ name: "my-agent", version: "1.0.0" });
+const transport = new StreamableHTTPClientTransport(
+  new URL("http://127.0.0.1:47831/mcp"),
+);
+await client.connect(transport);
+
+const listed = await client.callTool({ name: "list_animations", arguments: {} });
+const catalog = JSON.parse(listed.content[0].text);
+
+const status = await client.callTool({ name: "get_status", arguments: {} });
+const snapshot = JSON.parse(status.content[0].text);
+```
+
+設定頁「整合 → MCP」會顯示 `server_url`、`setup_command` 與 `status_schema_version`／`tools_schema_version`。
+
+### 多個 MCP 用戶端
+
+- 同一 bridge 可同時承載多個 MCP session（預設上限 32）；各 session 獨立，共用同一 catalog 與 app 狀態。
+- 設定變更觸發 `notifyToolsChanged` 時，**所有** active session 都會收到工具列表更新。
+- Session 閒置超過 30 分鐘會被回收；超過上限時最舊 session 會被關閉。
+- VoxAvatar 結束或 MCP handler 關閉後，舊 `Mcp-Session-Id` 無效；請建立新 session，勿重複使用舊 ID。
+
+### 重新註冊與重連
+
+| 情境 | 建議做法 |
+| --- | --- |
+| VoxAvatar 重啟 | 重新 `codex mcp add` 或更新用戶端 URL；舊 session 必須重新 `initialize` |
+| 變更 `VOXAVATAR_BRIDGE_PORT` | 以新 port 更新環境變數、重啟 VoxAvatar，並用設定頁顯示的 `server_url` **重新註冊** MCP |
+| `get_status` 回 `mcp_unavailable` | 確認桌面程式已啟動；查 `/health` 與設定頁 MCP 狀態 |
+| `play_animation` 回 `model_or_clips_missing` | 匯入 VRM 並至少設定一個可播放 clip |
+| `play_animation` 回 `animation_not_playable` | 先 `list_animations` 取得最新 catalog |
+| 404 `MCP session not found` | Session 已過期或被關閉；重新 connect／initialize |
+| 工具 JSON 解析失敗 | 確認 VoxAvatar 版本與 `tools_schema_version`／`status_schema_version` 是否仍為 MAJOR `1` |
 
 MCP 只控制視覺狀態，不會合成或播放語音。
 

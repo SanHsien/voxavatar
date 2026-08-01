@@ -14,6 +14,13 @@ const {
   ANIMATION_NAME_PATTERN,
   describeAnimations,
 } = require("./library-catalog.cjs");
+const {
+  formatControlWindow,
+  formatGetStatus,
+  formatListAnimations,
+  formatPlayAnimation,
+  serializeToolResult,
+} = require("./mcp-schemas.cjs");
 
 const MCP_PATH = "/mcp";
 const WINDOW_ACTIONS = ["show", "hide", "toggle"];
@@ -22,12 +29,6 @@ const MCP_SESSION_IDLE_TTL_MS = 30 * 60 * 1000;
 const MCP_SESSION_SWEEP_MS = 60_000;
 const SERVER_INSTRUCTIONS =
   "VoxAvatar controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle VoxAvatar. VoxAvatar never speaks or plays audio. get_status and list_animations are read-only.";
-
-function textResult(text) {
-  return {
-    content: [{ type: "text", text }],
-  };
-}
 
 function animationToolDescription(animations) {
   return [
@@ -87,8 +88,12 @@ function createVoxAvatarMcpServer({
       );
       if (!installed) {
         return {
-          ...textResult(
-            `The ${animation} action is not currently playable. Call list_animations for the latest action catalog.`,
+          ...serializeToolResult(
+            formatPlayAnimation({
+              animation,
+              played: false,
+              error: "animation_not_playable",
+            }),
           ),
           isError: true,
         };
@@ -96,13 +101,19 @@ function createVoxAvatarMcpServer({
       const played = await onAnimation(animation);
       if (played === false) {
         return {
-          ...textResult(
-            "VoxAvatar cannot play that action until a model and at least one clip are configured.",
+          ...serializeToolResult(
+            formatPlayAnimation({
+              animation,
+              played: false,
+              error: "model_or_clips_missing",
+            }),
           ),
           isError: true,
         };
       }
-      return textResult(`VoxAvatar is playing the ${animation} action.`);
+      return serializeToolResult(
+        formatPlayAnimation({ animation, played: true }),
+      );
     },
   );
 
@@ -119,7 +130,8 @@ function createVoxAvatarMcpServer({
         openWorldHint: false,
       },
     },
-    async () => textResult(describeAnimations(getAnimations())),
+    async () =>
+      serializeToolResult(formatListAnimations(getAnimations())),
   );
 
   server.registerTool(
@@ -140,7 +152,7 @@ function createVoxAvatarMcpServer({
     },
     async ({ action }) => {
       const visible = await onWindowAction(action);
-      return textResult(`VoxAvatar's window is now ${visible ? "visible" : "hidden"}.`);
+      return serializeToolResult(formatControlWindow({ action, visible }));
     },
   );
 
@@ -157,7 +169,8 @@ function createVoxAvatarMcpServer({
         openWorldHint: false,
       },
     },
-    async () => textResult(JSON.stringify(await getStatus())),
+    async () =>
+      serializeToolResult(formatGetStatus(await getStatus())),
   );
 
   server.refreshAnimationCatalog = () => {

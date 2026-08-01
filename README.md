@@ -120,7 +120,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前 Latest 為 `v0.2.x`：含系統輸出語音、目錄品質把關、readiness／診斷、preload 分權與動作佇列。下一階段需 **Windows 實機證據**（本環境無法代填）與 installer 簽署密鑰後，再推進素材相容矩陣。
+目前 `main` 版號為 `0.4.0`（素材匯入確認／migration／MCP JSON schema）；GitHub Latest Release 依批次政策可能仍為較早 tag。下一階段繼續 v0.5 可維護性；Windows 實機證據與 installer 簽署**不阻塞**開發（D-23）。
 
 版本里程碑、完成條件、風險與明確不做的範圍見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與仍需實機驗證的項目見 [`REVIEW.md`](REVIEW.md)。
 

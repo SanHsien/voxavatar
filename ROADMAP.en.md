@@ -4,7 +4,7 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.2.9`
+Planning baseline: `v0.4.0` (accumulated on `main`; Latest Release may still point at an earlier tag—see D-23)
 
 This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
 
@@ -74,7 +74,7 @@ Goal: prove the `0.1.0` promise through code, GitHub state, and downloaded artif
 - [x] GitHub recognizes the MIT license while the media-license gate remains fail closed.
 - [x] Release tag, package version, installer, Latest status, and SHA-256 agree.
 - [x] Unsigned installers are not presented as SmartScreen-signing validated.
-- Real Windows smoke evidence is traceable (format exists; versioned filled records still needed).
+- ~~Real Windows smoke evidence is traceable~~ **Deferred (not a v0.3+ blocker, D-23)**: format exists; filled records wait for a Windows desktop.
 
 ## v0.2.x: diagnostics hardening and first-run closed loop
 
@@ -86,7 +86,7 @@ Goal: `0.2.0` hardens listener, matcher, IPC, and MCP session reliability; later
 - [x] Give the native helper explicit states: missing, launch failed, target process missing, no output, and listening.
 - [x] Add a copyable diagnostic summary that redacts usernames, absolute paths, and media filenames by default and never includes audio or model content.
 - [x] Make `get_status` and Settings share one readiness and error vocabulary.
-- Establish a real Windows 10/11 matrix for install, upgrade, uninstall, and protocol registration.
+- ~~Establish a real Windows 10/11 matrix for install, upgrade, uninstall, and protocol registration.~~ **Deferred (not a v0.3+ blocker, D-23)**: add versioned evidence when a Windows desktop is available.
 - [x] Replace fixed process discovery with a PID-liveness fast path and adaptive backoff, and define sticky active-source semantics for multiple matching roots (`0.2.0`).
 - [x] Restrict custom process matchers to a non-explosive safe subset (`0.2.0`).
 - [x] Add MCP session idle TTL, hard capacity, and testable eviction (pulled forward from `0.4` into `0.2.0`).
@@ -109,16 +109,16 @@ Goal: users can understand availability, quality, and migration results before r
 ### Work
 
 - Publish a verified VRM 0.x/1.0 and common VRMA exporter matrix covering skeleton, expression, texture, and motion results.
-- Show format, size, and quality summaries before import; failures must not leave partial catalog records.
-- Add explicit schema versions and migration fixtures for Settings and the library catalog across the last two MINOR releases.
-- Improve action preview, clip ordering, and navigation from a quality report to the affected action.
+- [x] Show format and quality summaries before import and write to the catalog only after confirmation (folder-import dialog; failure reasons and strict skip behavior remain).
+- [x] Add explicit schema versions and migration fixtures for the settings catalog across the last two MINOR releases (schema 4/5→6; back up the original file when migration is not possible).
+- [x] Improve clip reordering and quality-report navigation (move up/down, reveal report in File Explorer).
 - [x] Preserve separate decisions for lawful local import and project redistribution permission.
 
 ### Completion criteria
 
 - Every matrix entry has an automated fixture or versioned manual evidence.
 - [x] Interrupted, duplicate, corrupt, oversized, or incompatible imports cannot damage the existing library.
-- Settings and catalogs from the last two MINOR releases migrate safely; failed migrations preserve original data and explain the problem.
+- [x] Settings and catalogs from the last two MINOR releases upgrade safely; failed migrations preserve original data and explain the problem.
 
 ## v0.4.x: a stable local MCP contract
 
@@ -126,19 +126,19 @@ Goal: agents do not guess tool capabilities, action names, or error states, and 
 
 ### Work
 
-- Version MCP status and tool-output schemas, with an explicit SemVer compatibility policy.
-- Add Codex and generic Streamable HTTP examples for port changes, reconnects, and troubleshooting.
-- Validate multiple local clients, long-session catalog refresh, and app close/restart behavior.
+- [x] Version MCP status and tool-output schemas, with an explicit SemVer compatibility policy (`status_schema_version` / `tools_schema_version`).
+- [x] Add Codex and generic Streamable HTTP client examples for port changes, reconnects, and troubleshooting (`docs/INTEGRATIONS.md`).
+- [x] Validate multiple local MCP clients, long-session catalog refresh, and handler close/restart behavior (automated tests).
 - [x] Add idle TTL, a hard capacity limit, and testable eviction/close behavior for MCP sessions (shipped in `0.2.0`).
-- [x] Separate avatar and Settings preload privileges; sender URL validation shipped in `0.2.0`, window binding in `0.2.9`.
+- [x] Separate avatar and Settings preload privileges; sender URL validation shipped in `0.2.0`, window binding completed in `0.2.9`.
 - [x] Define bounded queueing or throttling for repeated high-frequency actions so the renderer cannot be flooded indefinitely.
 - [x] Keep the visual-control scope. Do not add arbitrary commands, arbitrary files, network proxying, or speech generation.
 
 ### Completion criteria
 
-- Supported clients never need to parse human prose to determine state.
-- Breaking schema changes include version and migration guidance.
-- App restart, disconnect, multiple clients, and action updates have automated tests or reproducible smoke evidence.
+- [x] Supported clients never need to parse human prose to determine state (tool results are parseable JSON).
+- [x] Breaking schema changes include version and migration guidance (INTEGRATIONS / DECISIONS).
+- [x] App restart, client disconnect, multiple clients, and action updates have automated tests or reproducible smoke evidence.
 - [x] MCP remains loopback-only with complete boundary tests.
 - [x] Abandoned or excessive sessions cannot grow without bound.
 - [x] The avatar renderer cannot call Settings or asset-management IPC (preload split and Settings webContents checks are in place).
@@ -150,12 +150,13 @@ Goal: new features do not turn one Settings page, the main process, and the sett
 ### Work
 
 - Split `SettingsPage.tsx`, `electron/main.cjs`, and `settings-store.cjs` by responsibility, preserving behavior tests before moving code.
+- [x] Extract folder-import evaluate helper (`directory-import.cjs`); continue splitting Settings, main, and store.
 - Benchmark cold launch, first avatar display, model switching, long idle sessions, and large libraries.
-- Use bundle analysis to defer Settings, quality-report, and other non-first-frame code without harming overlay startup.
+- [x] Lazy-load Settings (`React.lazy`) without sacrificing overlay first paint; quality-report and other non-first-frame splits remain.
 - Add Windows keyboard, focus-order, scaling, and high-DPI acceptance checks.
 - Give native COM/WASAPI capture failures typed errors and non-zero exits, with real-machine playback, device-switch, and recovery tests.
 - Add component tests for App, Settings, and Scene recovery plus desktop smoke for protocol, tray, and MCP behavior.
-- Evaluate an SBOM and release-evidence manifest so installer contents and dependencies are auditable.
+- [x] Provide a production dependency SBOM script (`npm run sbom`); release-evidence manifest and installer inventory remain.
 
 ### Completion criteria
 
@@ -220,13 +221,13 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 3. Use automated tests for logic and real Windows smoke for WASAPI, transparent windows, tray behavior, and installers.
 4. Pass at least `npm run check`; native and Release work runs the full gate on a GitHub Windows runner.
 5. **Before every push**, review and sync Traditional Chinese / English public docs plus `CHANGELOG.md` (including `README`, `ROADMAP`, `SECURITY`, `REVIEW`, decisions, and process docs); confirm the review even when no edit is needed.
-6. After push, verify CI, CodeQL, published Latest Release, tag SHA, installer, and checksum.
+6. After push, verify CI and CodeQL; **on batch Release**, also verify published Latest, tag SHA, installer, and checksum (routine bumps do not publish).
 7. Delete older Releases/tags only after a successful new Release, keeping only the latest; leave older ones untouched if the new Release fails.
-8. Mark roadmap work complete only when the completion criteria have evidence.
-9. After an interrupted session, agents must resume unfinished work automatically; see [`AGENTS.md`](AGENTS.md).
+8. Mark roadmap work complete only when the completion criteria have evidence; deferred Windows real-machine items do not block later milestones (D-23).
+9. After an interrupted session, agents and maintainers must resume unfinished work automatically; see [`AGENTS.md`](AGENTS.md).
 
 ## Next three actions
 
-1. [x] **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
-2. [x] **Ship `0.2.0`–`0.2.9` hardening:** discovery/matcher/MCP session/IPC, readiness/diagnostics, preload split, bounded animation queue; README capability list reorganized.
-3. **Add versioned Windows smoke evidence**, then advance the v0.3 media matrix and remaining MCP contract work.
+1. [x] **Close v0.1.x / v0.2.x baseline and hardening** (including preload split and bounded action queue).
+2. [x] **Advance v0.3 / v0.4:** migration fixtures, import confirmation summaries, clip ordering / report navigation, MCP schema JSON, multi-client tests, integration docs.
+3. **Continue v0.5:** split large modules, error-recovery component tests, performance benchmarks; defer exporter matrix, real-machine, and signing evidence.

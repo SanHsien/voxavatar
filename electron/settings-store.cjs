@@ -418,7 +418,19 @@ function safeReadState(settingsPath, packagedLibrary) {
         parsed?.schema_version,
       )
     ) {
-      return { migrated: false, state: fallback };
+      try {
+        fs.copyFileSync(
+          settingsPath,
+          `${settingsPath}.unmigratable-backup`,
+        );
+      } catch {
+        // 無法備份時仍回退至預設狀態。
+      }
+      return {
+        migrated: false,
+        state: fallback,
+        migration_error: "unsupported_schema",
+      };
     }
     const { hidden, overrides } = packagedUserLayers(parsed, packagedLibrary);
     const models = sanitizeModels(parsed.models);
@@ -977,6 +989,26 @@ function createSettingsStore({
     return getSnapshot();
   }
 
+  function reorderAnimationClip(animationId, clipId, direction) {
+    if (direction !== "up" && direction !== "down") {
+      throw new Error("Clip reorder direction must be 'up' or 'down'.");
+    }
+    const clips = state.animation_clips[animationId];
+    if (!clips || clips.length === 0) {
+      throw new Error("Uploaded animation clip was not found.");
+    }
+    const index = clips.findIndex((clip) => clip.id === clipId);
+    if (index === -1) throw new Error("Uploaded animation clip was not found.");
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= clips.length) {
+      return getSnapshot();
+    }
+    const [moved] = clips.splice(index, 1);
+    clips.splice(targetIndex, 0, moved);
+    writeState();
+    return getSnapshot();
+  }
+
   function deleteAnimation(animationId) {
     if (SYSTEM_ANIMATION_IDS.has(animationId)) {
       throw new Error("Idle and Speaking cannot be removed.");
@@ -1248,6 +1280,7 @@ function createSettingsStore({
     setDefaultModel,
     setModelLighting,
     resetModelLighting,
+    reorderAnimationClip,
     updateAnimation,
   };
 }
@@ -1264,6 +1297,8 @@ module.exports = {
   SETTINGS_SCHEMA_VERSION,
   normalizeIdleRestMs,
   createSettingsStore,
+  migrateLegacyAnimations,
+  safeReadState,
   validateAnimationMetadata,
   validateGlbFile,
 };

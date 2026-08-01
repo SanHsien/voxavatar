@@ -115,7 +115,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-Latest is `v0.2.x`: system-output voice, folder quality gates, readiness/diagnostics, preload separation, and animation command queueing. Next requires **Windows smoke evidence** (cannot be filled from this environment) and installer signing secrets before the media-compatibility matrix.
+`main` is at `0.4.0` (import confirm / migration / MCP JSON schema). The GitHub Latest Release may still be an earlier tag under the batch-release policy. Next: continue v0.5 maintainability. Windows smoke evidence and installer signing do **not** block development (D-23).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones, completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 

@@ -24,7 +24,7 @@ npm run dist:windows
 
 ## 交付
 
-完成主人要求後推送 `main`，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 主動更新版本、CHANGELOG、tag 與 GitHub Release。
+完成主人要求後推送 `main`，再 bump 版本與 CHANGELOG。Release／tag 依 D-23 **批次**發布，不必每次 bump 都推版；Windows 實機驗證不阻塞 v0.3+ 路線圖。
 
 每次 push 前必須檢討 `README`／`ROADMAP`／`CHANGELOG`／`SECURITY`／`REVIEW` 等相關文件（見 [`AGENTS.md`](AGENTS.md)）。中斷或壓縮後必須自動接續未完成工作，不要等主人再提醒。
 

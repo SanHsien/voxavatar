@@ -605,6 +605,25 @@ button {
   min-width: 0;
 }
 
+.settings-notice-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.settings-notice-action {
+  width: auto !important;
+  height: auto !important;
+  padding: 4px 8px !important;
+  border-radius: var(--r-sm);
+  color: var(--accent-text) !important;
+  background: var(--accent-soft) !important;
+  font-size: var(--fs-sm);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .settings-notice button {
   display: grid;
   width: 26px;
@@ -1553,8 +1572,15 @@ button {
   white-space: nowrap;
 }
 
-.clip-delete {
+.clip-controls {
   grid-area: delete;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.clip-reorder,
+.clip-delete {
   display: grid;
   width: 24px;
   height: 24px;
@@ -1571,11 +1597,17 @@ button {
     background var(--dur) var(--ease);
 }
 
+.clip-reorder:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--fill-hover);
+}
+
 .clip-delete:hover:not(:disabled) {
   color: var(--danger-text);
   background: var(--danger-soft);
 }
 
+.clip-reorder:disabled,
 .clip-delete:disabled {
   opacity: 0.4;
   cursor: default;

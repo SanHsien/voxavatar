@@ -251,6 +251,12 @@ interface Window {
       animationId: string,
       clipId: string,
     ): Promise<VoxAvatarSettingsSnapshot>;
+    reorderAnimationClip?(
+      animationId: string,
+      clipId: string,
+      direction: 'up' | 'down',
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    revealPath?(targetPath: string): Promise<void>;
     resetPackagedAnimations(): Promise<VoxAvatarSettingsSnapshot>;
     deleteModel(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
     deleteAllUserModels?(): Promise<VoxAvatarSettingsSnapshot>;

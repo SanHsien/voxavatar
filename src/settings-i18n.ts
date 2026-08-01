@@ -108,6 +108,8 @@ const ZH_TW: MessageDictionary = {
   'notice.clipsImportedOff':
     '已將 {imported}／{scanned} 個 VRMA 加入 {name}。',
   'notice.reportSaved': '品質報告：{path}',
+  'notice.reportSavedShort': '已寫入品質報告。',
+  'notice.revealReport': '在檔案總管顯示',
   'notice.reportFailed': '品質報告寫入失敗：{error}',
   'notice.qualityGateUpdated': '目錄匯入品質把關已更新。',
   'notice.reportDirUpdated': '報告儲存位置已更新。',
@@ -119,6 +121,7 @@ const ZH_TW: MessageDictionary = {
   'notice.animationUpdated': '動作詳情已更新。',
   'notice.animationDeleted': '動作已從使用中資料庫移除。',
   'notice.clipDeleted': '已移除 {name}。',
+  'notice.clipReordered': '已調整 {name} 的順序。',
   'notice.packagedRestored': '內建動作已還原。',
   'notice.characterSizeSet': '預設角色大小已設為 {percent}%。',
   'notice.idleRestSet': '待機動作間隔已設為 {seconds} 秒。',
@@ -238,6 +241,8 @@ const ZH_TW: MessageDictionary = {
     '請上傳一或多個片段，此動作才可供 MCP 使用。',
   'actions.previewClip': '預覽 {name}',
   'actions.deleteClip': '刪除 {name}',
+  'actions.moveClipUp': '上移 {name}',
+  'actions.moveClipDown': '下移 {name}',
   'actions.editTitle': '編輯動作詳情',
   'actions.editDesc':
     '這些詳情供 VoxAvatar MCP 工具描述動作。更名後片段仍歸在同一動作下。',
@@ -514,6 +519,8 @@ const EN: MessageDictionary = {
   'notice.clipsImportedOff':
     'Added {imported}/{scanned} VRMA clip(s) to {name}.',
   'notice.reportSaved': 'Quality report: {path}',
+  'notice.reportSavedShort': 'Quality report saved.',
+  'notice.revealReport': 'Show in Explorer',
   'notice.reportFailed': 'Could not write quality report: {error}',
   'notice.qualityGateUpdated': 'Folder-import quality gate updated.',
   'notice.reportDirUpdated': 'Report save location updated.',
@@ -525,6 +532,7 @@ const EN: MessageDictionary = {
   'notice.animationUpdated': 'Animation details updated.',
   'notice.animationDeleted': 'Animation action removed from your active library.',
   'notice.clipDeleted': '{name} removed.',
+  'notice.clipReordered': 'Reordered {name}.',
   'notice.packagedRestored': 'Packaged animation actions restored.',
   'notice.characterSizeSet': 'Default character size set to {percent}%.',
   'notice.idleRestSet': 'Idle motion gap set to {seconds}s.',
@@ -645,6 +653,8 @@ const EN: MessageDictionary = {
     'Upload one or more clips to make this action available to MCP.',
   'actions.previewClip': 'Preview {name}',
   'actions.deleteClip': 'Delete {name}',
+  'actions.moveClipUp': 'Move {name} up',
+  'actions.moveClipDown': 'Move {name} down',
   'actions.editTitle': 'Edit action details',
   'actions.editDesc':
     'These details describe the action to the VoxAvatar MCP tool. Clips remain grouped under the action if its name changes.',

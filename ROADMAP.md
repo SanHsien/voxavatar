@@ -4,7 +4,7 @@
 
 更新日期：2026-08-01
 
-規劃基準：`v0.2.9`
+規劃基準：`v0.4.0`（`main` 累積；Latest Release 仍可能為較早 tag，見 D-23）
 
 這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成（可跨版本標示），`-` 表示尚未完成。
 
@@ -74,7 +74,7 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 - [x] GitHub 能辨識 MIT License；媒體授權 gate 仍 fail closed。
 - [x] GitHub Release 的 tag、package 版號、installer、Latest 與 SHA-256 一致。
 - [x] 未簽署安裝包不宣稱已通過 SmartScreen 簽章驗收。
-- 真實 Windows smoke 有可追溯記錄（格式已有，尚缺版本化實機填寫）。
+- ~~真實 Windows smoke 有可追溯記錄~~ **延後（非 v0.3+ blocker，D-23）**：格式已有；實機填寫待 Windows 桌面可用時補。
 
 ## v0.2.x：診斷硬化與首次設定閉環
 
@@ -86,7 +86,7 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 - [x] 為 native helper 建立明確狀態：不存在、無法啟動、目標行程不存在、無輸出、正常監聽。
 - [x] 增加可複製的診斷摘要，預設遮蔽使用者名稱、絕對路徑與素材檔名，不包含音訊或模型內容。
 - [x] 讓 `get_status` 與設定頁共用同一套 readiness／錯誤語彙。
-- 建立 Windows 10／11、安裝／升級／移除與 protocol 註冊的實機矩陣。
+- ~~建立 Windows 10／11、安裝／升級／移除與 protocol 註冊的實機矩陣。~~ **延後（非 v0.3+ blocker，D-23）**：待有 Windows 桌面時補版本化證據。
 - [x] 將 process discovery 改成 PID 存活快路徑與 adaptive backoff，並定義多個符合 root process 時的 sticky active source 語意（`0.2.0`）。
 - [x] 限制自訂 process matcher 為不會回溯爆炸的安全子集（`0.2.0`）。
 - [x] 為 MCP session 加入 idle TTL、容量上限與可測試淘汰（自 `0.4` 提前至 `0.2.0`）。
@@ -109,16 +109,16 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 ### 工作
 
 - 建立已驗證的 VRM 0.x／1.0 與常見 VRMA exporter 矩陣，記錄骨架、表情、貼圖與動作結果。
-- 匯入前顯示格式、大小與品質摘要；失敗時保留可理解原因，不留下半完成 catalog 紀錄。
-- 為 settings／library catalog 加上明確 schema version 與最近兩個 MINOR 的 migration fixture。
-- 改善動作預覽、片段重新排序與品質報告到實際動作的導覽。
+- [x] 匯入前顯示格式／品質摘要並確認後才寫 catalog（目錄匯入對話框；失敗原因與嚴格略過仍保留）。
+- [x] 為 settings catalog 加上明確 schema version 與最近兩個 MINOR 的 migration fixture（schema 4／5→6；不可遷移時備份原檔）。
+- [x] 改善片段重新排序與品質報告導覽（上移／下移、檔案總管顯示報告）。
 - [x] 維持「使用者本機匯入」與「專案可以再散布」兩套不同授權判定。
 
 ### 完成條件
 
 - 支援矩陣中的素材都有自動 fixture 或版本化人工證據。
 - [x] 匯入中斷、重名、損壞、過大與不相容素材不會破壞既有 library。
-- 最近兩個 MINOR 的設定與 catalog 可以安全升級；不可遷移時會保留原資料並說明。
+- [x] 最近兩個 MINOR 的設定與 catalog 可以安全升級；不可遷移時會保留原資料並說明。
 
 ## v0.4.x：穩定的本機 MCP 契約
 
@@ -126,9 +126,9 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 
 ### 工作
 
-- 為 MCP status 與工具輸出宣告版本化 schema，記錄 SemVer 相容政策。
-- 補齊 Codex 與通用 Streamable HTTP 用戶端範例、連接埠變更、重連與故障排除。
-- 驗證多個本機 MCP client、長 session catalog 更新與 app 關閉／重啟行為。
+- [x] 為 MCP status 與工具輸出宣告版本化 schema，記錄 SemVer 相容政策（`status_schema_version`／`tools_schema_version`）。
+- [x] 補齊 Codex 與通用 Streamable HTTP 用戶端範例、連接埠變更、重連與故障排除（`docs/INTEGRATIONS.md`）。
+- [x] 驗證多個本機 MCP client、長 session catalog 更新與 handler close／重開行為（自動化測試）。
 - [x] 為 MCP session 加入 idle TTL、容量上限與可測試的淘汰／關閉行為（已於 `0.2.0` 落地）。
 - [x] 將 avatar 與 settings preload 分權；sender URL 驗證已於 `0.2.0` 落地，視窗綁定於 `0.2.9` 完成。
 - [x] 對高頻重複動作加入有界佇列或節流語意，避免 renderer 被無限制事件淹沒。
@@ -136,9 +136,9 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 
 ### 完成條件
 
-- 支援的 client 不需解析人類文字來判斷狀態。
-- schema 破壞性變更有版本與 migration 說明。
-- app 重啟、client 斷線、多 client 與動作更新都有自動測試或可重現 smoke。
+- [x] 支援的 client 不需解析人類文字來判斷狀態（工具結果為可解析 JSON）。
+- [x] schema 破壞性變更有版本與 migration 說明（INTEGRATIONS／DECISIONS）。
+- [x] app 重啟、client 斷線、多 client 與動作更新都有自動測試或可重現 smoke。
 - [x] MCP 仍只監聽 loopback，安全邊界測試保持完整。
 - [x] 遺棄或大量 session 不會無界成長。
 - [x] avatar renderer 無法呼叫設定／資產管理 IPC（preload 分權與 settings webContents 驗證已落地）。
@@ -150,12 +150,13 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 ### 工作
 
 - 依功能邊界拆分 `SettingsPage.tsx`、`electron/main.cjs` 與 `settings-store.cjs`，先保留行為測試再搬移。
+- [x] 抽出目錄匯入 evaluate helper（`directory-import.cjs`）；後續繼續拆 Settings／main／store。
 - 建立冷啟動、首次角色顯示、模型切換、長時間 Idle 與大型 library 的基準。
-- 依 bundle 分析延後載入設定頁、品質報告與非首屏功能，不犧牲 overlay 首次顯示。
+- [x] 延後載入設定頁（`React.lazy`），不犧牲 overlay 首次顯示；品質報告與非首屏進一步拆分仍待。
 - 補鍵盤操作、焦點順序、縮放與高 DPI 的 Windows 實機驗收。
 - 讓 native helper 的 COM／WASAPI capture 錯誤使用 typed failure 與非零退出，並補播放中、裝置切換與 recovery 真機測試。
 - 補 App、Settings、Scene 錯誤復原的 component tests，以及 protocol、tray、MCP 的桌面 smoke。
-- 評估 SBOM 與 Release evidence manifest，讓 installer 內容與依賴可稽核。
+- [x] 提供 production 依賴 SBOM 腳本（`npm run sbom`）；Release evidence manifest 與 installer 內容清單仍待。
 
 ### 完成條件
 
@@ -220,13 +221,13 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 3. 純邏輯用自動測試；WASAPI、透明視窗、系統匣與 installer 用 Windows 實機 smoke。
 4. 至少通過 `npm run check`；原生與 Release 由 GitHub Windows runner 執行完整 gate。
 5. **每次 push 前**檢討並同步繁中／英文公開文件與 `CHANGELOG.md`（含 `README`、`ROADMAP`、`SECURITY`、`REVIEW`、決策與流程文件）；無變更也要確認已檢討。
-6. push 後驗 CI、CodeQL、published Latest Release、tag SHA、installer 與 checksum。
-7. 新版 Release 成功後才刪除其餘舊 Release／tag，只留最新；失敗則保留舊版。
-8. 只有完成條件有證據時，才把項目標為完成。
+6. push 後驗 CI／CodeQL；**批次 Release 時**再驗 published Latest、tag SHA、installer 與 checksum（一般 bump 不發版）。
+7. 批次新版 Release 成功後才刪除其餘舊 Release／tag，只留最新；失敗則保留舊版。
+8. 只有完成條件有證據時，才把項目標為完成；Windows 實機項延後不阻塞後續里程碑（D-23）。
 9. Agent／維護者在對話中斷後必須自動接續未完成工作，見 [`AGENTS.md`](AGENTS.md)。
 
 ## 接下來三件事
 
-1. [x] **關閉 v0.1.x 信任缺口**：清除 CodeQL alerts、啟用 Dependabot security alerts、修正 MIT 偵測並完成本次穩定修正版。
-2. [x] **發行 `0.2.0`–`0.2.9` hardening**：discovery／matcher／MCP session／IPC、readiness／診斷、preload 分權、動作有界佇列；README 功能一覽重整。
-3. **補版本化 Windows 實機證據**，再推進 v0.3 素材相容矩陣與其餘 MCP 契約工作。
+1. [x] **關閉 v0.1.x／v0.2.x 基線與 hardening**（含 preload 分權、動作佇列）。
+2. [x] **推進 v0.3／v0.4**：migration fixtures、匯入確認摘要、片段排序／報告導覽、MCP schema JSON、多 client 測試、整合文件。
+3. **繼續 v0.5**：拆分大型模組、錯誤復原 component tests、效能基準；exporter／實機／簽署延後補證。

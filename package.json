@@ -1,6 +1,6 @@
 {
   "name": "voxavatar",
-  "version": "0.2.9",
+  "version": "0.4.0",
   "description": "Windows desktop VRM avatar companion for voice experiences.",
   "author": {
     "name": "SanHsien",
@@ -43,6 +43,7 @@
     "native:build": "node scripts/build-native.cjs",
     "native:test": "node scripts/test-native.cjs",
     "audit:production": "npm audit --omit=dev --audit-level=high",
+    "sbom": "node scripts/generate-sbom.cjs",
     "check": "npm run lint && npm run docs:check && npm test && npm run assets:check && npm run audit:production && npm run build",
     "dist": "npm run dist:windows",
     "dist:windows": "npm run native:build && npm run native:test && npm run build && electron-builder --win nsis --publish never"

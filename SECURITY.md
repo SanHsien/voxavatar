@@ -14,8 +14,10 @@
 
 - 預設語音監聽只在記憶體中計算指定應用程式的播放音量；可選的「系統輸出」模式改為本機 loopback 監聽目前輸出裝置混音，仍不擷取麥克風、不保存、不轉錄、不傳送音訊。系統輸出模式為明確 opt-in，設定頁會顯示隱私邊界警告。
 - MCP 與 HTTP bridge 只綁定 `127.0.0.1`，驗證 loopback `Host`、來源、內容型別、請求大小與輸入 schema；MCP session 有 idle TTL 與容量上限。
+- MCP 工具結果為版本化 JSON（`status_schema_version`／`tools_schema_version`）；agent 應讀結構化欄位，見 [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)。
 - 本機 MCP 無登入驗證；同一 Windows 帳號下的其他行程可操作角色視窗與動作。不要把連接埠轉發到區域網路或 Internet。
 - MCP 只提供動畫、視窗與狀態工具，不執行任意命令、不讀取任意檔案。
+- avatar 與 settings preload 分權；設定寫入 IPC 綁定 settings 視窗。
 - Electron renderer 啟用 sandbox 與 context isolation，停用 Node integration；avatar／settings 使用不同 preload allowlist，privileged handler 會驗證 sender URL，設定寫入另驗 settings 視窗 webContents。
 - 自訂 process matcher 限制為有界安全子集，拒絕明顯易 ReDoS 的 pattern。
 - 使用者匯入媒體會複製到每使用者應用資料，renderer 只能以已登記 ID 經 `voxavatar-asset:` 讀取。

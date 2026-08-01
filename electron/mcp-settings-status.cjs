@@ -1,6 +1,10 @@
 "use strict";
 
 const { version } = require("../package.json");
+const {
+  STATUS_SCHEMA_VERSION,
+  TOOLS_SCHEMA_VERSION,
+} = require("./mcp-schemas.cjs");
 
 const MCP_TOOL_NAMES = Object.freeze([
   "play_animation",
@@ -40,7 +44,9 @@ function createMcpSettingsStatus({
     playable_actions: playableActions,
     server_url: serverUrl,
     setup_command: `codex mcp add voxavatar --url ${serverUrl}`,
+    status_schema_version: STATUS_SCHEMA_VERSION,
     tools: [...MCP_TOOL_NAMES],
+    tools_schema_version: TOOLS_SCHEMA_VERSION,
     transport: MCP_TRANSPORT,
     version,
   };

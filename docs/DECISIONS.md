@@ -50,9 +50,9 @@ Idle 從可用非說話動作池隨機抽播並避免立即重複。透明區點
 
 Dependabot 可使用高權限 workflow，但必須 fail closed：只信任 `dependabot[bot]`、`main` base 與 base commit 上的 policy；以 semver、檔案範圍與 allowlist 分類；policy check 綁定 head SHA；必要 CI／CodeQL 全綠後再核准與 squash。runtime、打包、渲染、major 與未知更新人工審查。
 
-## D-13｜完成即推 main 並發布
+## D-13｜完成即推 main，版號隨工作累積
 
-主人要求完成後直接 push `main`，接著主動 bump 版本、更新 CHANGELOG、推 tag，並驗證 published GitHub Release、Latest、target commit 與資產。tag 本身不算完成。
+主人要求完成工作段落後直接 commit 並 push `main`，並 bump `package.json`、同步 lockfile、更新 `CHANGELOG.md`。版號 bump 代表可觀察變更已落地，**不等於**每次都要 Release／tag。實際 GitHub Release 依 D-23 批次政策執行。
 
 ## D-14｜第一個穩定版本
 
@@ -96,9 +96,16 @@ Release 可由可信 `main` 的 `workflow_dispatch`，或在 **push `main` 且 `
 
 - **日期**：2026-08-01
 - **決定**：以 `electron/app-readiness.cjs`／`listener-status.cjs`／`diagnostic-summary.cjs` 作為設定頁與 MCP `get_status` 的共用語彙。helper 狀態為 `missing`／`launch_failed`／`target_missing`／`no_output`／`listening`（外加 `inactive`／`external`）。診斷摘要必須 redact 使用者名、絕對路徑與 `.vrm`／`.vrma` 檔名，且不得含音訊或模型內容。
-- **不在此決策**：Windows 實機證據矩陣、installer 簽署仍屬後續缺口；preload 分權已於 `0.2.9` 落地（見 D-22）。
+- **不在此決策**：Windows 實機證據矩陣、installer 簽署仍待補證，但依 D-23 **不阻塞** v0.3+ 路線圖；preload 分權已於 `0.2.9` 落地（見 D-22）。
 
 ## D-22｜avatar／settings preload 分權與動作佇列
 
 - **日期**：2026-08-01
 - **決定**：avatar 使用 `preload-avatar.cjs`（bridge＋唯讀 settings）；settings 使用 `preload-settings.cjs`（完整管理 API）。設定寫入 IPC 除 URL 信任外，必須 `event.sender === settingsWindow.webContents`。MCP／protocol／HTTP 的 `play_animation` 經有界佇列（同名合併、容量上限、最小間隔）再送 renderer。
+
+## D-23｜批次 Release 與實機驗證非路線圖 gate
+
+- **日期**：2026-08-01
+- **決定**：`main` 可累積多次 SemVer bump 與 CHANGELOG 條目，再一次性建立 `v{version}` tag 與 GitHub Release（batch cut）。禁止為空轉或無實質變更而頻繁 Release／tag。
+- **實機邊界**：Windows GUI smoke、installer 簽署、COM／WASAPI capture 真機矩陣仍須在可取得 Windows 桌面或密鑰時補證；**不得**因此阻塞 v0.3／v0.4 等後續路線圖開發。若環境無法完成實機步驟，應停止該項、回報缺口，繼續可驗證的程式／文件／CI 工作。
+- **權威來源**：[`AGENTS.md`](../AGENTS.md)、[`.cursorrules`](../.cursorrules)、[`docs/RELEASING.md`](RELEASING.md)、[`ROADMAP.md`](../ROADMAP.md)。

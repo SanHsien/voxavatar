@@ -1,9 +1,14 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
-import { SettingsPage } from './components/SettingsPage';
 import { applyTheme, readStoredTheme, resolveTheme } from './theme';
 import './styles.css';
+
+const SettingsPage = lazy(() =>
+  import('./components/SettingsPage').then((module) => ({
+    default: module.SettingsPage,
+  })),
+);
 
 const settingsView =
   new URLSearchParams(window.location.search).get('view') === 'settings';
@@ -16,6 +21,12 @@ if (settingsView) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {settingsView ? <SettingsPage /> : <App />}
+    {settingsView ? (
+      <Suspense fallback={null}>
+        <SettingsPage />
+      </Suspense>
+    ) : (
+      <App />
+    )}
   </StrictMode>,
 );

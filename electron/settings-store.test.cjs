@@ -8,9 +8,11 @@ const test = require("node:test");
 const {
   DEFAULT_MODEL_LIGHTING,
   createSettingsStore,
+  safeReadState,
   validateAnimationMetadata,
   validateGlbFile,
 } = require("./settings-store.cjs");
+const { readPackagedLibrary } = require("./library-catalog.cjs");
 
 function writeEmptyPackagedLibrary(root) {
   const packagedLibraryPath = path.join(root, "library.json");
@@ -726,5 +728,192 @@ test("deletes all user models and all uploaded VRMA clips in one step", (context
   );
   assert.ok(
     snapshot.animations.some((animation) => animation.id === "system-idle"),
+  );
+});
+
+function installFixtureSettings(context, fixtureName) {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const fixturePath = path.join(
+    __dirname,
+    "fixtures",
+    fixtureName,
+  );
+  const legacy = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+  const modelDirectory = path.join(userDataPath, "assets", "models");
+  const animationDirectory = path.join(userDataPath, "assets", "animations");
+  fs.mkdirSync(modelDirectory, { recursive: true });
+  fs.mkdirSync(animationDirectory, { recursive: true });
+
+  for (const model of legacy.models ?? []) {
+    writeGlb(path.join(modelDirectory, model.stored_filename));
+  }
+  for (const animation of legacy.animations ?? []) {
+    if (animation.stored_filename) {
+      writeGlb(path.join(animationDirectory, animation.stored_filename));
+    }
+  }
+  for (const clips of Object.values(legacy.animation_clips ?? {})) {
+    for (const clip of clips) {
+      writeGlb(path.join(animationDirectory, clip.stored_filename));
+    }
+  }
+
+  fs.writeFileSync(
+    path.join(userDataPath, "settings.json"),
+    JSON.stringify(legacy, null, 2),
+  );
+  return { userDataPath, packagedLibraryPath, legacy };
+}
+
+test("migrates schema 4 fixture through legacy animation clip grouping", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-4.json",
+  );
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.equal(snapshot.character_size, legacy.character_size);
+  assert.ok(snapshot.models.some((model) => model.id === legacy.models[0].id));
+  const animation = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "wave-hello",
+  );
+  assert.ok(animation);
+  assert.equal(animation.origin, "user");
+  assert.deepEqual(
+    animation.clips.map((clip) => clip.animation_name),
+    ["wave-hello1"],
+  );
+  assert.match(animation.clips[0].asset_url, /^voxavatar-asset:\/\/animation\//);
+});
+
+test("migrates schema 5 fixture while preserving split animation metadata and clips", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-5.json",
+  );
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.equal(snapshot.character_size, legacy.character_size);
+  assert.equal(snapshot.ui_locale, "en");
+  assert.equal(snapshot.idle_rest_ms, 12000);
+  assert.equal(snapshot.vrma_quality_gate, "report");
+  assert.deepEqual(snapshot.voice_source, {
+    mode: "output",
+    process_pattern: null,
+    source_id: null,
+    source_name: null,
+  });
+  const animation = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "nod-yes",
+  );
+  assert.ok(animation);
+  assert.deepEqual(
+    animation.clips.map((clip) => clip.animation_name),
+    ["nod-yes1"],
+  );
+});
+
+test("backs up unmigratable settings and falls back without blocking the store", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  fs.writeFileSync(
+    settingsPath,
+    JSON.stringify({
+      schema_version: 99,
+      models: [{ id: "bad", model_name: "Bad", stored_filename: "bad.vrm" }],
+    }),
+  );
+
+  const packagedLibrary = readPackagedLibrary(packagedLibraryPath);
+  const readResult = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(readResult.migration_error, "unsupported_schema");
+  assert.equal(readResult.migrated, false);
+  assert.equal(readResult.state.schema_version, 6);
+  assert.deepEqual(readResult.state.models, []);
+  assert.equal(
+    fs.existsSync(`${settingsPath}.unmigratable-backup`),
+    true,
+  );
+  assert.match(
+    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    /"schema_version"\s*:\s*99/,
+  );
+
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(snapshot.schema_version, 6);
+  assert.deepEqual(snapshot.models, []);
+});
+
+test("reorders uploaded clips within an action and persists the new order", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const firstSource = path.join(root, "first.vrma");
+  const secondSource = path.join(root, "second.vrma");
+  const thirdSource = path.join(root, "third.vrma");
+  writeGlb(firstSource);
+  writeGlb(secondSource);
+  writeGlb(thirdSource);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.createAnimation({
+    animation_name: "combo",
+    animation_description: "Combo clips.",
+    animation_trigger_scenario: "Use when testing reorder.",
+  });
+  const actionId = snapshot.animations.find(
+    (animation) => animation.animation_name === "combo",
+  ).id;
+  snapshot = store.addAnimationClips(actionId, [
+    firstSource,
+    secondSource,
+    thirdSource,
+  ]);
+  let action = snapshot.animations.find(
+    (animation) => animation.id === actionId,
+  );
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo2", "combo3"],
+  );
+
+  snapshot = store.reorderAnimationClip(actionId, action.clips[2].id, "up");
+  action = snapshot.animations.find((animation) => animation.id === actionId);
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo3", "combo2"],
+  );
+
+  snapshot = store.reorderAnimationClip(actionId, action.clips[0].id, "up");
+  action = snapshot.animations.find((animation) => animation.id === actionId);
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo3", "combo2"],
+  );
+
+  const reloaded = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  action = reloaded.animations.find((animation) => animation.id === actionId);
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo3", "combo2"],
+  );
+
+  assert.throws(
+    () => store.reorderAnimationClip(actionId, action.clips[0].id, "sideways"),
+    /direction must be 'up' or 'down'/,
   );
 });

@@ -52,8 +52,6 @@ const { listVoiceSources } = require("./voice-source-discovery.cjs");
 const { menuStrings, normalizeUiLocale } = require("./i18n.cjs");
 const { collectAssetFiles } = require("./asset-scan.cjs");
 const {
-  QUALITY_GATE,
-  VERDICT,
   analyzeVrmaFiles,
   normalizeQualityGate,
   summarizeReports,
@@ -64,6 +62,10 @@ const {
   summarizeReports: summarizeVrmReports,
   writeMarkdownReport: writeVrmMarkdownReport,
 } = require("./vrm-quality.cjs");
+const {
+  buildDirectoryImportSummary,
+  evaluateDirectoryImport,
+} = require("./directory-import.cjs");
 
 const WINDOW_WIDTH = 430;
 const WINDOW_HEIGHT = 680;
@@ -221,6 +223,52 @@ function showAboutDialog() {
 function sendAvatarResetView() {
   if (!avatarWindow || avatarWindow.isDestroyed()) return;
   avatarWindow.webContents.send("voxavatar:reset-view");
+}
+
+function settingsDialogParent() {
+  return settingsWindow && !settingsWindow.isDestroyed()
+    ? settingsWindow
+    : undefined;
+}
+
+/** 目錄匯入前顯示格式／品質摘要，使用者確認後才寫入 catalog。 */
+async function confirmDirectoryImport({
+  kind,
+  scanned,
+  importCount,
+  quality,
+  skippedQuality,
+}) {
+  const t = currentMenuStrings();
+  const parent = settingsDialogParent();
+  const detail = quality
+    ? String(t.importConfirmDetailQuality)
+        .replaceAll("{scanned}", String(scanned))
+        .replaceAll("{import}", String(importCount))
+        .replaceAll("{keep}", String(quality.keep ?? 0))
+        .replaceAll("{review}", String(quality.review ?? 0))
+        .replaceAll("{reject}", String(quality.reject ?? 0))
+        .replaceAll("{skipped}", String(skippedQuality ?? 0))
+    : String(t.importConfirmDetailOff)
+        .replaceAll("{scanned}", String(scanned))
+        .replaceAll("{import}", String(importCount));
+  const options = {
+    type: "question",
+    title: t.importConfirmTitle,
+    message:
+      kind === "model"
+        ? t.importConfirmMessageModel
+        : t.importConfirmMessageAnimation,
+    detail,
+    buttons: [t.importConfirmProceed, t.importConfirmCancel],
+    defaultId: 0,
+    cancelId: 1,
+    noLink: true,
+  };
+  const result = parent
+    ? await dialog.showMessageBox(parent, options)
+    : await dialog.showMessageBox(options);
+  return result.response === 0;
 }
 
 function buildTrayMenuTemplate() {
@@ -760,36 +808,6 @@ async function selectAssetDirectory(title) {
   });
 }
 
-function buildDirectoryImportSummary({
-  kind,
-  rootDir,
-  scanned,
-  truncated,
-  imported,
-  skippedQuality,
-  skippedInvalid,
-  skippedLimit,
-  failed,
-  quality,
-  reportPath,
-  reportError,
-}) {
-  return {
-    kind,
-    root_dir: rootDir,
-    scanned,
-    truncated: Boolean(truncated),
-    imported,
-    skipped_quality: skippedQuality,
-    skipped_invalid: skippedInvalid,
-    skipped_limit: skippedLimit,
-    failed,
-    quality,
-    report_path: reportPath,
-    report_error: reportError,
-  };
-}
-
 function flushPendingRendererEvents() {
   rendererLoadHookAttached = false;
   if (!avatarWindow || avatarWindow.isDestroyed() || avatarWindow.webContents.isLoading()) return;
@@ -1006,12 +1024,6 @@ if (!app.requestSingleInstanceLock()) {
         );
         const preferredReportDir = settingsStore.getSnapshot().vrma_report_dir;
 
-        let quality = null;
-        let reportPath = null;
-        let reportError = null;
-        let importCandidates = scan.files;
-        let skippedQuality = 0;
-
         if (scan.files.length === 0) {
           return {
             snapshot: settingsStore.getSnapshot(),
@@ -1032,31 +1044,32 @@ if (!app.requestSingleInstanceLock()) {
           };
         }
 
-        if (gate !== QUALITY_GATE.OFF) {
-          const reports = analyzeVrmFiles(scan.files);
-          quality = summarizeVrmReports(reports);
-          try {
-            ({ reportPath } = writeVrmMarkdownReport(reports, {
-              reportDir: preferredReportDir,
-              sourceDir: rootDir,
-              gate,
-            }));
-          } catch (error) {
-            reportError =
-              error instanceof Error ? error.message : String(error);
-          }
-          if (gate === QUALITY_GATE.STRICT) {
-            const rejected = new Set(
-              reports
-                .filter((report) => report.verdict === VERDICT.REJECT)
-                .map((report) => report.filePath),
-            );
-            skippedQuality = rejected.size;
-            importCandidates = scan.files.filter(
-              (filePath) => !rejected.has(filePath),
-            );
-          }
-        }
+        const evaluated = evaluateDirectoryImport({
+          kind: "model",
+          filePaths: scan.files,
+          gate,
+          analyzeFn: analyzeVrmFiles,
+          summarizeFn: summarizeVrmReports,
+          writeReportFn: writeVrmMarkdownReport,
+          preferredReportDir,
+          sourceDir: rootDir,
+        });
+        const {
+          quality,
+          reportPath,
+          reportError,
+          importCandidates,
+          skippedQuality,
+        } = evaluated;
+
+        const confirmed = await confirmDirectoryImport({
+          kind: "model",
+          scanned: scan.files.length,
+          importCount: importCandidates.length,
+          quality,
+          skippedQuality,
+        });
+        if (!confirmed) return null;
 
         let snapshot = settingsStore.getSnapshot();
         let results = [];
@@ -1124,12 +1137,6 @@ if (!app.requestSingleInstanceLock()) {
         );
         const preferredReportDir = settingsStore.getSnapshot().vrma_report_dir;
 
-        let quality = null;
-        let reportPath = null;
-        let reportError = null;
-        let importCandidates = scan.files;
-        let skippedQuality = 0;
-
         if (scan.files.length === 0) {
           return {
             snapshot: settingsStore.getSnapshot(),
@@ -1150,31 +1157,32 @@ if (!app.requestSingleInstanceLock()) {
           };
         }
 
-        if (gate !== QUALITY_GATE.OFF) {
-          const reports = analyzeVrmaFiles(scan.files);
-          quality = summarizeReports(reports);
-          try {
-            ({ reportPath } = writeMarkdownReport(reports, {
-              reportDir: preferredReportDir,
-              sourceDir: rootDir,
-              gate,
-            }));
-          } catch (error) {
-            reportError =
-              error instanceof Error ? error.message : String(error);
-          }
-          if (gate === QUALITY_GATE.STRICT) {
-            const rejected = new Set(
-              reports
-                .filter((report) => report.verdict === VERDICT.REJECT)
-                .map((report) => report.filePath),
-            );
-            skippedQuality = rejected.size;
-            importCandidates = scan.files.filter(
-              (filePath) => !rejected.has(filePath),
-            );
-          }
-        }
+        const evaluated = evaluateDirectoryImport({
+          kind: "animation",
+          filePaths: scan.files,
+          gate,
+          analyzeFn: analyzeVrmaFiles,
+          summarizeFn: summarizeReports,
+          writeReportFn: writeMarkdownReport,
+          preferredReportDir,
+          sourceDir: rootDir,
+        });
+        const {
+          quality,
+          reportPath,
+          reportError,
+          importCandidates,
+          skippedQuality,
+        } = evaluated;
+
+        const confirmed = await confirmDirectoryImport({
+          kind: "animation",
+          scanned: scan.files.length,
+          importCount: importCandidates.length,
+          quality,
+          skippedQuality,
+        });
+        if (!confirmed) return null;
 
         let snapshot = settingsStore.getSnapshot();
         let results = [];
@@ -1255,6 +1263,22 @@ if (!app.requestSingleInstanceLock()) {
           settingsStore.deleteAnimationClip(animationId, clipId),
         ),
     );
+    handleTrustedSettingsIpc(
+      "voxavatar:settings-reorder-animation-clip",
+      (_event, animationId, clipId, direction) =>
+        publishSettings(
+          settingsStore.reorderAnimationClip(animationId, clipId, direction),
+        ),
+    );
+    handleTrustedSettingsIpc("voxavatar:settings-reveal-path", (_event, targetPath) => {
+      if (typeof targetPath !== "string" || !targetPath.trim()) {
+        throw new Error("Path is required.");
+      }
+      if (!path.isAbsolute(targetPath)) {
+        throw new Error("Path must be absolute.");
+      }
+      shell.showItemInFolder(path.resolve(targetPath));
+    });
     handleTrustedSettingsIpc(
       "voxavatar:settings-reset-packaged-animations",
       () => publishSettings(settingsStore.resetPackagedAnimations()),

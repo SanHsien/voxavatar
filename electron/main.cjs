@@ -25,6 +25,7 @@ const {
 const { createSettingsStore } = require("./settings-store.cjs");
 const { createAudioListener } = require("./audio-listener.cjs");
 const { isAllowedRendererNavigation } = require("./navigation-policy.cjs");
+const { assertTrustedIpcSender } = require("./ipc-guard.cjs");
 const { snapshotHasConfiguredModel } = require("./model-readiness.cjs");
 const { parseProtocolUrl, voiceState } = require("./protocol-actions.cjs");
 const {
@@ -342,6 +343,17 @@ function rendererUrl(view = null) {
   );
   if (view) url.searchParams.set("view", view);
   return url.href;
+}
+
+function trustedRendererUrls() {
+  return [rendererUrl(), rendererUrl("settings")];
+}
+
+function handleTrustedIpc(channel, handler) {
+  ipcMain.handle(channel, async (event, ...args) => {
+    assertTrustedIpcSender(event, trustedRendererUrls());
+    return handler(event, ...args);
+  });
 }
 
 function secureRendererWindow(window, allowedRendererUrl) {
@@ -894,16 +906,16 @@ if (!app.requestSingleInstanceLock()) {
       return net.fetch(pathToFileURL(assetPath).href);
     });
 
-    ipcMain.handle("voxavatar:get-snapshot", () => latestEvent);
-    ipcMain.handle("voxavatar:settings-get", () => settingsStore.getSnapshot());
-    ipcMain.handle("voxavatar:settings-import-model", async (_event, metadata) => {
+    handleTrustedIpc("voxavatar:get-snapshot", () => latestEvent);
+    handleTrustedIpc("voxavatar:settings-get", () => settingsStore.getSnapshot());
+    handleTrustedIpc("voxavatar:settings-import-model", async (_event, metadata) => {
       const filePath = await selectAssetFile("model");
       if (!filePath) return null;
       return publishSettings(
         settingsStore.importModel({ filePath, model_name: metadata?.model_name }),
       );
     });
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-import-models-from-directory",
       async (_event, metadata) => {
         const rootDir = await selectAssetDirectory("選擇含 VRM 的資料夾");
@@ -960,10 +972,10 @@ if (!app.requestSingleInstanceLock()) {
         };
       },
     );
-    ipcMain.handle("voxavatar:settings-create-animation", (_event, metadata) =>
+    handleTrustedIpc("voxavatar:settings-create-animation", (_event, metadata) =>
       publishSettings(settingsStore.createAnimation(metadata)),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-add-animation-clips",
       async (_event, animationId) => {
         const filePaths = await selectAssetFile("animation", true);
@@ -973,7 +985,7 @@ if (!app.requestSingleInstanceLock()) {
         );
       },
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-add-animation-clips-from-directory",
       async (_event, animationId) => {
         const rootDir = await selectAssetDirectory("選擇含 VRMA 的資料夾");
@@ -1079,12 +1091,12 @@ if (!app.requestSingleInstanceLock()) {
         };
       },
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-set-vrma-quality-gate",
       (_event, value) =>
         publishSettings(settingsStore.setVrmaQualityGate(value)),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-choose-vrma-report-dir",
       async () => {
         const selected = await selectAssetDirectory(
@@ -1094,33 +1106,33 @@ if (!app.requestSingleInstanceLock()) {
         return publishSettings(settingsStore.setVrmaReportDir(selected));
       },
     );
-    ipcMain.handle("voxavatar:settings-clear-vrma-report-dir", () =>
+    handleTrustedIpc("voxavatar:settings-clear-vrma-report-dir", () =>
       publishSettings(settingsStore.setVrmaReportDir(null)),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-update-animation",
       (_event, animationId, metadata) =>
         publishSettings(
           settingsStore.updateAnimation(animationId, metadata),
         ),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-delete-animation",
       (_event, animationId) =>
         publishSettings(settingsStore.deleteAnimation(animationId)),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-delete-animation-clip",
       (_event, animationId, clipId) =>
         publishSettings(
           settingsStore.deleteAnimationClip(animationId, clipId),
         ),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-reset-packaged-animations",
       () => publishSettings(settingsStore.resetPackagedAnimations()),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-delete-model",
       (_event, modelId) => {
         const model = settingsStore
@@ -1132,36 +1144,36 @@ if (!app.requestSingleInstanceLock()) {
         return publishSettings(settingsStore.deleteModel(modelId));
       },
     );
-    ipcMain.handle("voxavatar:settings-delete-all-user-models", () =>
+    handleTrustedIpc("voxavatar:settings-delete-all-user-models", () =>
       publishSettings(settingsStore.deleteAllUserModels()),
     );
-    ipcMain.handle("voxavatar:settings-delete-all-user-animation-clips", () =>
+    handleTrustedIpc("voxavatar:settings-delete-all-user-animation-clips", () =>
       publishSettings(settingsStore.deleteAllUserAnimationClips()),
     );
-    ipcMain.handle("voxavatar:settings-set-default-model", (_event, modelId) =>
+    handleTrustedIpc("voxavatar:settings-set-default-model", (_event, modelId) =>
       publishSettings(settingsStore.setDefaultModel(modelId)),
     );
-    ipcMain.handle("voxavatar:settings-set-character-size", (_event, size) =>
+    handleTrustedIpc("voxavatar:settings-set-character-size", (_event, size) =>
       publishSettings(settingsStore.setCharacterSize(size)),
     );
-    ipcMain.handle("voxavatar:settings-set-idle-rest-ms", (_event, ms) =>
+    handleTrustedIpc("voxavatar:settings-set-idle-rest-ms", (_event, ms) =>
       publishSettings(settingsStore.setIdleRestMs(ms)),
     );
-    ipcMain.handle("voxavatar:settings-set-ui-locale", (_event, locale) =>
+    handleTrustedIpc("voxavatar:settings-set-ui-locale", (_event, locale) =>
       publishSettings(settingsStore.setUiLocale(locale)),
     );
-    ipcMain.handle("voxavatar:settings-get-app-info", () => ({
+    handleTrustedIpc("voxavatar:settings-get-app-info", () => ({
       version: app.getVersion(),
     }));
-    ipcMain.handle("voxavatar:settings-show-about", async () => {
+    handleTrustedIpc("voxavatar:settings-show-about", async () => {
       showAboutDialog();
     });
-    ipcMain.handle("voxavatar:settings-set-voice-source", (_event, voiceSource) => {
+    handleTrustedIpc("voxavatar:settings-set-voice-source", (_event, voiceSource) => {
       const snapshot = publishSettings(settingsStore.setVoiceSource(voiceSource));
       restartAudioListener();
       return snapshot;
     });
-    ipcMain.handle("voxavatar:settings-list-voice-sources", async () => {
+    handleTrustedIpc("voxavatar:settings-list-voice-sources", async () => {
       try {
         return {
           ...(await listVoiceSources()),
@@ -1179,17 +1191,17 @@ if (!app.requestSingleInstanceLock()) {
         };
       }
     });
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-set-model-lighting",
       (_event, modelId, lighting) =>
         publishSettings(settingsStore.setModelLighting(modelId, lighting)),
     );
-    ipcMain.handle(
+    handleTrustedIpc(
       "voxavatar:settings-reset-model-lighting",
       (_event, modelId) =>
         publishSettings(settingsStore.resetModelLighting(modelId)),
     );
-    ipcMain.handle("voxavatar:settings-get-mcp-status", () =>
+    handleTrustedIpc("voxavatar:settings-get-mcp-status", () =>
       createMcpSettingsStatus({
         error: mcpServerError,
         health: mcpServerHealth,
@@ -1203,7 +1215,7 @@ if (!app.requestSingleInstanceLock()) {
       if (event.sender !== avatarWindow.webContents) return;
       setAvatarMousePassthrough(Boolean(ignore));
     });
-    ipcMain.handle("voxavatar:get-window-bounds", (event) => {
+    handleTrustedIpc("voxavatar:get-window-bounds", (event) => {
       if (!avatarWindow || avatarWindow.isDestroyed()) return null;
       if (event.sender !== avatarWindow.webContents) return null;
       return avatarWindow.getBounds();

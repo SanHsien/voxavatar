@@ -109,3 +109,58 @@ test("native listener cannot attach after it is stopped during discovery", async
 
   assert.equal(spawnCount, 0);
 });
+
+test("native listener skips full discovery on sticky alive PID", async () => {
+  let discoveryCount = 0;
+  const child = fakeChild();
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    minPollIntervalMs: 20,
+    maxPollIntervalMs: 40,
+    fullDiscoveryMaxAgeMs: 10_000,
+    processDiscovery: async () => {
+      discoveryCount += 1;
+      return { pids: [10], rootPids: [10] };
+    },
+    pidAlive: () => true,
+    spawnProcess: () => child,
+  });
+
+  await listener.start();
+  assert.equal(discoveryCount, 1);
+  await listener.poll();
+  assert.equal(discoveryCount, 1);
+  listener.stop();
+});
+
+test("native listener prefers a sticky root when multiple roots appear", async () => {
+  const spawned = [];
+  const first = fakeChild();
+  const second = fakeChild();
+  let round = 0;
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    fullDiscoveryMaxAgeMs: 0,
+    processDiscovery: async () => {
+      round += 1;
+      return round === 1
+        ? { pids: [20, 10], rootPids: [20, 10] }
+        : { pids: [10, 20], rootPids: [10, 20] };
+    },
+    pidAlive: () => false,
+    spawnProcess: () => {
+      const child = spawned.length === 0 ? first : second;
+      spawned.push(child);
+      return child;
+    },
+  });
+
+  await listener.start();
+  assert.equal(listener.captureKey, "10");
+  await listener.poll();
+  assert.equal(listener.captureKey, "10");
+  assert.equal(spawned.length, 1);
+  listener.stop();
+});

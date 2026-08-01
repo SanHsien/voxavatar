@@ -4,7 +4,7 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.1.1`
+Planning baseline: `v0.2.0`
 
 This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
 
@@ -17,21 +17,23 @@ VoxAvatar should not become another chat UI or compete on the number of bundled 
 The user's actual jobs are:
 
 1. **See it:** keep a stable avatar on the desktop without disrupting normal work.
-2. **See speech react:** animate lip sync and motion when a selected app plays assistant audio.
+2. **See speech react:** animate lip sync and motion when a selected app (or explicitly opted-in system output) plays assistant audio.
 3. **Let an agent act:** use MCP to play configured actions, control the window, and inspect trustworthy status.
 4. **Stay in control:** keep media, settings, and level detection local, with explainable failures and explicit privacy and license boundaries.
 
 ```text
-v0.1.x  Stabilize the first Windows release baseline
+v0.1.x  Stabilize the first Windows release baseline (complete through 0.1.2)
    │
-   ├─ v0.2  First-run setup, diagnostics, and installer validation
-   ├─ v0.3  VRM/VRMA compatibility and media lifecycle
-   ├─ v0.4  MCP contracts, status, and multi-client reliability
-   └─ v0.5  Maintainability, startup, and renderer performance
+   ├─ v0.2.x  Diagnostics/discovery hardening → first-run and installer closed loop
+   ├─ v0.3.x  VRM/VRMA compatibility and media lifecycle
+   ├─ v0.4.x  MCP contracts, status, and multi-client reliability
+   └─ v0.5.x  Maintainability, startup, and renderer performance
         │
         ▼
-v1.0: a Windows desktop avatar and local agent interface users can trust long-term
+v1.0.0: a Windows desktop avatar and local agent interface users can trust long-term
 ```
+
+SemVer pace: capability or security-boundary hardening ships as a **minor** (for example `0.1.2` → `0.2.0`); do not pile features into a long `0.1.x` series. Use patch only for pure fixes.
 
 ## Existing foundation, do not rebuild it
 
@@ -74,9 +76,9 @@ Goal: prove the `0.1.0` promise through code, GitHub state, and downloaded artif
 - [x] Unsigned installers are not presented as SmartScreen-signing validated.
 - Real Windows smoke evidence is traceable (format exists; versioned filled records still needed).
 
-## v0.2.0: first-run setup and recoverable diagnostics
+## v0.2.x: diagnostics hardening and first-run closed loop
 
-Goal: a new user can import a character, select a voice source, and connect MCP, or understand exactly why a step failed.
+Goal: `0.2.0` hardens listener, matcher, IPC, and MCP session reliability; later `0.2.x` closes first-run progress, diagnostics, and the real-machine matrix.
 
 ### Work
 
@@ -85,8 +87,10 @@ Goal: a new user can import a character, select a voice source, and connect MCP,
 - Add a copyable diagnostic summary that redacts usernames, absolute paths, and media filenames by default and never includes audio or model content.
 - Make `get_status` and Settings share one readiness and error vocabulary.
 - Establish a real Windows 10/11 matrix for install, upgrade, uninstall, and protocol registration.
-- Replace fixed process discovery with a PID-liveness fast path and adaptive backoff, and define active-source or multi-root semantics when several roots match.
-- Restrict custom process matchers to a non-explosive safe subset, or use RE2 or timeout-isolated execution.
+- [x] Replace fixed process discovery with a PID-liveness fast path and adaptive backoff, and define sticky active-source semantics for multiple matching roots (`0.2.0`).
+- [x] Restrict custom process matchers to a non-explosive safe subset (`0.2.0`).
+- [x] Add MCP session idle TTL, hard capacity, and testable eviction (pulled forward from `0.4` into `0.2.0`).
+- [x] Validate sender URL on privileged IPC (full preload split remains later).
 
 ### Completion criteria
 
@@ -94,10 +98,11 @@ Goal: a new user can import a character, select a voice source, and connect MCP,
 - Common helper and source failures are recognizable without opening DevTools.
 - Settings and MCP cannot report contradictory states for the same condition.
 - Diagnostic summaries pass sensitive-data tests and can be attached directly to an issue.
-- Stable capture no longer launches a full PowerShell process scan every 1.5 seconds, and multiple matching roots have predictable selection behavior.
-- Malicious or pathological matchers cannot block the Electron main process.
+- [x] Stable capture no longer launches a full PowerShell process scan on every poll, and multiple matching roots have predictable sticky selection.
+- [x] Malicious or pathological matchers cannot block the Electron main process.
+- [x] Abandoned or excessive MCP sessions cannot grow without bound.
 
-## v0.3.0: media compatibility and lifecycle
+## v0.3.x: media compatibility and lifecycle
 
 Goal: users can understand availability, quality, and migration results before relying on assets from different exporters.
 
@@ -115,7 +120,7 @@ Goal: users can understand availability, quality, and migration results before r
 - [x] Interrupted, duplicate, corrupt, oversized, or incompatible imports cannot damage the existing library.
 - Settings and catalogs from the last two MINOR releases migrate safely; failed migrations preserve original data and explain the problem.
 
-## v0.4.0: a stable local MCP contract
+## v0.4.x: a stable local MCP contract
 
 Goal: agents do not guess tool capabilities, action names, or error states, and long-lived sessions do not use stale catalogs.
 
@@ -124,8 +129,8 @@ Goal: agents do not guess tool capabilities, action names, or error states, and 
 - Version MCP status and tool-output schemas, with an explicit SemVer compatibility policy.
 - Add Codex and generic Streamable HTTP examples for port changes, reconnects, and troubleshooting.
 - Validate multiple local clients, long-session catalog refresh, and app close/restart behavior.
-- Add idle TTL, a hard capacity limit, and testable eviction/close behavior for MCP sessions.
-- Separate avatar and Settings preload privileges, and validate sender, frame, and app URL for every privileged IPC handler.
+- [x] Add idle TTL, a hard capacity limit, and testable eviction/close behavior for MCP sessions (shipped in `0.2.0`).
+- Separate avatar and Settings preload privileges; sender URL validation shipped in `0.2.0`, full separation remains.
 - Define bounded queueing or throttling for repeated high-frequency actions so the renderer cannot be flooded indefinitely.
 - [x] Keep the visual-control scope. Do not add arbitrary commands, arbitrary files, network proxying, or speech generation.
 
@@ -135,9 +140,10 @@ Goal: agents do not guess tool capabilities, action names, or error states, and 
 - Breaking schema changes include version and migration guidance.
 - App restart, disconnect, multiple clients, and action updates have automated tests or reproducible smoke evidence.
 - [x] MCP remains loopback-only with complete boundary tests.
-- Abandoned or excessive sessions cannot grow without bound, and the avatar renderer cannot call Settings or asset-management IPC.
+- [x] Abandoned or excessive sessions cannot grow without bound.
+- The avatar renderer cannot call Settings or asset-management IPC (still needs preload split).
 
-## v0.5.0: maintainability and performance
+## v0.5.x: maintainability and performance
 
 Goal: new features do not turn one Settings page, the main process, and the settings store into permanent change bottlenecks.
 
@@ -220,5 +226,5 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 ## Next three actions
 
 1. [x] **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
-2. **Define release smoke evidence:** download the GitHub installer and record Windows build, install/uninstall, first launch, voice source, and MCP results.
-3. **Design the v0.2 readiness model:** give Settings and `get_status` one vocabulary for model, helper, voice source, and MCP state.
+2. [x] **Ship `0.2.0` hardening:** discovery backoff, safe matcher subset, MCP session limits, and IPC sender validation.
+3. **Finish the `0.2.x` closed loop:** first-run readiness, copyable diagnostics, and versioned Windows smoke evidence.

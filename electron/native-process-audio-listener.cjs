@@ -4,10 +4,17 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { AudioActivityGate, DEFAULT_SPEECH_RELEASE_MS } = require("./audio-activity-gate.cjs");
-const { discoverVoiceProcesses } = require("./process-discovery.cjs");
+const {
+  discoverVoiceProcesses,
+  isPidAlive,
+  selectStickyRootPid,
+} = require("./process-discovery.cjs");
 const { normalizeVoiceSource } = require("./voice-source.cjs");
 
 const SESSION_IDLE_MS = 8_000;
+const MIN_POLL_INTERVAL_MS = 1_500;
+const MAX_POLL_INTERVAL_MS = 10_000;
+const FULL_DISCOVERY_MAX_AGE_MS = 10_000;
 
 function helperExecutableName() {
   return "voxavatar-audio-listener.exe";
@@ -50,22 +57,28 @@ class NativeProcessAudioListener {
     resourcesPath = process.resourcesPath,
     helperPath = null,
     processDiscovery = discoverVoiceProcesses,
+    pidAlive = isPidAlive,
     spawnProcess = spawn,
     onActivity = () => {},
     onDebug = null,
     onLevel = () => {},
     onSession = () => {},
     onStatus = () => {},
-    pollIntervalMs = 1_500,
+    pollIntervalMs = MIN_POLL_INTERVAL_MS,
+    minPollIntervalMs = MIN_POLL_INTERVAL_MS,
+    maxPollIntervalMs = MAX_POLL_INTERVAL_MS,
+    fullDiscoveryMaxAgeMs = FULL_DISCOVERY_MAX_AGE_MS,
     sessionIdleMs = SESSION_IDLE_MS,
     speechReleaseMs = DEFAULT_SPEECH_RELEASE_MS,
     processPattern = null,
     voiceSource = null,
+    now = () => Date.now(),
   } = {}) {
     this.platform = platform;
     this.helperPath =
       helperPath ?? resolveNativeHelperPath({ platform, isPackaged, resourcesPath });
     this.processDiscovery = processDiscovery;
+    this.pidAlive = pidAlive;
     this.processPattern = processPattern;
     this.voiceSource = normalizeVoiceSource(voiceSource);
     this.spawnProcess = spawnProcess;
@@ -73,16 +86,25 @@ class NativeProcessAudioListener {
     this.onDebug = onDebug;
     this.onSession = onSession;
     this.onStatus = onStatus;
-    this.pollIntervalMs = pollIntervalMs;
+    this.minPollIntervalMs = minPollIntervalMs;
+    this.maxPollIntervalMs = Math.max(maxPollIntervalMs, minPollIntervalMs);
+    this.pollIntervalMs = Math.min(
+      Math.max(pollIntervalMs, this.minPollIntervalMs),
+      this.maxPollIntervalMs,
+    );
+    this.fullDiscoveryMaxAgeMs = fullDiscoveryMaxAgeMs;
     this.sessionIdleMs = sessionIdleMs;
+    this.now = now;
     this.capture = null;
     this.captureKey = null;
+    this.activeRootPid = null;
     this.pollTimer = null;
     this.sessionTimer = null;
     this.sessionActive = false;
     this.stopped = true;
     this.pollInFlight = false;
     this.lastStatusKey = null;
+    this.lastFullDiscoveryAt = 0;
     this.outputRetryTimer = null;
     this.gate = new AudioActivityGate({
       onActivity,
@@ -97,6 +119,29 @@ class NativeProcessAudioListener {
     if (key === this.lastStatusKey) return;
     this.lastStatusKey = key;
     this.onStatus(status);
+  }
+
+  clearPollTimer() {
+    clearTimeout(this.pollTimer);
+    this.pollTimer = null;
+  }
+
+  scheduleNextPoll(intervalMs = this.pollIntervalMs) {
+    this.clearPollTimer();
+    if (this.stopped) return;
+    this.pollTimer = setTimeout(() => void this.poll(), intervalMs);
+    this.pollTimer.unref?.();
+  }
+
+  relaxPollInterval() {
+    this.pollIntervalMs = Math.min(
+      this.maxPollIntervalMs,
+      Math.round(this.pollIntervalMs * 1.5),
+    );
+  }
+
+  tightenPollInterval() {
+    this.pollIntervalMs = this.minPollIntervalMs;
   }
 
   async start() {
@@ -129,30 +174,57 @@ class NativeProcessAudioListener {
       source: null,
     });
     await this.poll();
-    this.pollTimer = setInterval(() => void this.poll(), this.pollIntervalMs);
-    this.pollTimer.unref?.();
   }
 
   async poll() {
     if (this.stopped || this.pollInFlight) return;
     this.pollInFlight = true;
     try {
+      const now = this.now();
+      const canUseFastPath =
+        this.activeRootPid != null &&
+        this.capture &&
+        this.captureKey === String(this.activeRootPid) &&
+        this.pidAlive(this.activeRootPid) &&
+        now - this.lastFullDiscoveryAt < this.fullDiscoveryMaxAgeMs;
+
+      if (canUseFastPath) {
+        this.relaxPollInterval();
+        this.scheduleNextPoll();
+        return;
+      }
+
       const processes = await this.processDiscovery({
         platform: this.platform,
         voiceSource: this.voiceSource,
         ...(this.processPattern ? { pattern: this.processPattern } : {}),
       });
       if (this.stopped) return;
-      const selectedPids = processes.rootPids.slice(0, 1);
-      const key = selectedPids.join(",");
-      if (!key) {
+      this.lastFullDiscoveryAt = this.now();
+      const selectedPid = selectStickyRootPid(
+        processes.rootPids,
+        this.activeRootPid,
+      );
+      if (selectedPid == null) {
+        this.activeRootPid = null;
         this.detach();
+        this.tightenPollInterval();
+        this.scheduleNextPoll();
         return;
       }
-      if (this.capture && this.captureKey === key) return;
+      const key = String(selectedPid);
+      this.activeRootPid = selectedPid;
+      if (this.capture && this.captureKey === key) {
+        this.relaxPollInterval();
+        this.scheduleNextPoll();
+        return;
+      }
       this.detach({ sessionEnded: false });
-      this.startCapture(selectedPids, key);
+      this.startCapture([selectedPid], key);
+      this.tightenPollInterval();
+      this.scheduleNextPoll();
     } catch (error) {
+      this.tightenPollInterval();
       this.reportStatus({
         available: true,
         capturing: false,
@@ -160,6 +232,7 @@ class NativeProcessAudioListener {
         source: null,
         error: error instanceof Error ? error.message : String(error),
       });
+      this.scheduleNextPoll();
     } finally {
       this.pollInFlight = false;
     }
@@ -206,6 +279,8 @@ class NativeProcessAudioListener {
       if (this.capture !== child) return;
       this.capture = null;
       this.captureKey = null;
+      this.activeRootPid = null;
+      this.tightenPollInterval();
       this.reportStatus({
         available: false,
         capturing: false,
@@ -213,12 +288,17 @@ class NativeProcessAudioListener {
         source: null,
         error: error.message,
       });
+      if (!this.stopped && this.voiceSource.mode !== "output") {
+        this.scheduleNextPoll();
+      }
     });
     child.once("exit", (code, signal) => {
       if (this.capture !== child) return;
       this.capture = null;
       this.captureKey = null;
+      this.activeRootPid = null;
       this.gate.reset();
+      this.tightenPollInterval();
       this.reportStatus({
         available: true,
         capturing: false,
@@ -234,6 +314,8 @@ class NativeProcessAudioListener {
         this.captureKey == null
       ) {
         this.scheduleOutputRetry();
+      } else if (!this.stopped && this.voiceSource.mode !== "output") {
+        this.scheduleNextPoll();
       }
     });
   }
@@ -304,10 +386,10 @@ class NativeProcessAudioListener {
   stop() {
     if (this.stopped) return;
     this.stopped = true;
-    clearInterval(this.pollTimer);
-    this.pollTimer = null;
+    this.clearPollTimer();
     clearTimeout(this.outputRetryTimer);
     this.outputRetryTimer = null;
+    this.activeRootPid = null;
     this.detach();
   }
 }
@@ -315,6 +397,9 @@ class NativeProcessAudioListener {
 module.exports = {
   NativeProcessAudioListener,
   SESSION_IDLE_MS,
+  MIN_POLL_INTERVAL_MS,
+  MAX_POLL_INTERVAL_MS,
+  FULL_DISCOVERY_MAX_AGE_MS,
   createNdjsonParser,
   helperExecutableName,
   resolveNativeHelperPath,

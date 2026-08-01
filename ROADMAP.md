@@ -4,7 +4,7 @@
 
 更新日期：2026-08-01
 
-規劃基準：`v0.1.1`
+規劃基準：`v0.2.0`
 
 這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成（可跨版本標示），`-` 表示尚未完成。
 
@@ -17,21 +17,23 @@ VoxAvatar 不應變成另一套聊天介面，也不該用內建角色數量競�
 使用者真正要完成四件事：
 
 1. **看見**：角色穩定顯示在桌面，不干擾原本的工作。
-2. **聽見反應**：指定應用程式播放助理語音時，角色自然做口型與動作。
+2. **聽見反應**：指定應用程式（或明確 opt-in 的系統輸出）播放助理語音時，角色自然做口型與動作。
 3. **讓 agent 行動**：透過 MCP 播放已設定動作、控制視窗並取得可信狀態。
 4. **保持掌控**：素材、設定與音量判定留在本機，錯誤可解釋，隱私與授權不靠猜。
 
 ```text
-v0.1.x  穩定第一個 Windows 發行基線
+v0.1.x  穩定第一個 Windows 發行基線（已完成至 0.1.2）
    │
-   ├─ v0.2  首次設定、診斷與安裝驗收
-   ├─ v0.3  VRM／VRMA 相容性與素材生命週期
-   ├─ v0.4  MCP 契約、狀態與多用戶端可靠性
-   └─ v0.5  可維護性、啟動與 renderer 效能
+   ├─ v0.2.x  診斷／discovery 硬化 → 首次設定與安裝驗收閉環
+   ├─ v0.3.x  VRM／VRMA 相容性與素材生命週期
+   ├─ v0.4.x  MCP 契約、狀態與多用戶端可靠性
+   └─ v0.5.x  可維護性、啟動與 renderer 效能
         │
         ▼
-v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
+v1.0.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 ```
+
+SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` → `0.2.0`），不在 `0.1.x` 長時間堆功能；純修補才用 patch。
 
 ## 已有基礎，不重做
 
@@ -74,9 +76,9 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - [x] 未簽署安裝包不宣稱已通過 SmartScreen 簽章驗收。
 - 真實 Windows smoke 有可追溯記錄（格式已有，尚缺版本化實機填寫）。
 
-## v0.2.0：首次設定與可修復診斷
+## v0.2.x：診斷硬化與首次設定閉環
 
-目標：新使用者能完成「匯入角色、選語音來源、連 MCP」，失敗時知道原因與下一步。
+目標：`0.2.0` 先收斂 listener／matcher／IPC／MCP session 可靠性；後續 `0.2.x` 補齊首次設定進度、診斷摘要與實機矩陣。
 
 ### 工作
 
@@ -85,8 +87,10 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - 增加可複製的診斷摘要，預設遮蔽使用者名稱、絕對路徑與素材檔名，不包含音訊或模型內容。
 - 讓 `get_status` 與設定頁共用同一套 readiness／錯誤語彙。
 - 建立 Windows 10／11、安裝／升級／移除與 protocol 註冊的實機矩陣。
-- 將 process discovery 改成 PID 存活快路徑與 adaptive backoff，並定義多個符合 root process 時的 active source／多 root 語意。
-- 限制自訂 process matcher 為不會回溯爆炸的安全子集，或改用 RE2／有 timeout 的隔離執行環境。
+- [x] 將 process discovery 改成 PID 存活快路徑與 adaptive backoff，並定義多個符合 root process 時的 sticky active source 語意（`0.2.0`）。
+- [x] 限制自訂 process matcher 為不會回溯爆炸的安全子集（`0.2.0`）。
+- [x] 為 MCP session 加入 idle TTL、容量上限與可測試淘汰（自 `0.4` 提前至 `0.2.0`）。
+- [x] privileged IPC 統一驗證 sender URL（完整拆 preload 仍屬後續）。
 
 ### 完成條件
 
@@ -94,10 +98,11 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - 常見 helper／來源失敗不必開 DevTools 才能辨識。
 - 設定頁與 MCP 對同一狀態不會給出互相矛盾的答案。
 - 診斷摘要通過敏感資料測試，可直接附到 issue。
-- 穩定監聽時不再每 1.5 秒啟動 PowerShell 全量掃描；多個符合來源有可預期的選擇結果。
-- 惡意或病態 matcher 不會阻塞 Electron main process。
+- [x] 穩定監聽時不再每次都啟動 PowerShell 全量掃描；多個符合來源有可預期的 sticky 選擇結果。
+- [x] 惡意或病態 matcher 不會阻塞 Electron main process。
+- [x] 遺棄或大量 MCP session 不會無界成長。
 
-## v0.3.0：素材相容性與生命週期
+## v0.3.x：素材相容性與生命週期
 
 目標：使用者匯入不同 exporter 的素材時，能預先知道可用性、品質與遷移結果。
 
@@ -115,7 +120,7 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - [x] 匯入中斷、重名、損壞、過大與不相容素材不會破壞既有 library。
 - 最近兩個 MINOR 的設定與 catalog 可以安全升級；不可遷移時會保留原資料並說明。
 
-## v0.4.0：穩定的本機 MCP 契約
+## v0.4.x：穩定的本機 MCP 契約
 
 目標：agent 不必猜工具能力、動作名稱或錯誤狀態，也不會因長 session 使用過期 catalog。
 
@@ -124,8 +129,8 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - 為 MCP status 與工具輸出宣告版本化 schema，記錄 SemVer 相容政策。
 - 補齊 Codex 與通用 Streamable HTTP 用戶端範例、連接埠變更、重連與故障排除。
 - 驗證多個本機 MCP client、長 session catalog 更新與 app 關閉／重啟行為。
-- 為 MCP session 加入 idle TTL、容量上限與可測試的淘汰／關閉行為。
-- 將 avatar 與 settings preload 分權，所有 privileged IPC 統一驗證 sender、frame 與 app URL。
+- [x] 為 MCP session 加入 idle TTL、容量上限與可測試的淘汰／關閉行為（已於 `0.2.0` 落地）。
+- 將 avatar 與 settings preload 分權；sender URL 驗證已於 `0.2.0` 落地，完整分權仍待完成。
 - 對高頻重複動作加入有界佇列或節流語意，避免 renderer 被無限制事件淹沒。
 - [x] 保持視覺控制範圍，不加入任意命令、任意檔案、網路代理或語音生成。
 
@@ -135,9 +140,10 @@ v1.0：可長期信任的 Windows 桌面角色與本機 agent 介面
 - schema 破壞性變更有版本與 migration 說明。
 - app 重啟、client 斷線、多 client 與動作更新都有自動測試或可重現 smoke。
 - [x] MCP 仍只監聽 loopback，安全邊界測試保持完整。
-- 遺棄或大量 session 不會無界成長；avatar renderer 無法呼叫設定／資產管理 IPC。
+- [x] 遺棄或大量 session 不會無界成長。
+- avatar renderer 無法呼叫設定／資產管理 IPC（仍待拆 preload）。
 
-## v0.5.0：可維護性與效能
+## v0.5.x：可維護性與效能
 
 目標：功能增加時，不讓單一設定頁、main process 與 settings store 成為修改瓶頸。
 
@@ -220,5 +226,5 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 ## 接下來三件事
 
 1. [x] **關閉 v0.1.x 信任缺口**：清除 CodeQL alerts、啟用 Dependabot security alerts、修正 MIT 偵測並完成本次穩定修正版。
-2. **建立 Release 實機證據格式**：從 GitHub 下載 installer，記錄 Windows build、安裝／移除、首次啟動、語音來源與 MCP smoke。
-3. **設計 v0.2 readiness 模型**：讓設定頁與 `get_status` 對模型、helper、語音來源與 MCP 使用同一套狀態與修復語彙。
+2. [x] **發行 `0.2.0` hardening**：discovery backoff、matcher 安全子集、MCP session 上限、IPC sender 驗證。
+3. **完成 `0.2.x` 閉環**：首次設定 readiness、可複製診斷摘要、版本化 Windows 實機證據。

@@ -4,7 +4,9 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const {
   configuredPattern,
+  isPidAlive,
   parseWindowsProcessList,
+  selectStickyRootPid,
   selectVoiceProcessTree,
 } = require("./process-discovery.cjs");
 
@@ -105,4 +107,19 @@ test("does not confuse VoxAvatar's project path with the Codex application", () 
     { ownProcessId: 999 },
   );
   assert.deepEqual(selected, { pids: [], rootPids: [] });
+});
+
+test("sticky root keeps the previous PID when it remains available", () => {
+  assert.equal(selectStickyRootPid([30, 10, 20], 20), 20);
+  assert.equal(selectStickyRootPid([30, 10, 20], 99), 10);
+  assert.equal(selectStickyRootPid([], 20), null);
+  assert.equal(isPidAlive(20, { killProcess: () => true }), true);
+  assert.equal(
+    isPidAlive(20, {
+      killProcess: () => {
+        throw new Error("ESRCH");
+      },
+    }),
+    false,
+  );
 });

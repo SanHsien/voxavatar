@@ -99,6 +99,38 @@ async function listPlatformProcesses({
   return parseWindowsProcessList(stdout);
 }
 
+/**
+ * 多 root 語意：若上次 active PID 仍在 root 集合中則 sticky 沿用；
+ * 否則取排序後第一個（穩定、可預測）。
+ */
+function selectStickyRootPid(rootPids, previousPid = null) {
+  const roots = [
+    ...new Set(
+      (Array.isArray(rootPids) ? rootPids : []).filter(
+        (pid) => Number.isInteger(pid) && pid > 0,
+      ),
+    ),
+  ].sort((left, right) => left - right);
+  if (
+    previousPid != null &&
+    Number.isInteger(previousPid) &&
+    roots.includes(previousPid)
+  ) {
+    return previousPid;
+  }
+  return roots[0] ?? null;
+}
+
+function isPidAlive(pid, { killProcess = process.kill } = {}) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    killProcess(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function discoverVoiceProcesses({
   platform = process.platform,
   run = execFileAsync,
@@ -123,7 +155,9 @@ module.exports = {
   configuredPattern,
   discoverVoiceProcesses,
   identityMatches,
+  isPidAlive,
   listPlatformProcesses,
   parseWindowsProcessList,
+  selectStickyRootPid,
   selectVoiceProcessTree,
 };

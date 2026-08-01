@@ -17,6 +17,9 @@ const {
 
 const MCP_PATH = "/mcp";
 const WINDOW_ACTIONS = ["show", "hide", "toggle"];
+const MAX_MCP_SESSIONS = 32;
+const MCP_SESSION_IDLE_TTL_MS = 30 * 60 * 1000;
+const MCP_SESSION_SWEEP_MS = 60_000;
 const SERVER_INSTRUCTIONS =
   "VoxAvatar controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle VoxAvatar. VoxAvatar never speaks or plays audio. get_status and list_animations are read-only.";
 
@@ -170,10 +173,71 @@ function createVoxAvatarMcpServer({
   return server;
 }
 
-function createVoxAvatarMcpHandler(controller) {
+function createVoxAvatarMcpHandler(
+  controller,
+  {
+    maxSessions = MAX_MCP_SESSIONS,
+    sessionIdleTtlMs = MCP_SESSION_IDLE_TTL_MS,
+    sweepIntervalMs = MCP_SESSION_SWEEP_MS,
+    now = () => Date.now(),
+  } = {},
+) {
   const sessions = new Map();
+  let sweepTimer = null;
+
+  async function closeSession(sessionId) {
+    const session = sessions.get(sessionId);
+    if (!session) return;
+    sessions.delete(sessionId);
+    try {
+      await session.server.close();
+    } catch {
+      // best-effort cleanup
+    }
+  }
+
+  function touchSession(sessionId) {
+    const session = sessions.get(sessionId);
+    if (!session) return;
+    session.lastActiveAt = now();
+  }
+
+  async function enforceSessionCap() {
+    while (sessions.size >= maxSessions) {
+      let oldestId = null;
+      let oldestAt = Number.POSITIVE_INFINITY;
+      for (const [sessionId, session] of sessions) {
+        if (session.lastActiveAt < oldestAt) {
+          oldestAt = session.lastActiveAt;
+          oldestId = sessionId;
+        }
+      }
+      if (oldestId == null) break;
+      await closeSession(oldestId);
+    }
+  }
+
+  async function sweepIdleSessions() {
+    const cutoff = now() - sessionIdleTtlMs;
+    const expired = [];
+    for (const [sessionId, session] of sessions) {
+      if (session.lastActiveAt <= cutoff) expired.push(sessionId);
+    }
+    for (const sessionId of expired) {
+      await closeSession(sessionId);
+    }
+  }
+
+  function ensureSweep() {
+    if (sweepTimer || sweepIntervalMs <= 0) return;
+    sweepTimer = setInterval(() => {
+      void sweepIdleSessions();
+    }, sweepIntervalMs);
+    sweepTimer.unref?.();
+  }
 
   const handler = async (request, response, parsedBody) => {
+    ensureSweep();
     const header = request.headers["mcp-session-id"];
     const sessionId = Array.isArray(header) ? header[0] : header;
     let session = sessionId ? sessions.get(sessionId) : null;
@@ -184,13 +248,18 @@ function createVoxAvatarMcpHandler(controller) {
         request.method === "POST" &&
         isInitializeRequest(parsedBody)
       ) {
+        await enforceSessionCap();
         let transport;
         const server = createVoxAvatarMcpServer(controller);
         transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: randomUUID,
           enableJsonResponse: true,
           onsessioninitialized: (initializedSessionId) => {
-            session = { server, transport };
+            session = {
+              server,
+              transport,
+              lastActiveAt: now(),
+            };
             sessions.set(initializedSessionId, session);
           },
         });
@@ -200,6 +269,7 @@ function createVoxAvatarMcpHandler(controller) {
         };
         await server.connect(transport);
         await transport.handleRequest(request, response, parsedBody);
+        if (transport.sessionId) touchSession(transport.sessionId);
         return;
       }
 
@@ -222,7 +292,9 @@ function createVoxAvatarMcpHandler(controller) {
         return;
       }
 
+      touchSession(sessionId);
       await session.transport.handleRequest(request, response, parsedBody);
+      touchSession(sessionId);
     } catch (error) {
       if (!response.headersSent) {
         response.writeHead(500, { "content-type": "application/json" });
@@ -244,11 +316,19 @@ function createVoxAvatarMcpHandler(controller) {
     }
   };
 
+  handler.sessionCount = () => sessions.size;
+
+  handler.sweepIdleSessions = sweepIdleSessions;
+
   handler.close = async () => {
-    const activeSessions = [...sessions.values()];
+    if (sweepTimer) {
+      clearInterval(sweepTimer);
+      sweepTimer = null;
+    }
+    const activeSessions = [...sessions.entries()];
     sessions.clear();
     await Promise.allSettled(
-      activeSessions.map(({ server }) => server.close()),
+      activeSessions.map(([, { server }]) => server.close()),
     );
   };
 
@@ -257,6 +337,9 @@ function createVoxAvatarMcpHandler(controller) {
 
 module.exports = {
   MCP_PATH,
+  MAX_MCP_SESSIONS,
+  MCP_SESSION_IDLE_TTL_MS,
+  MCP_SESSION_SWEEP_MS,
   SERVER_INSTRUCTIONS,
   WINDOW_ACTIONS,
   createVoxAvatarMcpHandler,

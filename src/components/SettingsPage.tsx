@@ -1418,7 +1418,7 @@ export function SettingsPage() {
                         event.target.value as VoxAvatarSettingsSnapshot['vrma_quality_gate'],
                       )
                     }
-                    value={settings.vrma_quality_gate ?? 'report'}
+                    value={settings.vrma_quality_gate ?? 'strict'}
                   >
                     <option value="report">
                       {t('actions.qualityGate.report')}

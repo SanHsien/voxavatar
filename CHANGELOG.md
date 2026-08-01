@@ -2,6 +2,14 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.0 - 2026-08-01
+
+- Process discovery 改為 PID 存活快路徑與 adaptive backoff；多 root 採 sticky active source。
+- 自訂 process matcher 改為有界安全子集，拒絕巢狀／堆疊量詞與過長 pattern。
+- MCP session 新增 idle TTL（30 分）與容量上限（32），並可 sweep 淘汰。
+- Privileged IPC 統一驗證 renderer sender URL；移除無效的 `strict-allow-scripts` npmrc 假防線。
+- 同步 SECURITY／REVIEW／雙語 ROADMAP：SemVer 改以 minor 推進能力與邊界強化，規劃基準改為 `v0.2.0`。
+
 ## 0.1.2 - 2026-08-01
 
 - 角色縮放下限改為 30%；設定滑桿與驗證一致。

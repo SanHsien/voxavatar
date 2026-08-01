@@ -29,6 +29,8 @@ const DEFAULT_VOICE_APP_PATTERN = new RegExp(
 );
 
 const MAX_VOICE_SOURCE_PATTERN_LENGTH = 200;
+const MAX_VOICE_SOURCE_PATTERN_GROUPS = 3;
+const MAX_VOICE_SOURCE_PATTERN_QUANTIFIERS = 12;
 
 function emptyVoiceSource(mode = "default") {
   return {
@@ -51,11 +53,60 @@ function cleanSourceName(value) {
   return normalized;
 }
 
+function countPatternGroups(source) {
+  let depth = 0;
+  let maxDepth = 0;
+  let escaped = false;
+  for (const char of source) {
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === "(") {
+      depth += 1;
+      maxDepth = Math.max(maxDepth, depth);
+    } else if (char === ")") {
+      depth = Math.max(0, depth - 1);
+    }
+  }
+  return maxDepth;
+}
+
+function countPatternQuantifiers(source) {
+  const matches = source.match(/(?:\*\?|\+\?|\?\?|[*+?]|\{\d+(?:,\d*)?\})/g);
+  return matches ? matches.length : 0;
+}
+
+/** 拒絕明顯容易 ReDoS 的自訂 pattern；預設 Codex／ChatGPT pattern 不受此限。 */
+function assertSafeVoiceSourcePattern(source) {
+  if (/(?:\*\?|\+\?|\?\?|[*+?]|\{\d+(?:,\d*)?\})\s*(?:\*\?|\+\?|\?\?|[*+?]|\{\d+(?:,\d*)?\})/.test(source)) {
+    throw new Error("Process pattern must not stack quantifiers.");
+  }
+  if (/\((?:[^()\\]|\\.)*[+*{](?:[^()\\]|\\.)*\)(?:\*\?|\+\?|\?\?|[*+?]|\{\d+(?:,\d*)?\})/.test(source)) {
+    throw new Error("Process pattern must not nest quantified groups.");
+  }
+  if (countPatternGroups(source) > MAX_VOICE_SOURCE_PATTERN_GROUPS) {
+    throw new Error(
+      `Process pattern nesting must be ${MAX_VOICE_SOURCE_PATTERN_GROUPS} levels or fewer.`,
+    );
+  }
+  if (countPatternQuantifiers(source) > MAX_VOICE_SOURCE_PATTERN_QUANTIFIERS) {
+    throw new Error(
+      `Process pattern may use at most ${MAX_VOICE_SOURCE_PATTERN_QUANTIFIERS} quantifiers.`,
+    );
+  }
+}
+
 function compileVoiceSourcePattern(source) {
   if (typeof source !== "string" || !source.trim()) {
     return DEFAULT_VOICE_APP_PATTERN;
   }
   try {
+    assertSafeVoiceSourcePattern(source.trim());
     return new RegExp(source, "i");
   } catch {
     return DEFAULT_VOICE_APP_PATTERN;
@@ -75,6 +126,7 @@ function sanitizeVoiceSourcePattern(value) {
       `Process pattern must be ${MAX_VOICE_SOURCE_PATTERN_LENGTH} characters or fewer.`,
     );
   }
+  assertSafeVoiceSourcePattern(normalized);
   try {
     new RegExp(normalized, "i");
   } catch {
@@ -213,8 +265,11 @@ module.exports = {
   DEFAULT_VOICE_SOURCE,
   MAX_VOICE_SOURCE_NAME_LENGTH,
   MAX_VOICE_SOURCE_PATTERN_LENGTH,
+  MAX_VOICE_SOURCE_PATTERN_GROUPS,
+  MAX_VOICE_SOURCE_PATTERN_QUANTIFIERS,
   VOICE_SOURCE_ID_PATTERN,
   VOICE_SOURCE_MODES,
+  assertSafeVoiceSourcePattern,
   cleanSourceName,
   compileVoiceSourcePattern,
   configuredPattern,

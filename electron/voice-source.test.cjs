@@ -50,6 +50,20 @@ test("prefers the environment override, then settings, then the default", () => 
   assert.equal(configuredPattern({}).test("ChatGPT"), true);
 });
 
+test("rejects nested or stacked quantifiers that invite ReDoS", () => {
+  assert.throws(() => sanitizeVoiceSourcePattern("(a+)+"), /nest|quantifier/i);
+  assert.throws(() => sanitizeVoiceSourcePattern("(a*)*"), /nest|quantifier/i);
+  assert.throws(() => sanitizeVoiceSourcePattern("a++"), /quantifier/i);
+  assert.throws(
+    () => sanitizeVoiceSourcePattern("x".repeat(201)),
+    /200 characters/,
+  );
+  assert.deepEqual(
+    normalizeVoiceSource({ mode: "custom", process_pattern: "(a+)+" }),
+    DEFAULT_VOICE_SOURCE,
+  );
+});
+
 test("sanitizes and normalizes persisted voice source values", () => {
   assert.equal(sanitizeVoiceSourcePattern("  my-voice-app  "), "my-voice-app");
   assert.throws(() => sanitizeVoiceSourcePattern(""), /required/);

@@ -311,3 +311,54 @@ test("VoxAvatar MCP reports an inactive animation command without a model", asyn
   assert.equal(result.isError, true);
   assert.match(result.content[0].text, /model and at least one clip/);
 });
+
+test("VoxAvatar MCP enforces session capacity and idle TTL", async (context) => {
+  let clock = 1_000;
+  const mcpHandler = createVoxAvatarMcpHandler(
+    {
+      onAnimation: () => true,
+      onWindowAction: () => true,
+      getStatus: () => ({ ok: true }),
+      getAnimations: () => [],
+    },
+    {
+      maxSessions: 1,
+      sessionIdleTtlMs: 100,
+      sweepIntervalMs: 0,
+      now: () => clock,
+    },
+  );
+  const bridge = createBridgeServer({
+    port: 0,
+    onEvent: () => {},
+    mcpHandler,
+  });
+  const address = await bridge.listen();
+  context.after(async () => {
+    await bridge.close();
+  });
+
+  const connectClient = async (name) => {
+    const client = new Client({ name, version: "1.0.0" });
+    const transport = new StreamableHTTPClientTransport(
+      new URL(`http://127.0.0.1:${address.port}/mcp`),
+    );
+    await client.connect(transport);
+    return client;
+  };
+
+  const first = await connectClient("cap-first");
+  assert.equal(mcpHandler.sessionCount(), 1);
+  clock += 10;
+  const second = await connectClient("cap-second");
+  assert.equal(mcpHandler.sessionCount(), 1);
+  await second.close();
+  await first.close().catch(() => {});
+
+  const third = await connectClient("cap-third");
+  assert.equal(mcpHandler.sessionCount(), 1);
+  clock += 1_000;
+  await mcpHandler.sweepIdleSessions();
+  assert.equal(mcpHandler.sessionCount(), 0);
+  await third.close().catch(() => {});
+});

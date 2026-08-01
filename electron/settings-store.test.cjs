@@ -230,7 +230,7 @@ test("keeps user library records when migrating the earlier settings schema", (c
   );
 
   const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
-  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.schema_version, 7);
   assert.equal(snapshot.default_model_id, modelId);
   assert.equal(snapshot.character_size, 1.15);
   assert.ok(snapshot.models.some((model) => model.id === modelId));
@@ -593,7 +593,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     mode: "custom",
     process_pattern: "  local-tts|open-webui  ",
   });
-  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.schema_version, 7);
   assert.equal(snapshot.idle_rest_ms, 8000);
   assert.deepEqual(snapshot.voice_source, {
     mode: "custom",
@@ -636,7 +636,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 6);
+  assert.equal(migrated.schema_version, 7);
   assert.equal(migrated.idle_rest_ms, 8000);
   assert.deepEqual(migrated.voice_source, {
     mode: "default",
@@ -775,7 +775,7 @@ test("migrates schema 4 fixture through legacy animation clip grouping", (contex
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.schema_version, 7);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.ok(snapshot.models.some((model) => model.id === legacy.models[0].id));
@@ -801,7 +801,7 @@ test("migrates schema 5 fixture while preserving split animation metadata and cl
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.schema_version, 7);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.equal(snapshot.ui_locale, "en");
@@ -839,7 +839,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
   const readResult = safeReadState(settingsPath, packagedLibrary);
   assert.equal(readResult.migration_error, "unsupported_schema");
   assert.equal(readResult.migrated, false);
-  assert.equal(readResult.state.schema_version, 6);
+  assert.equal(readResult.state.schema_version, 7);
   assert.deepEqual(readResult.state.models, []);
   assert.equal(
     fs.existsSync(`${settingsPath}.unmigratable-backup`),
@@ -854,7 +854,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(snapshot.schema_version, 6);
+  assert.equal(snapshot.schema_version, 7);
   assert.deepEqual(snapshot.models, []);
 });
 

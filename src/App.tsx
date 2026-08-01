@@ -10,7 +10,6 @@ import { SceneErrorBoundary } from './components/SceneErrorBoundary';
 import {
   ambientIdleMotionUrls,
   animationUrlsForType,
-  immediateVoiceAnimation,
   type AnimationType,
 } from './animation-catalog';
 import {
@@ -18,6 +17,11 @@ import {
   resolveBodyAnimation,
   type BodyAnimationOverride,
 } from './animation-priority';
+import {
+  immediateAnimationFromResolved,
+  resolveCharacterState,
+  voiceActivityToStateEvent,
+} from './character-state';
 import {
   loadPackagedSettingsFallback,
   SETTINGS_FALLBACK,
@@ -94,7 +98,9 @@ export function App() {
     !voice.outputMuted;
 
   useEffect(() => {
-    const immediateAnimation = immediateVoiceAnimation(voice);
+    const voiceEvent = voiceActivityToStateEvent(voice, Date.now());
+    const resolved = resolveCharacterState([voiceEvent], Date.now());
+    const immediateAnimation = immediateAnimationFromResolved(resolved);
     if (immediateAnimation != null) {
       setVoiceAnimation(immediateAnimation);
       if (immediateAnimation === 'IDLE') setAudioLevel(0);

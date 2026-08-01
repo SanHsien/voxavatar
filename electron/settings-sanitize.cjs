@@ -3,6 +3,11 @@
 const {
   ANIMATION_NAME_PATTERN,
 } = require("./library-catalog.cjs");
+const {
+  ANIMATION_PURPOSE,
+  defaultPurposeForAnimationType,
+  normalizeAnimationPurpose,
+} = require("./vrma-quality.cjs");
 
 const ASSET_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -157,17 +162,31 @@ function sanitizeUserAnimations(animations) {
   });
 }
 
-function sanitizeAnimationClips(animationClips, knownAnimationIds) {
+function sanitizeAnimationClips(animationClips, knownAnimationIds, options = {}) {
   if (animationClips == null || typeof animationClips !== "object") return {};
+  const purposeByAnimationId =
+    options.purposeByAnimationId instanceof Map
+      ? options.purposeByAnimationId
+      : null;
   const sanitized = {};
   for (const [animationId, clips] of Object.entries(animationClips)) {
     if (!knownAnimationIds.has(animationId) || !Array.isArray(clips)) continue;
+    const fallbackPurpose = purposeByAnimationId?.get(animationId) ?? ANIMATION_PURPOSE.LOOP;
     const valid = clips.flatMap((clip) => {
       if (!validStoredAsset(clip, ".vrma")) return [];
       try {
         const clip_name = singleLine(clip.clip_name, "Clip name", 64).toLowerCase();
         if (!ANIMATION_NAME_PATTERN.test(clip_name)) return [];
-        return [{ id: clip.id, stored_filename: clip.stored_filename, clip_name }];
+        return [
+          {
+            id: clip.id,
+            stored_filename: clip.stored_filename,
+            clip_name,
+            purpose: normalizeAnimationPurpose(
+              clip.purpose ?? fallbackPurpose,
+            ),
+          },
+        ];
       } catch {
         return [];
       }
@@ -190,7 +209,9 @@ module.exports = {
   DEFAULT_MODEL_LIGHTING,
   MODEL_LIGHTING_RANGES,
   completeModelLighting,
+  defaultPurposeForAnimationType,
   nextClipName,
+  normalizeAnimationPurpose,
   roundedLightingNumber,
   sanitizeAnimationClips,
   sanitizeModelLighting,

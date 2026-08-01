@@ -117,7 +117,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-The GitHub Latest Release is **`v0.5.0`**; `main` has accumulated **`0.8.1`** and has not yet been batch-tagged or Released. v0.9 consolidates character states, floating bubbles, deferred code convergence, and Windows real-machine/signing validation.
+The GitHub Latest Release is **`v0.5.0`**; `main` has accumulated **`0.9.0`** (motion purpose, state arbitration, bubble/lip-sync pure logic start) and has not yet been batch-tagged or Released. Remaining v0.9 work (DOM bubbles, MCP `show_message`, Windows smoke/signing) waits on a desktop or secrets.
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order and completion criteria, and [`REVIEW.md`](REVIEW.md) for current health and validation gaps (Traditional Chinese).
 

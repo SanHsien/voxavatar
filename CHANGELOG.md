@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.9.0 - 2026-08-01
+
+- VRMA 品質分析支援動作用途 `loop`／`one-shot`／`pose`：一次性動作不再因循環接縫被淘汰；pose 不套用 dead-motion。
+- Settings schema 7：clip 持久化 `purpose`；Idle／Speaking 預設 `loop`，自訂動作預設 `one-shot`；6→7 遷移自動補齊。
+- 新增角色狀態仲裁（`character-state`）、氣泡輸入清理／有界佇列（`character-message`）、小尺寸口型增益（`lip-sync-gain`）純邏輯與測試；App 語音路徑改走仲裁。
+- DOM 氣泡、MCP `show_message`、口型 renderer 接線與 Windows 實機仍屬後續。
+
 ## 0.8.1 - 2026-08-01
 
 - 簡化整個 repository 的 Markdown 分工：ROADMAP 只留已完成摘要與 v0.9，決策檔改為現行主題，代理與 fixture 文件改為薄入口。

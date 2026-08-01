@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-01
-規劃基準：`v0.8.1`（`main` 累積；Latest Release：`v0.5.0`）
+規劃基準：`v0.9.0`（`main` 累積；Latest Release：`v0.5.0`）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)，目前健康狀態見 [`REVIEW.md`](REVIEW.md)。
 
@@ -36,10 +36,10 @@ v0.6–v0.8 已完成項不再逐條留在路線圖；尚未完成的工作已�
 
 完整契約見 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
-- 為 VRMA 加入 `loop`／`one-shot`／`pose` 用途，品質 gate 依用途評估，不再用循環接縫淘汰一次性動作。
-- 加入 `idle`／`listening`／`speaking`／`working`／`reviewing`／`success`／`failed` 狀態、固定優先序、TTL、系統動作槽與安全 fallback。
-- 強化小尺寸角色的口型可讀性：可調強度、最小開口、依螢幕頭部尺寸自動增益，並明確標示為音量驅動而非音素同步。
-- 加入跟隨角色的漫畫式對話氣泡：短句、Emoji、顏文字、螢幕邊緣避讓、TTL、reduced motion 與有界佇列。
+- [x] 為 VRMA 加入 `loop`／`one-shot`／`pose` 用途，品質 gate 依用途評估，不再用循環接縫淘汰一次性動作。
+- [x] 加入 `idle`／`listening`／`speaking`／`working`／`reviewing`／`success`／`failed` 狀態、固定優先序、TTL、來源清除與安全 fallback（純邏輯＋App 語音路徑接入；系統動作槽 UI／MCP 狀態事件仍待）。
+- [x] 強化小尺寸角色的口型可讀性：可調強度、最小開口、依螢幕頭部尺寸自動增益（純函式；renderer 接線與 DPI 實機仍待）。
+- 加入跟隨角色的漫畫式對話氣泡：短句、Emoji、顏文字、螢幕邊緣避讓、TTL、reduced motion 與有界佇列（輸入清理／佇列純邏輯已落地；DOM overlay 與 MCP 仍待）。
 - 讓已連接的本機 AI 透過 MCP `show_message` 顯示短訊息；功能預設關閉，啟用後仍有 session 來源標示、速率限制與輸入清理，不保存訊息歷史。
 - 評估薄的 `action-pack.json`，只描述動作用途與狀態對應，不繞過匯入、路徑或授權 gate。
 
@@ -83,6 +83,6 @@ v0.6–v0.8 已完成項不再逐條留在路線圖；尚未完成的工作已�
 
 ## 接下來三件事
 
-1. 實作動作用途 profile，讓品質分析先理解 `loop`／`one-shot`／`pose`。
-2. 實作角色狀態仲裁與 fallback，再接浮動氣泡和 MCP `show_message`。
+1. [x] 實作動作用途 profile，讓品質分析先理解 `loop`／`one-shot`／`pose`。
+2. [x] 實作角色狀態仲裁與 fallback 純邏輯（語音路徑已接入）；接浮動氣泡 DOM／MCP `show_message`。
 3. 在可取得 Windows 桌面與簽署密鑰時補 release-evidence、native 與 installer 驗收。

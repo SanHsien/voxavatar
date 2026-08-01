@@ -35,8 +35,12 @@ The analyzer emits `keep`, `review`, or `reject`, plus a 0–100 score and issue
 | `vrma-velocity-spike` | Mid-clip angular velocity spike | `buildRotationVrma({ spike: true, angle: 0.15 })` | review or reject | issue code prefix `velocity` | `velocity spike VRMA is marked review or reject` |
 | `vrma-too-short` | Duration under 0.4 s | `buildRotationVrma({ duration: 0.25, frames: 6 })` | review or reject | `too_short` | `too-short VRMA clip is marked review or reject` |
 | `vrma-no-animation` | GLB without animation block | `buildRotationVrma({ includeAnimation: false })` | reject | `no_animation` | `VRMA without animation tracks is rejected` |
-| `vrma-loop-seam` | First/last pose seam gap (not mid-clip spike) | `buildRotationVrma({ loopSeam: true, loopSeamDelta: 0.35 })` | review or reject | issue code prefix `loop_seam`; not `velocity_spike` | `loop seam VRMA is marked review or reject` |
+| `vrma-loop-seam` | First/last pose seam gap (not mid-clip spike) | `buildRotationVrma({ loopSeam: true, … })`; default `loop` | review or reject | issue code prefix `loop_seam`; not `velocity_spike` | `loop seam VRMA is marked review or reject` |
+| `vrma-one-shot-seam` | Same seam, purpose `one-shot` | `analyzeVrmaFile(…, { purpose: "one-shot" })` | not reject (no seam penalty) | no `loop_seam*` | `one-shot purpose does not reject for loop seam alone` |
+| `vrma-pose-static` | Near-static clip, purpose `pose` | `buildRotationVrma({ angle: 0 })` + `purpose: "pose"` | not penalized as `dead_motion` | no `dead_motion` | `pose purpose skips dead-motion…` |
 | `vrma-broken` | Non-GLB bytes | raw `not-a-glb` | reject | `parse_error` | `broken file is rejected` |
+
+Animation purpose (`loop` / `one-shot` / `pose`) comes from analyze options or settings schema 7 clip `purpose`; default is `loop`. Directory import infers purpose from the target animation type.
 
 ## Exporter notes
 

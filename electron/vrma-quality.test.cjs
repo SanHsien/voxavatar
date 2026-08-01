@@ -103,6 +103,41 @@ test("loop seam VRMA is marked review or reject", (context) => {
     report.verdict === VERDICT.REVIEW || report.verdict === VERDICT.REJECT,
   );
   assert.ok(report.metrics.loopSeamMaxRad > 0.25);
+  assert.equal(report.purpose, "loop");
+});
+
+test("one-shot purpose does not reject for loop seam alone", (context) => {
+  const { filePath } = writeTempVrma(
+    context,
+    buildRotationVrma({ loopSeam: true, angle: 0.2, loopSeamDelta: 0.35 }),
+    "one-shot-seam.vrma",
+  );
+  const report = analyzeVrmaFile(filePath, { purpose: "one-shot" });
+  assert.equal(report.purpose, "one-shot");
+  assert.ok(
+    !report.issues.some((issue) => issue.code.startsWith("loop_seam")),
+    "one-shot must not apply loop seam penalties",
+  );
+  assert.notEqual(report.verdict, VERDICT.REJECT);
+});
+
+test("pose purpose skips dead-motion rejection for near-static clips", (context) => {
+  const { filePath } = writeTempVrma(
+    context,
+    buildRotationVrma({ angle: 0, duration: 1.5, frames: 31 }),
+    "pose.vrma",
+  );
+  const asLoop = analyzeVrmaFile(filePath, { purpose: "loop" });
+  const asPose = analyzeVrmaFile(filePath, { purpose: "pose" });
+  assert.ok(
+    asLoop.issues.some((issue) => issue.code === "dead_motion"),
+    "loop purpose should flag near-static motion as dead_motion",
+  );
+  assert.ok(
+    !asPose.issues.some((issue) => issue.code === "dead_motion"),
+    "pose must not flag low motion amplitude as dead_motion",
+  );
+  assert.equal(asPose.purpose, "pose");
 });
 
 test("broken file is rejected", (context) => {

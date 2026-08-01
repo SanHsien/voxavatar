@@ -81,8 +81,9 @@ VRMA 品質分析先區分用途，再套用規則：
 
 ## 驗證
 
-- 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試。
-- 動作品質使用合成 fixture 與用途別門檻；真實素材只記授權清楚的人工結果。
+- 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試（`src/character-state.ts`、`src/character-message.ts`）。
+- 口型增益純函式見 `src/lip-sync-gain.ts`；renderer 接線與 DPI 實機仍待。
+- 動作品質使用合成 fixture 與用途別門檻（`electron/vrma-quality.cjs`）；真實素材只記授權清楚的人工結果。
 - 氣泡位置、DPI、長字串、Emoji 字型、點穿與 reduced motion 以 Windows 實機 smoke 驗證。
 - 口型在不同模型、角色尺寸與 DPI 下以錄影或逐項觀察記錄可讀性；不宣稱音素同步。
 - 修正以最小範圍進行；不得因單一素材問題改寫整套 renderer 或降低安全 gate。

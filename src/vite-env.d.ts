@@ -99,6 +99,7 @@ interface VoxAvatarAnimationClipSettings {
   animation_name: string;
   origin: 'packaged' | 'user';
   removable: boolean;
+  purpose: 'loop' | 'one-shot' | 'pose';
   asset_url: string;
 }
 

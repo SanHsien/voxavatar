@@ -137,10 +137,35 @@
         "angle": 0.2,
         "loopSeamDelta": 0.35
       },
+      "purpose": "loop",
       "expectedVerdict": ["review", "reject"],
       "expectedIssueCodePrefix": "loop_seam",
       "mustNotIncludeIssueCodes": ["velocity_spike"],
       "tests": ["loop seam VRMA is marked review or reject"]
+    },
+    {
+      "id": "vrma-one-shot-seam",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": {
+        "loopSeam": true,
+        "angle": 0.2,
+        "loopSeamDelta": 0.35
+      },
+      "purpose": "one-shot",
+      "expectedVerdict": ["keep", "review"],
+      "mustNotIncludeIssueCodes": ["loop_seam", "loop_seam_mild"],
+      "tests": ["one-shot purpose does not reject for loop seam alone"]
+    },
+    {
+      "id": "vrma-pose-static",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "angle": 0, "duration": 1.5, "frames": 31 },
+      "purpose": "pose",
+      "expectedVerdict": ["keep", "review"],
+      "mustNotIncludeIssueCodes": ["dead_motion"],
+      "tests": ["pose purpose skips dead-motion rejection for near-static clips"]
     },
     {
       "id": "vrma-broken",

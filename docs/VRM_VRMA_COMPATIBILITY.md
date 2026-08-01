@@ -35,8 +35,12 @@
 | `vrma-velocity-spike` | 中途角速度尖峰 | `buildRotationVrma({ spike: true, angle: 0.15 })` | review 或 reject | issue code 前綴 `velocity` | `velocity spike VRMA is marked review or reject` |
 | `vrma-too-short` | 時長 < 0.4 秒 | `buildRotationVrma({ duration: 0.25, frames: 6 })` | review 或 reject | `too_short` | `too-short VRMA clip is marked review or reject` |
 | `vrma-no-animation` | GLB 內無 animation 區塊 | `buildRotationVrma({ includeAnimation: false })` | reject | `no_animation` | `VRMA without animation tracks is rejected` |
-| `vrma-loop-seam` | 首尾姿態接縫落差（非中途 spike） | `buildRotationVrma({ loopSeam: true, loopSeamDelta: 0.35 })` | review 或 reject | issue code 前綴 `loop_seam`；非 `velocity_spike` | `loop seam VRMA is marked review or reject` |
+| `vrma-loop-seam` | 首尾姿態接縫落差（非中途 spike） | `buildRotationVrma({ loopSeam: true, … })`；預設 `loop` | review 或 reject | issue code 前綴 `loop_seam`；非 `velocity_spike` | `loop seam VRMA is marked review or reject` |
+| `vrma-one-shot-seam` | 同上接縫，用途 `one-shot` | `analyzeVrmaFile(…, { purpose: "one-shot" })` | 非 reject（不套用接縫扣分） | 無 `loop_seam*` | `one-shot purpose does not reject for loop seam alone` |
+| `vrma-pose-static` | 近靜態，用途 `pose` | `buildRotationVrma({ angle: 0 })` + `purpose: "pose"` | 不因 `dead_motion` 扣分 | 無 `dead_motion` | `pose purpose skips dead-motion…` |
 | `vrma-broken` | 非 GLB 位元組 | 原始 `not-a-glb` | reject | `parse_error` | `broken file is rejected` |
+
+動作用途（`loop`／`one-shot`／`pose`）由分析選項或 settings schema 7 的 clip `purpose` 提供；未指定時預設 `loop`。目錄匯入會依目標動作類型推斷用途。
 
 ## Exporter 備註
 

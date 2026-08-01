@@ -39,6 +39,27 @@ const VERDICT = Object.freeze({
   REJECT: "reject",
 });
 
+const ANIMATION_PURPOSE = Object.freeze({
+  LOOP: "loop",
+  ONE_SHOT: "one-shot",
+  POSE: "pose",
+});
+
+function normalizeAnimationPurpose(value) {
+  if (value === ANIMATION_PURPOSE.ONE_SHOT || value === ANIMATION_PURPOSE.POSE) {
+    return value;
+  }
+  return ANIMATION_PURPOSE.LOOP;
+}
+
+/** 依系統動作類型推斷預設用途；自訂動作預設 one-shot。 */
+function defaultPurposeForAnimationType(animationType) {
+  if (animationType === "IDLE" || animationType === "TALK") {
+    return ANIMATION_PURPOSE.LOOP;
+  }
+  return ANIMATION_PURPOSE.ONE_SHOT;
+}
+
 /** 分數低於此值（或 critical）→ 淘汰 */
 const REJECT_SCORE_BELOW = 60;
 /** 分數低於此值（或 high）→ 觀察；達標且無高嚴重度 → 保留 */
@@ -339,7 +360,8 @@ function analyzeAnimationTracks(json, bin) {
   };
 }
 
-function scoreReport(filePath, parsed, tracks) {
+function scoreReport(filePath, parsed, tracks, options = {}) {
+  const purpose = normalizeAnimationPurpose(options.purpose);
   const issues = [];
   let score = 100;
   const humanoid = humanoidBoneMap(parsed.json);
@@ -372,14 +394,24 @@ function scoreReport(filePath, parsed, tracks) {
     });
   }
 
+  // pose／one-shot 不因「過短」當循環素材淘汰；pose 允許近靜態。
   if (tracks.durationSec < 0.4) {
-    score -= 25;
-    issues.push({
-      code: "too_short",
-      severity: "high",
-      message: `時長過短（${tracks.durationSec.toFixed(2)} 秒）。`,
-    });
-  } else if (tracks.durationSec < 1.2) {
+    if (purpose === ANIMATION_PURPOSE.LOOP) {
+      score -= 25;
+      issues.push({
+        code: "too_short",
+        severity: "high",
+        message: `時長過短（${tracks.durationSec.toFixed(2)} 秒）。`,
+      });
+    } else if (purpose === ANIMATION_PURPOSE.ONE_SHOT) {
+      score -= 8;
+      issues.push({
+        code: "too_short",
+        severity: "medium",
+        message: `一次性動作時長偏短（${tracks.durationSec.toFixed(2)} 秒）。`,
+      });
+    }
+  } else if (tracks.durationSec < 1.2 && purpose === ANIMATION_PURPOSE.LOOP) {
     score -= 10;
     issues.push({
       code: "short_clip",
@@ -420,23 +452,30 @@ function scoreReport(filePath, parsed, tracks) {
     });
   }
 
-  if (tracks.loopSeamMaxRad > 0.55) {
-    score -= 25;
-    issues.push({
-      code: "loop_seam",
-      severity: "high",
-      message: `循環接縫落差大（最大 ${tracks.loopSeamMaxRad.toFixed(2)} rad），重複播放可能跳一下。`,
-    });
-  } else if (tracks.loopSeamMaxRad > 0.25) {
-    score -= 10;
-    issues.push({
-      code: "loop_seam_mild",
-      severity: "medium",
-      message: `循環接縫略有落差（最大 ${tracks.loopSeamMaxRad.toFixed(2)} rad）。`,
-    });
+  // 僅 loop 用途評估首尾接縫；one-shot／pose 不因此扣分。
+  if (purpose === ANIMATION_PURPOSE.LOOP) {
+    if (tracks.loopSeamMaxRad > 0.55) {
+      score -= 25;
+      issues.push({
+        code: "loop_seam",
+        severity: "high",
+        message: `循環接縫落差大（最大 ${tracks.loopSeamMaxRad.toFixed(2)} rad），重複播放可能跳一下。`,
+      });
+    } else if (tracks.loopSeamMaxRad > 0.25) {
+      score -= 10;
+      issues.push({
+        code: "loop_seam_mild",
+        severity: "medium",
+        message: `循環接縫略有落差（最大 ${tracks.loopSeamMaxRad.toFixed(2)} rad）。`,
+      });
+    }
   }
 
-  if (tracks.motionAmplitudeRad < 0.08 && tracks.durationSec >= 0.4) {
+  if (
+    purpose !== ANIMATION_PURPOSE.POSE &&
+    tracks.motionAmplitudeRad < 0.08 &&
+    tracks.durationSec >= 0.4
+  ) {
     score -= 35;
     issues.push({
       code: "dead_motion",
@@ -483,8 +522,10 @@ function scoreReport(filePath, parsed, tracks) {
     byteLength: parsed.byteLength,
     score,
     verdict,
+    purpose,
     issues,
     metrics: {
+      purpose,
       durationSec: Number(tracks.durationSec.toFixed(3)),
       estimatedFps: Number(tracks.estimatedFps.toFixed(2)),
       trackCount: tracks.trackCount,
@@ -500,7 +541,8 @@ function scoreReport(filePath, parsed, tracks) {
   };
 }
 
-function analyzeVrmaFile(filePath) {
+function analyzeVrmaFile(filePath, options = {}) {
+  const purpose = normalizeAnimationPurpose(options.purpose);
   try {
     if (path.extname(filePath).toLowerCase() !== ".vrma") {
       return {
@@ -508,6 +550,7 @@ function analyzeVrmaFile(filePath) {
         fileName: path.basename(filePath),
         score: 0,
         verdict: VERDICT.REJECT,
+        purpose,
         issues: [
           {
             code: "wrong_extension",
@@ -521,12 +564,13 @@ function analyzeVrmaFile(filePath) {
     }
     const parsed = readGlb(filePath);
     const tracks = analyzeAnimationTracks(parsed.json, parsed.bin);
-    return scoreReport(filePath, parsed, tracks);
+    return scoreReport(filePath, parsed, tracks, { purpose });
   } catch (error) {
     return {
       filePath,
       fileName: path.basename(filePath),
       score: 0,
+      purpose,
       verdict: VERDICT.REJECT,
       issues: [
         {
@@ -541,8 +585,8 @@ function analyzeVrmaFile(filePath) {
   }
 }
 
-function analyzeVrmaFiles(filePaths) {
-  return filePaths.map((filePath) => analyzeVrmaFile(filePath));
+function analyzeVrmaFiles(filePaths, options = {}) {
+  return filePaths.map((filePath) => analyzeVrmaFile(filePath, options));
 }
 
 function verdictLabelZh(verdict) {
@@ -663,6 +707,7 @@ function summarizeReports(reports) {
 }
 
 module.exports = {
+  ANIMATION_PURPOSE,
   CORE_BONES,
   DEFAULT_REPORT_FILENAME,
   KEEP_SCORE_AT_LEAST,
@@ -671,7 +716,9 @@ module.exports = {
   VERDICT,
   analyzeVrmaFile,
   analyzeVrmaFiles,
+  defaultPurposeForAnimationType,
   formatMarkdownReport,
+  normalizeAnimationPurpose,
   normalizeQualityGate,
   normalizeReportDir,
   readGlb,

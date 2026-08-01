@@ -184,11 +184,21 @@ function registerSettingsIpc({
         };
       }
 
+      const targetAnimation = settingsStore
+        .getSnapshot()
+        .animations.find((animation) => animation.id === animationId);
+      const purpose =
+        targetAnimation?.clips?.[0]?.purpose ??
+        (targetAnimation?.animation_type === "IDLE" ||
+        targetAnimation?.animation_type === "TALK"
+          ? "loop"
+          : "one-shot");
+
       const evaluated = evaluateDirectoryImport({
         kind: "animation",
         filePaths: scan.files,
         gate,
-        analyzeFn: analyzeVrmaFiles,
+        analyzeFn: (filePaths) => analyzeVrmaFiles(filePaths, { purpose }),
         summarizeFn: summarizeReports,
         writeReportFn: writeMarkdownReport,
         preferredReportDir,

@@ -23,9 +23,10 @@ const {
   validateAnimationMetadata,
   validStoredAsset,
   nextClipName,
+  defaultPurposeForAnimationType,
 } = require("./settings-sanitize.cjs");
 
-const SETTINGS_SCHEMA_VERSION = 6;
+const SETTINGS_SCHEMA_VERSION = 7;
 const DEFAULT_IDLE_REST_MS = 8000;
 const MIN_IDLE_REST_MS = 2000;
 const MAX_IDLE_REST_MS = 60000;
@@ -131,6 +132,9 @@ function migrateLegacyAnimations(animations, packagedLibrary) {
       id: animation.id,
       stored_filename: animation.stored_filename,
       clip_name: nextClipName(animationName, names),
+      purpose: defaultPurposeForAnimationType(
+        systemAnimation?.animation_type ?? inferredType,
+      ),
     });
     animationClips[animationId] = clips;
   }
@@ -138,12 +142,41 @@ function migrateLegacyAnimations(animations, packagedLibrary) {
   return { animationClips, userAnimations };
 }
 
+function purposeByAnimationIdMap(packagedLibrary, userAnimations) {
+  const map = new Map();
+  for (const animation of packagedLibrary.animations ?? []) {
+    map.set(
+      animation.id,
+      defaultPurposeForAnimationType(animation.animation_type),
+    );
+  }
+  for (const animation of userAnimations ?? []) {
+    if (!map.has(animation.id)) {
+      map.set(animation.id, defaultPurposeForAnimationType(null));
+    }
+  }
+  return map;
+}
+
+function sanitizeClipsForState(parsedClips, packagedLibrary, userAnimations) {
+  const knownAnimationIds = new Set([
+    ...packagedLibrary.animations.map((animation) => animation.id),
+    ...userAnimations.map((animation) => animation.id),
+  ]);
+  return sanitizeAnimationClips(parsedClips, knownAnimationIds, {
+    purposeByAnimationId: purposeByAnimationIdMap(
+      packagedLibrary,
+      userAnimations,
+    ),
+  });
+}
+
 function safeReadState(settingsPath, packagedLibrary) {
   const fallback = defaultState(packagedLibrary);
   try {
     const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
     if (
-      ![1, 2, 3, 4, 5, SETTINGS_SCHEMA_VERSION].includes(
+      ![1, 2, 3, 4, 5, 6, SETTINGS_SCHEMA_VERSION].includes(
         parsed?.schema_version,
       )
     ) {
@@ -190,38 +223,21 @@ function safeReadState(settingsPath, packagedLibrary) {
     };
 
     if (parsed.schema_version !== SETTINGS_SCHEMA_VERSION) {
-      if (parsed.schema_version === 5) {
+      if (
+        parsed.schema_version === 6 ||
+        parsed.schema_version === 5 ||
+        parsed.schema_version === 3
+      ) {
         const animations = sanitizeUserAnimations(parsed.animations);
-        const knownAnimationIds = new Set([
-          ...packagedLibrary.animations.map((animation) => animation.id),
-          ...animations.map((animation) => animation.id),
-        ]);
         return {
           migrated: true,
           state: {
             ...common,
             animations,
-            animation_clips: sanitizeAnimationClips(
+            animation_clips: sanitizeClipsForState(
               parsed.animation_clips,
-              knownAnimationIds,
-            ),
-          },
-        };
-      }
-      if (parsed.schema_version === 3) {
-        const animations = sanitizeUserAnimations(parsed.animations);
-        const knownAnimationIds = new Set([
-          ...packagedLibrary.animations.map((animation) => animation.id),
-          ...animations.map((animation) => animation.id),
-        ]);
-        return {
-          migrated: true,
-          state: {
-            ...common,
-            animations,
-            animation_clips: sanitizeAnimationClips(
-              parsed.animation_clips,
-              knownAnimationIds,
+              packagedLibrary,
+              animations,
             ),
           },
         };
@@ -241,18 +257,15 @@ function safeReadState(settingsPath, packagedLibrary) {
     }
 
     const animations = sanitizeUserAnimations(parsed.animations);
-    const knownAnimationIds = new Set([
-      ...packagedLibrary.animations.map((animation) => animation.id),
-      ...animations.map((animation) => animation.id),
-    ]);
     return {
       migrated: false,
       state: {
         ...common,
         animations,
-        animation_clips: sanitizeAnimationClips(
+        animation_clips: sanitizeClipsForState(
           parsed.animation_clips,
-          knownAnimationIds,
+          packagedLibrary,
+          animations,
         ),
       },
     };

@@ -30,7 +30,9 @@ const {
   DEFAULT_MODEL_LIGHTING,
   MODEL_LIGHTING_RANGES,
   completeModelLighting,
+  defaultPurposeForAnimationType,
   nextClipName,
+  normalizeAnimationPurpose,
   roundedLightingNumber,
   sanitizeModelLighting,
   singleLine,
@@ -123,12 +125,16 @@ function createSettingsStore({
   }
 
   function animationClips(animation, animationName = animation.animation_name) {
+    const defaultPurpose = defaultPurposeForAnimationType(
+      animation.animation_type,
+    );
     const packagedClips = (animation.asset_paths ?? []).map(
       (assetPath, index) => ({
         id: `${animation.id}:packaged:${index + 1}`,
         animation_name: `${animationName}${index + 1}`,
         origin: "packaged",
         removable: false,
+        purpose: defaultPurpose,
         asset_url: packagedAssetUrl(assetPath),
       }),
     );
@@ -137,6 +143,7 @@ function createSettingsStore({
       animation_name: clip.clip_name,
       origin: "user",
       removable: true,
+      purpose: normalizeAnimationPurpose(clip.purpose ?? defaultPurpose),
       asset_url: userAssetUrl("animation", clip),
     }));
     return [...packagedClips, ...uploadedClips];
@@ -372,6 +379,7 @@ function createSettingsStore({
           id,
           stored_filename,
           clip_name: nextClipName(animation.animation_name, existingNames),
+          purpose: defaultPurposeForAnimationType(animation.animation_type),
         });
       }
     } catch (error) {

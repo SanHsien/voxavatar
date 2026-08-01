@@ -82,7 +82,7 @@ export function resolveLightingSettings(
 }
 
 export const SETTINGS_FALLBACK: VoxAvatarSettingsSnapshot = {
-  schema_version: 6,
+  schema_version: 7,
   default_model_id: null,
   character_size: 1,
   ui_locale: 'zh-TW',
@@ -136,6 +136,11 @@ export async function loadPackagedSettingsFallback(): Promise<VoxAvatarSettingsS
       animation_name: `${animation.animation_name}${index + 1}`,
       origin: 'packaged' as const,
       removable: false,
+      purpose:
+        animation.animation_type === 'IDLE' ||
+        animation.animation_type === 'TALK'
+          ? ('loop' as const)
+          : ('one-shot' as const),
       asset_url: packagedAssetUrl(assetPath),
     })),
     asset_urls: animation.asset_paths.map(packagedAssetUrl),

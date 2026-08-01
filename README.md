@@ -33,11 +33,12 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 
 | 類別 | 能做什麼 |
 | --- | --- |
-| 語音口型 | 以 WASAPI application loopback 讀取指定 Windows 應用程式的播放音量，驅動嘴型與 Speaking 狀態 |
-| 桌面角色 | 透明置頂、透明區點穿、拖曳、縮放、旋轉、顯示／隱藏與系統匣控制 |
-| 本機素材 | 匯入 `.vrm`／`.vrma`、目錄評估匯入、VRM／VRMA 品質報告、一鍵清除與自訂動作 |
+| 語音口型 | 以 WASAPI application／系統輸出 loopback 讀取播放音量，驅動嘴型與 Speaking；明確 helper 狀態（missing／target_missing／no_output／listening） |
+| 桌面角色 | 透明置頂、透明區點穿、拖曳、縮放、旋轉、顯示／隱藏與系統匣控制（含重設視角） |
+| 本機素材 | 匯入 `.vrm`／`.vrma`、目錄評估匯入、VRM 0.x／1.0 與 VRMA 品質報告、嚴格把關、一鍵清除與自訂動作 |
+| 首次設定 | 設定頁進度清單（模型／可選動作／語音／MCP）與可複製診斷摘要（遮罩路徑與素材檔名） |
 | 動作系統 | Idle／Speaking 系統槽、多片段隨機播放、常用動作預設與 MCP 即時 catalog |
-| Agent 整合 | loopback-only MCP、HTTP 事件 API 與 `voxavatar://` URL protocol |
+| Agent 整合 | loopback-only MCP、版本化 `get_status` readiness、HTTP 事件 API 與 `voxavatar://` URL protocol |
 | 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS 安裝包與 SHA-256 checksum |
 
 ## 運作方式
@@ -113,7 +114,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前 Latest 為 `v0.2.x`：在 `0.1` 穩定基線上補強系統輸出語音、品質把關、Idle 間隔、discovery／matcher／MCP session／IPC sender，以及系統匣重設視角。下一階段完成首次設定 readiness、診斷摘要與版本化 Windows 實機證據，再進入素材相容與 MCP 契約深化。
+目前 Latest 為 `v0.2.x`：含系統輸出語音、目錄品質把關、Idle 間隔、discovery／matcher／MCP session／IPC sender、VRM0 humanoid 覆蓋修正，以及首次設定 readiness／診斷摘要。下一階段補版本化 Windows 實機證據，再進入素材相容矩陣與 MCP 契約／preload 分權。
 
 版本里程碑、完成條件、風險與明確不做的範圍見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與仍需實機驗證的項目見 [`REVIEW.md`](REVIEW.md)。
 

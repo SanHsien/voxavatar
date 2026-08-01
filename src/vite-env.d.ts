@@ -19,6 +19,39 @@ interface AudioListenerStatus {
   error?: string;
   monitoring: boolean;
   source: string | null;
+  state?:
+    | 'inactive'
+    | 'external'
+    | 'missing'
+    | 'launch_failed'
+    | 'target_missing'
+    | 'no_output'
+    | 'listening';
+}
+
+interface VoxAvatarReadinessStep {
+  id: 'model' | 'animations' | 'voice' | 'mcp' | string;
+  ready: boolean;
+  optional: boolean;
+  code: string;
+  next_action: string | null;
+}
+
+interface VoxAvatarAppReadiness {
+  schema_version: number;
+  platform: string;
+  complete: boolean;
+  window_visible: boolean;
+  voice_activity: string | null;
+  listener_state: string;
+  mcp_health: 'starting' | 'online' | 'unavailable' | string;
+  playable_actions: number;
+  steps: VoxAvatarReadinessStep[];
+  next_step: {
+    id: string;
+    code: string;
+    next_action: string | null;
+  } | null;
 }
 
 interface VoxAvatarLightingSettings {
@@ -236,6 +269,8 @@ interface Window {
     ): Promise<VoxAvatarSettingsSnapshot>;
     resetModelLighting(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
     getMcpStatus(): Promise<VoxAvatarMcpStatus>;
+    getReadiness?(): Promise<VoxAvatarAppReadiness>;
+    getDiagnosticSummary?(): Promise<{ text: string }>;
     getAppInfo?(): Promise<{ version: string }>;
     showAbout?(): Promise<void>;
     setWindowTheme(theme: 'light' | 'dark'): void;

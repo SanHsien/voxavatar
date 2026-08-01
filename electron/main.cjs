@@ -27,6 +27,12 @@ const { createAudioListener } = require("./audio-listener.cjs");
 const { isAllowedRendererNavigation } = require("./navigation-policy.cjs");
 const { assertTrustedIpcSender } = require("./ipc-guard.cjs");
 const { snapshotHasConfiguredModel } = require("./model-readiness.cjs");
+const { buildAppReadiness } = require("./app-readiness.cjs");
+const { buildDiagnosticSummary } = require("./diagnostic-summary.cjs");
+const {
+  LISTENER_STATE,
+  withListenerState,
+} = require("./listener-status.cjs");
 const { parseProtocolUrl, voiceState } = require("./protocol-actions.cjs");
 const {
   createSettingsWindowPresentationGate,
@@ -810,9 +816,9 @@ function handleIntegrationEvent(event) {
 }
 
 function handleListenerStatus(status) {
-  latestListenerStatus = status;
+  latestListenerStatus = withListenerState(status);
   if (hasConfiguredModel()) {
-    emitToRenderer({ type: "listener-status", status });
+    emitToRenderer({ type: "listener-status", status: latestListenerStatus });
   }
 }
 
@@ -825,13 +831,35 @@ async function handleMcpWindowAction(action) {
   return avatarWindow?.isVisible() ?? false;
 }
 
+function getAppReadinessSnapshot() {
+  return buildAppReadiness({
+    settingsSnapshot: settingsStore.getSnapshot(),
+    listenerStatus: latestListenerStatus,
+    mcpHealth: mcpServerHealth,
+    windowVisible: avatarWindow?.isVisible() ?? false,
+    voiceState: latestVoiceState,
+    platform: process.platform,
+  });
+}
+
 function getMcpStatus() {
+  const readiness = getAppReadinessSnapshot();
   return {
+    schema_version: readiness.schema_version,
     modelConfigured: hasConfiguredModel(),
     windowVisible: avatarWindow?.isVisible() ?? false,
     voiceState: latestVoiceState,
     listener: latestListenerStatus,
+    readiness,
   };
+}
+
+function getDiagnosticSummaryText() {
+  return buildDiagnosticSummary({
+    readiness: getAppReadinessSnapshot(),
+    appVersion: app.getVersion(),
+    platform: process.platform,
+  });
 }
 
 function handleProtocolUrl(rawUrl) {
@@ -1268,6 +1296,12 @@ if (!app.requestSingleInstanceLock()) {
         settingsSnapshot: settingsStore.getSnapshot(),
       }),
     );
+    handleTrustedIpc("voxavatar:settings-get-readiness", () =>
+      getAppReadinessSnapshot(),
+    );
+    handleTrustedIpc("voxavatar:settings-get-diagnostic-summary", () => ({
+      text: getDiagnosticSummaryText(),
+    }));
     ipcMain.on("voxavatar:hide", () => void hideOverlay());
     ipcMain.on("voxavatar:set-ignore-mouse", (event, ignore) => {
       if (!avatarWindow || avatarWindow.isDestroyed()) return;
@@ -1358,6 +1392,10 @@ if (!app.requestSingleInstanceLock()) {
         capturing: false,
         monitoring: false,
         source: null,
+        state:
+          process.platform === "win32"
+            ? LISTENER_STATE.MISSING
+            : LISTENER_STATE.INACTIVE,
       });
     }
 

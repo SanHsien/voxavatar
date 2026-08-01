@@ -4,7 +4,7 @@
 
 Updated: 2026-08-01
 
-Planning baseline: `v0.2.6`
+Planning baseline: `v0.2.7`
 
 This roadmap defines product direction, milestone order, and completion criteria. Versions express dependencies, not date commitments. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current repository health. In lists, `- [x]` means done (may appear under any version section); `-` means not done.
 
@@ -82,10 +82,10 @@ Goal: `0.2.0` hardens listener, matcher, IPC, and MCP session reliability; later
 
 ### Work
 
-- Turn first-run setup into a progress checklist for model, optional actions, voice source, MCP health, and completion state.
-- Give the native helper explicit states: missing, launch failed, target process missing, no output, and listening.
-- Add a copyable diagnostic summary that redacts usernames, absolute paths, and media filenames by default and never includes audio or model content.
-- Make `get_status` and Settings share one readiness and error vocabulary.
+- [x] Turn first-run setup into a progress checklist for model, optional actions, voice source, MCP health, and completion state.
+- [x] Give the native helper explicit states: missing, launch failed, target process missing, no output, and listening.
+- [x] Add a copyable diagnostic summary that redacts usernames, absolute paths, and media filenames by default and never includes audio or model content.
+- [x] Make `get_status` and Settings share one readiness and error vocabulary.
 - Establish a real Windows 10/11 matrix for install, upgrade, uninstall, and protocol registration.
 - [x] Replace fixed process discovery with a PID-liveness fast path and adaptive backoff, and define sticky active-source semantics for multiple matching roots (`0.2.0`).
 - [x] Restrict custom process matchers to a non-explosive safe subset (`0.2.0`).
@@ -94,10 +94,10 @@ Goal: `0.2.0` hardens listener, matcher, IPC, and MCP session reliability; later
 
 ### Completion criteria
 
-- Every incomplete first-run step has a reason and an executable next action.
-- Common helper and source failures are recognizable without opening DevTools.
-- Settings and MCP cannot report contradictory states for the same condition.
-- Diagnostic summaries pass sensitive-data tests and can be attached directly to an issue.
+- [x] Every incomplete first-run step has a reason and an executable next action.
+- [x] Common helper and source failures are recognizable without opening DevTools.
+- [x] Settings and MCP cannot report contradictory states for the same condition.
+- [x] Diagnostic summaries pass sensitive-data tests and can be attached directly to an issue.
 - [x] Stable capture no longer launches a full PowerShell process scan on every poll, and multiple matching roots have predictable sticky selection.
 - [x] Malicious or pathological matchers cannot block the Electron main process.
 - [x] Abandoned or excessive MCP sessions cannot grow without bound.
@@ -228,5 +228,5 @@ Startup, memory, and renderer-bundle targets will be set from a v0.5 baseline in
 ## Next three actions
 
 1. [x] **Close v0.1.x trust gaps:** clear CodeQL alerts, enable Dependabot security alerts, restore MIT detection, and ship the maintenance release.
-2. [x] **Ship `0.2.0`–`0.2.1` hardening:** discovery/matcher/MCP session/IPC, plus tray reset-view.
-3. **Finish the `0.2.x` closed loop:** first-run readiness, copyable diagnostics, and versioned Windows smoke evidence.
+2. [x] **Ship `0.2.0`–`0.2.7` hardening/readiness:** discovery/matcher/MCP session/IPC, first-run checklist, helper states, and diagnostics.
+3. **Add versioned Windows smoke evidence**, then advance the v0.3 media matrix and v0.4 preload split.

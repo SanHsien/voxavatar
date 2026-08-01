@@ -90,6 +90,10 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
     ipcRenderer.invoke("voxavatar:settings-reset-model-lighting", modelId),
   getMcpStatus: () =>
     ipcRenderer.invoke("voxavatar:settings-get-mcp-status"),
+  getReadiness: () =>
+    ipcRenderer.invoke("voxavatar:settings-get-readiness"),
+  getDiagnosticSummary: () =>
+    ipcRenderer.invoke("voxavatar:settings-get-diagnostic-summary"),
   getAppInfo: () => ipcRenderer.invoke("voxavatar:settings-get-app-info"),
   showAbout: () => ipcRenderer.invoke("voxavatar:settings-show-about"),
   setWindowTheme: (theme) =>

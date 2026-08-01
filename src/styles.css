@@ -649,6 +649,45 @@ button {
   border-bottom: 0;
 }
 
+.setup-checklist-panel .setup-checklist {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.setup-checklist .setup-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+}
+
+.setup-checklist .setup-step strong {
+  display: block;
+}
+
+.setup-checklist .setup-step small {
+  color: var(--text-secondary);
+}
+
+.setup-checklist .setup-step.ready {
+  border-color: color-mix(in srgb, #2e7d32 45%, var(--border));
+}
+
+.setup-checklist .setup-step.pending {
+  border-color: color-mix(in srgb, #c62828 35%, var(--border));
+}
+
+.setup-checklist .setup-step.optional {
+  opacity: 0.92;
+}
+
 .panel-heading {
   display: flex;
   align-items: flex-start;

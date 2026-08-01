@@ -17,7 +17,7 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 | `list_animations` | 無 | 列出目前可播放動作、描述與觸發情境 |
 | `play_animation` | `animation`: 動作名稱 | 顯示角色並隨機播放該動作的一個片段 |
 | `control_window` | `action`: `show`／`hide`／`toggle` | 控制角色視窗；hide 不會結束程式 |
-| `get_status` | 無 | 回傳視窗、模型、語音狀態與 listener 狀態 |
+| `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）與版本化 `readiness`（設定頁同一語彙） |
 
 建議先呼叫 `list_animations`，再把回傳的小寫連字號名稱傳給 `play_animation`。設定頁新增或移除動作後，現有 MCP session 會更新工具描述。
 

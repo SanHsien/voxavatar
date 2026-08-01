@@ -10,6 +10,10 @@ const {
   selectStickyRootPid,
 } = require("./process-discovery.cjs");
 const { normalizeVoiceSource } = require("./voice-source.cjs");
+const {
+  LISTENER_STATE,
+  withListenerState,
+} = require("./listener-status.cjs");
 
 const SESSION_IDLE_MS = 8_000;
 const MIN_POLL_INTERVAL_MS = 1_500;
@@ -104,6 +108,7 @@ class NativeProcessAudioListener {
     this.stopped = true;
     this.pollInFlight = false;
     this.lastStatusKey = null;
+    this.lastKnownSource = null;
     this.lastFullDiscoveryAt = 0;
     this.outputRetryTimer = null;
     this.gate = new AudioActivityGate({
@@ -115,10 +120,14 @@ class NativeProcessAudioListener {
   }
 
   reportStatus(status) {
-    const key = JSON.stringify(status);
+    const enriched =
+      status?.state != null
+        ? withListenerState(status, status.state)
+        : withListenerState(status);
+    const key = JSON.stringify(enriched);
     if (key === this.lastStatusKey) return;
     this.lastStatusKey = key;
-    this.onStatus(status);
+    this.onStatus(enriched);
   }
 
   clearPollTimer() {
@@ -153,7 +162,8 @@ class NativeProcessAudioListener {
         capturing: false,
         monitoring: false,
         source: null,
-        error: `Native listener is missing: ${this.helperPath}`,
+        state: LISTENER_STATE.MISSING,
+        error: "Native listener helper is missing.",
       });
       return;
     }
@@ -163,6 +173,7 @@ class NativeProcessAudioListener {
         capturing: false,
         monitoring: true,
         source: null,
+        state: LISTENER_STATE.NO_OUTPUT,
       });
       this.startOutputCapture();
       return;
@@ -172,6 +183,7 @@ class NativeProcessAudioListener {
       capturing: false,
       monitoring: true,
       source: null,
+      state: LISTENER_STATE.TARGET_MISSING,
     });
     await this.poll();
   }
@@ -208,6 +220,13 @@ class NativeProcessAudioListener {
       if (selectedPid == null) {
         this.activeRootPid = null;
         this.detach();
+        this.reportStatus({
+          available: true,
+          capturing: false,
+          monitoring: true,
+          source: null,
+          state: LISTENER_STATE.TARGET_MISSING,
+        });
         this.tightenPollInterval();
         this.scheduleNextPoll();
         return;
@@ -230,6 +249,7 @@ class NativeProcessAudioListener {
         capturing: false,
         monitoring: true,
         source: null,
+        state: LISTENER_STATE.LAUNCH_FAILED,
         error: error instanceof Error ? error.message : String(error),
       });
       this.scheduleNextPoll();
@@ -286,6 +306,7 @@ class NativeProcessAudioListener {
         capturing: false,
         monitoring: true,
         source: null,
+        state: LISTENER_STATE.LAUNCH_FAILED,
         error: error.message,
       });
       if (!this.stopped && this.voiceSource.mode !== "output") {
@@ -304,6 +325,9 @@ class NativeProcessAudioListener {
         capturing: false,
         monitoring: !this.stopped,
         source: null,
+        state: this.stopped
+          ? LISTENER_STATE.INACTIVE
+          : LISTENER_STATE.LAUNCH_FAILED,
         ...(code && !this.stopped
           ? { error: `Native listener exited with code ${code}${signal ? ` (${signal})` : ""}.` }
           : {}),
@@ -323,20 +347,24 @@ class NativeProcessAudioListener {
   handleHelperMessage(child, message) {
     if (this.capture !== child || message == null || typeof message !== "object") return;
     if (message.type === "ready") {
+      this.lastKnownSource = message.source || "Supported voice app";
       this.reportStatus({
         available: true,
         capturing: true,
         monitoring: true,
-        source: message.source || "Supported voice app",
+        source: this.lastKnownSource,
+        state: LISTENER_STATE.NO_OUTPUT,
       });
       return;
     }
     if (message.type === "error") {
+      this.lastKnownSource = null;
       this.reportStatus({
         available: false,
         capturing: false,
         monitoring: true,
         source: null,
+        state: LISTENER_STATE.LAUNCH_FAILED,
         error: String(message.message || "Native listener failed."),
       });
       return;
@@ -353,6 +381,13 @@ class NativeProcessAudioListener {
         this.onSession(true);
         this.onActivity("listening");
       }
+      this.reportStatus({
+        available: true,
+        capturing: true,
+        monitoring: true,
+        source: this.lastKnownSource,
+        state: LISTENER_STATE.LISTENING,
+      });
     }
     this.gate.handleLevel(level);
   }
@@ -364,6 +399,15 @@ class NativeProcessAudioListener {
     this.sessionActive = false;
     this.gate.reset();
     this.onSession(false);
+    if (this.capture && !this.stopped) {
+      this.reportStatus({
+        available: true,
+        capturing: true,
+        monitoring: true,
+        source: this.lastKnownSource,
+        state: LISTENER_STATE.NO_OUTPUT,
+      });
+    }
   }
 
   detach({ sessionEnded = true } = {}) {
@@ -375,11 +419,15 @@ class NativeProcessAudioListener {
     }
     this.gate.reset();
     if (sessionEnded) this.endSession();
+    this.lastKnownSource = null;
     this.reportStatus({
       available: true,
       capturing: false,
       monitoring: !this.stopped,
       source: null,
+      state: this.stopped
+        ? LISTENER_STATE.INACTIVE
+        : LISTENER_STATE.TARGET_MISSING,
     });
   }
 
@@ -397,6 +445,7 @@ class NativeProcessAudioListener {
 module.exports = {
   NativeProcessAudioListener,
   SESSION_IDLE_MS,
+  LISTENER_STATE,
   MIN_POLL_INTERVAL_MS,
   MAX_POLL_INTERVAL_MS,
   FULL_DISCOVERY_MAX_AGE_MS,

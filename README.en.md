@@ -33,11 +33,12 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 
 | Area | Capability |
 | --- | --- |
-| Voice lip sync | Uses WASAPI application loopback to measure playback from a selected Windows app and drive lip sync and Speaking state |
-| Desktop avatar | Transparent topmost window, transparent-area click-through, drag, zoom, rotate, show/hide, and tray controls |
-| Local media | Imports `.vrm` and `.vrma`, supports evaluate-and-import folders, VRM/VRMA quality reports, bulk deletion, and custom actions |
+| Voice lip sync | WASAPI application/system-output loopback for lip sync and Speaking, with explicit helper states (`missing` / `target_missing` / `no_output` / `listening`) |
+| Desktop avatar | Transparent topmost window, transparent-area click-through, drag, zoom, rotate, show/hide, and tray controls (including reset view) |
+| Local media | Imports `.vrm` and `.vrma`, evaluate-and-import folders, VRM 0.x/1.0 and VRMA quality reports, strict gate, bulk deletion, and custom actions |
+| First-run setup | Settings checklist (model / optional actions / voice / MCP) and a copyable diagnostic summary with path and asset-name redaction |
 | Action system | Idle and Speaking system slots, random multi-clip playback, common presets, and a live MCP catalog |
-| Agent integration | Loopback-only MCP, HTTP event API, and the `voxavatar://` URL protocol |
+| Agent integration | Loopback-only MCP, versioned `get_status` readiness, HTTP event API, and the `voxavatar://` URL protocol |
 | Release quality | Windows CI, CodeQL, media-license gate, NSIS installer, and SHA-256 checksum |
 
 ## How it works
@@ -108,7 +109,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-Latest is `v0.2.x`: on top of the `0.1` stable baseline it adds system-output voice, stricter VRMA quality defaults, idle rest timing, discovery/matcher/MCP session/IPC sender hardening, and tray reset-view. Next: first-run readiness, copyable diagnostics, and versioned Windows smoke evidence, then media compatibility and deeper MCP contracts.
+Latest is `v0.2.x`: includes system-output voice, folder quality gates, idle rest timing, discovery/matcher/MCP session/IPC sender hardening, VRM0 humanoid coverage fix, plus first-run readiness and copyable diagnostics. Next: versioned Windows smoke evidence, then media compatibility matrix and MCP contract / preload separation.
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones, completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 

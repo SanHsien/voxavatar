@@ -4,7 +4,7 @@
 
 更新日期：2026-08-01
 
-規劃基準：`v0.2.6`
+規劃基準：`v0.2.7`
 
 這份路線圖描述產品方向、里程碑順序與完成條件。版本是依賴順序，不是日期承諾；已完成內容以 [`CHANGELOG.md`](CHANGELOG.md) 為準，當前健康狀態以 [`REVIEW.md`](REVIEW.md) 為準。列表中 `- [x]` 表示已完成（可跨版本標示），`-` 表示尚未完成。
 
@@ -82,10 +82,10 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 
 ### 工作
 
-- 將首次設定整理成進度清單：模型、可選動作、語音來源、MCP 健康與完成狀態。
-- 為 native helper 建立明確狀態：不存在、無法啟動、目標行程不存在、無輸出、正常監聽。
-- 增加可複製的診斷摘要，預設遮蔽使用者名稱、絕對路徑與素材檔名，不包含音訊或模型內容。
-- 讓 `get_status` 與設定頁共用同一套 readiness／錯誤語彙。
+- [x] 將首次設定整理成進度清單：模型、可選動作、語音來源、MCP 健康與完成狀態。
+- [x] 為 native helper 建立明確狀態：不存在、無法啟動、目標行程不存在、無輸出、正常監聽。
+- [x] 增加可複製的診斷摘要，預設遮蔽使用者名稱、絕對路徑與素材檔名，不包含音訊或模型內容。
+- [x] 讓 `get_status` 與設定頁共用同一套 readiness／錯誤語彙。
 - 建立 Windows 10／11、安裝／升級／移除與 protocol 註冊的實機矩陣。
 - [x] 將 process discovery 改成 PID 存活快路徑與 adaptive backoff，並定義多個符合 root process 時的 sticky active source 語意（`0.2.0`）。
 - [x] 限制自訂 process matcher 為不會回溯爆炸的安全子集（`0.2.0`）。
@@ -94,10 +94,10 @@ SemVer 節奏：能力或安全邊界強化直接升 **minor**（例如 `0.1.2` 
 
 ### 完成條件
 
-- 首次啟動每個未完成步驟都有原因與可執行的下一步。
-- 常見 helper／來源失敗不必開 DevTools 才能辨識。
-- 設定頁與 MCP 對同一狀態不會給出互相矛盾的答案。
-- 診斷摘要通過敏感資料測試，可直接附到 issue。
+- [x] 首次啟動每個未完成步驟都有原因與可執行的下一步。
+- [x] 常見 helper／來源失敗不必開 DevTools 才能辨識。
+- [x] 設定頁與 MCP 對同一狀態不會給出互相矛盾的答案。
+- [x] 診斷摘要通過敏感資料測試，可直接附到 issue。
 - [x] 穩定監聽時不再每次都啟動 PowerShell 全量掃描；多個符合來源有可預期的 sticky 選擇結果。
 - [x] 惡意或病態 matcher 不會阻塞 Electron main process。
 - [x] 遺棄或大量 MCP session 不會無界成長。
@@ -228,5 +228,5 @@ VoxAvatar 不加入遙測。指標由自動測試、benchmark、GitHub workflow 
 ## 接下來三件事
 
 1. [x] **關閉 v0.1.x 信任缺口**：清除 CodeQL alerts、啟用 Dependabot security alerts、修正 MIT 偵測並完成本次穩定修正版。
-2. [x] **發行 `0.2.0`–`0.2.1` hardening**：discovery／matcher／MCP session／IPC，並補回系統匣重設視角。
-3. **完成 `0.2.x` 閉環**：首次設定 readiness、可複製診斷摘要、版本化 Windows 實機證據。
+2. [x] **發行 `0.2.0`–`0.2.7` hardening／readiness**：discovery／matcher／MCP session／IPC、首次設定清單、helper 狀態與診斷摘要。
+3. **補版本化 Windows 實機證據**，再推進 v0.3 素材相容矩陣與 v0.4 preload 分權。

@@ -91,3 +91,9 @@ Release 可由可信 `main` 的 `workflow_dispatch`，或在 **push `main` 且 `
 - **日期**：2026-08-01
 - **決定**：VRM 從目錄匯入比照 VRMA，共用 `vrma_quality_gate`／`vrma_report_dir`（不另開設定鍵）。報告檔名為 `voxavatar-vrm-report.md`；評分檢查 VRM 擴充、humanoid、mesh、體積與粗估三角面等。humanoid 同時支援 VRM 1.0 物件 map 與 VRM 0.x `[{ bone, node }]` 陣列。單檔選 VRM 仍只做 GLB／extension 驗證。
 - **嚴格模式**：`verdict === reject` 不匯入；`report` 仍全部匯入並寫報告；`off` 不做分析。
+
+## D-21｜首次設定 readiness 與診斷摘要
+
+- **日期**：2026-08-01
+- **決定**：以 `electron/app-readiness.cjs`／`listener-status.cjs`／`diagnostic-summary.cjs` 作為設定頁與 MCP `get_status` 的共用語彙。helper 狀態為 `missing`／`launch_failed`／`target_missing`／`no_output`／`listening`（外加 `inactive`／`external`）。診斷摘要必須 redact 使用者名、絕對路徑與 `.vrm`／`.vrma` 檔名，且不得含音訊或模型內容。
+- **不在此決策**：Windows 實機證據矩陣、installer 簽署、preload 分權仍屬後續缺口。

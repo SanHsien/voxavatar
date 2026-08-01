@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致。
 
+## 0.2.7 - 2026-08-01
+
+- 首次設定進度清單（模型／可選動作／語音／MCP）與「複製診斷摘要」（遮罩使用者名、路徑、`.vrm`／`.vrma` 檔名）。
+- Native helper 明確狀態：`missing`／`launch_failed`／`target_missing`／`no_output`／`listening`；設定頁與 MCP `get_status` 共用 readiness schema。
+- 雙語 README 功能一覽同步獨有能力（系統輸出語音、品質把關、readiness／診斷）。
+
 ## 0.2.6 - 2026-08-01
 
 - 修正 VRM 品質報告：VRM 0.x 的 `humanBones` 為陣列時誤把索引當骨名，導致「humanoid 54 卻覆蓋 0／13」、分數 80 卻判觀察；現正確解析陣列／物件兩種格式。

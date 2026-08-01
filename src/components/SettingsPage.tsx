@@ -179,6 +179,9 @@ export function SettingsPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [mcpStatus, setMcpStatus] = useState<VoxAvatarMcpStatus | null>(null);
   const [mcpLoading, setMcpLoading] = useState(false);
+  const [readiness, setReadiness] = useState<VoxAvatarAppReadiness | null>(
+    null,
+  );
   const [voiceMode, setVoiceMode] = useState<
     VoxAvatarVoiceSourceSettings['mode']
   >(SETTINGS_FALLBACK.voice_source.mode);
@@ -437,10 +440,64 @@ export function SettingsPage() {
     }
   }, [bridge]);
 
+  const refreshReadiness = useCallback(async () => {
+    if (!bridge?.getReadiness) {
+      setReadiness(null);
+      return;
+    }
+    try {
+      setReadiness(await bridge.getReadiness());
+    } catch (error) {
+      setNotice(errorMessage(error));
+    }
+  }, [bridge]);
+
+  const copyDiagnosticSummary = useCallback(async () => {
+    if (!bridge?.getDiagnosticSummary) {
+      setNotice(t('notice.copyFailed', { label: t('diagnostic.label') }));
+      return;
+    }
+    try {
+      const { text } = await bridge.getDiagnosticSummary();
+      await copyText(text, t('diagnostic.label'));
+      setNotice(t('notice.diagnosticCopied'));
+    } catch (error) {
+      setNotice(errorMessage(error));
+    }
+  }, [bridge, copyText, t]);
+
+  const goToSetupAction = useCallback(
+    (nextAction: string | null | undefined) => {
+      if (nextAction === 'import_model') setSection('models');
+      else if (nextAction === 'add_animation_clips') setSection('animations');
+      else if (
+        nextAction === 'configure_voice_source' ||
+        nextAction === 'check_voice_source' ||
+        nextAction === 'start_voice_app' ||
+        nextAction === 'install_or_build_helper'
+      ) {
+        setSection('voice');
+      } else if (nextAction === 'wait_or_restart_mcp') setSection('mcp');
+    },
+    [],
+  );
+
   useEffect(() => {
     if (section !== 'mcp') return;
     void refreshMcpStatus();
   }, [refreshMcpStatus, section, settings.animations]);
+
+  useEffect(() => {
+    void refreshReadiness();
+  }, [
+    refreshReadiness,
+    settings.default_model_id,
+    settings.models,
+    settings.animations,
+    settings.voice_source,
+    mcpStatus?.health,
+    voiceCatalog?.listener,
+  ]);
 
   useEffect(() => {
     if (section !== 'voice') return;
@@ -1021,6 +1078,16 @@ export function SettingsPage() {
     (source) => source.id === settings.voice_source.source_id,
   );
   const listenerStatus = voiceCatalog?.listener;
+  const listenerStateKey =
+    settings.voice_source.mode === 'external'
+      ? 'helper.state.external'
+      : listenerStatus?.state
+        ? `helper.state.${listenerStatus.state}`
+        : listenerStatus?.capturing
+          ? 'helper.state.listening'
+          : listenerStatus?.monitoring
+            ? 'helper.state.no_output'
+            : 'helper.state.inactive';
   const voiceSourceDirty =
     voiceMode !== settings.voice_source.mode ||
     (voiceMode === 'custom' &&
@@ -1152,6 +1219,58 @@ export function SettingsPage() {
         )}
 
         <div className="settings-scroll">
+          {readiness && (
+            <section className="settings-panel setup-checklist-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>{t('setup.checklistTitle')}</h2>
+                  <p>{t('setup.checklistDesc')}</p>
+                </div>
+                <button
+                  className="secondary-button"
+                  disabled={!bridge?.getDiagnosticSummary}
+                  onClick={() => void copyDiagnosticSummary()}
+                  type="button"
+                >
+                  {t('setup.copyDiagnostic')}
+                </button>
+              </div>
+              <p className="desktop-note">
+                {readiness.complete
+                  ? t('setup.complete')
+                  : t('setup.incomplete')}
+              </p>
+              <ul className="setup-checklist">
+                {readiness.steps.map((step) => (
+                  <li
+                    className={
+                      step.ready
+                        ? 'setup-step ready'
+                        : step.optional
+                          ? 'setup-step optional'
+                          : 'setup-step pending'
+                    }
+                    key={step.id}
+                  >
+                    <div>
+                      <strong>{t(`setup.step.${step.id}`)}</strong>
+                      <small>{step.code}</small>
+                    </div>
+                    {step.next_action && (
+                      <button
+                        className="secondary-button"
+                        onClick={() => goToSetupAction(step.next_action)}
+                        type="button"
+                      >
+                        {t(`setup.action.${step.next_action}`)}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {section === 'models' && (
             <>
               <section className="settings-panel">
@@ -2724,11 +2843,7 @@ export function SettingsPage() {
                     <strong>
                       {settings.voice_source.mode === 'external'
                         ? t('voice.state.waitingEvents')
-                        : listenerStatus?.capturing
-                          ? t('voice.state.receiving')
-                          : listenerStatus?.monitoring
-                            ? t('voice.state.monitoring')
-                            : t('voice.state.inactive')}
+                        : t(listenerStateKey)}
                     </strong>
                     <small>
                       {listenerStatus?.error ??

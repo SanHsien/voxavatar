@@ -71,7 +71,8 @@ test("findMainChunk and findSettingsPageChunk pick expected entry chunks", () =>
 });
 
 test("buildBaselineReport records totals and highlight chunks", () => {
-  const assetsDir = path.join("dist", "assets");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-baseline-"));
+  const assetsDir = path.join(root, "dist", "assets");
   const chunks = [
     { name: "index-main.js", kind: "js", bytes: 1000 },
     { name: "SettingsPage-abc.js", kind: "js", bytes: 200 },
@@ -79,13 +80,13 @@ test("buildBaselineReport records totals and highlight chunks", () => {
   ];
   const report = buildBaselineReport({
     assetsDir,
-    appVersion: "0.4.0",
+    appVersion: "0.5.0",
     chunks,
-    root: "/workspace",
+    root,
   });
 
   assert.equal(report.format, "VoxAvatar-Bundle-Baseline");
-  assert.equal(report.appVersion, "0.4.0");
+  assert.equal(report.appVersion, "0.5.0");
   assert.equal(report.assetsDir, path.join("dist", "assets"));
   assert.deepEqual(report.totals, { jsBytes: 1200, cssBytes: 50, allBytes: 1250 });
   assert.deepEqual(report.highlights.mainChunk?.name, "index-main.js");

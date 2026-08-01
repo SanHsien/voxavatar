@@ -12,16 +12,17 @@
 
 ## 開發環境
 
-需要 Windows、Node.js 24+、npm，以及含 C++ 桌面工作負載的 Visual Studio Build Tools。
+一般 UI、設定、MCP、文件與 JavaScript／TypeScript 開發只需要 Windows、Node.js 24+ 與 npm。修改 WASAPI helper、驗證完整語音路徑或在本機打包時，才需要含「使用 C++ 的桌面開發」工作負載的 Visual Studio Build Tools。
 
 ```powershell
 git clone https://github.com/SanHsien/voxavatar.git
 cd voxavatar
 git remote add upstream https://github.com/xikhar/persona.git
 npm ci
-npm run native:build
 npm run dev
 ```
+
+沒有本機 C++ toolchain 時，application-loopback listener 不可用，但不影響其餘日常開發；GitHub Windows runner 會執行正式 native build 與 installer gate。
 
 ## 不可跨越的邊界
 
@@ -36,6 +37,11 @@ npm run dev
 
 ```powershell
 npm run check
+```
+
+原生 listener 相關修改另跑：
+
+```powershell
 npm run native:build
 npm run native:test
 ```

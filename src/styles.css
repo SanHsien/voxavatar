@@ -2389,6 +2389,28 @@ button {
   background: var(--bg-card);
 }
 
+.preview-load-error {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: absolute;
+  text-align: center;
+}
+
+.preview-load-error strong {
+  color: var(--text);
+}
+
+.preview-load-error p {
+  margin: 0;
+  max-width: 28rem;
+}
+
 .preview-stage canvas {
   position: relative;
   z-index: 1;

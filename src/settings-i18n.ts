@@ -358,6 +358,8 @@ const ZH_TW: MessageDictionary = {
   'preview.collapseAria': '收合預覽面板',
   'preview.hint': '拖曳旋轉 · 滾輪縮放',
   'preview.nowPlaying': '目前預覽',
+  'preview.loadError': '這個模型無法載入',
+  'preview.loadErrorHint': '請選擇或刪除這個模型；設定頁其餘功能仍可使用。',
 };
 
 const EN: MessageDictionary = {
@@ -721,6 +723,8 @@ const EN: MessageDictionary = {
   'preview.collapseAria': 'Collapse preview pane',
   'preview.hint': 'Drag to rotate · Mouse wheel to zoom',
   'preview.nowPlaying': 'Now previewing',
+  'preview.loadError': 'This model could not be loaded',
+  'preview.loadErrorHint': 'Select or delete this model; the rest of Settings remains available.',
 };
 
 const MESSAGES: Record<UiLocale, MessageDictionary> = {

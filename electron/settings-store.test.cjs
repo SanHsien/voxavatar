@@ -35,10 +35,24 @@ function fixture(context) {
 }
 
 function writeGlb(filePath) {
-  const contents = Buffer.alloc(12);
+  const extension = path.extname(filePath).toLowerCase() === ".vrma"
+    ? "VRMC_vrm_animation"
+    : "VRMC_vrm";
+  const document = Buffer.from(
+    JSON.stringify({
+      asset: { version: "2.0" },
+      extensionsUsed: [extension],
+      extensions: { [extension]: { specVersion: "1.0" } },
+    }),
+  );
+  const jsonLength = Math.ceil(document.length / 4) * 4;
+  const contents = Buffer.alloc(20 + jsonLength, 0x20);
   contents.write("glTF", 0, "ascii");
   contents.writeUInt32LE(2, 4);
   contents.writeUInt32LE(contents.length, 8);
+  contents.writeUInt32LE(jsonLength, 12);
+  contents.writeUInt32LE(0x4e4f534a, 16);
+  document.copy(contents, 20);
   fs.writeFileSync(filePath, contents);
 }
 
@@ -325,6 +339,28 @@ test("validates custom metadata, files, duplicates, and character size", (contex
   assert.throws(
     () => validateGlbFile(invalidModel, ".vrm"),
     /empty or invalid|glTF/,
+  );
+
+  const headerOnlyModel = path.join(root, "header-only.vrm");
+  const headerOnly = Buffer.alloc(12);
+  headerOnly.write("glTF", 0, "ascii");
+  headerOnly.writeUInt32LE(2, 4);
+  headerOnly.writeUInt32LE(headerOnly.length, 8);
+  fs.writeFileSync(headerOnlyModel, headerOnly);
+  assert.throws(
+    () => validateGlbFile(headerOnlyModel, ".vrm"),
+    /empty or invalid/,
+  );
+
+  const wrongExtensionModel = path.join(root, "wrong-extension.vrm");
+  writeGlb(wrongExtensionModel.replace(/\.vrm$/, ".vrma"));
+  fs.renameSync(
+    wrongExtensionModel.replace(/\.vrm$/, ".vrma"),
+    wrongExtensionModel,
+  );
+  assert.throws(
+    () => validateGlbFile(wrongExtensionModel, ".vrm"),
+    /required \.vrm extension/,
   );
 });
 
@@ -628,14 +664,7 @@ test("deletes all user models and all uploaded VRMA clips in one step", (context
   const clipA = path.join(root, "a.vrma");
   const clipB = path.join(root, "b.vrma");
   for (const filePath of [modelA, modelB, clipA, clipB]) {
-    fs.writeFileSync(
-      filePath,
-      Buffer.concat([
-        Buffer.from("glTF"),
-        Buffer.from([2, 0, 0, 0]),
-        Buffer.from([12, 0, 0, 0]),
-      ]),
-    );
+    writeGlb(filePath);
   }
 
   store.importModel({ filePath: modelA, model_name: "Alpha" });

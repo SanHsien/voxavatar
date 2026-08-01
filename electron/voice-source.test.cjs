@@ -110,6 +110,21 @@ test("normalizes all voice modes and rejects arbitrary application IDs", () => {
       }),
     /valid application/,
   );
+  for (const source_id of [
+    "process:darwin:Zm9v",
+    "pipewire:application:Zm9v",
+    "pipewire:stream:Zm9v",
+  ]) {
+    assert.throws(
+      () =>
+        sanitizeVoiceSource({
+          mode: "application",
+          source_id,
+          source_name: "Legacy source",
+        }),
+      /valid application/,
+    );
+  }
 });
 
 test("creates stable native process sources and matches Windows paths case-insensitively", () => {
@@ -129,4 +144,6 @@ test("creates stable native process sources and matches Windows paths case-insen
     ),
     true,
   );
+  assert.equal(sourceFromProcess("darwin", { name: "Voice" }), null);
+  assert.equal(sourceFromProcess("linux", { name: "Voice" }), null);
 });

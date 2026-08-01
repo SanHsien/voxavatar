@@ -23,6 +23,11 @@ description: 開發、驗證、整合與發布 SanHsien/voxavatar Windows VRM �
 ```powershell
 npm ci
 npm run check
+```
+
+原生相關才執行：
+
+```powershell
 npm run native:build
 npm run native:test
 ```
@@ -33,6 +38,8 @@ npm run native:test
 npm run assets:release
 npm run dist:windows
 ```
+
+一般 UI、MCP、文件與 TypeScript 開發不要求本機安裝 Visual Studio Build Tools；沒有本機 C++ toolchain 時，以 GitHub Windows runner 為 native 與 installer gate。
 
 ## 安全與授權
 

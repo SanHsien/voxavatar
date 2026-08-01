@@ -13,6 +13,14 @@ const IGNORED_DIRECTORIES = new Set([
   "release",
 ]);
 
+const REQUIRED_BILINGUAL_PAIRS = [
+  ["README.md", "README.en.md"],
+  ["ROADMAP.md", "ROADMAP.en.md"],
+  ["CONTRIBUTING.md", "CONTRIBUTING.en.md"],
+  ["CODE_OF_CONDUCT.md", "CODE_OF_CONDUCT.en.md"],
+  ["SECURITY.md", "SECURITY.en.md"],
+];
+
 function findMarkdownFiles(root) {
   const files = [];
   const visit = (directory) => {
@@ -55,6 +63,15 @@ function localLinkTarget(rawTarget) {
 
 function checkMarkdownTree(root) {
   const errors = [];
+  for (const pair of REQUIRED_BILINGUAL_PAIRS) {
+    const existing = pair.filter((relativePath) =>
+      fs.existsSync(path.join(root, relativePath)),
+    );
+    if (existing.length === 1) {
+      const missing = pair.find((relativePath) => !existing.includes(relativePath));
+      errors.push(`${missing}: required bilingual companion is missing`);
+    }
+  }
   for (const filePath of findMarkdownFiles(root)) {
     const relativePath = displayPath(root, filePath);
     const content = fs.readFileSync(filePath, "utf8");

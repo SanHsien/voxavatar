@@ -12,16 +12,17 @@ Contributions to Windows UX, VRM/VRMA compatibility, tests, documentation, acces
 
 ## Development setup
 
-You need Windows, Node.js 24+, npm, and Visual Studio Build Tools with the Desktop development with C++ workload.
+Regular UI, settings, MCP, documentation, and JavaScript/TypeScript work requires Windows, Node.js 24+, and npm. Visual Studio Build Tools with the Desktop development with C++ workload is needed only for WASAPI-helper changes, full audio-path validation, or local packaging.
 
 ```powershell
 git clone https://github.com/SanHsien/voxavatar.git
 cd voxavatar
 git remote add upstream https://github.com/xikhar/persona.git
 npm ci
-npm run native:build
 npm run dev
 ```
+
+Without a local C++ toolchain, the application-loopback listener is unavailable, but the rest of regular development remains usable. The GitHub Windows runner performs the canonical native build and installer gate.
 
 ## Non-negotiable boundaries
 
@@ -36,6 +37,11 @@ npm run dev
 
 ```powershell
 npm run check
+```
+
+For native-listener changes, also run:
+
+```powershell
 npm run native:build
 npm run native:test
 ```

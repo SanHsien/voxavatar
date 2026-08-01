@@ -1,27 +1,51 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v{package.version} tag at the current main tip
+        required: true
+        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag }}
   cancel-in-progress: false
 
 jobs:
   release-gate:
     name: Validate release inputs
     runs-on: windows-latest
+    if: github.ref == 'refs/heads/main'
     steps:
-      - name: Check out source
-        uses: actions/checkout@v7
+      - name: Check out trusted main workflow source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require the tag to point at the main tip
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          $tag = $env:RELEASE_TAG
+          if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "Release tag has an invalid format."
+          }
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin "+refs/tags/${tag}:refs/tags/${tag}"
+          $mainSha = git rev-parse refs/remotes/origin/main
+          $tagSha = git rev-parse "refs/tags/${tag}^{commit}"
+          if ($env:GITHUB_SHA -ne $mainSha -or $tagSha -ne $mainSha) {
+            throw "Release must run from main, and tag $tag must point at its current tip $mainSha."
+          }
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           cache: npm
@@ -33,18 +57,24 @@ jobs:
         run: npm run assets:release
 
       - name: Require tag to match package version
-        run: node scripts/check-release-tag.cjs "${env:GITHUB_REF_NAME}"
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: node scripts/check-release-tag.cjs "$env:RELEASE_TAG"
 
   package:
     name: Package Windows x64
     needs: release-gate
     runs-on: windows-latest
+    environment: release
     steps:
       - name: Check out source
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           cache: npm
@@ -62,7 +92,7 @@ jobs:
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Upload installers
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: voxavatar-windows-x64
           path: |
@@ -74,17 +104,39 @@ jobs:
     name: Publish GitHub release
     needs: package
     runs-on: windows-latest
+    permissions:
+      contents: write
+    environment: release
     steps:
       - name: Check out source
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Recheck the immutable release tag
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          $tag = $env:RELEASE_TAG
+          if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "Release tag has an invalid format."
+          }
+          git fetch --no-tags origin "+refs/tags/${tag}:refs/tags/${tag}"
+          $tagSha = git rev-parse "refs/tags/${tag}^{commit}"
+          if ($tagSha -ne $env:GITHUB_SHA) {
+            throw "Release tag moved after packaging; refusing to publish."
+          }
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
 
       - name: Download native installers
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: voxavatar-*
           path: release-artifacts
@@ -94,9 +146,10 @@ jobs:
         run: node scripts/write-checksums.cjs release-artifacts
 
       - name: Create the GitHub release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
-          name: VoxAvatar ${{ github.ref_name }}
+          tag_name: ${{ inputs.tag }}
+          name: VoxAvatar ${{ inputs.tag }}
           generate_release_notes: true
           # 不要因 tag 含 -beta 就標 Pre-release：GitHub 首頁 Latest 會略過，
           # 看起來像「只有 tag、沒有 Release」。beta 版號仍寫在 tag／標題裡。

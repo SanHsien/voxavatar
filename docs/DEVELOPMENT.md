@@ -4,8 +4,9 @@
 
 - Windows 10 build 20348+／Windows 11 x64
 - Node.js 24+ 與 npm
-- Visual Studio Build Tools，含「使用 C++ 的桌面開發」
 - Electron、Vite、React、TypeScript、Three.js、`@pixiv/three-vrm`
+
+Visual Studio Build Tools 與「使用 C++ 的桌面開發」工作負載只用於編譯 WASAPI helper 與本機安裝包。一般 UI、設定、MCP、文件與 JavaScript／TypeScript 工作不需要安裝；正式 native／installer gate 由 GitHub Windows runner 執行。
 
 ## 架構
 
@@ -17,12 +18,12 @@ voxavatar-audio-listener.exe
         │ NDJSON
         ▼
 Electron main ── 設定／系統匣／MCP／HTTP／protocol
-        │ narrow IPC through sandboxed preload
+        │ sandboxed、context-isolated preload bridge
         ▼
 React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 ```
 
-安全界線：main process 處理檔案、process discovery 與網路 listener；renderer 保持 sandbox、context isolation、無 Node integration。使用者媒體只透過登記 ID 的 `voxavatar-asset:` protocol 進入 renderer。
+安全界線：main process 處理檔案、process discovery 與網路 listener；renderer 保持 sandbox、context isolation、無 Node integration。使用者媒體只透過登記 ID 的 `voxavatar-asset:` protocol 進入 renderer。avatar／settings preload 目前仍共用 allowlisted API；拆分權限與統一驗 sender 已列入 [`ROADMAP.md`](../ROADMAP.md)。
 
 ## 目錄
 
@@ -40,11 +41,18 @@ React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 
 ```powershell
 npm ci
-npm run native:build
 npm run dev
 ```
 
-`npm run dev` 同時啟動 Vite 與 Electron。`npm run demo` 先建立 production renderer 再啟動桌面程式。使用本機 catalog 範例時，複製 `public/assets/library.json.example` 與 `manifest.json.example`，但不要提交測試媒體。
+`npm run dev` 同時啟動 Vite 與 Electron。未編譯 `native/bin/win32/voxavatar-audio-listener.exe` 時，UI、設定、素材與 MCP 仍可開發，但 application-loopback 語音 listener 會顯示不可用。`npm run demo` 先建立 production renderer 再啟動桌面程式。使用本機 catalog 範例時，複製 `public/assets/library.json.example` 與 `manifest.json.example`，但不要提交測試媒體。
+
+需要完整語音路徑或本機 installer 時：
+
+```powershell
+npm run native:build
+npm run native:test
+npm run dist:windows
+```
 
 ## 驗證矩陣
 

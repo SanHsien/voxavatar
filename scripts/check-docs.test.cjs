@@ -21,6 +21,7 @@ function fixture(files) {
 test("accepts clean Markdown with valid local links", () => {
   const root = fixture({
     "README.md": "# Project\n\nSee [guide](docs/GUIDE.md).\n",
+    "README.en.md": "# Project\n",
     "docs/GUIDE.md": "# Guide\n",
   });
 
@@ -30,6 +31,7 @@ test("accepts clean Markdown with valid local links", () => {
 test("reports broken links, control characters, stale MCP names, and missing newlines", () => {
   const root = fixture({
     "README.md": "# Project\n\n[missing](docs/MISSING.md)\u0007\n",
+    "README.en.md": "# Project\n",
     "SETUP.md": "codex mcp add persona --url http://127.0.0.1:47831/mcp",
   });
 
@@ -38,5 +40,15 @@ test("reports broken links, control characters, stale MCP names, and missing new
     "README.md: broken local link docs/MISSING.md",
     "SETUP.md: must end with a newline",
     "SETUP.md: uses the retired Codex MCP name persona",
+  ]);
+});
+
+test("requires a companion when one public bilingual document exists", () => {
+  const root = fixture({
+    "ROADMAP.md": "# Roadmap\n",
+  });
+
+  assert.deepEqual(checkMarkdownTree(root), [
+    "ROADMAP.en.md: required bilingual companion is missing",
   ]);
 });

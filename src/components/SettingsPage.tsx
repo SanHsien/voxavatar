@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Scene } from './Scene';
+import { SceneErrorBoundary } from './SceneErrorBoundary';
 import {
   ACTION_PRESETS,
   resolveActionPreset,
@@ -2766,24 +2767,34 @@ export function SettingsPage() {
             </div>
             <div className="preview-stage" data-testid="settings-preview">
               {selectedModel && (
-                <Scene
-                  animation={previewType}
-                  animationRequest={previewRequest}
-                  animationUrls={previewAnimationUrls}
-                  audioLevel={0}
-                  characterSize={settings.character_size}
-                  lighting={previewLighting}
-                  enablePan={false}
-                  framingMargin={1.22}
-                  groundShadow
-                  modelUrl={selectedModel.asset_url}
-                  onAnimationComplete={() => {
-                    setPreviewAnimation(null);
-                    setPreviewClipId(null);
-                  }}
-                  playback={previewClip ? 'once' : 'loop'}
-                  speaking={false}
-                />
+                <SceneErrorBoundary
+                  fallback={(
+                    <div className="preview-load-error" role="alert">
+                      <strong>{t('preview.loadError')}</strong>
+                      <p>{t('preview.loadErrorHint')}</p>
+                    </div>
+                  )}
+                  resetKey={selectedModel.id}
+                >
+                  <Scene
+                    animation={previewType}
+                    animationRequest={previewRequest}
+                    animationUrls={previewAnimationUrls}
+                    audioLevel={0}
+                    characterSize={settings.character_size}
+                    lighting={previewLighting}
+                    enablePan={false}
+                    framingMargin={1.22}
+                    groundShadow
+                    modelUrl={selectedModel.asset_url}
+                    onAnimationComplete={() => {
+                      setPreviewAnimation(null);
+                      setPreviewClipId(null);
+                    }}
+                    playback={previewClip ? 'once' : 'loop'}
+                    speaking={false}
+                  />
+                </SceneErrorBoundary>
               )}
               <div className="preview-hint">{t('preview.hint')}</div>
             </div>

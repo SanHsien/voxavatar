@@ -10,9 +10,15 @@ VoxAvatar 是 Windows-only Electron + React + Three.js VRM 桌面角色陪伴，
 
 ```powershell
 npm ci
-npm run native:build
 npm run dev
 npm run check
+```
+
+只有修改原生 listener 或本機安裝包時才需要 Visual Studio Build Tools：
+
+```powershell
+npm run native:build
+npm run native:test
 npm run dist:windows
 ```
 

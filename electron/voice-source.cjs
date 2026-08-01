@@ -9,7 +9,7 @@ const VOICE_SOURCE_MODES = new Set([
   "external",
 ]);
 const VOICE_SOURCE_ID_PATTERN =
-  /^(?:process:(?:darwin|win32)|pipewire:(?:application|binary|node|stream)):[A-Za-z0-9_-]{1,2048}$/;
+  /^process:win32:[A-Za-z0-9_-]{1,2048}$/;
 const MAX_VOICE_SOURCE_NAME_LENGTH = 120;
 
 const DEFAULT_VOICE_SOURCE = Object.freeze({
@@ -86,31 +86,8 @@ function isValidVoiceSourceId(value) {
   if (typeof value !== "string" || !VOICE_SOURCE_ID_PATTERN.test(value)) {
     return false;
   }
-  const processMatch = /^process:(?:darwin|win32):([A-Za-z0-9_-]+)$/.exec(
-    value,
-  );
-  if (processMatch) return Boolean(decodeIdentity(processMatch[1])?.trim());
-
-  const legacyMatch =
-    /^pipewire:(?:application|binary|node):([A-Za-z0-9_-]+)$/.exec(value);
-  if (legacyMatch) return Boolean(decodeIdentity(legacyMatch[1])?.trim());
-
-  const streamMatch = /^pipewire:stream:([A-Za-z0-9_-]+)$/.exec(value);
-  if (!streamMatch) return false;
-  try {
-    const decoded = decodeIdentity(streamMatch[1]);
-    const identity = decoded == null ? null : JSON.parse(decoded);
-    if (!identity || typeof identity !== "object" || Array.isArray(identity)) {
-      return false;
-    }
-    return ["application", "binary", "node"].some(
-      (field) =>
-        typeof identity[field] === "string" &&
-        cleanSourceName(identity[field]) === identity[field],
-    );
-  } catch {
-    return false;
-  }
+  const processMatch = /^process:win32:([A-Za-z0-9_-]+)$/.exec(value);
+  return Boolean(processMatch && decodeIdentity(processMatch[1])?.trim());
 }
 
 function sanitizeVoiceSource(value) {
@@ -198,7 +175,7 @@ function processIdentity(process, platform) {
 }
 
 function processSourceId(platform, process) {
-  if (!["darwin", "win32"].includes(platform)) return null;
+  if (platform !== "win32") return null;
   const identity = processIdentity(process, platform);
   return identity ? `process:${platform}:${encodeIdentity(identity)}` : null;
 }
@@ -226,67 +203,6 @@ function processMatchesSource(process, platform, sourceId) {
   return processSourceId(platform, process) === sourceId;
 }
 
-function cleanPipeWireIdentity(properties) {
-  const identity = {
-    application: cleanSourceName(properties?.["application.name"]),
-    binary: cleanSourceName(properties?.["application.process.binary"]),
-    node: cleanSourceName(properties?.["node.name"]),
-  };
-  return Object.values(identity).some(Boolean) ? identity : null;
-}
-
-function pipeWireSourceFromProperties(properties) {
-  const identity = cleanPipeWireIdentity(properties);
-  if (!identity) return null;
-  const detailParts = [identity.binary, identity.node].filter(
-    (value, index, values) => value && values.indexOf(value) === index,
-  );
-  return {
-    id: `pipewire:stream:${encodeIdentity(JSON.stringify(identity))}`,
-    name:
-      identity.application ??
-      cleanSourceName(properties?.["node.description"]) ??
-      identity.binary ??
-      identity.node ??
-      "Audio stream",
-    detail: detailParts.join(" · ") || identity.application || "Playback stream",
-    platform: "linux",
-  };
-}
-
-function matchesLegacyPipeWireSource(properties, kind, encodedValue) {
-  const value = decodeIdentity(encodedValue);
-  if (value == null) return false;
-  const property =
-    kind === "application"
-      ? "application.name"
-      : kind === "binary"
-        ? "application.process.binary"
-        : "node.name";
-  return properties?.[property] === value;
-}
-
-function pipeWirePropertiesMatchSource(properties, sourceId) {
-  const legacy = /^pipewire:(application|binary|node):([A-Za-z0-9_-]+)$/.exec(
-    String(sourceId),
-  );
-  if (legacy) return matchesLegacyPipeWireSource(properties, legacy[1], legacy[2]);
-
-  const match = /^pipewire:stream:([A-Za-z0-9_-]+)$/.exec(String(sourceId));
-  if (!match) return false;
-  try {
-    const decoded = decodeIdentity(match[1]);
-    const expected = decoded == null ? null : JSON.parse(decoded);
-    const actual = cleanPipeWireIdentity(properties);
-    if (!expected || !actual) return false;
-    return ["application", "binary", "node"].every(
-      (field) => expected[field] == null || expected[field] === actual[field],
-    );
-  } catch {
-    return false;
-  }
-}
-
 module.exports = {
   DEFAULT_VOICE_APP_PATTERN,
   DEFAULT_VOICE_APP_PATTERN_SOURCE,
@@ -301,8 +217,6 @@ module.exports = {
   emptyVoiceSource,
   isValidVoiceSourceId,
   normalizeVoiceSource,
-  pipeWirePropertiesMatchSource,
-  pipeWireSourceFromProperties,
   processMatchesSource,
   processSourceId,
   resolveVoiceSourcePattern,

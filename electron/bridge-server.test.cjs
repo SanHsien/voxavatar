@@ -5,10 +5,21 @@ const http = require("node:http");
 const test = require("node:test");
 const {
   createBridgeServer,
+  hasJsonContentType,
   hostAllowed,
   normalizeEvent,
   originAllowed,
 } = require("./bridge-server.cjs");
+
+test("accepts only the JSON media type, with optional parameters", () => {
+  assert.equal(hasJsonContentType({ headers: { "content-type": "application/json" } }), true);
+  assert.equal(
+    hasJsonContentType({ headers: { "content-type": "Application/JSON; charset=utf-8" } }),
+    true,
+  );
+  assert.equal(hasJsonContentType({ headers: { "content-type": "text/plain" } }), false);
+  assert.equal(hasJsonContentType({ headers: {} }), false);
+});
 
 function requestServer(address, { path, method = "GET", headers = {}, body = "" }) {
   return new Promise((resolve, reject) => {
@@ -133,6 +144,26 @@ test("bridge accepts a valid native adapter state event", async (context) => {
   assert.equal(events[0].state.phase, "active");
 });
 
+test("bridge rejects non-JSON event bodies", async (context) => {
+  const events = [];
+  const bridge = createBridgeServer({
+    port: 0,
+    onEvent: (event) => events.push(event),
+  });
+  const address = await bridge.listen();
+  context.after(() => bridge.close());
+
+  const response = await requestServer(address, {
+    path: "/events",
+    method: "POST",
+    headers: { "content-type": "text/plain" },
+    body: '{"type":"audio-level","level":0.5}',
+  });
+
+  assert.equal(response.status, 415);
+  assert.deepEqual(events, []);
+});
+
 test("bridge delegates configured animation names to the active library", async (context) => {
   const events = [];
   const bridge = createBridgeServer({
@@ -220,6 +251,12 @@ test("bridge routes only valid local JSON requests to MCP", async (context) => {
     headers: { "content-type": "application/json" },
     body: "{",
   });
+  const wrongContentType = await requestServer(address, {
+    path: "/mcp",
+    method: "POST",
+    headers: { "content-type": "text/plain" },
+    body: '{"jsonrpc":"2.0"}',
+  });
   const oversized = await requestServer(address, {
     path: "/mcp",
     method: "POST",
@@ -236,6 +273,7 @@ test("bridge routes only valid local JSON requests to MCP", async (context) => {
   assert.equal(invalidJson.status, 400);
   assert.equal(JSON.parse(invalidJson.body).error.code, -32700);
   assert.equal(oversized.status, 413);
+  assert.equal(wrongContentType.status, 415);
   assert.deepEqual(bodies, [
     { body: { jsonrpc: "2.0" }, method: "POST" },
     { body: undefined, method: "GET" },

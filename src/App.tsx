@@ -5,6 +5,7 @@ import {
   useState,
 } from 'react';
 import { Scene } from './components/Scene';
+import { SceneErrorBoundary } from './components/SceneErrorBoundary';
 import {
   ambientIdleMotionUrls,
   animationUrlsForType,
@@ -132,21 +133,26 @@ export function App() {
   }, [cycleRandomMotions, overrideRequestId]);
 
   return defaultModel ? (
-    <main className="app">
-      <Scene
-        animation={animation}
-        animationRequest={animationRequest}
-        animationUrls={animationUrls}
-        audioLevel={audioLevel}
-        characterSize={settings.character_size}
-        interactiveOverlay
-        lighting={settings.model_lighting[defaultModel.id]}
-        modelUrl={defaultModel.asset_url}
-        onAnimationComplete={handleAnimationComplete}
-        playback={bodyOverride || cycleRandomMotions ? 'once' : 'loop'}
-        speaking={speaking}
-      />
-    </main>
+    <SceneErrorBoundary
+      fallback={<main aria-label="Avatar failed to load" className="app" />}
+      resetKey={defaultModel.id}
+    >
+      <main className="app">
+        <Scene
+          animation={animation}
+          animationRequest={animationRequest}
+          animationUrls={animationUrls}
+          audioLevel={audioLevel}
+          characterSize={settings.character_size}
+          interactiveOverlay
+          lighting={settings.model_lighting[defaultModel.id]}
+          modelUrl={defaultModel.asset_url}
+          onAnimationComplete={handleAnimationComplete}
+          playback={bodyOverride || cycleRandomMotions ? 'once' : 'loop'}
+          speaking={speaking}
+        />
+      </main>
+    </SceneErrorBoundary>
   ) : (
     <main className="app" />
   );

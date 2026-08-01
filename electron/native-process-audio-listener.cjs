@@ -19,7 +19,7 @@ function resolveNativeHelperPath({
   resourcesPath = process.resourcesPath,
   projectRoot = path.join(__dirname, ".."),
 } = {}) {
-  const executable = helperExecutableName(platform);
+  const executable = helperExecutableName();
   if (platform !== "win32") return null;
   return isPackaged
     ? path.win32.join(resourcesPath, "native", "win32", executable)

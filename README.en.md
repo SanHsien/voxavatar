@@ -4,43 +4,99 @@
 
 <h1 align="center">VoxAvatar</h1>
 
-<p align="center">A local Windows VRM desktop companion with assistant-output lip sync, animations, and MCP visual controls.</p>
+<p align="center"><strong>Give your AI assistant a talking, animated, MCP-controlled VRM presence on the Windows desktop.</strong></p>
 
 <p align="center">
-  <a href="./README.md">繁體中文</a> ·
+  <a href="./README.md">繁體中文</a> · English ·
   <a href="https://github.com/SanHsien/voxavatar/releases/latest">Latest release</a> ·
-  <a href="./docs/INTEGRATIONS.md">Integrations</a>
+  <a href="./ROADMAP.en.md">Product roadmap</a>
 </p>
 
-> VoxAvatar is derived from [`xikhar/persona`](https://github.com/xikhar/persona) and independently maintained at [`SanHsien/voxavatar`](https://github.com/SanHsien/voxavatar). This fork supports Windows only. See [`NOTICE.md`](NOTICE.md).
+[![Release](https://img.shields.io/github/v/release/SanHsien/voxavatar?sort=semver)](https://github.com/SanHsien/voxavatar/releases/latest)
+[![CI](https://github.com/SanHsien/voxavatar/actions/workflows/ci.yml/badge.svg)](https://github.com/SanHsien/voxavatar/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/SanHsien/voxavatar/actions/workflows/codeql.yml/badge.svg)](https://github.com/SanHsien/voxavatar/actions/workflows/codeql.yml)
+[![Windows Release](https://github.com/SanHsien/voxavatar/actions/workflows/release.yml/badge.svg)](https://github.com/SanHsien/voxavatar/actions/workflows/release.yml)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-339933.svg?logo=nodedotjs&logoColor=white)](package.json)
+[![Platform: Windows 10/11](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D4.svg?logo=windows11&logoColor=white)](#requirements)
+[![Local-first](https://img.shields.io/badge/Architecture-Local--first-2E7D32.svg)](#privacy-and-security-boundaries)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## What it does
+> VoxAvatar is derived from [`xikhar/persona`](https://github.com/xikhar/persona) and independently maintained at [`SanHsien/voxavatar`](https://github.com/SanHsien/voxavatar). This fork supports Windows only. See [`NOTICE.md`](NOTICE.md) for provenance and attribution.
 
-- Measures the **playback output** of a selected Windows application to drive VRM lip sync and speaking motion.
-- Provides a transparent topmost avatar with click-through, drag, zoom, rotate, and tray controls.
-- Imports local `.vrm` and `.vrma` files, including folder import, VRMA quality reports, and custom actions.
-- Exposes loopback-only MCP, an HTTP event API, and the `voxavatar://` protocol.
-- Keeps characters, animations, and settings on the local computer. VoxAvatar does not run a language model.
+## What it is
 
-VoxAvatar **does not capture the microphone, record, transcribe, retain, or transmit audio**.
+VoxAvatar is a Windows-only, local-first VRM desktop companion. It measures the **playback level** of a selected application so the avatar can lip-sync and enter its Speaking motion. Codex and other compatible agents can also use the local MCP server to play actions, show or hide the avatar, and inspect status.
+
+It is not another chatbot and does not run a language model. VoxAvatar focuses on being the local visual-presence layer for an AI assistant: characters, actions, settings, and audio-level decisions stay on the computer.
+
+## Feature overview
+
+| Area | Capability |
+| --- | --- |
+| Voice lip sync | Uses WASAPI application loopback to measure playback from a selected Windows app and drive lip sync and Speaking state |
+| Desktop avatar | Transparent topmost window, transparent-area click-through, drag, zoom, rotate, show/hide, and tray controls |
+| Local media | Imports `.vrm` and `.vrma`, supports folder import, VRMA quality reports, bulk deletion, and custom actions |
+| Action system | Idle and Speaking system slots, random multi-clip playback, common presets, and a live MCP catalog |
+| Agent integration | Loopback-only MCP, HTTP event API, and the `voxavatar://` URL protocol |
+| Release quality | Windows CI, CodeQL, media-license gate, NSIS installer, and SHA-256 checksum |
+
+## How it works
+
+```text
+Selected application playback
+        │ WASAPI process loopback, level only
+        ▼
+voxavatar-audio-listener.exe
+        │ NDJSON
+        ▼
+Electron main ── settings / tray / MCP / HTTP / URL protocol
+        │ sandboxed, context-isolated preload bridge
+        ▼
+React + Three.js ── VRM / VRMA / lip sync / desktop interaction
+```
+
+## Privacy and security boundaries
+
+- **No microphone capture**, recording, transcription, audio retention, or audio transmission.
+- The MCP and HTTP bridge binds only to `127.0.0.1` and constrains Host, origin, body size, and input schemas.
+- MCP controls only avatar actions, window state, and status. It cannot execute arbitrary commands or read arbitrary files.
+- Imported media is copied to per-user app data. The renderer can read only registered asset IDs.
+- Releases ship without third-party characters or motions by default. Lawful local import does not grant this project redistribution rights.
+
+Other processes under the same Windows account can still connect to the unauthenticated local MCP endpoint. Never forward the port to a LAN or the Internet. See [`SECURITY.en.md`](SECURITY.en.md) for the complete model.
 
 ## Requirements
 
-| Item | Requirement |
+| Use | Requirement |
 | --- | --- |
-| Operating system | Windows 10 build 20348+ or Windows 11 x64 |
-| Display | Hardware-accelerated desktop session |
-| Source development | Node.js 24+, npm, Visual Studio Build Tools with Desktop development with C++ |
+| Installed release | Windows 10 build 20348+ or Windows 11 x64, with a hardware-accelerated desktop session |
+| Character media | One `.vrm` you are allowed to use; `.vrma` motions are optional |
+| Regular source development | Windows, Node.js 24+, and npm |
+| Native-listener changes or local packaging | Visual Studio Build Tools with the Desktop development with C++ workload |
+
+Visual Studio Build Tools is not required for normal UI, settings, MCP, documentation, or JavaScript/TypeScript work. GitHub Actions performs the canonical Windows native build and packaging.
 
 ## Quick start
 
 1. Download the Windows installer from [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest).
 2. Launch VoxAvatar. Settings opens automatically when no model is configured.
-3. Import a `.vrm` you are allowed to use under **Models**. No third-party character ships by default.
-4. Add `.vrma` clips to Idle, Speaking, or custom actions. Lip sync still works without body-motion clips.
+3. Under **Models**, import a `.vrm` you are allowed to use.
+4. Add `.vrma` clips to Idle, Speaking, or custom actions. Lip sync still works without motion clips.
 5. Under **Voice**, select the application that plays assistant audio.
 
-Find lawful models and motions on [VRoid Hub](https://hub.vroid.com/), [BOOTH](https://booth.pm/), or create an original model with [VRoid Studio](https://vroid.com/studio). Terms for download, avatar use, commercial use, and redistribution vary by asset. See [`ASSET_LICENSES.md`](ASSET_LICENSES.md) and [`docs/IDLE_MOTIONS.md`](docs/IDLE_MOTIONS.md).
+Find lawful models and motions on [VRoid Hub](https://hub.vroid.com/), [BOOTH](https://booth.pm/), or create an original model with [VRoid Studio](https://vroid.com/studio). Download, avatar use, commercial use, and redistribution terms vary by asset. See [`ASSET_LICENSES.md`](ASSET_LICENSES.md) and [`docs/IDLE_MOTIONS.md`](docs/IDLE_MOTIONS.md).
+
+## Connect Codex and MCP
+
+Keep VoxAvatar running and register it once:
+
+```powershell
+codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
+```
+
+Restart Codex or start a new task, then ask it to list installed actions, play an action such as `wave-hello`, control the window, or report model and listener status.
+
+The MCP tools are `list_animations`, `play_animation`, `control_window`, and `get_status`. Existing sessions receive updated tool descriptions after actions are added or removed in Settings. See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) for schemas, health checks, HTTP events, and URL protocol details.
 
 ## Avatar controls
 
@@ -50,44 +106,68 @@ Find lawful models and motions on [VRoid Hub](https://hub.vroid.com/), [BOOTH](h
 - Right-click: open the shortcut menu.
 - Tray left-click: show or hide; tray right-click: open the menu.
 
-## Connect Codex
+## Project status and roadmap
 
-Keep VoxAvatar running and register it once:
+`v0.1.x` is the first stable baseline: Windows installers, application-output lip sync, local media management, four MCP tools, and automated quality gates are in place. The next priorities are real Windows installer validation, first-run diagnostics, a VRM/VRMA compatibility matrix, and a stable MCP contract, followed by component decomposition and measured performance work.
 
-```powershell
-codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
-```
-
-Restart Codex or start a new task, then ask it to list actions, play an installed action, control the window, or report status. The tools are `list_animations`, `play_animation`, `control_window`, and `get_status`. See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) for schemas and other integrations.
+See [`ROADMAP.en.md`](ROADMAP.en.md) for milestones, completion criteria, risks, and explicit non-goals. See [`REVIEW.md`](REVIEW.md) for the latest repository health review and manual-validation gaps (Traditional Chinese).
 
 ## Run from source
+
+For regular Electron, React, and MCP development:
 
 ```powershell
 git clone https://github.com/SanHsien/voxavatar.git
 cd voxavatar
 npm ci
-npm run native:build
 npm run dev
+npm run check
 ```
 
-Validation and packaging:
+Without a compiled native helper, the desktop UI and most features still work for development, but application-loopback listening is unavailable. Build the helper only when changing C++, validating the full audio path, or creating an installer locally:
 
 ```powershell
-npm run check
+npm run native:build
 npm run native:test
 npm run dist:windows
 ```
 
-`npm run check` runs lint, Markdown validation, Node and renderer tests, asset-contract checks, production audit, and a production build. Windows installers are written to `release/`.
+`npm run check` runs lint, Markdown checks, Node and renderer tests, the asset contract, production audit, and a production build. See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for the complete environment and command matrix.
+
+## Project structure
+
+```text
+electron/        Electron main, preload, settings, MCP/HTTP, and Node tests
+src/             React/Three.js renderer, action logic, and Vitest tests
+native/windows/  WASAPI process-loopback C++ helper
+scripts/         Build, media, docs, Dependabot, version, and checksum gates
+public/assets/   UI icon and release manifests; no VRM/VRMA by default
+docs/            Development, integration, decisions, and release docs
+.github/         CI, CodeQL, Dependabot, Release, and contribution templates
+```
 
 ## Documentation
 
-- [`CONTRIBUTING.en.md`](CONTRIBUTING.en.md): contribution workflow and boundaries
-- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): architecture, directories, and development
-- [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md): MCP, HTTP, and URL protocol
-- [`docs/RELEASING.md`](docs/RELEASING.md): versioning and releases
-- [`SECURITY.en.md`](SECURITY.en.md): security model and vulnerability reporting
-- [`ASSET_LICENSES.md`](ASSET_LICENSES.md): media redistribution gate (Traditional Chinese)
-- [`docs/DECISIONS.md`](docs/DECISIONS.md): fork decisions (Traditional Chinese)
+| Document | Purpose |
+| --- | --- |
+| [`ROADMAP.en.md`](ROADMAP.en.md) | Product positioning, milestones, completion criteria, risks, and non-goals |
+| [`REVIEW.md`](REVIEW.md) | Latest repository review and open validation gaps (Traditional Chinese) |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Architecture, directories, toolchain, and validation matrix |
+| [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP, HTTP event API, and URL protocol |
+| [`docs/RELEASING.md`](docs/RELEASING.md) | Versioning, GitHub Actions, assets, and post-release verification |
+| [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Real-machine installer, desktop, audio, MCP, and signing checks (Traditional Chinese) |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Fork, privacy, licensing, and maintenance decisions |
+| [`CONTRIBUTING.en.md`](CONTRIBUTING.en.md) | Contribution workflow and hard boundaries |
+| [`SECURITY.en.md`](SECURITY.en.md) | Supported versions, security model, and vulnerability reporting |
+| [`ASSET_LICENSES.md`](ASSET_LICENSES.md) | Media provenance and redistribution gate (Traditional Chinese) |
+| [`CHANGELOG.md`](CHANGELOG.md) | Version history (Traditional Chinese) |
 
-Source code is available under the [MIT License](LICENSE). Third-party media does not automatically become MIT-licensed when imported or packaged.
+## Support and contributing
+
+- Bugs and feature requests: use the [issue templates](https://github.com/SanHsien/voxavatar/issues/new/choose).
+- Security vulnerabilities: follow [`SECURITY.en.md`](SECURITY.en.md) and use Private Vulnerability Reporting.
+- Before submitting code: read [`CONTRIBUTING.en.md`](CONTRIBUTING.en.md) and run at least `npm run check`.
+
+## Provenance and license
+
+Source code is available under the [MIT License](LICENSE), retaining copyright and attribution from `xikhar/persona`. Third-party VRM, VRMA, image, and environment assets do not automatically become MIT-licensed when imported or packaged. See [`NOTICE.md`](NOTICE.md) and [`ASSET_LICENSES.md`](ASSET_LICENSES.md) for the complete scope.

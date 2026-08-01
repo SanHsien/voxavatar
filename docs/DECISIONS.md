@@ -4,7 +4,7 @@
 
 ## D-01｜文件語言
 
-使用者文件 `README`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁體中文為預設，提供 `*.en.md`。其餘維護文件使用繁中，避免雙份內部文件漂移。
+公開文件 `README`、`ROADMAP`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁體中文為預設，提供 `*.en.md`。其餘維護文件使用繁中，避免雙份內部文件漂移。
 
 ## D-02｜上游同步
 
@@ -57,3 +57,17 @@ Dependabot 可使用高權限 workflow，但必須 fail closed：只信任 `depe
 ## D-14｜第一個穩定版本
 
 `0.1.0-beta.10` 後以 `0.1.0` 作為第一個 stable release。理由是主要 Windows 使用流程、local-first 安全邊界、MCP、媒體管理、CI／CodeQL、guarded dependency automation 與正式安裝包已形成可驗證基線；不直接跳 `1.0.0`，避免過早承諾所有設定與整合 schema 長期不變。
+
+## D-15｜路線圖與開發工具鏈
+
+以雙語 `ROADMAP.md`／`ROADMAP.en.md` 作為公開產品方向，取代較薄且容易與 review 重複的 `PLAN.md`；`REVIEW.md` 只保留最新健康狀態，`CHANGELOG.md` 只記已完成版本。
+
+一般 Node／Electron／文件開發不要求本機 Visual Studio Build Tools。C++ helper 變更與本機 installer 才需要 C++ toolchain；GitHub Windows runner 是正式 native build／self-test／NSIS gate，下載後的 Windows GUI smoke 仍由真實桌面完成。
+
+## D-16｜程式與媒體授權分離
+
+`LICENSE` 保持可被工具辨識的 canonical MIT 全文。第三方 VRM、VRMA、圖片與環境資產的排除、來源及再散布條件集中在 `NOTICE.md` 與 `ASSET_LICENSES.md`；移除 LICENSE 尾端的自訂句子不會把第三方媒體改授權為 MIT。
+
+## D-17｜Release 與素材匯入信任邊界
+
+Release 只允許從可信 `main` workflow 手動 dispatch，`release` environment 也只允許 `main` 部署；在執行程式碼前，workflow SHA、遠端 `main` 與 tag commit 必須完全相同，後續 checkout 固定該 SHA，發布前再驗 tag 未移動。checkout 不保留 credentials，只有 publish job 取得 `contents: write`；已發布 tag 另由 active tag ruleset 禁止刪除或 force-update。素材匯入先複製到 app-controlled 暫存檔，再從同一個 file descriptor 驗證實際／宣告 GLB 長度、bounded JSON chunk、glTF 2.0 與 VRM／VRMA extension，最後 atomic rename；renderer 載入錯誤必須保留可回復的設定入口。

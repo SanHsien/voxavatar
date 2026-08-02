@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
   "smokeExecuted": false,
-  "generatedAt": "2026-08-02T22:53:52.590Z",
+  "generatedAt": "2026-08-02T22:55:26.155Z",
   "release": {
     "version": "0.16.19",
     "tag": null,
-    "commitSha": "3cbee4808301dcd64347a3b6e878b98bbc609ac4",
+    "commitSha": "fa9f180f6b1dc2544b8363f7bd9c5d7f3c83665e",
     "releaseUrl": null,
     "githubActionsRunUrl": null,
     "hasInstaller": false

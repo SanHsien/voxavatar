@@ -6,7 +6,7 @@
 
 - version: `0.16.19`
 - tag: `(no GitHub tag)`
-- commit: `3cbee4808301dcd64347a3b6e878b98bbc609ac4`
+- commit: `fa9f180f6b1dc2544b8363f7bd9c5d7f3c83665e`
 - release URL: null
 - has installer cut: `false`
 

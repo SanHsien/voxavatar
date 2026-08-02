@@ -38,7 +38,7 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告；未分類片段池；可選依檔名白名單分槽；VRM 0.x／1.0 |
 | 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、隨機多片段、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
 | 角色表現 | 狀態仲裁、系統狀態動作槽、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益 |
-| 首次設定 | 進度清單人話 code；可複製診斷摘要（遮罩路徑）；與 `get_status` 共用 readiness |
+| 設定進度 | 進度清單人話 code；可複製診斷摘要（遮罩路徑）；與 `get_status` 共用 readiness |
 | Agent 整合 | loopback-only MCP（6 工具）、HTTP 事件 API、`voxavatar://`；`get_status` 遮罩 listener 路徑 |
 | 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS、SHA-256、NotSigned 標示；`main` tip 已 tagged 才打包 |
 

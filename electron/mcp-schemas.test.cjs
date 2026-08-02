@@ -147,6 +147,17 @@ test("formatShowMessage covers success and opt-in errors", () => {
   });
   assert.equal(disabled.error, "agent_messages_disabled");
   assert.match(disabled.message, /disabled/i);
+
+  for (const [error, pattern] of [
+    ["invalid_message", /empty|too long|unsupported/i],
+    ["rate_limited", /rate limit/i],
+    ["avatar_unavailable", /model is configured/i],
+    ["unknown_code", /Unable to display/i],
+  ]) {
+    const payload = formatShowMessage({ displayed: false, error });
+    assert.equal(payload.error, error);
+    assert.match(payload.message, pattern);
+  }
 });
 
 test("formatSetCharacterState covers success and validation errors", () => {
@@ -168,6 +179,16 @@ test("formatSetCharacterState covers success and validation errors", () => {
   assert.equal(invalid.applied, false);
   assert.equal(invalid.error, "invalid_state");
   assert.match(invalid.message, /idle, listening, speaking/);
+
+  for (const [error, pattern] of [
+    ["invalid_ttl", /ttl_ms/i],
+    ["avatar_unavailable", /model is configured/i],
+    ["mystery", /Unable to apply/i],
+  ]) {
+    const payload = formatSetCharacterState({ applied: false, error });
+    assert.equal(payload.error, error);
+    assert.match(payload.message, pattern);
+  }
 });
 
 test("serializeToolResult emits JSON text content", () => {

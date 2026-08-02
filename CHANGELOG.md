@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.18 - 2026-08-02
+
+- Settings notice 統一經 `settingsErrorMessage` 遮罩路徑；UI／MCP 雙軌 redact 對齊（含 `user Name`、`/root`、共用 fixture）。
+- tip evidence：`--no-installer` 不再虛構 `tag: v{version}`；修正既有 tip manifest。
+- 刪死鍵 `setup.code.mcp_offline`；readiness／i18n 窮舉 `mcp_*`；README「設定進度」雙語對齊。
+- 抽出匯入／分槽確認文案、`resolveListenerProcessPattern`、`resolveAppliedTtlMs`；補 formatShowMessage／rate-limit／TTL／preload／settings-IPC 契約測。
+
 ## 0.16.17 - 2026-08-02
 
 - Settings `list-voice-sources`／MCP listener 同步遮罩 `error`／`source`；語音 catalog 錯誤與 UI 顯示再遮罩。

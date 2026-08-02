@@ -1,0 +1,27 @@
+[
+  {
+    "id": "windows-home-vrm",
+    "input": "fail C:\\Users\\SanHsien\\Models\\Daily_Miku.vrm",
+    "mustNotContain": ["SanHsien", "Daily_Miku"]
+  },
+  {
+    "id": "posix-home-path",
+    "input": "open /Users/SanHsien/proj/helper.exe missing",
+    "mustNotContain": ["SanHsien", "helper.exe"]
+  },
+  {
+    "id": "root-path",
+    "input": "denied /root/secret/file.vrma",
+    "mustNotContain": ["/root/secret", "file.vrma"]
+  },
+  {
+    "id": "user-token",
+    "input": "user SanHsien failed to load",
+    "mustNotContain": ["SanHsien"]
+  },
+  {
+    "id": "mixed-assets",
+    "input": "bad C:/Users/SanHsien/a.vrm and /home/SanHsien/b.glb",
+    "mustNotContain": ["SanHsien", "a.vrm", "b.glb"]
+  }
+]

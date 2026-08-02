@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`0.16.17`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.18`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,9 +11,9 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.17`／`main`；GitHub Latest Release：`v0.16.14`
+覆核基準：`0.16.18`／`main`；GitHub Latest Release：`v0.16.14`
 
-沒有已知未解 P0／P1。上游仍為 `9287ea3`。`0.16.17` 收斂語音 catalog／MCP source 遮罩、helper 狀態下一步、sanitize／migration／preload 契約與設定進度 label。本輪不切 installer Release（自 `v0.16.14` 累積仍以契約／降級為主）。
+沒有已知未解 P0／P1。上游仍為 `9287ea3`。`0.16.18` 收斂 Settings notice 遮罩、tip evidence 誠實 tag、雙軌 redact、確認對話／listener pattern／TTL 抽出與契約測。本輪不切 installer Release（自 `v0.16.14` 累積仍以契約／隱私／誠實性為主）。
 
 - Latest Release：`v0.16.14`（installer＋SHA256；GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `9287ea3`；無 open PR；#11 已涵蓋。
@@ -62,7 +62,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.1–v0.13 | Windows-only fork 基線；`REVIEW`→「目前健康」（細節見 CHANGELOG） |
 | v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
 | v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
-| v0.16.10–0.16.17 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩、CodeQL、i18n／sanitize 對齊 |
+| v0.16.10–0.16.18 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩、CodeQL、i18n／sanitize／IPC 對齊 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -74,6 +74,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [x] Speaking 第二層、tray、`vrma:curate`、schema 10→11、IPC／Settings 互動契約、assign／show_message／secureRenderer。
 - [x] release-evidence（Latest SHA／NotSigned；`ci_gates` 綠）；README／SECURITY／About 未簽署標示；helper_error 人話與路徑遮罩。
 - [x] 設定進度語音碼人話；MCP／Settings 語音清單路徑遮罩；zh／en i18n 鍵對齊；helper 狀態下一步；sanitize／migration／preload 契約。
+- [x] Settings notice 遮罩；tip evidence 不虛構 tag；雙軌 redact fixture；確認對話／listener pattern／TTL 抽出；format／rate-limit／IPC 頻道窮舉契約。
 
 ### 仍待／未驗
 

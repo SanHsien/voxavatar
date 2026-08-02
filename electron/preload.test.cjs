@@ -125,39 +125,80 @@ test("settings preload exposes management APIs without avatar bridge", async () 
   );
   await settings.assignVrmaByFilename();
   await settings.importActionPack();
+  await settings.importModelsFromDirectory({ model_name: "Batch" });
+  await settings.setVrmaQualityGate("keep");
+  await settings.chooseVrmaReportDir();
+  await settings.clearVrmaReportDir();
+  await settings.revealPath("C:\\Users\\example\\file.vrm");
+  await settings.setModelLighting("m1", { exposure: 1 });
+  await settings.resetModelLighting("m1");
+  await settings.moveAnimationClip("a1", "c1", "a2");
+  await settings.createAnimation({ animation_name: "idle" });
+  await settings.addAnimationClips("a1");
+  await settings.addAnimationClipsFromDirectory("a1");
+  await settings.setVrmaQualityScoreThresholds({ keep: 80 });
+  await settings.updateAnimation("a1", { animation_name: "idle2" });
+  await settings.deleteAnimation("a1");
+  await settings.deleteAnimationClip("a1", "c1");
+  await settings.reorderAnimationClip("a1", "c1", "up");
+  await settings.deleteUnassignedClip("clip-pool");
+  await settings.resetPackagedAnimations();
+  await settings.deleteModel("m1");
+  await settings.deleteAllUserAnimationClips();
+  await settings.setDefaultModel("m1");
+  await settings.setCharacterSize(0.5);
+  await settings.setIdleRestMs(1000);
+  await settings.setUiLocale("zh-TW");
   await settings.getMcpStatus();
   await settings.getReadiness();
   await settings.getDiagnosticSummary();
   settings.setWindowTheme("light");
 
-  assert.ok(
-    invocations.some((row) => row[0] === "voxavatar:settings-import-model"),
-  );
-  assert.ok(
-    invocations.some(
-      (row) => row[0] === "voxavatar:settings-delete-all-user-models",
-    ),
-  );
-  assert.ok(
-    invocations.some(
-      (row) => row[0] === "voxavatar:settings-add-unassigned-clips",
-    ),
-  );
-  assert.ok(
-    invocations.some(
-      (row) => row[0] === "voxavatar:settings-update-clips-purpose",
-    ),
-  );
-  assert.ok(
-    invocations.some(
-      (row) => row[0] === "voxavatar:settings-assign-vrma-by-filename",
-    ),
-  );
-  assert.ok(
-    invocations.some(
-      (row) => row[0] === "voxavatar:settings-import-action-pack",
-    ),
-  );
+  const expectedChannels = [
+    "voxavatar:settings-get",
+    "voxavatar:settings-import-model",
+    "voxavatar:settings-delete-all-user-models",
+    "voxavatar:settings-add-unassigned-clips",
+    "voxavatar:settings-update-unassigned-clip",
+    "voxavatar:settings-assign-unassigned-clip",
+    "voxavatar:settings-move-animation-clip-to-unassigned",
+    "voxavatar:settings-update-clips-purpose",
+    "voxavatar:settings-assign-vrma-by-filename",
+    "voxavatar:settings-import-action-pack",
+    "voxavatar:settings-import-models-from-directory",
+    "voxavatar:settings-set-vrma-quality-gate",
+    "voxavatar:settings-choose-vrma-report-dir",
+    "voxavatar:settings-clear-vrma-report-dir",
+    "voxavatar:settings-reveal-path",
+    "voxavatar:settings-set-model-lighting",
+    "voxavatar:settings-reset-model-lighting",
+    "voxavatar:settings-move-animation-clip",
+    "voxavatar:settings-create-animation",
+    "voxavatar:settings-add-animation-clips",
+    "voxavatar:settings-add-animation-clips-from-directory",
+    "voxavatar:settings-set-vrma-quality-score-thresholds",
+    "voxavatar:settings-update-animation",
+    "voxavatar:settings-delete-animation",
+    "voxavatar:settings-delete-animation-clip",
+    "voxavatar:settings-reorder-animation-clip",
+    "voxavatar:settings-delete-unassigned-clip",
+    "voxavatar:settings-reset-packaged-animations",
+    "voxavatar:settings-delete-model",
+    "voxavatar:settings-delete-all-user-animation-clips",
+    "voxavatar:settings-set-default-model",
+    "voxavatar:settings-set-character-size",
+    "voxavatar:settings-set-idle-rest-ms",
+    "voxavatar:settings-set-ui-locale",
+    "voxavatar:settings-get-mcp-status",
+    "voxavatar:settings-get-readiness",
+    "voxavatar:settings-get-diagnostic-summary",
+  ];
+  for (const channel of expectedChannels) {
+    assert.ok(
+      invocations.some((row) => row[0] === channel),
+      `missing invoke ${channel}`,
+    );
+  }
   await settings.getAppInfo();
   await settings.showAbout();
   await settings.listVoiceSources();

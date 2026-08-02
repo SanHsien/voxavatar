@@ -201,6 +201,29 @@ function resolveVoiceSourcePattern({
   return DEFAULT_VOICE_APP_PATTERN;
 }
 
+/**
+ * 決定 listener 應使用的 process pattern。
+ * env 覆寫優先；external／output／application 不走 pattern（回傳 null）。
+ */
+function resolveListenerProcessPattern({
+  voiceSource,
+  environment = process.env,
+} = {}) {
+  const normalized = normalizeVoiceSource(voiceSource);
+  const envSource = environment?.VOXAVATAR_TARGET_PROCESS_PATTERN;
+  if (typeof envSource === "string" && envSource.trim()) {
+    return resolveVoiceSourcePattern({
+      environment,
+      settingsPattern: null,
+    });
+  }
+  if (!["default", "custom"].includes(normalized.mode)) return null;
+  return resolveVoiceSourcePattern({
+    environment,
+    settingsPattern: settingsPatternFromVoiceSource(normalized),
+  });
+}
+
 function configuredPattern(environment = process.env) {
   return resolveVoiceSourcePattern({ environment });
 }
@@ -279,6 +302,7 @@ module.exports = {
   processMatchesSource,
   processSourceId,
   resolveVoiceSourcePattern,
+  resolveListenerProcessPattern,
   sanitizeVoiceSource,
   sanitizeVoiceSourcePattern,
   settingsPatternFromVoiceSource,

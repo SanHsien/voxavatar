@@ -46,6 +46,7 @@ import { SettingsMcpSection } from './settings/SettingsMcpSection';
 import { SettingsPreviewPanel } from './settings/SettingsPreviewPanel';
 import { SettingsConfirmationDialog } from './settings/SettingsConfirmationDialog';
 import { shouldShowSetupChecklist } from '../setup-checklist-visibility';
+import { settingsErrorMessage } from '../settings-error-message';
 import { resolveSetupCodeLabel } from '../setup-code-label';
 import type { CharacterState } from '../character-state';
 
@@ -145,11 +146,6 @@ function useThemePreference() {
   return { chooseTheme, preference, resolved };
 }
 
-function errorMessage(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.replace(/^Error invoking remote method '[^']+': Error: /, '');
-}
-
 export function SettingsPage() {
   const bridge = window.voxavatarSettings;
   const { chooseTheme, preference: themePreference } = useThemePreference();
@@ -246,7 +242,7 @@ export function SettingsPage() {
           setSettings(snapshot);
           setSelectedModelId(snapshot.default_model_id);
         })
-        .catch((error: unknown) => setNotice(errorMessage(error)));
+        .catch((error: unknown) => setNotice(settingsErrorMessage(error)));
       return;
     }
     void bridge.getAppInfo?.().then((info) => {
@@ -258,7 +254,7 @@ export function SettingsPage() {
         setSettings(snapshot);
         setSelectedModelId(snapshot.default_model_id);
       })
-      .catch((error: unknown) => setNotice(errorMessage(error)));
+      .catch((error: unknown) => setNotice(settingsErrorMessage(error)));
     return bridge.subscribe(setSettings);
   }, [bridge, t]);
 
@@ -347,7 +343,7 @@ export function SettingsPage() {
         }
         return snapshot;
       } catch (error) {
-        setNotice(errorMessage(error));
+        setNotice(settingsErrorMessage(error));
         return null;
       } finally {
         setBusy(false);
@@ -365,7 +361,7 @@ export function SettingsPage() {
       }
       setVoiceCatalog(await bridge.listVoiceSources());
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     } finally {
       setVoiceSourcesLoading(false);
     }
@@ -450,7 +446,7 @@ export function SettingsPage() {
       }
       setMcpStatus(await bridge.getMcpStatus());
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     } finally {
       setMcpLoading(false);
     }
@@ -464,7 +460,7 @@ export function SettingsPage() {
     try {
       setReadiness(await bridge.getReadiness());
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     }
   }, [bridge]);
 
@@ -478,7 +474,7 @@ export function SettingsPage() {
       await copyText(text, t('diagnostic.label'));
       setNotice(t('notice.diagnosticCopied'));
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     }
   }, [bridge, copyText, t]);
 
@@ -609,7 +605,7 @@ export function SettingsPage() {
       setNotice(parts.join(' '));
       setModelName('');
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -678,7 +674,7 @@ export function SettingsPage() {
       }
       setNotice(parts.join(' '));
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -924,7 +920,7 @@ export function SettingsPage() {
         formatActionPackImportNotice(result.pack_name, result.results, t),
       );
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -956,7 +952,7 @@ export function SettingsPage() {
         }),
       );
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -1107,7 +1103,7 @@ export function SettingsPage() {
       const added = (snapshot.unassigned_clips?.length ?? 0) - before;
       setNotice(t('notice.poolClipsAdded', { count: added }));
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -1226,7 +1222,7 @@ export function SettingsPage() {
     try {
       await reveal(reportRevealPath);
     } catch (error) {
-      setNotice(errorMessage(error));
+      setNotice(settingsErrorMessage(error));
       setReportRevealPath(null);
     }
   };

@@ -201,20 +201,54 @@ test("registerSettingsIpc registers the bulk of settings channels", () => {
   });
 
   const channels = registered.map((entry) => entry.channel).sort();
-  assert.ok(channels.includes("voxavatar:settings-get"));
-  assert.ok(channels.includes("voxavatar:settings-import-model"));
-  assert.ok(channels.includes("voxavatar:settings-get-mcp-status"));
-  assert.ok(channels.includes("voxavatar:settings-assign-vrma-by-filename"));
-  for (const channel of [
+  const expectedChannels = [
+    "voxavatar:settings-add-animation-clips",
+    "voxavatar:settings-add-animation-clips-from-directory",
     "voxavatar:settings-add-unassigned-clips",
-    "voxavatar:settings-update-unassigned-clip",
-    "voxavatar:settings-delete-unassigned-clip",
     "voxavatar:settings-assign-unassigned-clip",
+    "voxavatar:settings-assign-vrma-by-filename",
+    "voxavatar:settings-choose-vrma-report-dir",
+    "voxavatar:settings-clear-vrma-report-dir",
+    "voxavatar:settings-create-animation",
+    "voxavatar:settings-delete-all-user-animation-clips",
+    "voxavatar:settings-delete-all-user-models",
+    "voxavatar:settings-delete-animation",
+    "voxavatar:settings-delete-animation-clip",
+    "voxavatar:settings-delete-model",
+    "voxavatar:settings-delete-unassigned-clip",
+    "voxavatar:settings-get",
+    "voxavatar:settings-get-app-info",
+    "voxavatar:settings-get-diagnostic-summary",
+    "voxavatar:settings-get-mcp-status",
+    "voxavatar:settings-get-readiness",
+    "voxavatar:settings-import-action-pack",
+    "voxavatar:settings-import-model",
+    "voxavatar:settings-import-models-from-directory",
+    "voxavatar:settings-list-voice-sources",
+    "voxavatar:settings-move-animation-clip",
     "voxavatar:settings-move-animation-clip-to-unassigned",
+    "voxavatar:settings-reorder-animation-clip",
+    "voxavatar:settings-reset-model-lighting",
+    "voxavatar:settings-reset-packaged-animations",
+    "voxavatar:settings-reveal-path",
+    "voxavatar:settings-set-character-size",
+    "voxavatar:settings-set-default-model",
+    "voxavatar:settings-set-idle-rest-ms",
+    "voxavatar:settings-set-mcp-show-message-enabled",
+    "voxavatar:settings-set-model-lighting",
+    "voxavatar:settings-set-state-slot-binding",
+    "voxavatar:settings-set-state-slot-bindings",
+    "voxavatar:settings-set-ui-locale",
+    "voxavatar:settings-set-voice-source",
+    "voxavatar:settings-set-vrma-quality-gate",
+    "voxavatar:settings-set-vrma-quality-score-thresholds",
+    "voxavatar:settings-show-about",
+    "voxavatar:settings-update-animation",
+    "voxavatar:settings-update-animation-clip",
     "voxavatar:settings-update-clips-purpose",
-  ]) {
-    assert.ok(channels.includes(channel), `missing ${channel}`);
-  }
+    "voxavatar:settings-update-unassigned-clip",
+  ];
+  assert.deepEqual(channels, expectedChannels);
   assert.equal(
     registered.filter((entry) => entry.trusted === "settings").length,
     channels.length - 1,

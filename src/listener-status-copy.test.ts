@@ -5,6 +5,7 @@ import {
   resolveListenerStatusDetail,
 } from './listener-status-copy';
 import { settingsT } from './settings-i18n';
+import redactCases from '../scripts/fixtures/redact-cases.json';
 
 const NATIVE_HELPER_CODES = [
   'native_helper_missing',
@@ -25,6 +26,17 @@ describe('listener-status-copy', () => {
     );
     expect(redacted).toMatch(/<asset>|<home>|<path>/);
     expect(redacted).not.toMatch(/SanHsien|Daily_Miku/i);
+  });
+
+  it('covers shared redact fixture secrets', () => {
+    for (const entry of redactCases) {
+      const out = redactDisplayText(entry.input);
+      for (const secret of entry.mustNotContain) {
+        expect(out, entry.id).not.toMatch(
+          new RegExp(secret.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'),
+        );
+      }
+    }
   });
 
   it('prefers helper_error localization over raw error text', () => {

@@ -44,7 +44,7 @@ const DEFAULT_SMOKE_ITEMS = Object.freeze([
  */
 function buildReleaseEvidenceManifest({
   version = null,
-  tag = null,
+  tag = undefined,
   commitSha = null,
   releaseUrl = null,
   generatedAt = new Date().toISOString(),
@@ -56,12 +56,23 @@ function buildReleaseEvidenceManifest({
   smokeExecuted = false,
   notes = null,
   hasInstaller = null,
+  inventTagFromVersion = true,
 } = {}) {
-  const resolvedTag = tag ?? (version ? `v${version}` : null);
   const installerPresent =
     hasInstaller == null
       ? Boolean(installerFilename || installerSha256)
       : Boolean(hasInstaller);
+  let resolvedTag;
+  if (tag !== undefined && tag !== null) {
+    resolvedTag = tag;
+  } else if (tag === null) {
+    resolvedTag = null;
+  } else if (inventTagFromVersion && version) {
+    resolvedTag = `v${version}`;
+  } else {
+    // tip／無 installer：不虛構尚未存在的 GitHub tag
+    resolvedTag = null;
+  }
   return {
     schemaVersion: 1,
     purpose:
@@ -121,7 +132,7 @@ function defaultManifestPath(outputDir = DEFAULT_OUTPUT_DIR, version = null) {
 
 function buildWindowsSmokeMarkdown(manifest) {
   const version = manifest.release?.version ?? "(unset)";
-  const tag = manifest.release?.tag ?? `(v${version})`;
+  const tag = manifest.release?.tag ?? "(no GitHub tag)";
   const lines = [
     `# Windows smoke evidence — ${tag}`,
     "",
@@ -206,7 +217,7 @@ if (require.main === module) {
     if (hasFlag("--help") || hasFlag("-h")) {
       console.log(`Usage: node scripts/write-release-evidence-manifest.cjs --version <ver> [options]
   --version <ver>              required unless --out is set
-  --tag <tag>                  default v{version}
+  --tag <tag>                  default v{version} when cutting installer; tip/--no-installer defaults to null
   --sha <commit>               release commit SHA
   --release-url <url>          GitHub Release URL
   --installer-name <file>
@@ -214,7 +225,7 @@ if (require.main === module) {
   --installer-size <bytes>
   --notes <text>
   --smoke-md                   also write windows-smoke.md
-  --no-installer               force hasInstaller=false
+  --no-installer               force hasInstaller=false; do not invent tag unless --tag is set
   --signed                     mark Authenticode Signed (default NotSigned)
   --dir <path>                 evidence root (default docs/release-evidence)
   --out <path>                 explicit manifest path`);
@@ -226,9 +237,12 @@ if (require.main === module) {
         throw new Error("Provide --version <ver> or --out <path> (see --help).");
       }
       const sizeRaw = readFlag("--installer-size");
+      const explicitTag = readFlag("--tag");
+      const noInstaller = hasFlag("--no-installer");
       const written = writeReleaseEvidenceManifest({
         version,
-        tag: readFlag("--tag"),
+        tag: explicitTag === null ? undefined : explicitTag,
+        inventTagFromVersion: !noInstaller,
         commitSha: readFlag("--sha"),
         releaseUrl: readFlag("--release-url"),
         installerFilename: readFlag("--installer-name"),
@@ -237,7 +251,7 @@ if (require.main === module) {
           sizeRaw == null || sizeRaw === "" ? null : Number(sizeRaw),
         unsigned: !hasFlag("--signed"),
         authenticodeStatus: hasFlag("--signed") ? "Signed" : "NotSigned",
-        hasInstaller: hasFlag("--no-installer") ? false : null,
+        hasInstaller: noInstaller ? false : null,
         notes: readFlag("--notes"),
         outputDir: readFlag("--dir") ?? DEFAULT_OUTPUT_DIR,
         outputPath,

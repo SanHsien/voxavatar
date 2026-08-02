@@ -38,7 +38,7 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 | Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports; unassigned clip pool; optional filename-whitelist assignment; VRM 0.x / 1.0 |
 | Action system | Idle / Speaking slots (optional Speaking secondary head/torso), random multi-clip, `loop` / `one-shot` / `pose`, preview/rename/move, MCP catalog |
 | Character presence | State arbitration, system state-slot bindings, comic bubbles, `show_message` (Settings opt-in), lip-sync gain |
-| First-run setup | Human-readable progress codes; copyable redacted diagnostics; shared readiness with `get_status` |
+| Setup progress | Human-readable progress codes; copyable redacted diagnostics; shared readiness with `get_status` |
 | Agent integration | Loopback-only MCP (6 tools), HTTP event API, `voxavatar://`; `get_status` redacts listener paths |
 | Release quality | Windows CI, CodeQL, media-license gate, NSIS, SHA-256, NotSigned labeling; package only when `main` tip is tagged |
 

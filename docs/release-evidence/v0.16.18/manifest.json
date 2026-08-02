@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
   "smokeExecuted": false,
-  "generatedAt": "2026-08-02T15:03:47.335Z",
+  "generatedAt": "2026-08-02T16:38:24.124Z",
   "release": {
-    "version": "0.16.16",
+    "version": "0.16.18",
     "tag": null,
     "commitSha": null,
     "releaseUrl": null,
@@ -68,7 +68,7 @@
         "note": "無 WIN_CSC_* 密鑰；Authenticode 狀態為 NotSigned。"
       }
     ],
-    "notes": "Tip evidence after gap-closing batch (MCP path redaction, setup voice codes, i18n parity). Latest installer remains v0.16.14."
+    "notes": "Populate per-item pass/fail/未驗 after a real Windows smoke; do not pre-check."
   },
   "mediaReferences": [],
   "issues": [],

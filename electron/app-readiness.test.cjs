@@ -117,3 +117,33 @@ test("voice step codes distinguish target_missing / listening / no_output / read
   assert.equal(voiceReady.code, "voice_ready");
   assert.equal(voiceReady.ready, true);
 });
+
+test("mcp step codes cover online / starting / unavailable", () => {
+  const base = {
+    settingsSnapshot: {
+      default_model_id: "m1",
+      models: [{ id: "m1" }],
+      animations: [],
+      voice_source: { mode: "external" },
+    },
+    listenerStatus: null,
+  };
+  assert.equal(
+    buildAppReadiness({ ...base, mcpHealth: "online" }).steps.find(
+      (s) => s.id === "mcp",
+    ).code,
+    "mcp_online",
+  );
+  assert.equal(
+    buildAppReadiness({ ...base, mcpHealth: "starting" }).steps.find(
+      (s) => s.id === "mcp",
+    ).code,
+    "mcp_starting",
+  );
+  assert.equal(
+    buildAppReadiness({ ...base, mcpHealth: "unavailable" }).steps.find(
+      (s) => s.id === "mcp",
+    ).code,
+    "mcp_unavailable",
+  );
+});

@@ -4,7 +4,7 @@
 
 ## Release
 
-- version: `0.16.17`
+- version: `0.16.18`
 - tag: `(no GitHub tag)`
 - commit: `null`
 - release URL: null
@@ -34,6 +34,6 @@
 
 ## Notes
 
-Tip evidence: voice catalog/MCP source redaction, sanitize/migration/preload contracts, setup-code labels.
+Populate per-item pass/fail/未驗 after a real Windows smoke; do not pre-check.
 
 驗證流程見 [`docs/RELEASING.md`](../../RELEASING.md)。

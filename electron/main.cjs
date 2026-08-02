@@ -43,9 +43,13 @@ const {
   normalizeCharacterMessage,
 } = require("./character-message.cjs");
 const {
-  defaultTtlForState,
   normalizeExternalStateEvent,
+  resolveAppliedTtlMs,
 } = require("./character-state.cjs");
+const {
+  buildAssignByFilenameConfirmOptions,
+  buildDirectoryImportConfirmOptions,
+} = require("./confirm-dialogs.cjs");
 const {
   createMessageRateLimiter,
 } = require("./message-rate-limit.cjs");
@@ -56,8 +60,7 @@ const {
 } = require("./settings-window-presentation.cjs");
 const {
   normalizeVoiceSource,
-  resolveVoiceSourcePattern,
-  settingsPatternFromVoiceSource,
+  resolveListenerProcessPattern,
 } = require("./voice-source.cjs");
 const { listVoiceSources } = require("./voice-source-discovery.cjs");
 const { menuStrings, normalizeUiLocale } = require("./i18n.cjs");
@@ -219,30 +222,14 @@ async function confirmDirectoryImport({
 }) {
   const t = currentMenuStrings();
   const parent = settingsDialogParent();
-  const detail = quality
-    ? String(t.importConfirmDetailQuality)
-        .replaceAll("{scanned}", String(scanned))
-        .replaceAll("{import}", String(importCount))
-        .replaceAll("{keep}", String(quality.keep ?? 0))
-        .replaceAll("{review}", String(quality.review ?? 0))
-        .replaceAll("{reject}", String(quality.reject ?? 0))
-        .replaceAll("{skipped}", String(skippedQuality ?? 0))
-    : String(t.importConfirmDetailOff)
-        .replaceAll("{scanned}", String(scanned))
-        .replaceAll("{import}", String(importCount));
-  const options = {
-    type: "question",
-    title: t.importConfirmTitle,
-    message:
-      kind === "model"
-        ? t.importConfirmMessageModel
-        : t.importConfirmMessageAnimation,
-    detail,
-    buttons: [t.importConfirmProceed, t.importConfirmCancel],
-    defaultId: 0,
-    cancelId: 1,
-    noLink: true,
-  };
+  const options = buildDirectoryImportConfirmOptions({
+    t,
+    kind,
+    scanned,
+    importCount,
+    quality,
+    skippedQuality,
+  });
   const result = parent
     ? await dialog.showMessageBox(parent, options)
     : await dialog.showMessageBox(options);
@@ -253,35 +240,12 @@ async function confirmDirectoryImport({
 async function confirmAssignByFilename({ assignable, skipped, total }) {
   const t = currentMenuStrings();
   const parent = settingsDialogParent();
-  const lines = (Array.isArray(assignable) ? assignable : [])
-    .slice(0, 12)
-    .map((item) => `${item.basename} → ${item.animationName}`);
-  if ((assignable?.length ?? 0) > 12) {
-    lines.push(`… +${assignable.length - 12}`);
-  }
-  const detail = [
-    String(t.assignConfirmDetail ?? "")
-      .replaceAll("{assign}", String(assignable?.length ?? 0))
-      .replaceAll("{skipped}", String(skipped ?? 0))
-      .replaceAll("{total}", String(total ?? 0)),
-    "",
-    ...lines,
-  ]
-    .filter((line) => line != null)
-    .join("\n");
-  const options = {
-    type: "question",
-    title: t.assignConfirmTitle ?? t.importConfirmTitle,
-    message: t.assignConfirmMessage ?? t.importConfirmMessageAnimation,
-    detail,
-    buttons: [
-      t.assignConfirmProceed ?? t.importConfirmProceed,
-      t.assignConfirmCancel ?? t.importConfirmCancel,
-    ],
-    defaultId: 0,
-    cancelId: 1,
-    noLink: true,
-  };
+  const options = buildAssignByFilenameConfirmOptions({
+    t,
+    assignable,
+    skipped,
+    total,
+  });
   const result = parent
     ? await dialog.showMessageBox(parent, options)
     : await dialog.showMessageBox(options);
@@ -559,19 +523,12 @@ function publishSettings(snapshot) {
   return snapshot;
 }
 
-function resolveListenerProcessPattern(snapshot = settingsStore?.getSnapshot()) {
-  const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
-  const envSource = process.env.VOXAVATAR_TARGET_PROCESS_PATTERN;
-  if (typeof envSource === "string" && envSource.trim()) {
-    return resolveVoiceSourcePattern({
-      environment: process.env,
-      settingsPattern: null,
-    });
-  }
-  if (!["default", "custom"].includes(voiceSource.mode)) return null;
-  return resolveVoiceSourcePattern({
+function resolveListenerProcessPatternFromSettings(
+  snapshot = settingsStore?.getSnapshot(),
+) {
+  return resolveListenerProcessPattern({
+    voiceSource: snapshot?.voice_source,
     environment: process.env,
-    settingsPattern: settingsPatternFromVoiceSource(voiceSource),
   });
 }
 
@@ -580,7 +537,7 @@ function createConfiguredAudioListener(snapshot = settingsStore?.getSnapshot()) 
   return createAudioListener({
     isPackaged: app.isPackaged,
     resourcesPath: process.resourcesPath,
-    processPattern: resolveListenerProcessPattern(snapshot),
+    processPattern: resolveListenerProcessPatternFromSettings(snapshot),
     voiceSource,
     onActivity: (activity) => {
       debugLog("listener activity", activity);
@@ -766,10 +723,10 @@ function applyCharacterState(input, { sessionId = null, sourceKind = "mcp" } = {
     };
   }
   // ttl_ms 省略或 0 → 使用狀態預設 TTL（idle 預設 0＝直到被取代）。
-  const ttl =
-    normalized.event.ttlMs != null && normalized.event.ttlMs > 0
-      ? normalized.event.ttlMs
-      : defaultTtlForState(normalized.event.state);
+  const ttl = resolveAppliedTtlMs(
+    normalized.event.ttlMs,
+    normalized.event.state,
+  );
   const event = { ...normalized.event, ttlMs: ttl };
   const expiresAt =
     ttl > 0 ? new Date(event.atMs + ttl).toISOString() : null;

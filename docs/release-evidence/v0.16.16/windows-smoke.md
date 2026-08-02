@@ -1,11 +1,11 @@
-# Windows smoke evidence — v0.16.16
+# Windows smoke evidence — (no GitHub tag)
 
 > 自動產生的誠實骨架。`smokeExecuted=false`；未取得桌面證據前不得改為 true 或勾選通過。
 
 ## Release
 
 - version: `0.16.16`
-- tag: `v0.16.16`
+- tag: `(no GitHub tag)`
 - commit: `null`
 - release URL: null
 - has installer cut: `false`

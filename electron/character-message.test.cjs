@@ -41,3 +41,30 @@ test("message rate limiter enforces per-session and global caps", () => {
   now = 20_000;
   assert.equal(limiter.allow("a").ok, true);
 });
+
+test("message rate limiter shares anonymous bucket and clearSource/clearAll", () => {
+  let now = 1000;
+  const limiter = createMessageRateLimiter({
+    perSessionMax: 1,
+    perSessionWindowMs: 10_000,
+    globalMax: 10,
+    globalWindowMs: 10_000,
+    now: () => now,
+  });
+  assert.equal(limiter.allow(null).ok, true);
+  assert.equal(limiter.allow("").ok, false);
+  assert.equal(limiter.allow(undefined).ok, false);
+  assert.equal(limiter.allow("session-a").ok, true);
+  assert.equal(limiter.allow("session-a").ok, false);
+
+  limiter.clearSource("session-a");
+  assert.equal(limiter.allow("session-a").ok, true);
+  assert.equal(limiter.allow(null).ok, false, "anonymous bucket untouched");
+
+  limiter.clearSource("");
+  assert.equal(limiter.allow(null).ok, false, "empty clearSource is no-op");
+
+  limiter.clearAll();
+  assert.equal(limiter.allow(null).ok, true);
+  assert.equal(limiter.allow("session-a").ok, true);
+});

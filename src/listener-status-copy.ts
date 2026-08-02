@@ -11,7 +11,12 @@ export function redactDisplayText(input: string | null | undefined): string {
     '<asset>',
   );
   text = text.replace(/[A-Za-z]:\\(?:Users|home)\\[^\\\s]+/gi, '<home>');
-  text = text.replace(/\/(?:Users|home)\/[^/\s]+/g, '<home>');
+  text = text.replace(/\/(?:Users|home|root)\/[^/\s]+/g, '<home>');
+  // 啟發式遮罩「user Name」字樣（無 Node os 時仍避免露出帳號）
+  text = text.replace(
+    /\b(user(?:name)?)\s+[A-Za-z0-9._-]{2,32}\b/gi,
+    '$1 <user>',
+  );
   text = text.replace(/(?:[A-Za-z]:\\|\/)[^\s"'<>]{8,}/g, '<path>');
   return text;
 }

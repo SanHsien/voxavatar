@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.17` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.18` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,9 +11,9 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.17` / `main`; GitHub Latest Release: `v0.16.14`
+Review baseline: `0.16.18` / `main`; GitHub Latest Release: `v0.16.14`
 
-No known open P0/P1. Upstream remains `9287ea3`. `0.16.17` closes voice-catalog / MCP source redaction, helper state next-step hints, sanitize/migration/preload contracts, and setup-code labels. No installer Release this round (still mostly contracts/degradation since `v0.16.14`).
+No known open P0/P1. Upstream remains `9287ea3`. `0.16.18` closes Settings notice redaction, honest tip evidence tags, dual-track redact parity, confirm-dialog / listener-pattern / TTL extraction, and contract tests. No installer Release this round (still mostly contracts / privacy / honesty since `v0.16.14`).
 
 - Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
@@ -62,7 +62,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.1–v0.13 | Windows-only fork baseline; `REVIEW` → Current health (details in CHANGELOG) |
 | v0.14–v0.15 | State slots / MCP / HTTP / head projection / manual state / typed exit |
 | v0.16.0–0.16.9 | Speaking secondary, tray, slot defaults, action-pack, clip pool/preview, UI spacing |
-| v0.16.10–0.16.17 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction, CodeQL, i18n/sanitize parity |
+| v0.16.10–0.16.18 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction, CodeQL, i18n/sanitize/IPC parity |
 
 Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 
@@ -74,6 +74,7 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 - [x] Speaking secondary, tray, `vrma:curate`, schema 10→11, IPC/Settings contracts, assign / show_message / secureRenderer.
 - [x] release-evidence (Latest SHA / NotSigned; `ci_gates` green); README / SECURITY / About unsigned labeling; helper_error copy and path redaction.
 - [x] Setup voice-code i18n; MCP/Settings voice-catalog path redaction; zh/en i18n key parity; helper state next-step hints; sanitize/migration/preload contracts.
+- [x] Settings notice redaction; tip evidence does not invent tags; dual-track redact fixtures; confirm-dialog / listener-pattern / TTL extraction; format / rate-limit / IPC channel contracts.
 
 ### Still open / unverified
 

@@ -34,6 +34,24 @@ test("buildReleaseEvidenceManifest is a non-executed smoke template", () => {
   );
 });
 
+test("buildReleaseEvidenceManifest does not invent tag for tip/--no-installer", () => {
+  const tip = buildReleaseEvidenceManifest({
+    version: "0.16.17",
+    hasInstaller: false,
+    inventTagFromVersion: false,
+  });
+  assert.equal(tip.release.tag, null);
+  assert.equal(tip.release.hasInstaller, false);
+
+  const explicit = buildReleaseEvidenceManifest({
+    version: "0.16.17",
+    tag: "v0.16.17",
+    hasInstaller: false,
+    inventTagFromVersion: false,
+  });
+  assert.equal(explicit.release.tag, "v0.16.17");
+});
+
 test("buildReleaseEvidenceManifest records installer metadata when provided", () => {
   const manifest = buildReleaseEvidenceManifest({
     version: "0.16.12",
@@ -42,12 +60,25 @@ test("buildReleaseEvidenceManifest records installer metadata when provided", ()
     installerSizeBytes: 10,
   });
   assert.equal(manifest.release.hasInstaller, true);
+  assert.equal(manifest.release.tag, "v0.16.12");
   assert.equal(
     manifest.assets.installerFilename,
     "VoxAvatar-0.16.12-windows-x64-setup.exe",
   );
   assert.equal(manifest.assets.installerSha256, "abc");
   assert.equal(manifest.assets.installerSizeBytes, 10);
+});
+
+test("buildWindowsSmokeMarkdown shows (no GitHub tag) when tag is null", () => {
+  const md = buildWindowsSmokeMarkdown(
+    buildReleaseEvidenceManifest({
+      version: "0.16.18",
+      inventTagFromVersion: false,
+      hasInstaller: false,
+    }),
+  );
+  assert.match(md, /\(no GitHub tag\)/);
+  assert.doesNotMatch(md, /tag: `v0\.16\.18`/);
 });
 
 test("defaultManifestPath nests versioned folders under docs/release-evidence", () => {

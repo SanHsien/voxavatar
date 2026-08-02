@@ -10,6 +10,7 @@ const {
   normalizeVoiceSource,
   processMatchesSource,
   resolveVoiceSourcePattern,
+  resolveListenerProcessPattern,
   sanitizeVoiceSource,
   sanitizeVoiceSourcePattern,
   settingsPatternFromVoiceSource,
@@ -174,4 +175,55 @@ test("creates stable native process sources and matches Windows paths case-insen
   );
   assert.equal(sourceFromProcess("darwin", { name: "Voice" }), null);
   assert.equal(sourceFromProcess("linux", { name: "Voice" }), null);
+});
+
+test("resolveListenerProcessPattern respects env override and mode", () => {
+  const fromEnv = resolveListenerProcessPattern({
+    voiceSource: { mode: "custom", process_pattern: "settings-app" },
+    environment: { VOXAVATAR_TARGET_PROCESS_PATTERN: "env-app" },
+  });
+  assert.equal(fromEnv.test("env-app"), true);
+  assert.equal(fromEnv.test("settings-app"), false);
+
+  const custom = resolveListenerProcessPattern({
+    voiceSource: { mode: "custom", process_pattern: "settings-app" },
+    environment: {},
+  });
+  assert.equal(custom.test("settings-app"), true);
+
+  const def = resolveListenerProcessPattern({
+    voiceSource: { mode: "default" },
+    environment: {},
+  });
+  assert.equal(def.test("Codex"), true);
+
+  assert.equal(
+    resolveListenerProcessPattern({
+      voiceSource: { mode: "external" },
+      environment: {},
+    }),
+    null,
+  );
+  assert.equal(
+    resolveListenerProcessPattern({
+      voiceSource: { mode: "output" },
+      environment: {},
+    }),
+    null,
+  );
+  const appSource = sourceFromProcess("win32", {
+    name: "Voice.exe",
+    executable: "C:\\Apps\\Voice\\Voice.exe",
+  });
+  assert.equal(
+    resolveListenerProcessPattern({
+      voiceSource: {
+        mode: "application",
+        source_id: appSource.id,
+        source_name: appSource.name,
+      },
+      environment: {},
+    }),
+    null,
+  );
 });

@@ -30,14 +30,24 @@ function redactSensitive(text, { homeDir = os.homedir(), username } = {}) {
     out = out.replace(new RegExp(escapeRegExp(user), "gi"), "<user>");
   }
 
+  // 無 homeDir 時仍用啟發式遮罩常見家目錄前綴（吃到路徑結尾，避免留下 AppData 等殘段）
+  out = out.replace(/[A-Za-z]:\\(?:Users|home)\\[^\s`"'<>]+/gi, "<home>");
+  out = out.replace(/\/(?:Users|home|root)\/[^\s`"'<>]+/g, "<home>");
+
   // 絕對路徑（剩餘）
   out = out.replace(/[A-Za-z]:\\[^\s`"'<>]+/g, "<path>");
-  out = out.replace(/\/(?:Users|home|root)\/[^\s`"'<>]+/g, "<path>");
+  out = out.replace(/\/[^\s`"'<>]{8,}/g, "<path>");
 
   // 素材／helper 檔名
   out = out.replace(
     /[^\s`"'/\\]+\.(?:vrm|vrma|glb|gltf|exe|dll)\b/gi,
     "<asset>",
+  );
+
+  // 啟發式「user Name」（與 UI redactDisplayText 對齊）
+  out = out.replace(
+    /\b(user(?:name)?)\s+[A-Za-z0-9._-]{2,32}\b/gi,
+    "$1 <user>",
   );
 
   return out;

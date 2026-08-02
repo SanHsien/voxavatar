@@ -19,6 +19,23 @@ test("redactSensitive strips home, username, paths, and asset names", () => {
   assert.match(out, /<home>|<path>|<asset>/);
 });
 
+test("redactSensitive matches shared fixture secrets with UI heuristics", () => {
+  const cases = require("../scripts/fixtures/redact-cases.json");
+  for (const entry of cases) {
+    const out = redactSensitive(entry.input, {
+      homeDir: "",
+      username: "",
+    });
+    for (const secret of entry.mustNotContain) {
+      assert.doesNotMatch(
+        out,
+        new RegExp(secret.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
+        `${entry.id} leaked ${secret}: ${out}`,
+      );
+    }
+  }
+});
+
 test("buildDiagnosticSummary never embeds absolute paths or asset names", () => {
   const text = buildDiagnosticSummary({
     readiness: {

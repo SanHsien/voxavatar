@@ -32,10 +32,22 @@ describe('settings-i18n parity', () => {
         'voice_listening',
         'voice_no_output',
         'voice_ready',
+        'voice_external',
+        'helper_missing',
+        'helper_launch_failed',
+        'listener_inactive',
+        'model_missing',
+        'model_configured',
+        'animations_optional_empty',
+        'animations_ready',
+        'mcp_online',
+        'mcp_starting',
+        'mcp_unavailable',
       ]) {
         const key = `setup.code.${code}`;
         expect(settingsT(locale, key)).not.toBe(key);
       }
+      expect(settingsMessageKeys(locale)).not.toContain('setup.code.mcp_offline');
     }
   });
 });

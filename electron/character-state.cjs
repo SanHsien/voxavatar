@@ -43,6 +43,12 @@ function defaultTtlForState(state) {
   return DEFAULT_TTL_MS[state] ?? 0;
 }
 
+/** apply 路徑：省略或 0 → 狀態預設 TTL；正數保留（已由 normalize 夾上限）。 */
+function resolveAppliedTtlMs(ttlMs, state) {
+  if (ttlMs != null && ttlMs > 0) return ttlMs;
+  return defaultTtlForState(state);
+}
+
 function normalizeExternalStateEvent(input, nowMs) {
   if (!input || typeof input !== "object") {
     return { ok: false, error: "invalid_payload" };
@@ -100,4 +106,5 @@ module.exports = {
   defaultTtlForState,
   isCharacterState,
   normalizeExternalStateEvent,
+  resolveAppliedTtlMs,
 };

@@ -2,6 +2,11 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.12.1 - 2026-08-02
+
+- 修復長時間待機後角色停住：Idle `once` 輪播改為依 URL 重用 AnimationClip／Action，避免 mixer 堆積；並以 clip 時長逾時後備，即使 `finished` 漏發仍會排下一輪。
+- 待機間隔（`idle_rest_ms`，預設 8 秒）期間仍會刻意停在最後一幀，屬設計行為，與永久停住不同。
+
 ## 0.12.0 - 2026-08-02
 
 - 抽出 `settings-store-catalog.cjs`：模型／動作／clip CRUD 與偏好設定分離；既有 store 行為不變。

@@ -5,7 +5,8 @@
 ## 現有能力
 
 - Settings 可為 Idle、Speaking 與自訂動作加入一個或多個 `.vrma`。
-- Idle 從可用的非說話動作池抽播並避免立即重複；Speaking 由語音輸出音量觸發。
+- Idle 從可用的非說話動作池抽播並避免立即重複；每段以 `once` 播完後依「待機動作間隔」停在最後一幀再播下一段（預設約 8 秒，不是當機）。實作重用 clip／action，並有完成逾時後備，避免長跑後永久停住。
+- Speaking 由語音輸出音量觸發。
 - 自訂動作有 MCP 名稱、描述與觸發情境，可用 `play_animation` 播放。
 - 安裝包不附第三方 VRM／VRMA；取得與再散布規則見 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
 

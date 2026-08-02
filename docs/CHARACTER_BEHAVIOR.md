@@ -42,7 +42,7 @@
 
 同時出現多個來源時，優先序為：
 
-1. 使用者手動指定（仲裁保留 `sourceKind: "user"` 為最高；**目前無設定頁／系統匣手動狀態 UI**，見 ROADMAP）
+1. 使用者手動指定（`sourceKind: "user"` 最高優先；系統匣與角色右鍵選單「角色狀態」可設定／清除；`sourceId: tray-user`）
 2. `failed` 短暫回饋
 3. `success` 短暫回饋
 4. `speaking`

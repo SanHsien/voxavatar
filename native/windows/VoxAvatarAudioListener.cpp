@@ -57,15 +57,27 @@ void emitReady(const char* source) {
             << "\"}" << std::endl;
 }
 
-int fail(const char* message, HRESULT result = S_OK) {
+// 與 electron/native-helper-errors.cjs NATIVE_HELPER_EXIT_CODE 對齊。
+enum class HelperExit : int {
+  Ok = 0,
+  Generic = 1,
+  Usage = 2,
+  Com = 10,
+  Wasapi = 11,
+  Device = 12,
+  Event = 13,
+};
+
+int fail(const char* message, HelperExit code, HRESULT result = S_OK) {
   std::ostringstream detail;
   detail << message;
   if (FAILED(result)) {
     detail << " (HRESULT 0x" << std::hex << static_cast<unsigned long>(result) << ")";
   }
-  std::cout << "{\"type\":\"error\",\"message\":\""
+  const int exitCode = static_cast<int>(code);
+  std::cout << "{\"type\":\"error\",\"code\":" << exitCode << ",\"message\":\""
             << jsonEscape(detail.str()) << "\"}" << std::endl;
-  return 1;
+  return exitCode;
 }
 
 BOOL WINAPI handleConsoleSignal(DWORD signal) {
@@ -190,13 +202,15 @@ int wmain(int argc, wchar_t* argv[]) {
     }
   }
   if (!useOutputDevice && processId == 0) {
-    return fail("A valid --pid or --output is required.");
+    return fail("A valid --pid or --output is required.", HelperExit::Usage);
   }
 
   SetConsoleOutputCP(CP_UTF8);
   SetConsoleCtrlHandler(handleConsoleSignal, TRUE);
   HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-  if (FAILED(result)) return fail("Unable to initialize COM.", result);
+  if (FAILED(result)) {
+    return fail("Unable to initialize COM.", HelperExit::Com, result);
+  }
 
   ComPtr<IAudioClient> audioClient;
   result = useOutputDevice
@@ -208,6 +222,7 @@ int wmain(int argc, wchar_t* argv[]) {
         useOutputDevice
             ? "Unable to activate Windows output-device loopback audio."
             : "Unable to activate Windows process-loopback audio.",
+        HelperExit::Wasapi,
         result);
   }
 
@@ -236,6 +251,7 @@ int wmain(int argc, wchar_t* argv[]) {
         useOutputDevice
             ? "Unable to initialize Windows output-device loopback audio."
             : "Unable to initialize Windows process-loopback audio.",
+        HelperExit::Wasapi,
         result);
   }
 
@@ -243,7 +259,10 @@ int wmain(int argc, wchar_t* argv[]) {
   if (sampleReady == nullptr) {
     audioClient.Reset();
     CoUninitialize();
-    return fail("Unable to create the Windows audio event.", HRESULT_FROM_WIN32(GetLastError()));
+    return fail(
+        "Unable to create the Windows audio event.",
+        HelperExit::Event,
+        HRESULT_FROM_WIN32(GetLastError()));
   }
   result = audioClient->SetEventHandle(sampleReady);
   ComPtr<IAudioCaptureClient> captureClient;
@@ -258,6 +277,7 @@ int wmain(int argc, wchar_t* argv[]) {
         useOutputDevice
             ? "Unable to start Windows output-device loopback audio."
             : "Unable to start Windows process-loopback audio.",
+        HelperExit::Device,
         result);
   }
 

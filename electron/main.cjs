@@ -237,6 +237,43 @@ async function confirmDirectoryImport({
   return result.response === 0;
 }
 
+function applyUserCharacterState(state) {
+  return applyCharacterState(
+    { state },
+    { sessionId: "tray-user", sourceKind: "user" },
+  );
+}
+
+function clearUserCharacterState() {
+  clearCharacterStateForSource("tray-user");
+  return true;
+}
+
+function buildCharacterStateMenuSubmenu(t) {
+  const states = [
+    ["idle", t.characterStateIdle],
+    ["listening", t.characterStateListening],
+    ["speaking", t.characterStateSpeaking],
+    ["working", t.characterStateWorking],
+    ["reviewing", t.characterStateReviewing],
+    ["success", t.characterStateSuccess],
+    ["failed", t.characterStateFailed],
+  ];
+  return [
+    ...states.map(([state, label]) => ({
+      label,
+      click: () => {
+        applyUserCharacterState(state);
+      },
+    })),
+    { type: "separator" },
+    {
+      label: t.characterStateClear,
+      click: () => clearUserCharacterState(),
+    },
+  ];
+}
+
 function buildTrayMenuTemplate() {
   const t = currentMenuStrings();
   const ready = hasConfiguredModel();
@@ -292,6 +329,10 @@ function buildTrayMenuTemplate() {
     { label: t.settings, click: showSettings },
     { type: "separator" },
     {
+      label: t.characterState,
+      submenu: buildCharacterStateMenuSubmenu(t),
+    },
+    {
       label: t.previewListening,
       click: () => handleBridgeEvent(voiceState("listening")),
     },
@@ -327,6 +368,11 @@ function buildAvatarContextMenu() {
     {
       label: t.resetView,
       click: () => sendAvatarResetView(),
+    },
+    { type: "separator" },
+    {
+      label: t.characterState,
+      submenu: buildCharacterStateMenuSubmenu(t),
     },
     { type: "separator" },
     {
@@ -705,7 +751,12 @@ function applyCharacterState(input, { sessionId = null, sourceKind = "mcp" } = {
     return { applied: false, error: "avatar_unavailable" };
   }
   const nowMs = Date.now();
-  const kind = sourceKind === "integration" ? "integration" : "mcp";
+  const kind =
+    sourceKind === "user"
+      ? "user"
+      : sourceKind === "integration"
+        ? "integration"
+        : "mcp";
   const normalized = normalizeExternalStateEvent(
     {
       state: input?.state,

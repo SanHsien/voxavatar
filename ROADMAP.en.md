@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `v0.15.2` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `v0.15.3` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,14 +11,15 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `v0.15.2` / `main`; GitHub Latest Release: `v0.13.0`
+Review baseline: `v0.15.3` / `main`; GitHub Latest Release: `v0.13.0`
 
-No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new features this round**—align docs claims with implementation. `main` tip `0.15.2`: docs/integration gap closure (no extra tag).
+No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new features this round**—close existing gaps. `main` tip `0.15.3`: tray/context manual state; native typed exit codes (Windows runner still unverified).
 
-- Latest Release: `v0.13.0`; `main` tip is `0.15.2`.
+- Latest Release: `v0.13.0`; `main` tip is `0.15.3`.
 - Upstream: commit watermark `cf27d12`; open PR #16 / issue #13 are macOS (skip); issue #11 already covered.
 - MCP tools: 6 (including `show_message` and `set_character_state`); Settings shows tools/status schema versions.
 - HTTP `/events` accepts `character-state`; `VOXAVATAR_TARGET_PROCESS_PATTERN` overrides application targeting; external listener state is correct.
+- Users can set/clear character state from the tray and avatar context menu (`sourceKind: user`).
 
 This round: `npm run check` green; Release/Latest/assets verified per [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -30,10 +31,10 @@ This round: `npm run check` green; Release/Latest/assets verified per [`docs/REL
 | 30% character size and multi-DPI readability | **Unverified** | No Windows desktop |
 | Idle long-run / model-switch memory (GUI residency) | **Unverified** | No Windows desktop; `baseline:startup` excludes GUI |
 | Installer signing / publisher / SmartScreen / upgrade path | **Unverified** | No signing secrets |
-| Native helper COM/WASAPI typed exit codes (C++) | **Unverified** | Needs Windows runner/toolchain; JS classification exists |
+| Native helper COM/WASAPI typed exit codes (Windows runner `native:build` / `native:test`) | **Unverified** | C++/JS code landed; no local Windows toolchain—canonical gate remains the runner |
 | Real VRoid/UniVRM/Blender sample results | **Unverified** | No clearly licensed off-repo sample evidence yet |
 
-### Doc claims aligned / still missing product entry (not Windows-blocked)
+### Doc claims aligned / still open (not Windows-blocked)
 
 | Item | Status | Notes |
 | --- | --- | --- |
@@ -45,7 +46,8 @@ This round: `npm run check` green; Release/Latest/assets verified per [`docs/REL
 | `ttl_ms` 0 = default TTL | **Shipped** | |
 | `show_message` zod limit relaxed | **Shipped** | Authority remains 80-grapheme sanitize |
 | Bubble “source priority” | **Docs corrected** | Implementation is a bounded queue without cross-source priority |
-| User manual state UI | **Not built** | Arbitration keeps `user` highest; **no Settings/tray entry** (noted only; no new feature track) |
+| User manual state UI | **Shipped** | Tray / avatar context “Character state”; arbitration keeps `user` highest |
+| Native typed exit / NDJSON `code` | **Code landed** | HelperExit 2/10/11/12/13; JS prefers typed codes; runner unverified |
 | Speaking secondary head/torso cue | **Not built** | Still listed in CHARACTER_BEHAVIOR; not a hard 1.0 gate |
 
 Product remains **Windows-only**; do not restore Linux/macOS shipping.
@@ -68,6 +70,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.15.0 | Scene/Avatar VRM head bone projection wiring |
 | v0.15.1 | jsdom interaction tests, import partial-failure feedback, catalog schema policy |
 | v0.15.2 | Docs/integration alignment (HTTP character-state, env pattern, MCP UI, TTL/message contract) |
+| v0.15.3 | Tray/context manual state; native COM/WASAPI typed exit codes (code landed, runner unverified) |
 
 ## Closing existing gaps
 
@@ -77,13 +80,13 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 - [x] Action-pack import; head projection wiring; jsdom tests; import partial-failure feedback.
 - [x] Settings/catalog/MCP schema policy and tests; env pattern override; external listener state.
 - [x] Docs/implementation drift fixes (bubble queue, quality-gate report mode, CHARACTER_BEHAVIOR projection copy).
+- [x] User manual state (tray/context); native typed exit / NDJSON `code` with JS classification tests.
 
 ### Still open / unverified
 
-- [~] Native COM/WASAPI typed exit codes (Windows runner).
+- [~] Windows runner `native:build` / `native:test` for typed exit codes.
 - [~] Idle/DPI/30%/GUI smoke/installer signing (see verification table).
 - [~] Real exporter manual results.
-- [~] User manual state UI (arbitration ready; no product entry).
 - [~] Speaking secondary head/torso cue (docs still pending; non-blocking).
 
 ## v1.0.0 criteria
@@ -113,6 +116,6 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 
 ## Next three actions
 
-1. When a Windows runner is available, add native COM/WASAPI typed exit codes and `native:test`.
+1. When a Windows runner is available, run `native:build` / `native:test` for typed exit codes.
 2. When Windows/secrets are available, complete smoke, signing, and 30%/DPI/Idle real-machine evidence.
 3. After clearly licensed real exporter sample results exist, batch-publish a Release (Latest remains `v0.13.0`).

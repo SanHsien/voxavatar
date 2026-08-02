@@ -37,9 +37,31 @@ test("classifyNativeHelperFailure maps WASAPI／COM／device messages", () => {
   );
 });
 
-test("classifyNativeHelperFailure uses exit code when message is empty", () => {
-  const failed = classifyNativeHelperFailure({ exitCode: 1 });
-  assert.equal(failed.code, NATIVE_HELPER_ERROR.EXIT_NONZERO);
-  assert.equal(failed.listenerState, LISTENER_STATE.LAUNCH_FAILED);
-  assert.match(failed.detail, /exit:1/);
+test("classifyNativeHelperFailure prefers typed helper exit codes", () => {
+  assert.equal(
+    classifyNativeHelperFailure({ exitCode: 10 }).code,
+    NATIVE_HELPER_ERROR.COM_ERROR,
+  );
+  assert.equal(
+    classifyNativeHelperFailure({ exitCode: 11 }).code,
+    NATIVE_HELPER_ERROR.WASAPI_ERROR,
+  );
+  assert.equal(
+    classifyNativeHelperFailure({ exitCode: 13 }).code,
+    NATIVE_HELPER_ERROR.WASAPI_ERROR,
+  );
+  assert.equal(
+    classifyNativeHelperFailure({ exitCode: 12 }).listenerState,
+    LISTENER_STATE.NO_OUTPUT,
+  );
+  assert.equal(
+    classifyNativeHelperFailure({ code: 2, message: "usage" }).code,
+    NATIVE_HELPER_ERROR.USAGE,
+  );
+});
+
+test("classifyNativeHelperFailure maps generic nonzero exit to EXIT_NONZERO", () => {
+  const result = classifyNativeHelperFailure({ exitCode: 1 });
+  assert.equal(result.code, NATIVE_HELPER_ERROR.EXIT_NONZERO);
+  assert.equal(result.listenerState, LISTENER_STATE.LAUNCH_FAILED);
 });

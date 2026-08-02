@@ -384,6 +384,10 @@ class NativeProcessAudioListener {
       this.lastKnownSource = null;
       const classified = classifyNativeHelperFailure({
         message: String(message.message || "Native listener failed."),
+        code:
+          message.code == null || !Number.isFinite(Number(message.code))
+            ? null
+            : Math.trunc(Number(message.code)),
       });
       this.reportStatus({
         available: classified.listenerState !== LISTENER_STATE.MISSING,

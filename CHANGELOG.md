@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.15.3 - 2026-08-02
+
+- 系統匣與角色右鍵新增「角色狀態」選單：可手動指定 idle／listening／speaking／working／reviewing／success／failed，或清除手動狀態（`sourceKind: user`，最高優先）。
+- Native helper 分型 exit code：C++ `HelperExit`（Usage=2、COM=10、WASAPI=11、Device=12、Event=13）與 NDJSON `"code"`；JS 分類優先 typed exit／code，再退回訊息啟發式。Windows runner `native:build`／`native:test` 仍標未驗。
+- 同步 CHARACTER_BEHAVIOR／ROADMAP：手動狀態已有產品入口；Speaking 第二層頭部反應與實機／簽署仍開放。
+
 ## 0.15.2 - 2026-08-02
 
 - 對齊 docs 承諾與實作：HTTP `/events` 支援 `character-state`；`VOXAVATAR_TARGET_PROCESS_PATTERN` 覆寫應用程式來源；external listener 回報 `external`。

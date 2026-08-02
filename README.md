@@ -124,7 +124,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.14.0`**（狀態槽／MCP `set_character_state`／action-pack 匯入）。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.14.1`**（head-projection／Settings 測試／native 錯誤分類）。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

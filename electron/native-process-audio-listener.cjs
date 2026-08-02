@@ -14,6 +14,7 @@ const {
   LISTENER_STATE,
   withListenerState,
 } = require("./listener-status.cjs");
+const { classifyNativeHelperFailure } = require("./native-helper-errors.cjs");
 
 const SESSION_IDLE_MS = 8_000;
 const MIN_POLL_INTERVAL_MS = 1_500;
@@ -301,13 +302,17 @@ class NativeProcessAudioListener {
       this.captureKey = null;
       this.activeRootPid = null;
       this.tightenPollInterval();
+      const classified = classifyNativeHelperFailure({
+        message: error.message,
+      });
       this.reportStatus({
-        available: false,
+        available: classified.listenerState !== LISTENER_STATE.MISSING,
         capturing: false,
         monitoring: true,
         source: null,
-        state: LISTENER_STATE.LAUNCH_FAILED,
-        error: error.message,
+        state: classified.listenerState,
+        error: classified.detail,
+        helper_error: classified.code,
       });
       if (!this.stopped && this.voiceSource.mode !== "output") {
         this.scheduleNextPoll();
@@ -320,18 +325,36 @@ class NativeProcessAudioListener {
       this.activeRootPid = null;
       this.gate.reset();
       this.tightenPollInterval();
-      this.reportStatus({
-        available: true,
-        capturing: false,
-        monitoring: !this.stopped,
-        source: null,
-        state: this.stopped
-          ? LISTENER_STATE.INACTIVE
-          : LISTENER_STATE.LAUNCH_FAILED,
-        ...(code && !this.stopped
-          ? { error: `Native listener exited with code ${code}${signal ? ` (${signal})` : ""}.` }
-          : {}),
-      });
+      if (this.stopped) {
+        this.reportStatus({
+          available: true,
+          capturing: false,
+          monitoring: false,
+          source: null,
+          state: LISTENER_STATE.INACTIVE,
+        });
+      } else {
+        const classified = classifyNativeHelperFailure({
+          exitCode: code,
+          signal,
+          message:
+            code && code !== 0
+              ? `Native listener exited with code ${code}${signal ? ` (${signal})` : ""}.`
+              : signal
+                ? `Native listener exited with signal ${signal}.`
+                : "",
+        });
+        this.reportStatus({
+          available: true,
+          capturing: false,
+          monitoring: true,
+          source: null,
+          state: classified.listenerState,
+          ...(classified.detail
+            ? { error: classified.detail, helper_error: classified.code }
+            : { helper_error: classified.code }),
+        });
+      }
       if (
         !this.stopped &&
         this.voiceSource.mode === "output" &&
@@ -359,13 +382,17 @@ class NativeProcessAudioListener {
     }
     if (message.type === "error") {
       this.lastKnownSource = null;
+      const classified = classifyNativeHelperFailure({
+        message: String(message.message || "Native listener failed."),
+      });
       this.reportStatus({
-        available: false,
+        available: classified.listenerState !== LISTENER_STATE.MISSING,
         capturing: false,
         monitoring: true,
         source: null,
-        state: LISTENER_STATE.LAUNCH_FAILED,
-        error: String(message.message || "Native listener failed."),
+        state: classified.listenerState,
+        error: classified.detail,
+        helper_error: classified.code,
       });
       return;
     }

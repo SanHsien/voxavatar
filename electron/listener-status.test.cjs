@@ -46,3 +46,18 @@ test("withListenerState preserves booleans and attaches state", () => {
   assert.equal(status.capturing, true);
   assert.equal(status.source, "app");
 });
+
+test("withListenerState preserves helper_error classification codes", () => {
+  const status = withListenerState(
+    {
+      available: true,
+      capturing: false,
+      monitoring: true,
+      error: "Native listener exited with code 1.",
+      helper_error: "native_helper_exit_nonzero",
+    },
+    LISTENER_STATE.LAUNCH_FAILED,
+  );
+  assert.equal(status.helper_error, "native_helper_exit_nonzero");
+  assert.match(status.error, /exited with code 1/);
+});

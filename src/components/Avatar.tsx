@@ -5,6 +5,7 @@ import { useVrmLoader } from '../hooks/useVrmLoader';
 import { useVrmAnimation } from '../hooks/useVrmAnimation';
 import { useAmplitudeLipSync } from '../hooks/useAmplitudeLipSync';
 import { useBlink } from '../hooks/useBlink';
+import { estimateHeadAnchorFromCharacterSize } from '../head-projection';
 import type { PlayableAnimationType } from '../animation-catalog';
 
 interface AvatarProps {
@@ -35,8 +36,12 @@ function AvatarModel({
   const vrm = useVrmLoader(modelUrl);
   const { play, update: updateAnimation } = useVrmAnimation(vrm);
   const updateLipSync = useAmplitudeLipSync(vrm, {
-    // 尚無精確 head 投影時，以角色縮放推估螢幕頭部高度。
-    headHeightPx: Math.max(40, characterSize * 140),
+    // 精確骨點投影接線前，與氣泡共用尺寸估算路徑。
+    headHeightPx: estimateHeadAnchorFromCharacterSize(
+      typeof window !== 'undefined' ? window.innerWidth : 800,
+      typeof window !== 'undefined' ? window.innerHeight : 600,
+      characterSize,
+    ).headHeightPx,
     intensity: 1,
     minOpen: 0.08,
   });

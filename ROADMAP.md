@@ -3,22 +3,22 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`v0.14.0`（`main` tip；正式 Release tag `v0.13.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`v0.14.1`（`main` tip；正式 Release tag `v0.13.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 目前健康
 
-覆核基準：`v0.14.0`／`main`；GitHub Latest Release：`v0.13.0`
+覆核基準：`v0.14.1`／`main`；GitHub Latest Release：`v0.13.0`
 
-沒有已知未解 P0／P1。`v0.13.0` 為 Latest。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。路線圖焦點為 **v0.14 後續**（jsdom／精確 head／Windows 驗收）。`main` tip `0.14.0` 含狀態槽 UI、MCP `set_character_state`、action-pack 匯入（未另 tag）。
+沒有已知未解 P0／P1。`v0.13.0` 為 Latest。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。路線圖焦點為 **v0.14 後續**（Scene 骨點投影接線／Windows 驗收）。`main` tip `0.14.1` 含 head-projection 純邏輯、Settings 狀態槽／門檻測試、native helper 失敗分類（未另 tag）。
 
-- Latest Release：`v0.13.0`；`main` tip 為 `0.14.0`。
+- Latest Release：`v0.13.0`；`main` tip 為 `0.14.1`。
 - 上游：commit 水位 `cf27d12`；open PR #16／issue #13 為 macOS（不合併）；issue #11 首次取得角色文件已涵蓋。
 - MCP 工具：6 個（含 opt-in `show_message` 與 `set_character_state`）；`tools_schema_version`＝3。
-- Settings：系統狀態動作槽綁定；action-pack 可匯入（仍走 GLB／路徑／catalog gate）；目錄匯入可調 VRM／VRMA 共用分數門檻；自訂動作多段 VRMA；語音輸出隱私警告依 UI 選取即時顯示／隱藏。
+- Settings：系統狀態動作槽綁定；action-pack 可匯入；目錄匯入可調分數門檻；狀態槽／門檻面板有 SSR 測試。
 
-仍開放：App／Settings jsdom 整合；精確 head 投影、DPI／30%／Idle 長跑實機；Installer 簽署與 Windows GUI smoke（無密鑰／桌面時標未驗）。
+仍開放：Scene 以 VRM head bone 接上投影；App／Settings 完整 jsdom 互動測；DPI／30%／Idle 長跑實機；Installer 簽署與 Windows GUI smoke（無密鑰／桌面時標未驗）。產品維持 **Windows-only**，不恢復 Linux／macOS 發行。
 
 本輪驗證：`npm run check` 全綠；Release／Latest／資產依 [`docs/RELEASING.md`](docs/RELEASING.md) 核對。
 
@@ -46,6 +46,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.11–v0.12 | action-pack 契約、overlay／catalog 抽離、狀態事件正規化、Idle 長跑停住修復 |
 | v0.13.0 | 上游 #14／#15 評估不合併；批次 Release 累積功能 |
 | v0.14.0 | 系統狀態槽 UI、MCP `set_character_state`、action-pack 匯入、settings schema 9 |
+| v0.14.1 | head-projection 純邏輯、Settings 狀態槽／門檻 SSR 測、native helper 失敗分類 |
 
 v0.9–v0.13 已完成項不再逐條留在路線圖；未完成工作見下方 v0.14 後續。
 
@@ -57,7 +58,9 @@ v0.9–v0.13 已完成項不再逐條留在路線圖；未完成工作見下方 
 
 - [x] 系統狀態動作槽 UI（Settings 綁定狀態→動作）；MCP `set_character_state` 接上 `normalizeExternalStateEvent`。
 - [x] `action-pack.json` 實際匯入管線（仍不得繞過授權／路徑／GLB gate）。
-- [ ] 精確 head 投影驅動口型增益與氣泡錨點（目前為角色尺寸估算）。
+- [~] 精確 head 投影：純邏輯與退回路徑已抽出（`head-projection`）；Scene／VRM bone 接線仍待。
+- [x] Settings 狀態槽／品質門檻面板 SSR 整合測試；完整 jsdom 互動測仍待。
+- [x] Native helper 失敗分類語彙（JS）；COM／WASAPI 分型 exit code 仍待 Windows runner。
 
 ### 測試與品質
 
@@ -97,6 +100,6 @@ v0.9–v0.13 已完成項不再逐條留在路線圖；未完成工作見下方 
 
 ## 接下來三件事
 
-1. 補 App／Settings jsdom 整合測試，深化狀態槽與 action-pack 匯入覆蓋。
-2. 精確 head 投影驅動口型增益與氣泡錨點。
+1. Scene／Avatar 以 VRM head bone 接上 `head-projection`（口型增益與氣泡錨點）。
+2. 補 App／Settings jsdom 互動測試（選取／匯入行為）。
 3. 有 Windows／密鑰時補 smoke、簽署與 30%／DPI 實機證據。

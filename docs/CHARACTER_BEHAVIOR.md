@@ -113,7 +113,7 @@ MCP 工具 `show_message` 已提供：參數只含 `text`、可選 `duration_ms`
 ## 驗證
 
 - 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試。
-- 口型增益純函式見 `src/lip-sync-gain.ts`；精確投影與 DPI 實機仍待。
+- 口型增益純函式見 `src/lip-sync-gain.ts`；頭部錨點／投影純邏輯見 `src/head-projection.ts`（Scene 骨點接線與 DPI 實機仍待）。
 - 動作品質使用合成 fixture 與用途別門檻；真實素材只記授權清楚的人工結果。
 - 氣泡位置、DPI、長字串、Emoji、點穿與 reduced motion 以 Windows 實機 smoke 驗證。
 - 修正以最小範圍進行；不得因單一素材問題改寫整套 renderer 或降低安全 gate。

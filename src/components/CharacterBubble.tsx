@@ -2,9 +2,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import type { CharacterMessage } from '../character-message';
 import {
   resolveBubbleLayout,
-  type BubbleHorizontalSide,
   type BubbleLayout,
 } from '../bubble-layout';
+import { resolveHeadAnchor } from '../head-projection';
 
 export interface CharacterBubbleProps {
   message: CharacterMessage | null;
@@ -12,31 +12,17 @@ export interface CharacterBubbleProps {
   characterSize?: number;
   /** 測試或外部覆寫；未提供時依視窗與角色尺寸估算錨點。 */
   layout?: BubbleLayout | null;
-}
-
-function estimateHeadAnchor(
-  viewportWidth: number,
-  viewportHeight: number,
-  characterSize: number,
-): { x: number; y: number; preferredSide: BubbleHorizontalSide } {
-  const size = Math.min(1, Math.max(0.3, characterSize));
-  // 角色多靠視窗右下；頭部約在角色高度上緣。
-  const characterHeight = viewportHeight * (0.42 + size * 0.38);
-  const characterWidth = viewportWidth * (0.28 + size * 0.22);
-  const feetY = viewportHeight * 0.92;
-  const centerX = viewportWidth * 0.62;
-  return {
-    x: centerX,
-    y: Math.max(viewportHeight * 0.12, feetY - characterHeight * 0.82),
-    preferredSide:
-      centerX + characterWidth * 0.35 > viewportWidth * 0.72 ? 'left' : 'right',
-  };
+  /** 可選：由 Scene 投影的頭部／胸口螢幕座標（CSS px）。 */
+  projectedHead?: { x: number; y: number } | null;
+  projectedChest?: { x: number; y: number } | null;
 }
 
 export function CharacterBubble({
   message,
   characterSize = 1,
   layout: layoutOverride = null,
+  projectedHead = null,
+  projectedChest = null,
 }: CharacterBubbleProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<BubbleLayout | null>(layoutOverride);
@@ -55,11 +41,13 @@ export function CharacterBubble({
       const el = rootRef.current;
       const bubbleWidth = el?.offsetWidth || 200;
       const bubbleHeight = el?.offsetHeight || 64;
-      const anchor = estimateHeadAnchor(
-        window.innerWidth,
-        window.innerHeight,
+      const anchor = resolveHeadAnchor({
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
         characterSize,
-      );
+        projectedHead,
+        projectedChest,
+      });
       setLayout(
         resolveBubbleLayout({
           viewportWidth: window.innerWidth,
@@ -77,7 +65,13 @@ export function CharacterBubble({
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [message, characterSize, layoutOverride]);
+  }, [
+    message,
+    characterSize,
+    layoutOverride,
+    projectedHead,
+    projectedChest,
+  ]);
 
   if (!message) return null;
 

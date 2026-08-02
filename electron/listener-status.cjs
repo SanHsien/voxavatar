@@ -54,6 +54,12 @@ function withListenerState(status, state) {
   if (typeof status?.error === "string" && status.error.length > 0) {
     next.error = status.error;
   }
+  if (
+    typeof status?.helper_error === "string" &&
+    status.helper_error.length > 0
+  ) {
+    next.helper_error = status.helper_error;
+  }
   return next;
 }
 

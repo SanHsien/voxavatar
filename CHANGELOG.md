@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.14.1 - 2026-08-02
+
+- 抽出 `head-projection` 純邏輯：世界座標→視窗投影、頭部錨點解析；氣泡與口型共用尺寸退回路徑，並預留骨點投影輸入。
+- Settings 狀態槽／品質分數門檻面板補 SSR 整合測試。
+- Native helper 失敗分類（`native-helper-errors`）：依訊息／exit code 對應 MISSING／WASAPI／COM 等語彙，並寫入 listener 狀態。
+
 ## 0.14.0 - 2026-08-02
 
 - Settings schema 9：新增 `state_slot_bindings`（idle／listening／speaking／working／reviewing／success／failed → 可播放動作名）。

@@ -8,6 +8,7 @@
 - 建立 `docs/release-evidence/v0.16.12`（含 installer SHA／size／NotSigned）與 tip 證據占位；`evidence:manifest` 支援填入資產並產生 `windows-smoke.md` 骨架。
 - Settings 語音／設定進度：typed `helper_error` 人話、raw error 遮罩、缺 helper 下一步說明；INTEGRATIONS 補 listener 契約；VRM 相容真實樣本證據列骨架。
 - About `formatAboutDetail` 與 Voice helper-missing 互動測鎖定未簽署／人話契約。
+- 發布後：`docs/release-evidence/v0.16.14` 填入 tip SHA、installer SHA256／size、Release／Actions URL；`ci_gates` 標 pass；舊 `v0.16.12` Release／tag 已刪，僅保留 Latest。
 
 ## 0.16.13 - 2026-08-02
 

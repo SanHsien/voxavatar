@@ -203,27 +203,49 @@ if (require.main === module) {
   const hasFlag = (name) => args.includes(name);
 
   try {
-    const version = readFlag("--version");
-    const sizeRaw = readFlag("--installer-size");
-    const written = writeReleaseEvidenceManifest({
-      version,
-      tag: readFlag("--tag"),
-      commitSha: readFlag("--sha"),
-      releaseUrl: readFlag("--release-url"),
-      installerFilename: readFlag("--installer-name"),
-      installerSha256: readFlag("--installer-sha256"),
-      installerSizeBytes:
-        sizeRaw == null || sizeRaw === "" ? null : Number(sizeRaw),
-      unsigned: !hasFlag("--signed"),
-      authenticodeStatus: hasFlag("--signed") ? "Signed" : "NotSigned",
-      hasInstaller: hasFlag("--no-installer") ? false : null,
-      notes: readFlag("--notes"),
-      outputDir: readFlag("--dir") ?? DEFAULT_OUTPUT_DIR,
-      outputPath: readFlag("--out"),
-      writeSmokeMarkdown: hasFlag("--smoke-md"),
-    });
-    console.log(`Wrote ${written.manifestPath}`);
-    if (written.smokePath) console.log(`Wrote ${written.smokePath}`);
+    if (hasFlag("--help") || hasFlag("-h")) {
+      console.log(`Usage: node scripts/write-release-evidence-manifest.cjs --version <ver> [options]
+  --version <ver>              required unless --out is set
+  --tag <tag>                  default v{version}
+  --sha <commit>               release commit SHA
+  --release-url <url>          GitHub Release URL
+  --installer-name <file>
+  --installer-sha256 <hex>
+  --installer-size <bytes>
+  --notes <text>
+  --smoke-md                   also write windows-smoke.md
+  --no-installer               force hasInstaller=false
+  --signed                     mark Authenticode Signed (default NotSigned)
+  --dir <path>                 evidence root (default docs/release-evidence)
+  --out <path>                 explicit manifest path`);
+      process.exitCode = 0;
+    } else {
+      const version = readFlag("--version");
+      const outputPath = readFlag("--out");
+      if (!version && !outputPath) {
+        throw new Error("Provide --version <ver> or --out <path> (see --help).");
+      }
+      const sizeRaw = readFlag("--installer-size");
+      const written = writeReleaseEvidenceManifest({
+        version,
+        tag: readFlag("--tag"),
+        commitSha: readFlag("--sha"),
+        releaseUrl: readFlag("--release-url"),
+        installerFilename: readFlag("--installer-name"),
+        installerSha256: readFlag("--installer-sha256"),
+        installerSizeBytes:
+          sizeRaw == null || sizeRaw === "" ? null : Number(sizeRaw),
+        unsigned: !hasFlag("--signed"),
+        authenticodeStatus: hasFlag("--signed") ? "Signed" : "NotSigned",
+        hasInstaller: hasFlag("--no-installer") ? false : null,
+        notes: readFlag("--notes"),
+        outputDir: readFlag("--dir") ?? DEFAULT_OUTPUT_DIR,
+        outputPath,
+        writeSmokeMarkdown: hasFlag("--smoke-md"),
+      });
+      console.log(`Wrote ${written.manifestPath}`);
+      if (written.smokePath) console.log(`Wrote ${written.smokePath}`);
+    }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

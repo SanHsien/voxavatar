@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
   "smokeExecuted": false,
-  "generatedAt": "2026-08-02T12:22:20.253Z",
+  "generatedAt": "2026-08-02T13:27:46.411Z",
   "release": {
     "version": "0.16.14",
     "tag": "v0.16.14",
-    "commitSha": "87c60e6fff33b9148788613b28c5d60f167341e1",
-    "releaseUrl": null,
-    "githubActionsRunUrl": null,
-    "hasInstaller": false
+    "commitSha": "10de133a233983cc7b9a814c85705a91eed36cd3",
+    "releaseUrl": "https://github.com/SanHsien/voxavatar/releases/tag/v0.16.14",
+    "githubActionsRunUrl": "https://github.com/SanHsien/voxavatar/actions/runs/30747857459",
+    "hasInstaller": true
   },
   "assets": {
-    "installerFilename": null,
-    "installerSha256": null,
-    "installerSizeBytes": null,
-    "checksumsFile": null,
+    "installerFilename": "VoxAvatar-0.16.14-windows-x64-setup.exe",
+    "installerSha256": "e30bd7b9bbb888fa295569a643c55747c3d0385344f2584b081e93770c2d659d",
+    "installerSizeBytes": 105132741,
+    "checksumsFile": "SHA256SUMS.txt",
     "unsigned": true,
     "authenticodeStatus": "NotSigned"
   },
@@ -40,8 +40,8 @@
       {
         "id": "ci_gates",
         "section": "自動化前置 gate",
-        "result": "未驗",
-        "note": "以 GitHub Actions CI／Release 綠燈為準；本證據不重跑。"
+        "result": "pass",
+        "note": "CI／CodeQL／Release 於 tip 10de133 全綠（Release run 30747857459）。"
       },
       {
         "id": "install_lifecycle",
@@ -68,11 +68,10 @@
         "note": "無 WIN_CSC_* 密鑰；Authenticode 狀態為 NotSigned。"
       }
     ],
-    "notes": "No desktop smoke. SBOM snapshot: sbom.json. GUI/signing remain 未驗."
+    "notes": "Release workflow success (run 30747857459). GUI smoke / Authenticode still 未驗. Old v0.16.12 Release/tag deleted after Latest cut."
   },
   "mediaReferences": [],
   "issues": [],
   "reviewer": null,
-  "reviewedAt": null,
-  "notes": "Tip evidence for 0.16.14 (unsigned labeling, helper UX, evidence tooling). Installer cut follows this tip; until then verify Latest v0.16.12 assets."
+  "reviewedAt": null
 }

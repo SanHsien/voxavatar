@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.14` (`main`; GitHub Latest Release will move to this batch cut; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.14` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,11 +11,11 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.14` / `main`; GitHub Latest Release: this batch cut (accumulated since `v0.16.12`)
+Review baseline: `0.16.14` / `main`; GitHub Latest Release: `v0.16.14`
 
 No known open P0/P1. Upstream remains `9287ea3` (no newer tip commits). **No new feature tracks this round**—close evidence / unsigned labeling / helper-degradation gaps that are not test-only. `0.16.14` ships honest release-evidence, NotSigned labeling, and human-readable listener copy.
 
-- Latest Release: cut to `v0.16.14` this round (GUI / signing / real exporters still unverified; evidence under `docs/release-evidence/`).
+- Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified; evidence under `docs/release-evidence/v0.16.14/`).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
@@ -92,7 +92,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 
 ### Evidence / degradation copy (done; not a GUI-pass claim)
 
-- [x] Honest Latest/tip `docs/release-evidence/` skeletons (SHA / NotSigned / checklist all unverified).
+- [x] Honest Latest/tip `docs/release-evidence/` records (installer SHA / NotSigned; `ci_gates` green; desktop rows still unverified).
 - [x] README / SECURITY / About / Release notes unsigned labeling.
 - [x] Settings helper_error human copy and raw-error redaction; setup progress code labels.
 

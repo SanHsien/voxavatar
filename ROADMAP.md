@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`v0.11.0`（`main` 累積；Latest Release：`v0.5.0`）
+規劃基準：`v0.12.0`（`main` 累積；Latest Release：`v0.5.0`）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)，目前健康狀態見 [`REVIEW.md`](REVIEW.md)。
 
@@ -37,7 +37,7 @@ v0.6–v0.8 已完成項不再逐條留在路線圖；尚未完成的工作已�
 完整契約見 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
 - [x] 為 VRMA 加入 `loop`／`one-shot`／`pose` 用途，品質 gate 依用途評估，不再用循環接縫淘汰一次性動作。
-- [x] 加入 `idle`／`listening`／`speaking`／`working`／`reviewing`／`success`／`failed` 狀態、固定優先序、TTL、來源清除與安全 fallback（純邏輯＋App 語音路徑＋狀態槽名稱解析；系統動作槽 UI／MCP 狀態事件仍待）。
+- [x] 加入 `idle`／`listening`／`speaking`／`working`／`reviewing`／`success`／`failed` 狀態、固定優先序、TTL、來源清除與安全 fallback（純邏輯＋App 語音路徑＋狀態槽名稱解析＋外部事件正規化；系統動作槽 UI／MCP 狀態工具仍待）。
 - [x] 強化小尺寸角色的口型可讀性：可調強度、最小開口、依縮放推估頭部增益（精確 head 投影與 DPI 實機仍待）。
 - [x] 加入跟隨角色的漫畫式對話氣泡：短句、Emoji、顏文字、TTL、reduced motion 與有界佇列（DOM overlay＋清理／佇列；邊緣避讓純邏輯已接 CharacterBubble；精確 head 投影仍可再強化）。
 - [x] 讓已連接的本機 AI 透過 MCP `show_message` 顯示短訊息；功能預設關閉，啟用後仍有速率限制與輸入清理，不保存訊息歷史。
@@ -45,7 +45,7 @@ v0.6–v0.8 已完成項不再逐條留在路線圖；尚未完成的工作已�
 
 ### 從 v0.6–v0.8 移入的未完成工作
 
-- [x] 抽離 `main` overlay lifecycle（`overlay-lifecycle.cjs`）；`settings-store` CRUD 邊界仍待再拆。
+- [x] 抽離 `main` overlay lifecycle（`overlay-lifecycle.cjs`）與 `settings-store` catalog CRUD（`settings-store-catalog.cjs`）。
 - 補 App／Settings jsdom 整合測試。
 - 建立 Idle 長跑、切換模型與記憶體的可重複 Windows 基準。
 - 取得授權清楚的真實 VRoid／UniVRM／Blender 樣本，補 exporter 人工結果；二進位不入庫。
@@ -87,4 +87,4 @@ v0.6–v0.8 已完成項不再逐條留在路線圖；尚未完成的工作已�
 2. [x] 實作角色狀態仲裁、氣泡 DOM 與 MCP `show_message` opt-in。
 3. [x] 落地 `action-pack.json` 契約、overlay lifecycle 與氣泡邊緣避讓。
 
-近期焦點：拆 `settings-store` CRUD、系統狀態槽 UI／MCP 狀態事件；有 Windows／密鑰時再補實機與簽署。
+近期焦點：系統狀態槽 UI／MCP 狀態工具接線、jsdom 整合；有 Windows／密鑰時再補實機與簽署。

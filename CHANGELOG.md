@@ -2,6 +2,11 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.12.0 - 2026-08-02
+
+- 抽出 `settings-store-catalog.cjs`：模型／動作／clip CRUD 與偏好設定分離；既有 store 行為不變。
+- 新增外部狀態事件正規化（`normalizeExternalStateEvent`）：供後續 MCP／integration 狀態事件使用，拒絕未知狀態與 `voice` 來源覆寫。
+
 ## 0.11.0 - 2026-08-02
 
 - 新增薄 `action-pack.json` 契約與驗證（`electron/action-pack.cjs`、範例與 [`docs/ACTION_PACK.md`](docs/ACTION_PACK.md)）；不繞過匯入／授權／路徑 gate。

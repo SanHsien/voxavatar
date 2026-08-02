@@ -47,7 +47,7 @@
 7. `listening`
 8. `idle`
 
-相同狀態同時到達時，以最新的有效事件取代舊事件。所有外部狀態都有 bounded TTL，`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態，避免角色卡住。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。減少動態模式只顯示安靜姿勢與必要回饋。
+相同狀態同時到達時，以最新的有效事件取代舊事件。所有外部狀態都有 bounded TTL，`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態，避免角色卡住。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。減少動態模式只顯示安靜姿勢與必要回饋。外部（MCP／integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁；語音來源仍只由本機 voice 路徑產生。
 
 ### 動作用途
 

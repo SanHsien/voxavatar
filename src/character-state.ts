@@ -205,6 +205,87 @@ export function voiceActivityToStateEvent(
   };
 }
 
+export interface ExternalStateEventInput {
+  state?: unknown;
+  sourceKind?: unknown;
+  sourceId?: unknown;
+  ttlMs?: unknown;
+  id?: unknown;
+  atMs?: unknown;
+}
+
+export type NormalizeStateEventResult =
+  | { ok: true; event: CharacterStateEvent }
+  | { ok: false; error: string };
+
+const EXTERNAL_SOURCE_KINDS = new Set<CharacterStateSourceKind>([
+  'user',
+  'system',
+  'mcp',
+  'integration',
+]);
+
+const MAX_SOURCE_ID_LENGTH = 64;
+const MAX_TTL_MS = 600_000;
+
+/**
+ * 正規化外部（MCP／integration）狀態事件輸入。
+ * 拒絕未知狀態、過長 sourceId、非有限 TTL；不推測語意。
+ */
+export function normalizeExternalStateEvent(
+  input: ExternalStateEventInput,
+  nowMs: number,
+): NormalizeStateEventResult {
+  if (!input || typeof input !== 'object') {
+    return { ok: false, error: 'invalid_payload' };
+  }
+  if (!isCharacterState(input.state)) {
+    return { ok: false, error: 'invalid_state' };
+  }
+  if (
+    typeof input.sourceKind !== 'string' ||
+    !EXTERNAL_SOURCE_KINDS.has(input.sourceKind as CharacterStateSourceKind)
+  ) {
+    return { ok: false, error: 'invalid_source_kind' };
+  }
+  const sourceKind = input.sourceKind as CharacterStateSourceKind;
+  let sourceId: string | undefined;
+  if (input.sourceId != null) {
+    if (typeof input.sourceId !== 'string' || !input.sourceId.trim()) {
+      return { ok: false, error: 'invalid_source_id' };
+    }
+    sourceId = input.sourceId.trim().slice(0, MAX_SOURCE_ID_LENGTH);
+  }
+  let ttlMs: number | undefined;
+  if (input.ttlMs != null) {
+    const raw = Number(input.ttlMs);
+    if (!Number.isFinite(raw) || raw < 0) {
+      return { ok: false, error: 'invalid_ttl' };
+    }
+    ttlMs = Math.min(MAX_TTL_MS, Math.round(raw));
+  }
+  const id =
+    typeof input.id === 'string' && input.id.trim()
+      ? input.id.trim().slice(0, 64)
+      : `${sourceKind}-${nowMs}`;
+  const atMs =
+    typeof input.atMs === 'number' && Number.isFinite(input.atMs)
+      ? Math.round(input.atMs)
+      : nowMs;
+
+  return {
+    ok: true,
+    event: {
+      id,
+      state: input.state,
+      sourceKind,
+      sourceId,
+      atMs,
+      ttlMs,
+    },
+  };
+}
+
 /**
  * 以仲裁結果產生與既有 immediateVoiceAnimation 相容的提示。
  * listening → null（延遲回 Idle 由 App 計時器處理）；其餘對應 IDLE／TALK。

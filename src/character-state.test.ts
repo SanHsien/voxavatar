@@ -3,6 +3,7 @@ import {
   animationHintForState,
   clearEventsForSource,
   immediateAnimationFromResolved,
+  normalizeExternalStateEvent,
   pruneExpiredEvents,
   resolveCharacterState,
   voiceActivityToStateEvent,
@@ -175,5 +176,35 @@ describe('voice mapping', () => {
     expect(animationHintForState('speaking')).toBe('TALK');
     expect(animationHintForState('idle')).toBe('IDLE');
     expect(animationHintForState('working')).toBeNull();
+  });
+});
+
+describe('normalizeExternalStateEvent', () => {
+  it('accepts mcp working events and clamps ttl', () => {
+    const result = normalizeExternalStateEvent(
+      {
+        state: 'working',
+        sourceKind: 'mcp',
+        sourceId: 'session-1',
+        ttlMs: 999_999,
+      },
+      1000,
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.event.state).toBe('working');
+    expect(result.event.sourceKind).toBe('mcp');
+    expect(result.event.ttlMs).toBe(600_000);
+  });
+
+  it('rejects invalid state and voice sourceKind', () => {
+    expect(
+      normalizeExternalStateEvent({ state: 'dancing', sourceKind: 'mcp' }, 1)
+        .ok,
+    ).toBe(false);
+    expect(
+      normalizeExternalStateEvent({ state: 'idle', sourceKind: 'voice' }, 1)
+        .ok,
+    ).toBe(false);
   });
 });

@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `v0.13.0` on `main`; Latest Release advances with the batch cut
+Planning baseline: `v0.13.1` (`main` tip; published Release tag `v0.13.0`; upstream eval watermark `cf27d12`)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current health.
 
@@ -27,40 +27,38 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 | v0.6.x | Settings/IPC/asset-validation convergence and renderer error tests |
 | v0.7.x | Bundle/startup baselines, non-critical lazy loading, and further settings splits |
 | v0.8.x | Synthetic VRM/VRMA matrix, exporter notes, and import rollback |
+| v0.9–v0.10 | Motion purpose, state arbitration, bubble DOM, `show_message` opt-in, lip-sync gain wiring |
+| v0.11–v0.12 | action-pack contract, overlay/catalog splits, state-event normalize, Idle long-run freeze fix |
+| v0.13.0 | Upstream #14/#15 evaluated and skipped; batch Release of accumulated work |
 
-Completed v0.6–v0.8 items are no longer repeated here. Every unfinished item from those series is consolidated into v0.9.
+Completed v0.9–v0.12 items are no longer repeated here. Remaining work lives under v0.14 below.
 
-## v0.9.x: character presence, convergence, and Windows validation
+## v0.14.x: state-slot wiring, deeper tests, and Windows validation
 
-### Character presence
+### Character and MCP
 
 The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) (Traditional Chinese).
 
-- [x] Classify VRMA as `loop`, `one-shot`, or `pose` and apply purpose-aware quality rules instead of rejecting one-shot actions for loop seams.
-- [x] Add `idle`, `listening`, `speaking`, `working`, `reviewing`, `success`, and `failed` states with fixed priority, TTL, source clearing, and safe fallback (pure logic + App voice path + state-slot name resolution + external event normalization; system-slot UI / MCP state tool still open).
-- [x] Improve small-avatar lip-sync readability: tunable intensity, minimum opening, size-based head gain (precise head projection and DPI evidence still open).
-- [x] Add comic-style speech bubbles beside the avatar: short text, emoji, kaomoji, TTL, reduced motion, and a bounded queue (DOM overlay + sanitize/queue; edge-aware layout wired into CharacterBubble; precise head projection can still improve).
-- [x] Let a connected local AI show short messages through MCP `show_message`; default off, with rate limits and input sanitization, and without storing message history.
-- [x] Evaluate a thin `action-pack.json` that only describes motion purpose and state mapping without bypassing import, path, or license gates (contract + validation + example; import still uses existing Settings gates).
+- System state-slot UI (Settings bindings from state → motion); MCP state tool on top of `normalizeExternalStateEvent`.
+- Real `action-pack.json` import pipeline (must not bypass license / path / GLB gates).
+- Precise head projection for lip-sync gain and bubble anchors (currently size-based estimates).
 
-### Unfinished work moved from v0.6–v0.8
+### Testing and quality
 
-- [x] Extract the `main` overlay lifecycle (`overlay-lifecycle.cjs`) and `settings-store` catalog CRUD (`settings-store-catalog.cjs`).
 - Add App/Settings jsdom integration tests.
-- Establish repeatable Windows baselines for long-running Idle, model switching, and memory.
+- Establish repeatable Windows baselines for long-running Idle, model switching, and memory (automated `baseline:startup` does not cover GUI residency).
 - Add manual exporter results from clearly licensed VRoid, UniVRM, and Blender samples; do not commit the binaries.
 
 ### Windows and release validation
 
-- Keep versioned Windows smoke evidence for a release candidate: install, upgrade, uninstall, protocol, tray, MCP, DPI, and keyboard.
+- Keep versioned Windows smoke evidence for candidate/published releases: install, upgrade, uninstall, protocol, tray, MCP, DPI, and keyboard.
 - Validate installer signing, publisher, SmartScreen, and upgrade behavior.
 - Give the native helper testable COM/WASAPI error types or exit codes and exercise playback, device changes, and recovery.
-- Run real protocol/tray/desktop smoke. Mark unavailable desktop or signing steps as unverified; never fabricate completion.
+- Mark unavailable desktop or signing steps as unverified; never fabricate completion.
 
 ### Completion criteria
 
-- State arbitration, motion purpose, lip-sync gain, bubble input/TTL/queue, and the MCP opt-in capability gate have automated tests; Windows UI behavior at 30% avatar size and multiple DPI settings has real-machine evidence.
-- Every carried v0.6–v0.8 item is complete or explicitly removed from the 1.0 scope with rationale.
+- State-slot UI / MCP state tool have automated tests; 30% avatar size and multiple DPI settings have real-machine evidence.
 - At least one published asset set has SHA-256, Windows smoke evidence, and recorded signing status.
 - `npm run check`, CI, CodeQL, and production audit have no unresolved high-risk findings.
 
@@ -83,8 +81,6 @@ The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVI
 
 ## Next three actions
 
-1. [x] Implement purpose-aware motion profiles for `loop`, `one-shot`, and `pose`.
-2. [x] Implement character-state arbitration, bubble DOM, and MCP `show_message` opt-in.
-3. [x] Land `action-pack.json` contract, overlay lifecycle, and bubble edge layout.
-
-Near-term focus: system state-slot UI / MCP state tool wiring and jsdom integration; complete real-machine and signing evidence when Windows/secrets are available.
+1. Wire system state-slot UI and an MCP state tool on the existing normalize/arbitrate path.
+2. Add App/Settings jsdom coverage and an action-pack import pipeline that still respects gates.
+3. When Windows/secrets are available, complete smoke, signing, and 30%/DPI real-machine evidence.

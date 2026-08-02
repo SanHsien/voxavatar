@@ -24,19 +24,19 @@ npm run assets:release
 ## 建立版本與 tag
 
 ```powershell
-npm version 0.9.0 --no-git-tag-version
+npm version 0.13.0 --no-git-tag-version
 # 更新 CHANGELOG 後：
 git add package.json package-lock.json CHANGELOG.md
-git commit -m "chore: release v0.9.0"
-git tag v0.9.0
-git push origin v0.9.0
+git commit -m "chore: release v0.13.0"
+git tag v0.13.0
+git push origin v0.13.0
 git push origin main
 ```
 
 必須先推 tag、再推 `main`：當 `main` tip 已有相符的 `v{version}` tag 時，main push 才觸發打包。也可在 main 上手動 dispatch：
 
 ```powershell
-gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.9.0
+gh workflow run release.yml --repo SanHsien/voxavatar --ref main -f tag=v0.13.0
 ```
 
 Workflow 會確認 workflow、遠端 main、tag 與 package version 指向同一 SHA，再固定 checkout 該 commit；publish 前再次確認 tag 未移動。已發布 tag 不得 force-update，目前不要求 tag protection ruleset。
@@ -51,7 +51,7 @@ Workflow 會確認 workflow、遠端 main、tag 與 package version 指向同一
 ## 發布後驗證
 
 ```powershell
-gh release view v0.9.0 --repo SanHsien/voxavatar --json url,isDraft,isPrerelease,targetCommitish,assets
+gh release view v0.13.0 --repo SanHsien/voxavatar --json url,isDraft,isPrerelease,targetCommitish,assets
 gh api repos/SanHsien/voxavatar/releases/latest
 ```
 

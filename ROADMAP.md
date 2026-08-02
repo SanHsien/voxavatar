@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`v0.13.0`（`main`；Latest Release 隨批次發版推進）
+規劃基準：`v0.13.1`（`main` tip；正式 Release tag `v0.13.0`；上游評估水位 `cf27d12`）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)，目前健康狀態見 [`REVIEW.md`](REVIEW.md)。
 
@@ -27,40 +27,38 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.6.x | Settings／IPC／asset validation 收斂與 renderer 錯誤測試 |
 | v0.7.x | bundle／startup 基準、非首屏 lazy-load 與設定頁再拆 |
 | v0.8.x | VRM／VRMA 合成相容矩陣、Exporter 備註與匯入 rollback |
+| v0.9–v0.10 | 動作用途、狀態仲裁、氣泡 DOM、`show_message` opt-in、口型增益接線 |
+| v0.11–v0.12 | action-pack 契約、overlay／catalog 抽離、狀態事件正規化、Idle 長跑停住修復 |
+| v0.13.0 | 上游 #14／#15 評估不合併；批次 Release 累積功能 |
 
-v0.6–v0.8 已完成項不再逐條留在路線圖；尚未完成的工作已全部移入 v0.9。
+v0.9–v0.12 已完成項不再逐條留在路線圖；未完成工作見下方 v0.14。
 
-## v0.9.x：角色表現、收斂與 Windows 驗收
+## v0.14.x：狀態槽接線、測試深化與 Windows 驗收
 
-### 角色表現
+### 角色與 MCP
 
 完整契約見 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
-- [x] 為 VRMA 加入 `loop`／`one-shot`／`pose` 用途，品質 gate 依用途評估，不再用循環接縫淘汰一次性動作。
-- [x] 加入 `idle`／`listening`／`speaking`／`working`／`reviewing`／`success`／`failed` 狀態、固定優先序、TTL、來源清除與安全 fallback（純邏輯＋App 語音路徑＋狀態槽名稱解析＋外部事件正規化；系統動作槽 UI／MCP 狀態工具仍待）。
-- [x] 強化小尺寸角色的口型可讀性：可調強度、最小開口、依縮放推估頭部增益（精確 head 投影與 DPI 實機仍待）。
-- [x] 加入跟隨角色的漫畫式對話氣泡：短句、Emoji、顏文字、TTL、reduced motion 與有界佇列（DOM overlay＋清理／佇列；邊緣避讓純邏輯已接 CharacterBubble；精確 head 投影仍可再強化）。
-- [x] 讓已連接的本機 AI 透過 MCP `show_message` 顯示短訊息；功能預設關閉，啟用後仍有速率限制與輸入清理，不保存訊息歷史。
-- [x] 評估薄的 `action-pack.json`，只描述動作用途與狀態對應，不繞過匯入、路徑或授權 gate（契約＋驗證＋範例；實際匯入管線仍走既有 Settings gate）。
+- 系統狀態動作槽 UI（Settings 綁定狀態→動作）；MCP 狀態工具接上 `normalizeExternalStateEvent`。
+- `action-pack.json` 實際匯入管線（仍不得繞過授權／路徑／GLB gate）。
+- 精確 head 投影驅動口型增益與氣泡錨點（目前為角色尺寸估算）。
 
-### 從 v0.6–v0.8 移入的未完成工作
+### 測試與品質
 
-- [x] 抽離 `main` overlay lifecycle（`overlay-lifecycle.cjs`）與 `settings-store` catalog CRUD（`settings-store-catalog.cjs`）。
 - 補 App／Settings jsdom 整合測試。
-- 建立 Idle 長跑、切換模型與記憶體的可重複 Windows 基準。
+- 建立 Idle 長跑、切換模型與記憶體的可重複 Windows 基準（自動 `baseline:startup` 不含 GUI 長駐）。
 - 取得授權清楚的真實 VRoid／UniVRM／Blender 樣本，補 exporter 人工結果；二進位不入庫。
 
 ### Windows 與發行驗收
 
-- 為候選 Release 留存版本化 Windows smoke 證據：安裝、升級、移除、protocol、系統匣、MCP、DPI 與鍵盤。
+- 為候選／正式 Release 留存版本化 Windows smoke：安裝、升級、移除、protocol、系統匣、MCP、DPI 與鍵盤。
 - 完成 installer 簽署、publisher、SmartScreen 與升級路徑驗證。
 - 為 native helper 建立可測試的 COM／WASAPI 錯誤型別或退出碼，並驗證播放、裝置切換與 recovery。
-- 補 protocol／tray／桌面流程的實機 smoke；無桌面或密鑰時只標記未驗，不虛構完成。
+- 無桌面或密鑰時只標記未驗，不虛構完成。
 
 ### 完成條件
 
-- 狀態仲裁、動作用途、口型增益、氣泡輸入／TTL／佇列與 MCP opt-in gate 有自動測試；30% 角色尺寸與不同 DPI 的 Windows UI 行為有實機證據。
-- v0.6–v0.8 移入項目完成，或有明確理由移出 1.0 範圍。
+- 狀態槽 UI／MCP 狀態工具有自動測試；30% 角色尺寸與多 DPI 有實機證據。
 - 至少一版正式資產有 SHA-256、Windows smoke 與簽章狀態紀錄。
 - `npm run check`、CI、CodeQL 與 production audit 無未處理高風險項。
 
@@ -83,8 +81,6 @@ v0.6–v0.8 已完成項不再逐條留在路線圖；尚未完成的工作已�
 
 ## 接下來三件事
 
-1. [x] 實作動作用途 profile，讓品質分析先理解 `loop`／`one-shot`／`pose`。
-2. [x] 實作角色狀態仲裁、氣泡 DOM 與 MCP `show_message` opt-in。
-3. [x] 落地 `action-pack.json` 契約、overlay lifecycle 與氣泡邊緣避讓。
-
-近期焦點：系統狀態槽 UI／MCP 狀態工具接線、jsdom 整合；有 Windows／密鑰時再補實機與簽署。
+1. 接上系統狀態槽 UI 與 MCP 狀態工具（沿用既有正規化與仲裁）。
+2. 補 App／Settings jsdom 整合與 action-pack 匯入管線（不繞過 gate）。
+3. 有 Windows／密鑰時補 smoke、簽署與 30%／DPI 實機證據。

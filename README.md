@@ -36,9 +36,10 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；可搜尋來源目錄；sticky discovery 與 helper 狀態（missing／target_missing／no_output／listening） |
 | 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵、重設視角、聆聽／說話預覽、關於 |
 | 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告（report／strict／off）；VRM 0.x／1.0；一鍵清除；載入失敗可回復 |
-| 動作系統 | Idle／Speaking 槽、隨機多片段（避免立即重複）、可調 Idle 休息間隔、自訂動作與常用預設、MCP 即時 catalog |
+| 動作系統 | Idle／Speaking 槽、隨機多片段（避免立即重複）、可調 Idle 休息間隔、用途 `loop`／`one-shot`／`pose`、自訂動作與 MCP catalog |
+| 角色表現 | 狀態仲裁、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益（依縮放推估） |
 | 首次設定 | 進度清單（模型／可選動作／語音／MCP）；可複製診斷摘要（遮罩路徑與素材檔名）；與 `get_status` 共用 readiness |
-| Agent 整合 | loopback-only MCP（`voxavatar`、session TTL／容量上限）、HTTP 事件 API、`voxavatar://` |
+| Agent 整合 | loopback-only MCP（5 工具含 opt-in `show_message`）、HTTP 事件 API、`voxavatar://` |
 | 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS、SHA-256；`main` tip 已 tagged 才打包 |
 
 ## 相對上游
@@ -109,8 +110,9 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 - 播放指定動作，例如 `wave-hello`。
 - 顯示、隱藏或切換 VoxAvatar 視窗。
 - 查詢模型、語音 listener 與視窗狀態。
+- （需 Settings 啟用）在角色旁顯示短句氣泡。
 
-MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_status`。設定頁新增或移除動作後，現有 session 會更新工具描述。完整 schema、健康檢查、HTTP 事件與 URL protocol 見 [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)。
+MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_status`、`show_message`（預設關閉）。設定頁新增或移除動作後，現有 session 會更新工具描述。完整 schema、健康檢查、HTTP 事件與 URL protocol 見 [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)。
 
 ## 角色操作
 
@@ -122,9 +124,9 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-GitHub Latest Release 為 **`v0.5.0`**；`main` 已累積至 **`0.10.0`**（氣泡／`show_message`／口型增益接線），尚未批次 tag／Release。
+目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.13.1`**（文件與路線圖收斂）。上游 `xikhar/persona` 已評估至 `cf27d12`（#14／#15 不合併）。
 
-版本順序與完成條件見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與驗證缺口見 [`REVIEW.md`](REVIEW.md)。
+版本順序與接下來工作見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與驗證缺口見 [`REVIEW.md`](REVIEW.md)。
 
 ## 從原始碼執行
 

@@ -97,7 +97,7 @@ npm run baseline:startup
 
 產生 `release/startup-baseline.json`，量測 main process 關鍵模組的 `require()` 耗時（settings-store、mcp-schemas、directory-import、app-readiness）。預設不包含 `npm run build`；需要時加 `--include-build`。
 
-**注意：** 此腳本不含 Electron GUI 冷啟動、Idle 長駐或記憶體量測；真機 cold-start／Idle／memory 基準規劃於 **v0.9 Windows** 驗證階段完成。
+**注意：** 此腳本不含 Electron GUI 冷啟動、Idle 長駐或記憶體量測；真機 cold-start／Idle／memory 基準屬 [`ROADMAP.md`](../ROADMAP.md) v0.14 Windows 驗收項。
 
 ## 設定與環境變數
 

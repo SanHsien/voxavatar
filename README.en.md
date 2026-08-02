@@ -36,9 +36,10 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 | Voice lip sync | App / custom matcher / external events / system-output (opt-in) loopback; searchable sources; sticky discovery and helper states (`missing` / `target_missing` / `no_output` / `listening`) |
 | Desktop avatar | Transparent topmost click-through, drag, zoom (min 30%), rotate, tray left/right menus, reset view, listen/speak preview, About |
 | Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports (`report` / `strict` / `off`); VRM 0.x / 1.0; one-click clear; recoverable load failures |
-| Action system | Idle / Speaking slots, random multi-clip (no immediate repeat), configurable Idle rest, custom actions and presets, live MCP catalog |
+| Action system | Idle / Speaking slots, random multi-clip (no immediate repeat), configurable Idle rest, `loop` / `one-shot` / `pose` purpose, custom actions and live MCP catalog |
+| Character presence | State arbitration, comic bubbles, `show_message` (Settings opt-in), lip-sync gain (size-based estimate) |
 | First-run setup | Progress checklist (model / optional actions / voice / MCP); copyable redacted diagnostics; shared readiness with `get_status` |
-| Agent integration | Loopback-only MCP (`voxavatar`, session TTL / capacity), HTTP event API, `voxavatar://` |
+| Agent integration | Loopback-only MCP (5 tools including opt-in `show_message`), HTTP event API, `voxavatar://` |
 | Release quality | Windows CI, CodeQL, media-license gate, NSIS, SHA-256; package only when `main` tip is tagged |
 
 ## Relative to upstream
@@ -103,9 +104,9 @@ Keep VoxAvatar running and register it once:
 codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 ```
 
-Restart Codex or start a new task, then ask it to list installed actions, play an action such as `wave-hello`, control the window, or report model and listener status.
+Restart Codex or start a new task, then ask it to list installed actions, play an action such as `wave-hello`, control the window, report model and listener status, or (when enabled in Settings) show a short bubble caption.
 
-The MCP tools are `list_animations`, `play_animation`, `control_window`, and `get_status`. Existing sessions receive updated tool descriptions after actions are added or removed in Settings. See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) for schemas, health checks, HTTP events, and URL protocol details.
+The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_status`, and `show_message` (default off). Existing sessions receive updated tool descriptions after actions are added or removed in Settings. See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) for schemas, health checks, HTTP events, and URL protocol details.
 
 ## Avatar controls
 
@@ -117,9 +118,9 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, and `ge
 
 ## Project status and roadmap
 
-The GitHub Latest Release is **`v0.5.0`**; `main` has accumulated **`0.10.0`** (bubbles / `show_message` / lip-sync wiring) and has not yet been batch-tagged or Released.
+The published release is **`v0.13.0`**; `main` tip is **`0.13.1`** (docs/roadmap sync). Upstream `xikhar/persona` is evaluated through `cf27d12` (#14 / #15 skipped).
 
-See [`ROADMAP.en.md`](ROADMAP.en.md) for version order and completion criteria, and [`REVIEW.md`](REVIEW.md) for current health and validation gaps (Traditional Chinese).
+See [`ROADMAP.en.md`](ROADMAP.en.md) for version order and next work, and [`REVIEW.md`](REVIEW.md) for current health and validation gaps (Traditional Chinese).
 
 ## Run from source
 

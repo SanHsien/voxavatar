@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { Avatar } from './Avatar';
 import type { PlayableAnimationType } from '../animation-catalog';
 import { calculateFullBodyFraming } from '../camera-framing';
+import type { ProjectedHeadReport } from '../head-projection';
 import { resolveLightingSettings } from '../settings-defaults';
 
 interface SceneProps {
@@ -28,6 +29,8 @@ interface SceneProps {
   speaking: boolean;
   /** 桌面 overlay：穿透／拖曳／右鍵選單；Settings 預覽關閉。 */
   interactiveOverlay?: boolean;
+  /** VRM head／chest 骨點螢幕投影（供氣泡錨點與口型增益）。 */
+  onHeadProjection?: (report: ProjectedHeadReport | null) => void;
 }
 
 interface TargetControls {
@@ -335,7 +338,11 @@ export function Scene(props: SceneProps) {
         object={avatarScene}
         resetToken={resetToken}
       />
-      <Avatar {...props} onReady={handleAvatarReady} />
+      <Avatar
+        {...props}
+        onHeadProjection={props.onHeadProjection}
+        onReady={handleAvatarReady}
+      />
       {props.groundShadow && grounding && (
         <ContactShadows
           blur={2.4}

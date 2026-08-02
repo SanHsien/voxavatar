@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.15.0 - 2026-08-02
+
+- Scene／Avatar 以 VRM `head`（及 `upperChest`／`chest`／`spine` 退回）骨點接上 `head-projection`：每幀投影到 Canvas CSS 座標。
+- 氣泡錨點優先使用骨點投影；缺骨點或相機後方時退回角色尺寸估算。
+- 口型增益改用即時投影的 `headHeightPx`（每幀參數），隨角色遠近調整開口。
+- 新增 `vrm-head-bones` 與投影回報節流／測試；文件與路線圖同步。
+
 ## 0.14.1 - 2026-08-02
 
 - 抽出 `head-projection` 純邏輯：世界座標→視窗投影、頭部錨點解析；氣泡與口型共用尺寸退回路徑，並預留骨點投影輸入。

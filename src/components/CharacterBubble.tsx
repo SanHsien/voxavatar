@@ -12,9 +12,11 @@ export interface CharacterBubbleProps {
   characterSize?: number;
   /** 測試或外部覆寫；未提供時依視窗與角色尺寸估算錨點。 */
   layout?: BubbleLayout | null;
-  /** 可選：由 Scene 投影的頭部／胸口螢幕座標（CSS px）。 */
+  /** 可選：由 Scene 投影的頭部／胸口螢幕座標（與 projectionViewport 同一空間）。 */
   projectedHead?: { x: number; y: number } | null;
   projectedChest?: { x: number; y: number } | null;
+  /** 與投影座標同一空間的尺寸；未提供時量測 offsetParent／window。 */
+  projectionViewport?: { width: number; height: number } | null;
 }
 
 export function CharacterBubble({
@@ -23,6 +25,7 @@ export function CharacterBubble({
   layout: layoutOverride = null,
   projectedHead = null,
   projectedChest = null,
+  projectionViewport = null,
 }: CharacterBubbleProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<BubbleLayout | null>(layoutOverride);
@@ -39,19 +42,28 @@ export function CharacterBubble({
 
     const measure = () => {
       const el = rootRef.current;
+      const host = el?.offsetParent as HTMLElement | null;
+      const viewportWidth =
+        projectionViewport?.width && projectionViewport.width > 0
+          ? projectionViewport.width
+          : host?.clientWidth || window.innerWidth;
+      const viewportHeight =
+        projectionViewport?.height && projectionViewport.height > 0
+          ? projectionViewport.height
+          : host?.clientHeight || window.innerHeight;
       const bubbleWidth = el?.offsetWidth || 200;
       const bubbleHeight = el?.offsetHeight || 64;
       const anchor = resolveHeadAnchor({
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
+        viewportWidth,
+        viewportHeight,
         characterSize,
         projectedHead,
         projectedChest,
       });
       setLayout(
         resolveBubbleLayout({
-          viewportWidth: window.innerWidth,
-          viewportHeight: window.innerHeight,
+          viewportWidth,
+          viewportHeight,
           anchorX: anchor.x,
           anchorY: anchor.y,
           bubbleWidth,
@@ -71,6 +83,7 @@ export function CharacterBubble({
     layoutOverride,
     projectedHead,
     projectedChest,
+    projectionViewport,
   ]);
 
   if (!message) return null;

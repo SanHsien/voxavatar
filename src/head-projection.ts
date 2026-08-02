@@ -1,6 +1,6 @@
 /**
  * 頭部錨點與螢幕投影（純邏輯）。
- * 精確骨點投影就緒前，氣泡／口型以角色尺寸估算為退回路徑。
+ * 優先使用 Scene／VRM 骨點投影；缺資料時以角色尺寸估算為退回路徑。
  */
 
 import type { BubbleHorizontalSide } from './bubble-layout';
@@ -8,6 +8,11 @@ import type { BubbleHorizontalSide } from './bubble-layout';
 export interface ViewportSize {
   width: number;
   height: number;
+}
+
+export interface ScreenPoint {
+  x: number;
+  y: number;
 }
 
 export interface HeadAnchorEstimate {
@@ -22,6 +27,15 @@ export interface WorldPoint {
   x: number;
   y: number;
   z: number;
+}
+
+/** Scene → App／氣泡／口型的頭部投影回報。 */
+export interface ProjectedHeadReport {
+  projectedHead: ScreenPoint;
+  projectedChest: ScreenPoint | null;
+  headHeightPx: number;
+  /** 與投影座標同一空間（通常為 Canvas CSS 像素）。 */
+  viewport: ViewportSize;
 }
 
 /** 4×4 列主序或 three.js Matrix4.elements（列主序）。 */
@@ -119,8 +133,8 @@ export function resolveHeadAnchor(input: {
   viewportWidth: number;
   viewportHeight: number;
   characterSize: number;
-  projectedHead?: { x: number; y: number } | null;
-  projectedChest?: { x: number; y: number } | null;
+  projectedHead?: ScreenPoint | null;
+  projectedChest?: ScreenPoint | null;
 }): HeadAnchorEstimate {
   const fallback = estimateHeadAnchorFromCharacterSize(
     input.viewportWidth,
@@ -144,4 +158,65 @@ export function resolveHeadAnchor(input: {
     preferredSide,
     headHeightPx,
   };
+}
+
+/**
+ * 將頭部／胸口世界座標投影為螢幕回報；任一步失敗則回傳 null（呼叫端應退回估算）。
+ */
+export function projectHeadWorldPointsToReport(
+  points: { head: WorldPoint; chest: WorldPoint | null },
+  viewProjection: Matrix4Elements,
+  viewport: ViewportSize,
+  characterSize: number,
+): ProjectedHeadReport | null {
+  const projectedHead = projectWorldPointToViewport(
+    points.head,
+    viewProjection,
+    viewport,
+  );
+  if (!projectedHead) return null;
+  const projectedChestPoint = points.chest
+    ? projectWorldPointToViewport(points.chest, viewProjection, viewport)
+    : null;
+  const projectedChest =
+    projectedChestPoint != null
+      ? { x: projectedChestPoint.x, y: projectedChestPoint.y }
+      : null;
+  const head = { x: projectedHead.x, y: projectedHead.y };
+  const anchor = resolveHeadAnchor({
+    viewportWidth: viewport.width,
+    viewportHeight: viewport.height,
+    characterSize,
+    projectedHead: head,
+    projectedChest,
+  });
+  return {
+    projectedHead: head,
+    projectedChest,
+    headHeightPx: anchor.headHeightPx,
+    viewport: { width: viewport.width, height: viewport.height },
+  };
+}
+
+/** 投影回報是否值得推上 React（位移或尺寸變化超過閾值）。 */
+export function shouldPublishHeadProjection(
+  previous: ProjectedHeadReport | null,
+  next: ProjectedHeadReport,
+  minMovePx = 1.5,
+  minHeightDeltaPx = 2,
+): boolean {
+  if (!previous) return true;
+  if (
+    previous.viewport.width !== next.viewport.width ||
+    previous.viewport.height !== next.viewport.height
+  ) {
+    return true;
+  }
+  const dx = next.projectedHead.x - previous.projectedHead.x;
+  const dy = next.projectedHead.y - previous.projectedHead.y;
+  if (Math.hypot(dx, dy) >= minMovePx) return true;
+  if (Math.abs(next.headHeightPx - previous.headHeightPx) >= minHeightDeltaPx) {
+    return true;
+  }
+  return false;
 }

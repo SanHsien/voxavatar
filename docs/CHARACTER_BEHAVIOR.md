@@ -104,7 +104,7 @@ VRMA 品質分析先區分用途，再套用規則：
 - 在既有透明 avatar `BrowserWindow` 內用 DOM overlay（`CharacterBubble`）呈現；不為純顯示新增第二個 privileged 視窗。
 - 純文字，支援 Unicode、Emoji 與顏文字；不解析 HTML、Markdown、圖片或連結。
 - 預設最多 80 個 Unicode grapheme，可設定 1–15 秒 TTL；到期淡出。
-- 以 `resolveBubbleLayout` 在視窗邊緣自動換邊（頭部錨點目前為角色尺寸估算；精確 head 投影仍待）；不可阻擋拖曳或點穿。
+- 以 `resolveBubbleLayout` 在視窗邊緣自動換邊（頭部錨點優先使用 Scene 投影的 VRM head／chest 骨點；缺骨點時退回角色尺寸估算）；不可阻擋拖曳或點穿。
 - 同時只顯示一則；新訊息依來源優先序取代或排入小型有界佇列。
 - 內容只在記憶體與本機視窗呈現，不寫入歷史或 debug log。
 
@@ -113,7 +113,7 @@ MCP 工具 `show_message` 已提供：參數只含 `text`、可選 `duration_ms`
 ## 驗證
 
 - 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試。
-- 口型增益純函式見 `src/lip-sync-gain.ts`；頭部錨點／投影純邏輯見 `src/head-projection.ts`（Scene 骨點接線與 DPI 實機仍待）。
+- 口型增益純函式見 `src/lip-sync-gain.ts`；頭部錨點／投影見 `src/head-projection.ts` 與 `src/vrm-head-bones.ts`（Scene 已接 VRM bone；DPI 實機仍待）。
 - 動作品質使用合成 fixture 與用途別門檻；真實素材只記授權清楚的人工結果。
 - 氣泡位置、DPI、長字串、Emoji、點穿與 reduced motion 以 Windows 實機 smoke 驗證。
 - 修正以最小範圍進行；不得因單一素材問題改寫整套 renderer 或降低安全 gate。

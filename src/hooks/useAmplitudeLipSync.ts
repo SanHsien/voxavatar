@@ -5,7 +5,7 @@ import { computeLipSyncOpen } from '../lip-sync-gain';
 const VISEMES = ['aa', 'ee', 'ih', 'oh', 'ou'] as const;
 
 export interface AmplitudeLipSyncOptions {
-  /** 頭部螢幕近似高度（px）；未知時可傳 characterSize 推估值。 */
+  /** 預設頭部螢幕高度（px）；每幀可再以第四參數覆寫。 */
   headHeightPx?: number | null;
   intensity?: number;
   minOpen?: number;
@@ -17,12 +17,17 @@ export function useAmplitudeLipSync(
 ) {
   const smoothed = useRef(0);
   const phase = useRef(0);
-  const headHeightPx = options.headHeightPx ?? null;
+  const defaultHeadHeightPx = options.headHeightPx ?? null;
   const intensity = options.intensity;
   const minOpen = options.minOpen;
 
   return useCallback(
-    (delta: number, level: number, speaking: boolean) => {
+    (
+      delta: number,
+      level: number,
+      speaking: boolean,
+      headHeightPx: number | null = defaultHeadHeightPx,
+    ) => {
       if (!vrm?.expressionManager) return;
       const audible = speaking && level > 0.008;
       const { open } = computeLipSyncOpen({
@@ -45,6 +50,6 @@ export function useAmplitudeLipSync(
         );
       }
     },
-    [vrm, headHeightPx, intensity, minOpen],
+    [vrm, defaultHeadHeightPx, intensity, minOpen],
   );
 }

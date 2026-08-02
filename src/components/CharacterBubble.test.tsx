@@ -45,4 +45,24 @@ describe('CharacterBubble', () => {
     expect(html).toContain('left:24px');
     expect(html).toContain('top:40px');
   });
+
+  it('accepts projected head props without throwing on SSR', () => {
+    const html = renderToStaticMarkup(
+      <CharacterBubble
+        projectedHead={{ x: 420, y: 160 }}
+        projectedChest={{ x: 420, y: 260 }}
+        projectionViewport={{ width: 800, height: 600 }}
+        message={{
+          id: '3',
+          text: '投影',
+          durationMs: 2000,
+          mood: 'thinking',
+          sourceId: 's',
+          atMs: 3,
+        }}
+      />,
+    );
+    expect(html).toContain('投影');
+    expect(html).toContain('mood-thinking');
+  });
 });

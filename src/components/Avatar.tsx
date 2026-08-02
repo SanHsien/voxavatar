@@ -1,11 +1,17 @@
-import { Suspense, useEffect, useLayoutEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
-import type * as THREE from 'three';
+import { Suspense, startTransition, useEffect, useLayoutEffect, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import * as THREE from 'three';
 import { useVrmLoader } from '../hooks/useVrmLoader';
 import { useVrmAnimation } from '../hooks/useVrmAnimation';
 import { useAmplitudeLipSync } from '../hooks/useAmplitudeLipSync';
 import { useBlink } from '../hooks/useBlink';
-import { estimateHeadAnchorFromCharacterSize } from '../head-projection';
+import {
+  estimateHeadAnchorFromCharacterSize,
+  projectHeadWorldPointsToReport,
+  shouldPublishHeadProjection,
+  type ProjectedHeadReport,
+} from '../head-projection';
+import { sampleVrmHeadWorldPoints } from '../vrm-head-bones';
 import type { PlayableAnimationType } from '../animation-catalog';
 
 interface AvatarProps {
@@ -19,6 +25,8 @@ interface AvatarProps {
   playback: 'loop' | 'once';
   speaking: boolean;
   onReady?: (scene: THREE.Object3D) => void;
+  /** 頭部骨點螢幕投影（節流後回報；卸載或無骨點時為 null）。 */
+  onHeadProjection?: (report: ProjectedHeadReport | null) => void;
 }
 
 function AvatarModel({
@@ -32,16 +40,22 @@ function AvatarModel({
   playback,
   speaking,
   onReady,
+  onHeadProjection,
 }: AvatarProps) {
   const vrm = useVrmLoader(modelUrl);
   const { play, update: updateAnimation } = useVrmAnimation(vrm);
+  const camera = useThree((state) => state.camera);
+  const size = useThree((state) => state.size);
+  const viewProjection = useRef(new THREE.Matrix4());
+  const fallbackHeadHeight = estimateHeadAnchorFromCharacterSize(
+    size.width > 0 ? size.width : 800,
+    size.height > 0 ? size.height : 600,
+    characterSize,
+  ).headHeightPx;
+  const headHeightPxRef = useRef(fallbackHeadHeight);
+  const lastPublishedRef = useRef<ProjectedHeadReport | null>(null);
+  const lastPublishAtRef = useRef(0);
   const updateLipSync = useAmplitudeLipSync(vrm, {
-    // 精確骨點投影接線前，與氣泡共用尺寸估算路徑。
-    headHeightPx: estimateHeadAnchorFromCharacterSize(
-      typeof window !== 'undefined' ? window.innerWidth : 800,
-      typeof window !== 'undefined' ? window.innerHeight : 600,
-      characterSize,
-    ).headHeightPx,
     intensity: 1,
     minOpen: 0.08,
   });
@@ -66,11 +80,55 @@ function AvatarModel({
     if (vrm) onReady?.(vrm.scene);
   }, [onReady, vrm]);
 
+  useEffect(() => {
+    return () => {
+      lastPublishedRef.current = null;
+      onHeadProjection?.(null);
+    };
+  }, [onHeadProjection, modelUrl]);
+
   useFrame((_, delta) => {
     if (!vrm) return;
     updateAnimation(delta);
     updateBlink(delta);
-    updateLipSync(delta, audioLevel, speaking);
+
+    let liveHeadHeight = headHeightPxRef.current;
+    const points = sampleVrmHeadWorldPoints(vrm);
+    if (points && size.width > 0 && size.height > 0) {
+      camera.updateMatrixWorld(true);
+      viewProjection.current.multiplyMatrices(
+        camera.projectionMatrix,
+        camera.matrixWorldInverse,
+      );
+      const report = projectHeadWorldPointsToReport(
+        points,
+        viewProjection.current.elements,
+        { width: size.width, height: size.height },
+        characterSize,
+      );
+      if (report) {
+        liveHeadHeight = report.headHeightPx;
+        headHeightPxRef.current = liveHeadHeight;
+        if (onHeadProjection) {
+          const now =
+            typeof performance !== 'undefined' ? performance.now() : Date.now();
+          const moved = shouldPublishHeadProjection(
+            lastPublishedRef.current,
+            report,
+          );
+          const due = now - lastPublishAtRef.current >= 80;
+          if (moved || due) {
+            lastPublishedRef.current = report;
+            lastPublishAtRef.current = now;
+            startTransition(() => {
+              onHeadProjection(report);
+            });
+          }
+        }
+      }
+    }
+
+    updateLipSync(delta, audioLevel, speaking, liveHeadHeight);
     vrm.update(delta);
   });
 

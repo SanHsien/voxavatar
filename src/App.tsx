@@ -37,6 +37,7 @@ import {
   loadPackagedSettingsFallback,
   SETTINGS_FALLBACK,
 } from './settings-defaults';
+import type { ProjectedHeadReport } from './head-projection';
 
 const INITIAL_STATE: VoiceState = {
   activity: 'idle',
@@ -63,6 +64,8 @@ export function App() {
   const [externalStateEvents, setExternalStateEvents] = useState<
     CharacterStateEvent[]
   >([]);
+  const [headProjection, setHeadProjection] =
+    useState<ProjectedHeadReport | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const idleRestTimerRef = useRef<number | null>(null);
   const stateMotionKeyRef = useRef('');
@@ -260,6 +263,11 @@ export function App() {
       : settings.models.find(
           (model) => model.id === settings.default_model_id,
         );
+
+  useEffect(() => {
+    setHeadProjection(null);
+  }, [defaultModel?.id]);
+
   const ambientUrls = useMemo(
     () => ambientIdleMotionUrls(settings.animations),
     [settings.animations],
@@ -321,12 +329,16 @@ export function App() {
           lighting={settings.model_lighting[defaultModel.id]}
           modelUrl={defaultModel.asset_url}
           onAnimationComplete={handleAnimationComplete}
+          onHeadProjection={setHeadProjection}
           playback={playback}
           speaking={speaking}
         />
         <CharacterBubble
           characterSize={settings.character_size}
           message={activeMessage}
+          projectedChest={headProjection?.projectedChest ?? null}
+          projectedHead={headProjection?.projectedHead ?? null}
+          projectionViewport={headProjection?.viewport ?? null}
         />
       </main>
     </SceneErrorBoundary>

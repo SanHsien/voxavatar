@@ -964,8 +964,19 @@ button {
 }
 
 .form-actions {
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
+}
+
+.model-import-actions {
+  align-items: stretch;
+}
+
+.model-import-actions > .primary-button,
+.model-import-actions > .secondary-button {
+  min-height: 32px;
+  padding: 0 14px;
 }
 
 /* --- Badges -------------------------------------------------------------- */
@@ -1706,8 +1717,8 @@ button {
   gap: 8px;
 }
 
-.import-panel .secondary-button {
-  margin-top: 10px;
+.import-panel .form-actions + .desktop-note {
+  margin-top: 12px;
 }
 
 .empty-clips {

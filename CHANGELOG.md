@@ -2,6 +2,10 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.9 - 2026-08-02
+
+- Settings 模型「新增自訂模型」：選擇 VRM／從目錄評估匯入改為與其他頁相同的 `form-actions` 橫列間距，不再黏在一起。
+
 ## 0.16.8 - 2026-08-02
 
 - Settings「未分類片段池」：可先匯入 VRMA，再拖曳到動作卡片指定；已指定片段可移回池中（settings schema 11 `unassigned_clips`）。

@@ -251,31 +251,35 @@ export function SettingsModelsSection({
           </div>
           <span className="file-pill">.vrm</span>
         </div>
-        <label>
-          {t('models.nameLabel')}
-          <input
-            maxLength={80}
-            onChange={(event) => setModelName(event.target.value)}
-            placeholder={t('models.namePlaceholder')}
-            value={modelName}
-          />
-        </label>
-        <button
-          className="primary-button"
-          disabled={busy || !bridge}
-          onClick={() => void importModel()}
-          type="button"
-        >
-          {t('models.chooseVrm')}
-        </button>
-        <button
-          className="secondary-button"
-          disabled={busy || !bridge?.importModelsFromDirectory}
-          onClick={() => void importModelsFromDirectory()}
-          type="button"
-        >
-          {t('models.chooseVrmFolder')}
-        </button>
+        <div className="form-stack">
+          <label>
+            {t('models.nameLabel')}
+            <input
+              maxLength={80}
+              onChange={(event) => setModelName(event.target.value)}
+              placeholder={t('models.namePlaceholder')}
+              value={modelName}
+            />
+          </label>
+        </div>
+        <div className="form-actions model-import-actions">
+          <button
+            className="primary-button"
+            disabled={busy || !bridge}
+            onClick={() => void importModel()}
+            type="button"
+          >
+            {t('models.chooseVrm')}
+          </button>
+          <button
+            className="secondary-button"
+            disabled={busy || !bridge?.importModelsFromDirectory}
+            onClick={() => void importModelsFromDirectory()}
+            type="button"
+          >
+            {t('models.chooseVrmFolder')}
+          </button>
+        </div>
         <p className="desktop-note">{t('models.chooseVrmFolderHint')}</p>
         {!bridge && <p className="desktop-note">{t('models.desktopOnly')}</p>}
       </section>

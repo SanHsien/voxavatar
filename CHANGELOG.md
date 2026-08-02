@@ -2,6 +2,10 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.15 - 2026-08-02
+
+- 修正 CodeQL `js/incomplete-url-substring-sanitization`：`secureRendererWindow` 測試改以精確陣列斷言外開 URL，不再對 URL 字串使用 `.includes` 子字串比對。
+
 ## 0.16.14 - 2026-08-02
 
 - 公開安裝包明確標示 **NotSigned**：README／SECURITY 下載與完整性說明、About 對話框簽署狀態、Release workflow／`v0.16.12` notes 誠實段。

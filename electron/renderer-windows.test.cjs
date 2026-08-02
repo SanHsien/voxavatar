@@ -116,7 +116,10 @@ test("secureRendererWindow denies window.open and blocks foreign navigation", ()
     "https://evil.example/path",
   );
   assert.equal(prevented, true);
-  assert.ok(opened.includes("https://evil.example/path"));
+  assert.deepEqual(opened, [
+    "https://example.com/docs",
+    "https://evil.example/path",
+  ]);
 
   prevented = false;
   handlers.navigate({ preventDefault: () => { prevented = true; } }, allowed);

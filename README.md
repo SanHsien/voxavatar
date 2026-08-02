@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`0.16.14`**（未簽署標示、誠實 release-evidence、helper 降級人話）。GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。本輪 batch cut 後 Latest Release 為 **`v0.16.14`**；GUI smoke／Authenticode 仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`0.16.15`**（關閉 CodeQL URL 子字串告警）。GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 仍為 **`v0.16.14`**；GUI smoke／Authenticode 仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

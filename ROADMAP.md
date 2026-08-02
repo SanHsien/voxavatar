@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`0.16.14`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.15`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,16 +11,16 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.14`／`main`；GitHub Latest Release：`v0.16.14`
+覆核基準：`0.16.15`／`main`；GitHub Latest Release：`v0.16.14`
 
-沒有已知未解 P0／P1。上游仍為 `9287ea3`（無新 commit）。**本輪不規劃新功能路線**；關閉證據／未簽署標示／helper 降級等非僅測試缺口。`0.16.14` 落地誠實 release-evidence、NotSigned 標示與 listener 人話。
+沒有已知未解 P0／P1。上游仍為 `9287ea3`。`0.16.15` 關閉 CodeQL open finding（`js/incomplete-url-substring-sanitization`）；本輪不另切 installer Release。
 
-- Latest Release：`v0.16.14`（installer＋SHA256；GUI／簽署／真實 exporter 仍標未驗；證據見 `docs/release-evidence/v0.16.14/`）。
+- Latest Release：`v0.16.14`（installer＋SHA256；GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `9287ea3`；無 open PR；#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
-本輪驗證：`npm run check` 全綠；Release／Latest／資產依 [`docs/RELEASING.md`](docs/RELEASING.md) 核對。
+本輪驗證：`npm run check` 全綠；本地 CodeQL security-and-quality 0 findings；推送後以 GitHub CodeQL 關閉告警。
 
 ### 驗證缺口（標未驗，不虛構完成）
 
@@ -77,6 +77,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.16.12 | schema／IPC／tray／Speaking bone／Settings 互動契約收斂；batch cut 安裝版 |
 | v0.16.13 | assign／action-pack IPC 形狀；MCP show_message；Appearance／確認對話；secureRenderer／avatar preload |
 | v0.16.14 | NotSigned 標示；release-evidence；helper_error 人話／遮罩；INTEGRATIONS／相容證據骨架 |
+| v0.16.15 | 關閉 CodeQL `js/incomplete-url-substring-sanitization`（renderer 導航測試斷言） |
 
 ## 既有缺口收斂
 

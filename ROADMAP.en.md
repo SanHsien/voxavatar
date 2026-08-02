@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.14` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.15` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,16 +11,16 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.14` / `main`; GitHub Latest Release: `v0.16.14`
+Review baseline: `0.16.15` / `main`; GitHub Latest Release: `v0.16.14`
 
-No known open P0/P1. Upstream remains `9287ea3` (no newer tip commits). **No new feature tracks this round**—close evidence / unsigned labeling / helper-degradation gaps that are not test-only. `0.16.14` ships honest release-evidence, NotSigned labeling, and human-readable listener copy.
+No known open P0/P1. Upstream remains `9287ea3`. `0.16.15` closes the open CodeQL finding (`js/incomplete-url-substring-sanitization`); no installer Release this round.
 
-- Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified; evidence under `docs/release-evidence/v0.16.14/`).
+- Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
 
-This round: `npm run check` green; Release/Latest/assets verified per [`docs/RELEASING.md`](docs/RELEASING.md).
+This round: `npm run check` green; local CodeQL security-and-quality 0 findings; GitHub CodeQL closes the alert after push.
 
 ### Verification gaps (marked unverified; never fabricate completion)
 
@@ -77,6 +77,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.16.12 | Schema/IPC/tray/Speaking-bone/Settings interaction contracts; installer batch cut |
 | v0.16.13 | Assign/action-pack IPC shapes; MCP show_message; Appearance/confirmation; secureRenderer/avatar preload |
 | v0.16.14 | NotSigned labeling; release-evidence; helper_error copy/redaction; INTEGRATIONS / compatibility evidence scaffold |
+| v0.16.15 | Close CodeQL `js/incomplete-url-substring-sanitization` (renderer navigation test assertion) |
 
 ## Closing existing gaps
 

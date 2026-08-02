@@ -217,7 +217,7 @@ const ZH_TW: MessageDictionary = {
   'actions.idleGuideStep3': '查看完整角色表現指南。',
   'actions.listTitle': '動作列表',
   'actions.listDesc':
-    '每張卡片可用「+ 加入 VRMA 檔案」加入任意數量片段，並以「編輯」修改 MCP 名稱／描述／觸發情境。點選片段可預覽；播放時會從中選取。',
+    '緊接在上方建立區之後。系統待機／說話可用「+ 加入 VRMA」；自訂動作另有「編輯」。點選片段可預覽。',
   'actions.resetPackaged': '重設內建動作',
   'actions.deleteAllClips': '一鍵刪除全部 VRMA',
   'actions.systemAction': '系統動作',
@@ -269,10 +269,10 @@ const ZH_TW: MessageDictionary = {
   'actions.triggerLabel': '觸發情境 animation_trigger_scenario',
   'actions.createTitle': '建立自訂動作',
   'actions.createDesc':
-    '先填名稱與 MCP 描述並建立動作；建立後到下方該動作卡片按「+ 加入 VRMA 檔案」加入任意數量片段。已建立的動作可用「編輯」修改詳情，並隨時增刪片段。',
+    '先填名稱與 MCP 描述並建立；下方「動作列表」會立刻出現該卡片，可按「編輯」改詳情，並用「+ 加入 VRMA 檔案」增刪片段。',
   'actions.presetsTitle': '常用動作選單',
   'actions.presetsDesc':
-    '點選可套用到下方表單；「套用並建立」會立刻建立動作。建立後請到下方卡片加入 VRMA，之後也可編輯。',
+    '點選可套用到下方表單；「套用並建立」會立刻建立，並捲動到下方對應卡片以加入 VRMA。',
   'actions.presetsApply': '套用到表單',
   'actions.presetsApplyCreate': '套用並建立',
   'actions.presetsExists': '已建立',
@@ -697,7 +697,7 @@ const EN: MessageDictionary = {
   'actions.idleGuideStep3': 'Open the full character behavior guide.',
   'actions.listTitle': 'Animation actions',
   'actions.listDesc':
-    'On each card, use “+ Add VRMA files” for any number of clips, and Edit to change the MCP name/description/trigger. Click a clip to preview; playback picks from them.',
+    'Directly under the create form. System Idle/Speaking use “+ Add VRMA”; custom actions also have Edit. Click a clip to preview.',
   'actions.resetPackaged': 'Reset packaged actions',
   'actions.deleteAllClips': 'Delete all VRMA',
   'actions.systemAction': 'System action',
@@ -749,10 +749,10 @@ const EN: MessageDictionary = {
   'actions.triggerLabel': 'Trigger scenario animation_trigger_scenario',
   'actions.createTitle': 'Create a custom action',
   'actions.createDesc':
-    'Fill in the name and MCP description, then create the action. Afterward, use “+ Add VRMA files” on its card below to add any number of clips. Edit changes details later; you can add or remove clips anytime.',
+    'Fill the name and MCP description, then create. The action card appears immediately in the list below—use Edit for details and “+ Add VRMA files” for clips.',
   'actions.presetsTitle': 'Common actions',
   'actions.presetsDesc':
-    'Select a preset to apply it to the form below. “Apply & create” creates the action immediately. Then add VRMA on its card below; you can edit it later.',
+    'Click to apply to the form below. “Apply & create” creates it and scrolls to the card so you can add VRMA.',
   'actions.presetsApply': 'Apply to form',
   'actions.presetsApplyCreate': 'Apply & create',
   'actions.presetsExists': 'Already created',

@@ -1344,6 +1344,40 @@ button {
   white-space: pre;
 }
 
+.action-secondary-help {
+  padding: 12px 14px;
+}
+
+.action-secondary-help > summary {
+  cursor: pointer;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.action-secondary-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+.action-secondary-help > summary strong {
+  color: var(--text-primary);
+  font-size: var(--fs-md);
+}
+
+.action-secondary-help > summary span {
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+}
+
+.action-secondary-help[open] > summary {
+  margin-bottom: 10px;
+}
+
+.action-secondary-help .settings-steps {
+  margin-top: 0;
+}
+
 .action-preset-block {
   display: flex;
   flex-direction: column;

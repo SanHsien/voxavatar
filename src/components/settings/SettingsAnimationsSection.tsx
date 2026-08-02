@@ -152,49 +152,6 @@ export function SettingsAnimationsSection({
 
   return (
     <>
-      <section className="settings-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>{t('actions.idleGuideTitle')}</h2>
-            <p>{t('actions.idleGuideDesc')}</p>
-          </div>
-        </div>
-        <ol className="settings-steps">
-          <li>
-            {t('actions.idleGuideStep1Prefix')}{' '}
-            <a
-              href="https://booth.pm/en/items/5512385"
-              rel="noreferrer"
-              target="_blank"
-            >
-              BOOTH
-            </a>{' '}
-            {t('actions.idleGuideStep1Suffix')}
-          </li>
-          <li>{t('actions.idleGuideStep2')}</li>
-          <li>
-            <a
-              href="https://github.com/SanHsien/voxavatar/blob/main/docs/CHARACTER_BEHAVIOR.md"
-              rel="noreferrer"
-              target="_blank"
-            >
-              {t('actions.idleGuideStep3')}
-            </a>
-          </li>
-        </ol>
-      </section>
-
-      <SettingsQualityGatePanel
-        bridge={bridge}
-        busy={busy}
-        chooseVrmaReportDir={chooseVrmaReportDir}
-        clearVrmaReportDir={clearVrmaReportDir}
-        setVrmaQualityGate={setVrmaQualityGate}
-        setVrmaQualityScoreThresholds={setVrmaQualityScoreThresholds}
-        settings={settings}
-        t={t}
-      />
-
       <section className="settings-panel import-panel">
         <div className="panel-heading">
           <div>
@@ -693,6 +650,47 @@ export function SettingsAnimationsSection({
           })}
         </div>
       </section>
+
+      <details className="settings-panel action-secondary-help">
+        <summary>
+          <strong>{t('actions.idleGuideTitle')}</strong>
+          <span>{t('actions.idleGuideDesc')}</span>
+        </summary>
+        <ol className="settings-steps">
+          <li>
+            {t('actions.idleGuideStep1Prefix')}{' '}
+            <a
+              href="https://booth.pm/en/items/5512385"
+              rel="noreferrer"
+              target="_blank"
+            >
+              BOOTH
+            </a>{' '}
+            {t('actions.idleGuideStep1Suffix')}
+          </li>
+          <li>{t('actions.idleGuideStep2')}</li>
+          <li>
+            <a
+              href="https://github.com/SanHsien/voxavatar/blob/main/docs/CHARACTER_BEHAVIOR.md"
+              rel="noreferrer"
+              target="_blank"
+            >
+              {t('actions.idleGuideStep3')}
+            </a>
+          </li>
+        </ol>
+      </details>
+
+      <SettingsQualityGatePanel
+        bridge={bridge}
+        busy={busy}
+        chooseVrmaReportDir={chooseVrmaReportDir}
+        clearVrmaReportDir={clearVrmaReportDir}
+        setVrmaQualityGate={setVrmaQualityGate}
+        setVrmaQualityScoreThresholds={setVrmaQualityScoreThresholds}
+        settings={settings}
+        t={t}
+      />
     </>
   );
 }

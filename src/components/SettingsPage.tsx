@@ -1433,14 +1433,6 @@ export function SettingsPage() {
 
           {section === 'animations' && (
             <>
-              <SettingsStateSlotsSection
-                bridge={bridge}
-                busy={busy}
-                importActionPack={importActionPack}
-                setStateSlotBinding={setStateSlotBinding}
-                settings={settings}
-                t={t}
-              />
               <SettingsAnimationsSection
               addAnimationClips={addAnimationClips}
               addAnimationClipsFromDirectory={addAnimationClipsFromDirectory}
@@ -1475,6 +1467,14 @@ export function SettingsPage() {
               settings={settings}
               t={t}
             />
+              <SettingsStateSlotsSection
+                bridge={bridge}
+                busy={busy}
+                importActionPack={importActionPack}
+                setStateSlotBinding={setStateSlotBinding}
+                settings={settings}
+                t={t}
+              />
             </>
           )}
 

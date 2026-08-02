@@ -108,6 +108,26 @@ const ZH_TW: MessageDictionary = {
   'helper.error.native_helper_unknown': '原生 listener 發生未知錯誤。',
   'helper.missingHint':
     '開發模式若尚未編譯 helper，語音 loopback 會不可用；正式安裝包應內含 voxavatar-audio-listener.exe。',
+  'helper.hint.native_helper_missing':
+    '開發模式若尚未編譯 helper，語音 loopback 會不可用；正式安裝包應內含 voxavatar-audio-listener.exe。',
+  'helper.hint.native_helper_spawn_failed':
+    '請確認安裝包完整，或以系統管理員以外的一般桌面工作階段重試。',
+  'helper.hint.native_helper_com_error':
+    '請關閉後以一般桌面工作階段重新開啟 VoxAvatar，勿在不支援 COM 的服務工作階段執行。',
+  'helper.hint.native_helper_wasapi_error':
+    '請檢查預設播放裝置是否啟用，並關閉佔用獨佔模式的其他音訊工具後重試。',
+  'helper.hint.native_helper_device_error':
+    '請連接或啟用輸出裝置，再於設定重新整理語音來源。',
+  'helper.hint.native_helper_usage':
+    '請回報此問題；Usage 代表 helper 參數異常，通常為安裝損壞。',
+  'helper.hint.native_helper_permission':
+    '請檢查防毒／受控資料夾存取是否阻擋 voxavatar-audio-listener.exe。',
+  'helper.hint.native_helper_exit_nonzero':
+    '請重試語音來源；若持續失敗，改用外部事件模式或重裝安裝包。',
+  'helper.hint.native_helper_unknown':
+    '請重試；仍失敗時複製診斷摘要（已遮罩路徑）回報。',
+  'helper.hint.launch_failed':
+    '原生 listener 啟動失敗：檢查語音來源與播放裝置後重試。',
   'setup.code.model_missing': '尚未匯入或選取模型',
   'setup.code.model_configured': '模型已就緒',
   'setup.code.animations_optional_empty': '尚無可播放動作（可選）',
@@ -116,6 +136,10 @@ const ZH_TW: MessageDictionary = {
   'setup.code.helper_launch_failed': '原生 listener 啟動失敗',
   'setup.code.listener_inactive': '語音 listener 尚未就緒',
   'setup.code.voice_external': '外部事件語音模式',
+  'setup.code.voice_target_missing': '目標應用程式未在執行',
+  'setup.code.voice_listening': '正在接收目標音量',
+  'setup.code.voice_no_output': '已附掛、尚無播放輸出',
+  'setup.code.voice_ready': '語音來源已就緒',
   'setup.code.mcp_offline': '本機 MCP 尚未上線',
   'setup.code.mcp_online': '本機 MCP 已上線',
   'setup.code.mcp_starting': '本機 MCP 啟動中',
@@ -657,6 +681,26 @@ const EN: MessageDictionary = {
   'helper.error.native_helper_unknown': 'Native listener reported an unknown error.',
   'helper.missingHint':
     'In development, loopback voice is unavailable until the helper is built; official installers ship voxavatar-audio-listener.exe.',
+  'helper.hint.native_helper_missing':
+    'In development, compile the helper or use a Windows installer that includes voxavatar-audio-listener.exe.',
+  'helper.hint.native_helper_spawn_failed':
+    'Confirm the install is complete, then retry from a normal desktop session (not a service session).',
+  'helper.hint.native_helper_com_error':
+    'Quit and reopen VoxAvatar in a normal desktop session; COM is unavailable in some service contexts.',
+  'helper.hint.native_helper_wasapi_error':
+    'Check the default playback device and close apps holding exclusive audio mode, then retry.',
+  'helper.hint.native_helper_device_error':
+    'Connect or enable an output device, then refresh voice sources in Settings.',
+  'helper.hint.native_helper_usage':
+    'Report this issue; Usage means helper arguments were invalid (often a damaged install).',
+  'helper.hint.native_helper_permission':
+    'Check whether antivirus or Controlled Folder Access is blocking voxavatar-audio-listener.exe.',
+  'helper.hint.native_helper_exit_nonzero':
+    'Retry the voice source; if it persists, use External-events mode or reinstall.',
+  'helper.hint.native_helper_unknown':
+    'Retry; if it fails again, copy the redacted diagnostic summary when reporting.',
+  'helper.hint.launch_failed':
+    'Native listener failed to start—check the voice source and playback device, then retry.',
   'setup.code.model_missing': 'No model imported or selected',
   'setup.code.model_configured': 'Model ready',
   'setup.code.animations_optional_empty': 'No playable actions yet (optional)',
@@ -665,6 +709,10 @@ const EN: MessageDictionary = {
   'setup.code.helper_launch_failed': 'Native listener failed to start',
   'setup.code.listener_inactive': 'Voice listener not ready',
   'setup.code.voice_external': 'External-events voice mode',
+  'setup.code.voice_target_missing': 'Target application is not running',
+  'setup.code.voice_listening': 'Receiving target audio levels',
+  'setup.code.voice_no_output': 'Attached, no playback output yet',
+  'setup.code.voice_ready': 'Voice source ready',
   'setup.code.mcp_offline': 'Local MCP is offline',
   'setup.code.mcp_online': 'Local MCP is online',
   'setup.code.mcp_starting': 'Local MCP is starting',
@@ -1027,6 +1075,7 @@ const EN: MessageDictionary = {
   'voice.heading.custom': 'Advanced process pattern',
   'voice.heading.external': 'External events',
   'voice.heading.output': 'Output device mix',
+  'voice.heading.automatic': 'Automatic detection',
   'voice.heading.default': 'Automatic detection',
   'voice.detail.loopback': 'Loopback event API',
   'voice.detail.chatgptCodex': 'ChatGPT and Codex',
@@ -1130,6 +1179,11 @@ const MCP_TOOL_KEYS = [
   'show_message',
   'set_character_state',
 ] as const;
+
+/** 供語系鍵對齊測試使用。 */
+export function settingsMessageKeys(locale: UiLocale): string[] {
+  return Object.keys(MESSAGES[normalizeUiLocale(locale)]).sort();
+}
 
 export function mcpToolDescriptionKeys(): readonly string[] {
   return MCP_TOOL_KEYS;

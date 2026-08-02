@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
   "smokeExecuted": false,
-  "generatedAt": "2026-08-02T12:22:20.235Z",
+  "generatedAt": "2026-08-02T15:03:47.335Z",
   "release": {
-    "version": "0.16.12",
-    "tag": "v0.16.12",
-    "commitSha": "c24aa10f611c5557c18031750981dc190250d1a8",
+    "version": "0.16.16",
+    "tag": "v0.16.16",
+    "commitSha": null,
     "releaseUrl": null,
     "githubActionsRunUrl": null,
-    "hasInstaller": true
+    "hasInstaller": false
   },
   "assets": {
-    "installerFilename": "VoxAvatar-0.16.12-windows-x64-setup.exe",
-    "installerSha256": "1892aa950d4e9ead7b991a4eee92482ec93218e0db0dc7b441550fd18420101a",
-    "installerSizeBytes": 105131217,
-    "checksumsFile": "SHA256SUMS.txt",
+    "installerFilename": null,
+    "installerSha256": null,
+    "installerSizeBytes": null,
+    "checksumsFile": null,
     "unsigned": true,
     "authenticodeStatus": "NotSigned"
   },
@@ -68,7 +68,7 @@
         "note": "無 WIN_CSC_* 密鑰；Authenticode 狀態為 NotSigned。"
       }
     ],
-    "notes": "Honest record for Latest v0.16.12. GUI smoke and signing remain 未驗 (no Windows desktop / no WIN_CSC_*). Superseded: GitHub Release/tag v0.16.12 deleted after Latest v0.16.14; historical record only."
+    "notes": "Tip evidence after gap-closing batch (MCP path redaction, setup voice codes, i18n parity). Latest installer remains v0.16.14."
   },
   "mediaReferences": [],
   "issues": [],

@@ -3,6 +3,8 @@
  * 目錄／action-pack 採 best-effort：成功筆數與失敗／略過要同時可見。
  */
 
+import { redactDisplayText } from './listener-status-copy';
+
 export type Translate = (
   key: string,
   vars?: Record<string, string | number>,
@@ -46,7 +48,11 @@ export function directoryImportExtraParts(
   if (summary.report_path) {
     parts.push(t('notice.reportSavedShort'));
   } else if (summary.report_error) {
-    parts.push(t('notice.reportFailed', { error: summary.report_error }));
+    parts.push(
+      t('notice.reportFailed', {
+        error: redactDisplayText(summary.report_error),
+      }),
+    );
   }
   return parts;
 }

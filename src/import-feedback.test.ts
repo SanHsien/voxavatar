@@ -51,6 +51,37 @@ describe('directoryImportExtraParts', () => {
       ),
     ).toEqual(['略過 3、失敗 1', '已寫入品質報告。']);
   });
+
+  it('redacts paths in report_error before interpolating', () => {
+    expect(
+      directoryImportExtraParts(
+        {
+          skipped_quality: 0,
+          skipped_invalid: 0,
+          skipped_limit: 0,
+          failed: [],
+          report_path: null,
+          report_error: 'EACCES C:\\Users\\SanHsien\\Reports\\out.md',
+        },
+        t,
+      ),
+    ).toEqual([
+      expect.stringMatching(/報告失敗：/),
+    ]);
+    const line = directoryImportExtraParts(
+      {
+        skipped_quality: 0,
+        skipped_invalid: 0,
+        skipped_limit: 0,
+        failed: [],
+        report_path: null,
+        report_error: 'EACCES C:\\Users\\SanHsien\\Reports\\out.md',
+      },
+      t,
+    )[0];
+    expect(line).not.toMatch(/SanHsien/i);
+    expect(line).toMatch(/<home>|<path>|<asset>/);
+  });
 });
 
 describe('formatActionPackImportNotice', () => {

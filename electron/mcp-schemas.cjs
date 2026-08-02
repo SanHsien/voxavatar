@@ -1,5 +1,7 @@
 "use strict";
 
+const { redactSensitive } = require("./diagnostic-summary.cjs");
+
 const STATUS_SCHEMA_VERSION = 2;
 const TOOLS_SCHEMA_VERSION = 3;
 
@@ -34,7 +36,9 @@ function formatListAnimations(animations) {
 function formatGetStatus(status = {}) {
   const windowVisible = Boolean(status.windowVisible);
   const modelConfigured = Boolean(status.modelConfigured);
-  const listenerState = status.readiness?.listener_state ?? status.listener?.state ?? null;
+  const listener = sanitizeListenerForMcp(status.listener);
+  const listenerState =
+    status.readiness?.listener_state ?? listener?.state ?? null;
   const messageParts = [
     `Window ${windowVisible ? "visible" : "hidden"}.`,
     modelConfigured ? "Model configured." : "Model not configured.",
@@ -46,7 +50,18 @@ function formatGetStatus(status = {}) {
     status_schema_version: STATUS_SCHEMA_VERSION,
     message: messageParts.join(" "),
     ...status,
+    ...(listener ? { listener } : {}),
   };
+}
+
+/** MCP／HTTP 出口：遮罩 listener.error 路徑，保留 helper_error／state。 */
+function sanitizeListenerForMcp(listener) {
+  if (listener == null || typeof listener !== "object") return listener;
+  const next = { ...listener };
+  if (typeof next.error === "string" && next.error.length > 0) {
+    next.error = redactSensitive(next.error);
+  }
+  return next;
 }
 
 function formatPlayAnimation({ animation, played, error = null }) {
@@ -150,4 +165,5 @@ module.exports = {
   formatControlWindow,
   formatShowMessage,
   formatSetCharacterState,
+  sanitizeListenerForMcp,
 };

@@ -197,4 +197,22 @@ Windows helper 使用 WASAPI application loopback，只計算目標應用程式�
 3. 不同 port 可用 `VOXAVATAR_BRIDGE_PORT` 覆寫，之後要用畫面顯示的新 URL 重新註冊 MCP。
 4. External 模式不啟動 WASAPI helper；`get_status.listener.state` 為 `external`，由 HTTP／MCP 餵入音量與狀態。
 
+### `listener.helper_error` 分類碼
+
+Agent／設定頁應優先讀 `helper_error`（與 typed exit／NDJSON `code` 對齊），不要只解析可能含路徑的 `listener.error`。`get_status` 出口會遮罩 `listener.error` 中的路徑／使用者名。
+
+| `helper_error` | 典型來源 | 建議處理 |
+| --- | --- | --- |
+| `native_helper_missing` | 二進位不存在 | 使用正式安裝包或 `npm run native:build` |
+| `native_helper_spawn_failed` | spawn／權限 | 檢查安裝完整性與桌面工作階段 |
+| `native_helper_usage` | exit **2** | 參數異常；多為安裝損壞 |
+| `native_helper_com_error` | exit **10** | 一般桌面工作階段重試（真實 COM 失敗仍標未驗） |
+| `native_helper_wasapi_error` | exit **11**／**13**（Event） | 檢查播放裝置；真實 WASAPI 失敗仍標未驗 |
+| `native_helper_device_error` | exit **12** | 連接／啟用輸出裝置 |
+| `native_helper_permission` | EACCES 等 | 檢查防毒／受控資料夾存取 |
+| `native_helper_exit_nonzero` | 其他非 0 exit | 重試或改 external 模式 |
+| `native_helper_unknown` | 無法分類 | 複製診斷摘要回報 |
+
+真實 COM／WASAPI／Device／Event 失敗路徑需 Windows 桌面環境；CI 僅保證 Usage=2 與分類邏輯可測。
+
 VoxAvatar 不監聽麥克風，不保存或傳送音訊樣本。

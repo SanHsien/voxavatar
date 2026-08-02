@@ -41,3 +41,26 @@ export function resolveListenerStatusDetail(
   }
   return t(fallbackKey);
 }
+
+/**
+ * 語音狀態旁的下一步提示：缺 helper 或已知 helper_error／launch_failed。
+ */
+export function resolveHelperNextHint(
+  status: ListenerStatusLike | null | undefined,
+  t: (key: string) => string,
+): string | null {
+  const code = status?.helper_error;
+  if (code) {
+    const key = `helper.hint.${code}`;
+    const localized = t(key);
+    if (localized && localized !== key) return localized;
+  }
+  if (status?.state === 'missing') {
+    return t('helper.hint.native_helper_missing');
+  }
+  if (status?.state === 'launch_failed') {
+    const fallback = t('helper.hint.launch_failed');
+    return fallback === 'helper.hint.launch_failed' ? null : fallback;
+  }
+  return null;
+}

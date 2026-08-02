@@ -71,3 +71,49 @@ test("external voice mode does not require native helper", () => {
   assert.equal(readiness.steps.find((s) => s.id === "voice").ready, true);
   assert.equal(readiness.complete, true);
 });
+
+test("voice step codes distinguish target_missing / listening / no_output / ready", () => {
+  const base = {
+    settingsSnapshot: {
+      default_model_id: "m1",
+      models: [{ id: "m1" }],
+      animations: [],
+      voice_source: { mode: "default" },
+    },
+    mcpHealth: "unavailable",
+  };
+  const cases = [
+    [LISTENER_STATE.TARGET_MISSING, "voice_target_missing", true, "start_voice_app"],
+    [LISTENER_STATE.LISTENING, "voice_listening", true, null],
+    [LISTENER_STATE.NO_OUTPUT, "voice_no_output", true, null],
+    [LISTENER_STATE.INACTIVE, "listener_inactive", false, "configure_voice_source"],
+  ];
+  for (const [state, code, ready, nextAction] of cases) {
+    const readiness = buildAppReadiness({
+      ...base,
+      listenerStatus: {
+        available: ready,
+        capturing: state === LISTENER_STATE.LISTENING,
+        monitoring: ready,
+        state,
+      },
+    });
+    const voice = readiness.steps.find((s) => s.id === "voice");
+    assert.equal(voice.code, code, state);
+    assert.equal(voice.ready, ready, state);
+    assert.equal(voice.next_action, nextAction, state);
+  }
+  // 非 external 模式下若 state 為 EXTERNAL（或其他未列舉碼），歸 voice_ready
+  const readyStatus = buildAppReadiness({
+    ...base,
+    listenerStatus: {
+      available: true,
+      capturing: false,
+      monitoring: true,
+      state: LISTENER_STATE.EXTERNAL,
+    },
+  });
+  const voiceReady = readyStatus.steps.find((s) => s.id === "voice");
+  assert.equal(voiceReady.code, "voice_ready");
+  assert.equal(voiceReady.ready, true);
+});

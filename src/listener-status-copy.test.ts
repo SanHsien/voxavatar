@@ -1,8 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import {
   redactDisplayText,
+  resolveHelperNextHint,
   resolveListenerStatusDetail,
 } from './listener-status-copy';
+import { settingsT } from './settings-i18n';
+
+const NATIVE_HELPER_CODES = [
+  'native_helper_missing',
+  'native_helper_spawn_failed',
+  'native_helper_com_error',
+  'native_helper_wasapi_error',
+  'native_helper_device_error',
+  'native_helper_usage',
+  'native_helper_permission',
+  'native_helper_exit_nonzero',
+  'native_helper_unknown',
+] as const;
 
 describe('listener-status-copy', () => {
   it('redacts home paths and media filenames', () => {
@@ -39,5 +53,27 @@ describe('listener-status-copy', () => {
       ),
     ).toContain('<');
     expect(resolveListenerStatusDetail(null, t)).toBe('尚無串流');
+  });
+
+  it('localizes every native helper_error via settings i18n', () => {
+    const t = (key: string) => settingsT('zh-TW', key);
+    for (const code of NATIVE_HELPER_CODES) {
+      expect(
+        resolveListenerStatusDetail(
+          { helper_error: code, error: 'C:\\Users\\SanHsien\\x.exe' },
+          t,
+        ),
+      ).toBe(settingsT('zh-TW', `helper.error.${code}`));
+      expect(resolveHelperNextHint({ helper_error: code }, t)).toBe(
+        settingsT('zh-TW', `helper.hint.${code}`),
+      );
+    }
+  });
+
+  it('returns launch_failed hint when state is launch_failed', () => {
+    const t = (key: string) => settingsT('zh-TW', key);
+    expect(resolveHelperNextHint({ state: 'launch_failed' }, t)).toBe(
+      settingsT('zh-TW', 'helper.hint.launch_failed'),
+    );
   });
 });

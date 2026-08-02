@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.16 - 2026-08-02
+
+- 精簡 ROADMAP「已完成摘要」為系列表；補齊設定進度 `voice_*` code 人話與 helper 下一步提示。
+- MCP `get_status` 遮罩 `listener.error` 路徑；INTEGRATIONS／SECURITY 補完整 `helper_error` 碼表與出口契約。
+- zh／en settings i18n 鍵對齊測試；匯入品質報告錯誤遮罩；`settings-sanitize`／`app-readiness` 語音碼契約測。
+- tip `docs/release-evidence/v0.16.16`（無 installer）；歷史 `v0.16.12` 標 superseded；README 功能一覽對齊 0.16.x。
+
 ## 0.16.15 - 2026-08-02
 
 - 修正 CodeQL `js/incomplete-url-substring-sanitization`：`secureRendererWindow` 測試改以精確陣列斷言外開 URL，不再對 URL 字串使用 `.includes` 子字串比對。

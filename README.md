@@ -33,14 +33,14 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 
 | 類別 | 能做什麼 |
 | --- | --- |
-| 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；可搜尋來源目錄；sticky discovery 與 helper 狀態（missing／target_missing／no_output／listening） |
-| 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵、重設視角、聆聽／說話預覽、關於 |
-| 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告（report／strict／off）；VRM 0.x／1.0；一鍵清除；載入失敗可回復 |
-| 動作系統 | Idle／Speaking 槽、隨機多片段（避免立即重複）、可調 Idle 休息間隔、用途 `loop`／`one-shot`／`pose`、自訂動作與 MCP catalog |
-| 角色表現 | 狀態仲裁、系統狀態動作槽、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益（依縮放推估） |
-| 首次設定 | 進度清單（模型／可選動作／語音／MCP）；可複製診斷摘要（遮罩路徑與素材檔名）；與 `get_status` 共用 readiness |
-| Agent 整合 | loopback-only MCP（6 工具含 opt-in `show_message` 與 `set_character_state`）、HTTP 事件 API、`voxavatar://` |
-| 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS、SHA-256；`main` tip 已 tagged 才打包 |
+| 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；helper 狀態人話與路徑遮罩；sticky discovery |
+| 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵（含手動狀態）、重設視角、聆聽／說話預覽、About（含 NotSigned） |
+| 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告；未分類片段池；可選依檔名白名單分槽；VRM 0.x／1.0 |
+| 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、隨機多片段、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
+| 角色表現 | 狀態仲裁、系統狀態動作槽、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益 |
+| 首次設定 | 進度清單人話 code；可複製診斷摘要（遮罩路徑）；與 `get_status` 共用 readiness |
+| Agent 整合 | loopback-only MCP（6 工具）、HTTP 事件 API、`voxavatar://`；`get_status` 遮罩 listener 路徑 |
+| 發行品質 | Windows CI、CodeQL、資產授權 gate、NSIS、SHA-256、NotSigned 標示；`main` tip 已 tagged 才打包 |
 
 ## 上游 Credit 與本專案差異
 
@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`0.16.15`**（關閉 CodeQL URL 子字串告警）。GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 仍為 **`v0.16.14`**；GUI smoke／Authenticode 仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`0.16.16`**（設定／MCP 降級與路徑遮罩收斂）。GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 仍為 **`v0.16.14`**；GUI smoke／Authenticode 仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

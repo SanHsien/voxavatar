@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.15` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.16` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,16 +11,16 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.15` / `main`; GitHub Latest Release: `v0.16.14`
+Review baseline: `0.16.16` / `main`; GitHub Latest Release: `v0.16.14`
 
-No known open P0/P1. Upstream remains `9287ea3`. `0.16.15` closes the open CodeQL finding (`js/incomplete-url-substring-sanitization`); no installer Release this round.
+No known open P0/P1. Upstream remains `9287ea3`. `0.16.16` closes setup voice-code i18n, MCP `get_status` path redaction, helper next-step hints, i18n key parity, and import-error redaction; the completed-summary table is collapsed. No installer Release this round (only test/docs/degradation since `v0.16.14`).
 
 - Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
 
-This round: `npm run check` green; local CodeQL security-and-quality 0 findings; GitHub CodeQL closes the alert after push.
+This round: `npm run check` green.
 
 ### Verification gaps (marked unverified; never fabricate completion)
 
@@ -59,43 +59,21 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 
 | Series | Highlights |
 | --- | --- |
-| v0.1.x–v0.13.0 | See CHANGELOG; `REVIEW` → Current health |
-| v0.14.0–v0.14.1 | State slots / MCP state / head-projection pure logic / native JS classification |
-| v0.15.0–v0.15.3 | Head bone projection, jsdom, docs alignment, manual state, typed exit codes |
-| v0.16.0 | Speaking secondary motion; testable tray menu; Usage=2 native assertion |
-| v0.16.1 | Original brand icon; upstream credit; fork-network detachment; standalone/metadata/squash verification |
-| v0.16.2 | Default state-slot bindings; in-Settings action-pack help and examples |
-| v0.16.3 | Animations page: create form next to list; guide collapsed, state slots below |
-| v0.16.4 | Clarify listening state slot defaults to idle (no separate listening system action) |
-| v0.16.5 | action-pack purpose written to clips; opt-in filename whitelist assignment (DECISIONS §10) |
-| v0.16.6 | Hide setup progress when complete; clarify no AI VRMA semantic slotting (DECISIONS §10/§11) |
-| v0.16.7 | VRMA clip preview / display name / purpose / move-to-action (schema 10; DECISIONS §12) |
-| v0.16.8 | Unassigned clip pool, readable disk filenames, batch purpose (schema 11; DECISIONS §12) |
-| v0.16.9 | Model import buttons use shared form-actions spacing |
-| v0.16.10 | Offline VRMA structure inspection, safe renaming, and curation workflow (DECISIONS §10) |
-| v0.16.11 | Curation / unassigned-pool IPC·preload·Animations UI contract tests; upstream re-scan; DEVELOPMENT commands |
-| v0.16.12 | Schema/IPC/tray/Speaking-bone/Settings interaction contracts; installer batch cut |
-| v0.16.13 | Assign/action-pack IPC shapes; MCP show_message; Appearance/confirmation; secureRenderer/avatar preload |
-| v0.16.14 | NotSigned labeling; release-evidence; helper_error copy/redaction; INTEGRATIONS / compatibility evidence scaffold |
-| v0.16.15 | Close CodeQL `js/incomplete-url-substring-sanitization` (renderer navigation test assertion) |
+| v0.1–v0.13 | Windows-only fork baseline; `REVIEW` → Current health (details in CHANGELOG) |
+| v0.14–v0.15 | State slots / MCP / HTTP / head projection / manual state / typed exit |
+| v0.16.0–0.16.9 | Speaking secondary, tray, slot defaults, action-pack, clip pool/preview, UI spacing |
+| v0.16.10–0.16.16 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction, CodeQL, i18n parity |
+
+Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 
 ## Closing existing gaps
 
-### Automatable (done)
+### Automatable / evidence copy (done)
 
-- [x] State-slot UI; MCP/HTTP character-state; action-pack; head projection.
-- [x] jsdom / import partial-failure; schema policy; env pattern; external listener.
-- [x] Docs drift fixes; user manual state; native typed exit codes with JS/listener tests.
-- [x] Speaking secondary head/torso; tray menu extract tests; Usage=2 runner assertion.
-- [x] Offline `vrma:curate` core flow tests; unassigned pool / batch-purpose IPC·preload·Animations static tests.
-- [x] Schema 10→11 migration; pool rename/delete/return; IPC handler forwarding; exit 10–13 matrix; tray top-level; Speaking bones; Settings interactions (animations/models/copy example/setup gate).
-- [x] Assign-by-filename / import-action-pack return shapes; MCP `show_message`; HTTP character-state POST; Appearance / ConfirmationDialog / Voice application / MCP toggle; secureRenderer; avatar preload subscribe APIs.
-
-### Evidence / degradation copy (done; not a GUI-pass claim)
-
-- [x] Honest Latest/tip `docs/release-evidence/` records (installer SHA / NotSigned; `ci_gates` green; desktop rows still unverified).
-- [x] README / SECURITY / About / Release notes unsigned labeling.
-- [x] Settings helper_error human copy and raw-error redaction; setup progress code labels.
+- [x] State slots / MCP / HTTP / action-pack / head projection; jsdom / schema / env / external listener; manual state; typed exit + Usage=2.
+- [x] Speaking secondary, tray, `vrma:curate`, schema 10→11, IPC/Settings contracts, assign / show_message / secureRenderer.
+- [x] release-evidence (Latest SHA / NotSigned; `ci_gates` green); README / SECURITY / About unsigned labeling; helper_error copy and path redaction.
+- [x] Setup voice-code i18n; MCP `get_status` listener path redaction; zh/en i18n key parity; helper next-step hints; import report-error redaction.
 
 ### Still open / unverified
 

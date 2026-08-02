@@ -60,6 +60,22 @@ test("formatGetStatus wraps status with status_schema_version and message", () =
   assert.equal(payload.modelConfigured, true);
 });
 
+test("formatGetStatus redacts absolute paths in listener.error", () => {
+  const payload = formatGetStatus({
+    modelConfigured: false,
+    windowVisible: false,
+    listener: {
+      state: "missing",
+      helper_error: "native_helper_missing",
+      error: "ENOENT C:\\Users\\SanHsien\\AppData\\voxavatar-audio-listener.exe",
+    },
+  });
+  assert.equal(payload.listener.helper_error, "native_helper_missing");
+  assert.equal(payload.listener.state, "missing");
+  assert.doesNotMatch(payload.listener.error, /SanHsien|AppData/i);
+  assert.match(payload.listener.error, /<home>|<path>|<user>/);
+});
+
 test("formatPlayAnimation covers success and error shapes", () => {
   const success = formatPlayAnimation({
     animation: "wave-hello",

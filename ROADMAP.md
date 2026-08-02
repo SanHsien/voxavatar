@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`0.16.15`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.16`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,16 +11,16 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.15`／`main`；GitHub Latest Release：`v0.16.14`
+覆核基準：`0.16.16`／`main`；GitHub Latest Release：`v0.16.14`
 
-沒有已知未解 P0／P1。上游仍為 `9287ea3`。`0.16.15` 關閉 CodeQL open finding（`js/incomplete-url-substring-sanitization`）；本輪不另切 installer Release。
+沒有已知未解 P0／P1。上游仍為 `9287ea3`。`0.16.16` 收斂設定進度語音碼人話、MCP `get_status` 路徑遮罩、helper 下一步提示、i18n 鍵對齊與匯入錯誤遮罩；路線圖已完成摘要已精簡。本輪不切 installer Release（自 `v0.16.14` 僅累積測試／文件／降級說明）。
 
 - Latest Release：`v0.16.14`（installer＋SHA256；GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `9287ea3`；無 open PR；#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
-本輪驗證：`npm run check` 全綠；本地 CodeQL security-and-quality 0 findings；推送後以 GitHub CodeQL 關閉告警。
+本輪驗證：`npm run check` 全綠。
 
 ### 驗證缺口（標未驗，不虛構完成）
 
@@ -59,43 +59,21 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 | 系列 | 代表成果 |
 | --- | --- |
-| v0.1.x–v0.13.0 | 見既有 CHANGELOG；`REVIEW`→「目前健康」 |
-| v0.14.0–v0.14.1 | 狀態槽／MCP state／head-projection 純邏輯／native JS 分類 |
-| v0.15.0–v0.15.3 | head bone 投影、jsdom、docs 對齊、手動狀態、typed exit 碼 |
-| v0.16.0 | Speaking 第二層反應；tray 選單可測；Usage=2 native 斷言 |
-| v0.16.1 | 原創品牌圖示；上游 Credit；fork network 解除；standalone／metadata 與 squash 驗證 |
-| v0.16.2 | 狀態槽預設綁定；Settings 內 action-pack 說明與範例 |
-| v0.16.3 | 動作頁：建立區與列表緊鄰；指南摺疊、狀態槽下移 |
-| v0.16.4 | 澄清 listening 狀態槽預設綁 idle（無獨立 listening 系統動作） |
-| v0.16.5 | action-pack purpose 寫入 clip；檔名白名單 opt-in 分槽（DECISIONS §10） |
-| v0.16.6 | 設定進度完成後隱藏；釐清 VRMA 語意分槽不做 AI（DECISIONS §10／§11） |
-| v0.16.7 | 動作 VRMA 預覽／顯示名稱／用途／移至其他動作（schema 10；DECISIONS §12） |
-| v0.16.8 | 未分類片段池、可讀磁碟檔名、批次用途（schema 11；DECISIONS §12） |
-| v0.16.9 | 模型匯入按鈕改為 form-actions 橫列間距 |
-| v0.16.10 | 離線 VRMA 結構檢視、安全改名與整理流程（DECISIONS §10） |
-| v0.16.11 | curation／未分類池 IPC／preload／動作頁契約測；上游重掃；DEVELOPMENT 指令 |
-| v0.16.12 | schema／IPC／tray／Speaking bone／Settings 互動契約收斂；batch cut 安裝版 |
-| v0.16.13 | assign／action-pack IPC 形狀；MCP show_message；Appearance／確認對話；secureRenderer／avatar preload |
-| v0.16.14 | NotSigned 標示；release-evidence；helper_error 人話／遮罩；INTEGRATIONS／相容證據骨架 |
-| v0.16.15 | 關閉 CodeQL `js/incomplete-url-substring-sanitization`（renderer 導航測試斷言） |
+| v0.1–v0.13 | Windows-only fork 基線；`REVIEW`→「目前健康」（細節見 CHANGELOG） |
+| v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
+| v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
+| v0.16.10–0.16.16 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩、CodeQL、i18n 對齊 |
+
+細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
 ## 既有缺口收斂
 
-### 可自動驗證（已完成）
+### 可自動驗證／證據說明（已完成）
 
-- [x] 系統狀態槽 UI；MCP／HTTP character-state；action-pack；head 投影。
-- [x] jsdom／匯入 partial failure；schema 政策；env pattern；external listener。
-- [x] docs 漂移修正；使用者手動狀態；native 分型 exit 碼與 JS／listener 測。
-- [x] Speaking 第二層頭部／上身；tray 選單抽出測試；Usage=2 runner 斷言。
-- [x] 離線 `vrma:curate` 核心流程測；未分類池／批次用途 IPC／preload／動作頁 static 測。
-- [x] schema 10→11 migration；池改名／刪除／移回；IPC handler 轉發；exit 10–13 矩陣；tray 頂層；Speaking bone；Settings 互動（動作／模型／複製範例／設定進度閘門）。
-- [x] assign-by-filename／import-action-pack 回傳形狀；MCP `show_message`；HTTP character-state POST；Appearance／ConfirmationDialog／Voice application／MCP toggle；secureRenderer；avatar preload 訂閱 API。
-
-### 證據／降級說明（已完成，非宣稱 GUI 通過）
-
-- [x] Latest／tip `docs/release-evidence/` 誠實紀錄（installer SHA／NotSigned；`ci_gates` 綠；桌面項仍未驗）。
-- [x] README／SECURITY／About／Release notes 未簽署標示。
-- [x] Settings helper_error 人話與 raw error 遮罩；設定進度 code 人話。
+- [x] 狀態槽／MCP／HTTP／action-pack／head 投影；jsdom／schema／env／external listener；手動狀態；typed exit 與 Usage=2。
+- [x] Speaking 第二層、tray、`vrma:curate`、schema 10→11、IPC／Settings 互動契約、assign／show_message／secureRenderer。
+- [x] release-evidence（Latest SHA／NotSigned；`ci_gates` 綠）；README／SECURITY／About 未簽署標示；helper_error 人話與路徑遮罩。
+- [x] 設定進度語音碼人話；MCP `get_status` listener 路徑遮罩；zh／en i18n 鍵對齊；helper 下一步提示；匯入報告錯誤遮罩。
 
 ### 仍待／未驗
 

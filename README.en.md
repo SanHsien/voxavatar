@@ -33,14 +33,14 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 
 | Area | Capability |
 | --- | --- |
-| Voice lip sync | App / custom matcher / external events / system-output (opt-in) loopback; searchable sources; sticky discovery and helper states (`missing` / `target_missing` / `no_output` / `listening`) |
-| Desktop avatar | Transparent topmost click-through, drag, zoom (min 30%), rotate, tray left/right menus, reset view, listen/speak preview, About |
-| Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports (`report` / `strict` / `off`); VRM 0.x / 1.0; one-click clear; recoverable load failures |
-| Action system | Idle / Speaking slots, random multi-clip (no immediate repeat), configurable Idle rest, `loop` / `one-shot` / `pose` purpose, custom actions and live MCP catalog |
-| Character presence | State arbitration, system state-slot bindings, comic bubbles, `show_message` (Settings opt-in), lip-sync gain (size-based estimate) |
-| First-run setup | Progress checklist (model / optional actions / voice / MCP); copyable redacted diagnostics; shared readiness with `get_status` |
-| Agent integration | Loopback-only MCP (6 tools including opt-in `show_message` and `set_character_state`), HTTP event API, `voxavatar://` |
-| Release quality | Windows CI, CodeQL, media-license gate, NSIS, SHA-256; package only when `main` tip is tagged |
+| Voice lip sync | App / custom matcher / external events / system-output (opt-in) loopback; human-readable helper status with path redaction; sticky discovery |
+| Desktop avatar | Transparent topmost click-through, drag, zoom (min 30%), rotate, tray menus (including manual state), reset view, listen/speak preview, About (NotSigned) |
+| Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports; unassigned clip pool; optional filename-whitelist assignment; VRM 0.x / 1.0 |
+| Action system | Idle / Speaking slots (optional Speaking secondary head/torso), random multi-clip, `loop` / `one-shot` / `pose`, preview/rename/move, MCP catalog |
+| Character presence | State arbitration, system state-slot bindings, comic bubbles, `show_message` (Settings opt-in), lip-sync gain |
+| First-run setup | Human-readable progress codes; copyable redacted diagnostics; shared readiness with `get_status` |
+| Agent integration | Loopback-only MCP (6 tools), HTTP event API, `voxavatar://`; `get_status` redacts listener paths |
+| Release quality | Windows CI, CodeQL, media-license gate, NSIS, SHA-256, NotSigned labeling; package only when `main` tip is tagged |
 
 ## Upstream credit and product differences
 
@@ -122,7 +122,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The version on `main` is **`0.16.15`** (closes the CodeQL URL-substring alert). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release remains **`v0.16.14`**; GUI smoke and Authenticode remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The version on `main` is **`0.16.16`** (settings/MCP degradation and path-redaction convergence). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release remains **`v0.16.14`**; GUI smoke and Authenticode remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 

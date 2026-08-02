@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.8 - 2026-08-02
+
+- Settings「未分類片段池」：可先匯入 VRMA，再拖曳到動作卡片指定；已指定片段可移回池中（settings schema 11 `unassigned_clips`）。
+- 使用者 clip 磁碟檔名改為可讀 `{clip_name}--{id8}.vrma`，重新命名顯示名稱時同步磁碟檔名與 `source_basename`；資產 URL 仍用 UUID。
+- 片段列表支援勾選批次設定 loop／one-shot／pose（`updateClipsPurpose`）。
+- 同步 DECISIONS §9／§12、CHARACTER_BEHAVIOR。
+
 ## 0.16.7 - 2026-08-02
 
 - Settings 動作片段管理：明確「預覽」按鈕；可重新命名顯示名稱、設定用途（loop／one-shot／pose）、移至其他動作；保留匯入時原始檔名供辨識（settings schema 10）。

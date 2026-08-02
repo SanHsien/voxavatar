@@ -8,9 +8,13 @@ const {
   defaultPurposeForAnimationType,
   normalizeAnimationPurpose,
 } = require("./vrma-quality.cjs");
+const {
+  ASSET_ID_PATTERN,
+  sanitizeClipRecord,
+  sanitizeSourceBasename,
+  validStoredVrmaFilename,
+} = require("./clip-storage.cjs");
 
-const ASSET_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DEFAULT_MODEL_LIGHTING = Object.freeze({
   tone_mapping: "none",
   exposure: 1,
@@ -63,10 +67,11 @@ function validateAnimationMetadata(metadata) {
 }
 
 function validStoredAsset(record, extension) {
-  return (
-    ASSET_ID_PATTERN.test(record?.id) &&
-    record.stored_filename === `${record.id}${extension}`
-  );
+  if (!ASSET_ID_PATTERN.test(record?.id)) return false;
+  if (extension === ".vrma") {
+    return validStoredVrmaFilename(record.id, record.stored_filename);
+  }
+  return record.stored_filename === `${record.id}${extension}`;
 }
 
 function sanitizeModels(models) {
@@ -162,14 +167,6 @@ function sanitizeUserAnimations(animations) {
   });
 }
 
-function sanitizeSourceBasename(value) {
-  if (typeof value !== "string") return null;
-  const base = value.trim();
-  if (!base || base.length > 120) return null;
-  if (/[/\\]/.test(base) || base === "." || base === "..") return null;
-  return base;
-}
-
 function normalizeClipNameCandidate(value) {
   const normalized = String(value ?? "")
     .trim()
@@ -195,31 +192,22 @@ function sanitizeAnimationClips(animationClips, knownAnimationIds, options = {})
   const sanitized = {};
   for (const [animationId, clips] of Object.entries(animationClips)) {
     if (!knownAnimationIds.has(animationId) || !Array.isArray(clips)) continue;
-    const fallbackPurpose = purposeByAnimationId?.get(animationId) ?? ANIMATION_PURPOSE.LOOP;
-    const valid = clips.flatMap((clip) => {
-      if (!validStoredAsset(clip, ".vrma")) return [];
-      try {
-        const clip_name = singleLine(clip.clip_name, "Clip name", 64).toLowerCase();
-        if (!ANIMATION_NAME_PATTERN.test(clip_name)) return [];
-        const source_basename = sanitizeSourceBasename(clip.source_basename);
-        return [
-          {
-            id: clip.id,
-            stored_filename: clip.stored_filename,
-            clip_name,
-            purpose: normalizeAnimationPurpose(
-              clip.purpose ?? fallbackPurpose,
-            ),
-            ...(source_basename ? { source_basename } : {}),
-          },
-        ];
-      } catch {
-        return [];
-      }
-    });
+    const fallbackPurpose =
+      purposeByAnimationId?.get(animationId) ?? ANIMATION_PURPOSE.LOOP;
+    const valid = clips
+      .map((clip) => sanitizeClipRecord(clip, fallbackPurpose))
+      .filter(Boolean);
     if (valid.length > 0) sanitized[animationId] = valid;
   }
   return sanitized;
+}
+
+function sanitizeUnassignedClips(clips, options = {}) {
+  if (!Array.isArray(clips)) return [];
+  const fallbackPurpose = options.fallbackPurpose ?? ANIMATION_PURPOSE.ONE_SHOT;
+  return clips
+    .map((clip) => sanitizeClipRecord(clip, fallbackPurpose))
+    .filter(Boolean);
 }
 
 function nextClipName(animationName, existingNames) {
@@ -276,6 +264,7 @@ module.exports = {
   sanitizeModels,
   sanitizeSourceBasename,
   sanitizeStateSlotBindings,
+  sanitizeUnassignedClips,
   sanitizeUserAnimations,
   singleLine,
   validStoredAsset,

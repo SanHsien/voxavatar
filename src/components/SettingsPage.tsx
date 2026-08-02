@@ -311,9 +311,9 @@ export function SettingsPage() {
     () => animationUrlsForType(settings.animations, 'IDLE'),
     [settings.animations],
   );
-  const previewClip = previewAnimation?.clips.find(
-    (clip) => clip.id === previewClipId,
-  );
+  const previewClip =
+    previewAnimation?.clips.find((clip) => clip.id === previewClipId) ??
+    settings.unassigned_clips?.find((clip) => clip.id === previewClipId);
   const previewAnimationUrls = useMemo(
     () => (previewClip ? [previewClip.asset_url] : idleAnimationUrls),
     [idleAnimationUrls, previewClip],
@@ -834,13 +834,15 @@ export function SettingsPage() {
 
   const deleteAllUserAnimationClips = () => {
     if (!bridge?.deleteAllUserAnimationClips) return;
-    const count = settings.animations.reduce(
+    const assignedCount = settings.animations.reduce(
       (total, animation) =>
         total +
         animation.clips.filter((clip) => clip.removable || clip.origin === 'user')
           .length,
       0,
     );
+    const poolCount = settings.unassigned_clips?.length ?? 0;
+    const count = assignedCount + poolCount;
     if (count === 0) return;
     openConfirmation({
       confirmLabel: t('common.delete'),
@@ -1088,6 +1090,132 @@ export function SettingsPage() {
       setPreviewAnimation(updatedFrom ?? null);
     }
     return true;
+  };
+
+  const addUnassignedClips = async () => {
+    if (!bridge?.addUnassignedClips) return;
+    const before = settings.unassigned_clips?.length ?? 0;
+    setBusy(true);
+    setNotice(null);
+    setReportRevealPath(null);
+    try {
+      const snapshot = await bridge.addUnassignedClips();
+      if (!snapshot) return;
+      updateSnapshot(snapshot);
+      const added = (snapshot.unassigned_clips?.length ?? 0) - before;
+      setNotice(t('notice.poolClipsAdded', { count: added }));
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const updateUnassignedClip = async (
+    clip: VoxAvatarAnimationClipSettings,
+    patch: {
+      clip_name?: string;
+      purpose?: VoxAvatarAnimationClipSettings['purpose'];
+    },
+  ) => {
+    const update = bridge?.updateUnassignedClip;
+    if (!update || !clip.removable) return false;
+    const snapshot = await run(
+      () => update(clip.id, patch),
+      t('notice.clipUpdated', { name: patch.clip_name ?? clip.animation_name }),
+    );
+    return Boolean(snapshot);
+  };
+
+  const deleteUnassignedClip = (clip: VoxAvatarAnimationClipSettings) => {
+    if (!bridge?.deleteUnassignedClip || !clip.removable) return;
+    openConfirmation({
+      confirmLabel: t('common.delete'),
+      title: t('confirm.deleteClip.title', { name: clip.animation_name }),
+      detail: t('confirm.deleteClip.detail'),
+      onConfirm: async () => {
+        const snapshot = await run(
+          () => bridge.deleteUnassignedClip!(clip.id),
+          t('notice.clipDeleted', { name: clip.animation_name }),
+        );
+        if (!snapshot) return;
+        if (previewClipId === clip.id) {
+          setPreviewClipId(null);
+          setPreviewAnimation(null);
+        }
+      },
+    });
+  };
+
+  const assignUnassignedClip = async (
+    clipId: string,
+    animation: VoxAvatarAnimationSettings,
+  ) => {
+    const assign = bridge?.assignUnassignedClip;
+    if (!assign) return false;
+    const clip = settings.unassigned_clips?.find(
+      (candidate) => candidate.id === clipId,
+    );
+    const snapshot = await run(
+      () => assign(clipId, animation.id),
+      t('notice.poolClipAssigned', {
+        name: clip?.animation_name ?? clipId,
+        action: animation.animation_name,
+      }),
+    );
+    if (!snapshot) return false;
+    if (previewClipId === clipId) {
+      const updated = snapshot.animations.find(
+        (candidate) => candidate.id === animation.id,
+      );
+      setPreviewAnimation(updated ?? null);
+    }
+    return true;
+  };
+
+  const moveAnimationClipToUnassigned = async (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+  ) => {
+    const move = bridge?.moveAnimationClipToUnassigned;
+    if (!move || !clip.removable) return false;
+    const snapshot = await run(
+      () => move(animation.id, clip.id),
+      t('notice.clipMovedToPool', { name: clip.animation_name }),
+    );
+    if (!snapshot) return false;
+    if (previewClipId === clip.id) {
+      setPreviewAnimation(null);
+    }
+    if (previewAnimation?.id === animation.id) {
+      const updated = snapshot.animations.find(
+        (candidate) => candidate.id === animation.id,
+      );
+      setPreviewAnimation(updated ?? null);
+    }
+    return true;
+  };
+
+  const updateClipsPurpose = async (
+    targets: VoxAvatarClipPurposeTarget[],
+    purpose: VoxAvatarAnimationClipSettings['purpose'],
+  ) => {
+    const update = bridge?.updateClipsPurpose;
+    if (!update || targets.length === 0) return false;
+    const snapshot = await run(
+      () => update(targets, purpose),
+      t('notice.clipsPurposeUpdated', {
+        count: targets.length,
+        purpose: t(`actions.purpose.${purpose}`),
+      }),
+    );
+    return Boolean(snapshot);
+  };
+
+  const playUnassignedClip = (clip: VoxAvatarAnimationClipSettings) => {
+    setPreviewAnimation(null);
+    setPreviewClipId(clip.id);
+    setPreviewRequest((request) => request + 1);
   };
 
   const revealReportPath = async () => {
@@ -1520,6 +1648,8 @@ export function SettingsPage() {
               <SettingsAnimationsSection
               addAnimationClips={addAnimationClips}
               addAnimationClipsFromDirectory={addAnimationClipsFromDirectory}
+              addUnassignedClips={addUnassignedClips}
+              assignUnassignedClip={assignUnassignedClip}
               assignVrmaByFilename={assignVrmaByFilename}
               animationMetadata={animationMetadata}
               applyActionPreset={applyActionPreset}
@@ -1533,12 +1663,15 @@ export function SettingsPage() {
               deleteAllUserAnimationClips={deleteAllUserAnimationClips}
               deleteAnimation={deleteAnimation}
               deleteAnimationClip={deleteAnimationClip}
+              deleteUnassignedClip={deleteUnassignedClip}
               editingAnimationId={editingAnimationId}
               editingAnimationMetadata={editingAnimationMetadata}
               highlightedAnimationId={highlightedAnimationId}
               locale={locale}
               moveAnimationClip={moveAnimationClip}
+              moveAnimationClipToUnassigned={moveAnimationClipToUnassigned}
               playAnimationClip={playAnimationClip}
+              playUnassignedClip={playUnassignedClip}
               previewClipId={previewClipId}
               reorderAnimationClip={reorderAnimationClip}
               resetPackagedAnimations={resetPackagedAnimations}
@@ -1553,6 +1686,8 @@ export function SettingsPage() {
               settings={settings}
               t={t}
               updateAnimationClip={updateAnimationClip}
+              updateClipsPurpose={updateClipsPurpose}
+              updateUnassignedClip={updateUnassignedClip}
             />
               <SettingsStateSlotsSection
                 bridge={bridge}

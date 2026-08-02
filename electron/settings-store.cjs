@@ -145,9 +145,28 @@ function createSettingsStore({
       removable: true,
       purpose: normalizeAnimationPurpose(clip.purpose ?? defaultPurpose),
       source_basename: clip.source_basename ?? null,
+      stored_filename: clip.stored_filename,
       asset_url: userAssetUrl("animation", clip),
     }));
     return [...packagedClips, ...uploadedClips];
+  }
+
+  function availableUnassignedClips() {
+    if (!Array.isArray(state.unassigned_clips)) state.unassigned_clips = [];
+    return state.unassigned_clips
+      .filter((clip) =>
+        fs.existsSync(path.join(animationDirectory, clip.stored_filename)),
+      )
+      .map((clip) => ({
+        id: clip.id,
+        animation_name: clip.clip_name,
+        origin: "user",
+        removable: true,
+        purpose: normalizeAnimationPurpose(clip.purpose ?? "one-shot"),
+        source_basename: clip.source_basename ?? null,
+        stored_filename: clip.stored_filename,
+        asset_url: userAssetUrl("animation", clip),
+      }));
   }
 
   function availableAnimations() {
@@ -223,6 +242,7 @@ function createSettingsStore({
       packaged_animation_change_count: changedPackagedIds.size,
       models,
       animations: availableAnimations(),
+      unassigned_clips: availableUnassignedClips(),
       model_lighting: sanitizeModelLighting(
         state.model_lighting,
         modelIds,
@@ -248,20 +268,27 @@ function createSettingsStore({
   const {
     addAnimationClips,
     addAnimationClipsBestEffort,
+    addUnassignedClips,
+    addUnassignedClipsBestEffort,
+    assignUnassignedClip,
     createAnimation,
     deleteAnimation,
     deleteAnimationClip,
     deleteAllUserAnimationClips,
     deleteAllUserModels,
     deleteModel,
+    deleteUnassignedClip,
     importModel,
     importModelsFromPaths,
     moveAnimationClip,
+    moveAnimationClipToUnassigned,
     resetPackagedAnimations,
     reorderAnimationClip,
     setDefaultModel,
     updateAnimation,
     updateAnimationClip,
+    updateClipsPurpose,
+    updateUnassignedClip,
   } = createCatalogMutations({
     getState: () => state,
     writeState,
@@ -471,9 +498,13 @@ function createSettingsStore({
       return fs.existsSync(resolved) ? resolved : null;
     }
     if (kind === "animation") {
-      const record = Object.values(state.animation_clips)
-        .flat()
-        .find((clip) => `${clip.id}.vrma` === requestedFilename);
+      const assigned = Object.values(state.animation_clips).flat();
+      const pool = Array.isArray(state.unassigned_clips)
+        ? state.unassigned_clips
+        : [];
+      const record = [...assigned, ...pool].find(
+        (clip) => `${clip.id}.vrma` === requestedFilename,
+      );
       if (!record) return null;
       const resolved = path.join(animationDirectory, record.stored_filename);
       return fs.existsSync(resolved) ? resolved : null;
@@ -484,17 +515,22 @@ function createSettingsStore({
   return {
     addAnimationClips,
     addAnimationClipsBestEffort,
+    addUnassignedClips,
+    addUnassignedClipsBestEffort,
+    assignUnassignedClip,
     createAnimation,
     deleteAnimation,
     deleteAnimationClip,
     deleteAllUserAnimationClips,
     deleteAllUserModels,
     deleteModel,
+    deleteUnassignedClip,
     getAnimation,
     getSnapshot,
     importModel,
     importModelsFromPaths,
     moveAnimationClip,
+    moveAnimationClipToUnassigned,
     resetPackagedAnimations,
     resolveAssetRequest,
     setCharacterSize,
@@ -513,6 +549,8 @@ function createSettingsStore({
     reorderAnimationClip,
     updateAnimation,
     updateAnimationClip,
+    updateClipsPurpose,
+    updateUnassignedClip,
   };
 }
 

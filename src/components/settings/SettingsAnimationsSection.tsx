@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type Dispatch,
+  type DragEvent,
   type SetStateAction,
 } from 'react';
 import {
@@ -15,6 +16,49 @@ import { SettingsQualityGatePanel } from './SettingsQualityGatePanel';
 type SettingsBridge = NonNullable<Window['voxavatarSettings']>;
 type ClipPurpose = VoxAvatarAnimationClipSettings['purpose'];
 
+type ClipSelectionKey = `pool:${string}` | `assigned:${string}:${string}`;
+
+const CLIP_DRAG_MIME = 'application/vnd.voxavatar-clip+json';
+
+type ClipDragPayload = {
+  clipId: string;
+  pool: boolean;
+  animationId?: string;
+};
+
+function clipSelectionKey(
+  clipId: string,
+  animationId?: string,
+): ClipSelectionKey {
+  return animationId
+    ? `assigned:${animationId}:${clipId}`
+    : `pool:${clipId}`;
+}
+
+function parseClipDragPayload(data: string): ClipDragPayload | null {
+  try {
+    const parsed = JSON.parse(data) as ClipDragPayload;
+    if (typeof parsed?.clipId !== 'string') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function purposeTargetFromKey(
+  key: ClipSelectionKey,
+): VoxAvatarClipPurposeTarget {
+  if (key.startsWith('pool:')) {
+    return { clipId: key.slice(5), pool: true };
+  }
+  const parts = key.split(':');
+  return {
+    clipId: parts[2] ?? '',
+    animationId: parts[1],
+    pool: false,
+  };
+}
+
 type SettingsTranslate = (
   key: string,
   vars?: Record<string, string | number>,
@@ -25,6 +69,11 @@ export interface SettingsAnimationsSectionProps {
   addAnimationClipsFromDirectory: (
     animation: VoxAvatarAnimationSettings,
   ) => Promise<void>;
+  addUnassignedClips: () => Promise<void>;
+  assignUnassignedClip: (
+    clipId: string,
+    animation: VoxAvatarAnimationSettings,
+  ) => Promise<boolean>;
   assignVrmaByFilename: () => Promise<void>;
   animationMetadata: CustomAnimationMetadata;
   applyActionPreset: (preset: ActionPresetDefinition) => void;
@@ -41,6 +90,7 @@ export interface SettingsAnimationsSectionProps {
     animation: VoxAvatarAnimationSettings,
     clip: VoxAvatarAnimationClipSettings,
   ) => void;
+  deleteUnassignedClip: (clip: VoxAvatarAnimationClipSettings) => void;
   editingAnimationId: string | null;
   editingAnimationMetadata: CustomAnimationMetadata;
   highlightedAnimationId: string | null;
@@ -50,10 +100,15 @@ export interface SettingsAnimationsSectionProps {
     clip: VoxAvatarAnimationClipSettings,
     toAnimationId: string,
   ) => Promise<boolean>;
+  moveAnimationClipToUnassigned: (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+  ) => Promise<boolean>;
   playAnimationClip: (
     animation: VoxAvatarAnimationSettings,
     clip: VoxAvatarAnimationClipSettings,
   ) => void;
+  playUnassignedClip: (clip: VoxAvatarAnimationClipSettings) => void;
   previewClipId: string | null;
   reorderAnimationClip: (
     animation: VoxAvatarAnimationSettings,
@@ -78,6 +133,14 @@ export interface SettingsAnimationsSectionProps {
   t: SettingsTranslate;
   updateAnimationClip: (
     animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+    patch: { clip_name?: string; purpose?: ClipPurpose },
+  ) => Promise<boolean>;
+  updateClipsPurpose: (
+    targets: VoxAvatarClipPurposeTarget[],
+    purpose: ClipPurpose,
+  ) => Promise<boolean>;
+  updateUnassignedClip: (
     clip: VoxAvatarAnimationClipSettings,
     patch: { clip_name?: string; purpose?: ClipPurpose },
   ) => Promise<boolean>;
@@ -127,6 +190,8 @@ function ClipAddButtons({
 export function SettingsAnimationsSection({
   addAnimationClips,
   addAnimationClipsFromDirectory,
+  addUnassignedClips,
+  assignUnassignedClip,
   assignVrmaByFilename,
   animationMetadata,
   applyActionPreset,
@@ -140,12 +205,15 @@ export function SettingsAnimationsSection({
   deleteAllUserAnimationClips,
   deleteAnimation,
   deleteAnimationClip,
+  deleteUnassignedClip,
   editingAnimationId,
   editingAnimationMetadata,
   highlightedAnimationId,
   locale,
   moveAnimationClip,
+  moveAnimationClipToUnassigned,
   playAnimationClip,
+  playUnassignedClip,
   previewClipId,
   reorderAnimationClip,
   resetPackagedAnimations,
@@ -160,28 +228,128 @@ export function SettingsAnimationsSection({
   settings,
   t,
   updateAnimationClip,
+  updateClipsPurpose,
+  updateUnassignedClip,
 }: SettingsAnimationsSectionProps) {
   const highlightedCardRef = useRef<HTMLElement | null>(null);
   const [editingClipId, setEditingClipId] = useState<string | null>(null);
+  const [editingPoolClipId, setEditingPoolClipId] = useState<string | null>(
+    null,
+  );
   const [clipDraftName, setClipDraftName] = useState('');
   const [clipDraftPurpose, setClipDraftPurpose] =
     useState<ClipPurpose>('loop');
   const [clipMoveTargetId, setClipMoveTargetId] = useState('');
+  const [selectedClipKeys, setSelectedClipKeys] = useState<
+    Set<ClipSelectionKey>
+  >(() => new Set());
+  const [dragOverAnimationId, setDragOverAnimationId] = useState<string | null>(
+    null,
+  );
+  const [draggingClipKey, setDraggingClipKey] = useState<string | null>(null);
+
+  const unassignedClips = settings.unassigned_clips ?? [];
 
   const beginEditingClip = (
     animation: VoxAvatarAnimationSettings,
     clip: VoxAvatarAnimationClipSettings,
   ) => {
+    setEditingPoolClipId(null);
     setEditingClipId(clip.id);
     setClipDraftName(clip.animation_name);
     setClipDraftPurpose(clip.purpose);
     setClipMoveTargetId(animation.id);
   };
 
+  const beginEditingPoolClip = (clip: VoxAvatarAnimationClipSettings) => {
+    setEditingClipId(null);
+    setEditingPoolClipId(clip.id);
+    setClipDraftName(clip.animation_name);
+    setClipDraftPurpose(clip.purpose);
+    setClipMoveTargetId('');
+  };
+
   const cancelEditingClip = () => {
     setEditingClipId(null);
+    setEditingPoolClipId(null);
     setClipDraftName('');
     setClipMoveTargetId('');
+  };
+
+  const toggleClipSelection = (
+    clipId: string,
+    animationId?: string,
+    selected?: boolean,
+  ) => {
+    const key = clipSelectionKey(clipId, animationId);
+    setSelectedClipKeys((current) => {
+      const next = new Set(current);
+      const shouldSelect = selected ?? !next.has(key);
+      if (shouldSelect) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  };
+
+  const applyBatchPurpose = async (purpose: ClipPurpose) => {
+    if (selectedClipKeys.size === 0) return;
+    const targets = [...selectedClipKeys].map(purposeTargetFromKey);
+    const updated = await updateClipsPurpose(targets, purpose);
+    if (updated) setSelectedClipKeys(new Set());
+  };
+
+  const handleClipDragStart = (
+    event: DragEvent<HTMLElement>,
+    payload: ClipDragPayload,
+    visualKey: string,
+  ) => {
+    event.dataTransfer.setData(CLIP_DRAG_MIME, JSON.stringify(payload));
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggingClipKey(visualKey);
+  };
+
+  const handleClipDragEnd = () => {
+    setDraggingClipKey(null);
+    setDragOverAnimationId(null);
+  };
+
+  const handleAnimationDragOver = (
+    event: DragEvent<HTMLElement>,
+    animationId: string,
+  ) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    setDragOverAnimationId(animationId);
+  };
+
+  const handleAnimationDrop = async (
+    event: DragEvent<HTMLElement>,
+    animation: VoxAvatarAnimationSettings,
+  ) => {
+    event.preventDefault();
+    setDragOverAnimationId(null);
+    const payload = parseClipDragPayload(
+      event.dataTransfer.getData(CLIP_DRAG_MIME),
+    );
+    if (!payload) return;
+    if (payload.pool) {
+      await assignUnassignedClip(payload.clipId, animation);
+      return;
+    }
+    if (
+      payload.animationId &&
+      payload.animationId !== animation.id
+    ) {
+      const fromAnimation = settings.animations.find(
+        (candidate) => candidate.id === payload.animationId,
+      );
+      const clip = fromAnimation?.clips.find(
+        (candidate) => candidate.id === payload.clipId,
+      );
+      if (fromAnimation && clip) {
+        await moveAnimationClip(fromAnimation, clip, animation.id);
+      }
+    }
   };
 
   const saveEditingClip = async (
@@ -207,6 +375,115 @@ export function SettingsAnimationsSection({
     }
     cancelEditingClip();
   };
+
+  const saveEditingPoolClip = async (
+    clip: VoxAvatarAnimationClipSettings,
+  ) => {
+    const nameChanged = clipDraftName.trim() !== clip.animation_name;
+    const purposeChanged = clipDraftPurpose !== clip.purpose;
+    if (nameChanged || purposeChanged) {
+      const updated = await updateUnassignedClip(clip, {
+        ...(nameChanged ? { clip_name: clipDraftName.trim() } : {}),
+        ...(purposeChanged ? { purpose: clipDraftPurpose } : {}),
+      });
+      if (!updated) return;
+    }
+    cancelEditingClip();
+  };
+
+  const renderClipEditForm = (
+    clip: VoxAvatarAnimationClipSettings,
+    onSubmit: () => void | Promise<void>,
+    options?: {
+      showMoveToAction?: boolean;
+      showMoveToPool?: boolean;
+      animation?: VoxAvatarAnimationSettings;
+    },
+  ) => (
+    <form
+      className="clip-edit-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void onSubmit();
+      }}
+    >
+      <label>
+        {t('actions.clipNameLabel')}
+        <input
+          maxLength={64}
+          onChange={(event) => setClipDraftName(event.target.value)}
+          value={clipDraftName}
+        />
+      </label>
+      <label>
+        {t('actions.clipPurposeLabel')}
+        <select
+          onChange={(event) =>
+            setClipDraftPurpose(event.target.value as ClipPurpose)
+          }
+          value={clipDraftPurpose}
+        >
+          <option value="loop">{t('actions.purpose.loop')}</option>
+          <option value="one-shot">{t('actions.purpose.one-shot')}</option>
+          <option value="pose">{t('actions.purpose.pose')}</option>
+        </select>
+      </label>
+      {options?.showMoveToAction && options.animation ? (
+        <label>
+          {t('actions.moveClipTo')}
+          <select
+            onChange={(event) => setClipMoveTargetId(event.target.value)}
+            value={clipMoveTargetId}
+          >
+            {settings.animations.map((target) => (
+              <option key={target.id} value={target.id}>
+                {target.system
+                  ? target.animation_type === 'IDLE'
+                    ? t('actions.idle')
+                    : t('actions.speaking')
+                  : target.animation_name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      {options?.showMoveToPool && options.animation ? (
+        <button
+          className="secondary-button"
+          disabled={busy || !bridge?.moveAnimationClipToUnassigned}
+          onClick={() =>
+            void moveAnimationClipToUnassigned(options.animation!, clip)
+          }
+          type="button"
+        >
+          {t('actions.moveClipToPool')}
+        </button>
+      ) : null}
+      <div className="clip-edit-actions">
+        <button
+          className="primary-button"
+          disabled={busy || !clipDraftName.trim()}
+          type="submit"
+        >
+          {t('actions.saveClip')}
+        </button>
+        <button
+          className="secondary-button"
+          disabled={busy}
+          onClick={cancelEditingClip}
+          type="button"
+        >
+          {t('common.cancel')}
+        </button>
+      </div>
+      {clip.stored_filename ? (
+        <p className="desktop-note">
+          {t('actions.storedFilename')}: <code>{clip.stored_filename}</code>
+        </p>
+      ) : null}
+      <p className="desktop-note">{t('actions.clipEditHint')}</p>
+    </form>
+  );
 
   useEffect(() => {
     if (!highlightedAnimationId) return;
@@ -353,6 +630,182 @@ export function SettingsAnimationsSection({
         </button>
       </section>
 
+      <section className="settings-panel unassigned-pool-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>{t('actions.poolTitle')}</h2>
+            <p>{t('actions.poolDesc')}</p>
+          </div>
+          <button
+            className="primary-button add-clips-button"
+            disabled={busy || !bridge?.addUnassignedClips}
+            onClick={() => void addUnassignedClips()}
+            type="button"
+          >
+            {t('actions.addPoolClips')}
+          </button>
+        </div>
+
+        {selectedClipKeys.size > 0 ? (
+          <div className="clip-batch-toolbar">
+            <span>
+              {t('actions.batchSelected', { count: selectedClipKeys.size })}
+            </span>
+            <button
+              className="secondary-button"
+              disabled={busy || !bridge?.updateClipsPurpose}
+              onClick={() => void applyBatchPurpose('loop')}
+              type="button"
+            >
+              {t('actions.batchPurposeLoop')}
+            </button>
+            <button
+              className="secondary-button"
+              disabled={busy || !bridge?.updateClipsPurpose}
+              onClick={() => void applyBatchPurpose('one-shot')}
+              type="button"
+            >
+              {t('actions.batchPurposeOneShot')}
+            </button>
+            <button
+              className="secondary-button"
+              disabled={busy || !bridge?.updateClipsPurpose}
+              onClick={() => void applyBatchPurpose('pose')}
+              type="button"
+            >
+              {t('actions.batchPurposePose')}
+            </button>
+          </div>
+        ) : null}
+
+        {unassignedClips.length === 0 ? (
+          <p className="empty-clips">{t('actions.poolEmpty')}</p>
+        ) : (
+          <div className="clip-list pool-clip-list">
+            {unassignedClips.map((clip) => {
+              const selectionKey = clipSelectionKey(clip.id);
+              const isEditingPoolClip = editingPoolClipId === clip.id;
+              const isSelected = selectedClipKeys.has(selectionKey);
+              return (
+                <div className="clip-row" key={clip.id}>
+                  <div
+                    aria-label={t('actions.previewClip', {
+                      name: clip.animation_name,
+                    })}
+                    className={`clip-chip ${
+                      previewClipId === clip.id ? 'playing' : ''
+                    } ${draggingClipKey === selectionKey ? 'dragging' : ''}`}
+                    draggable={!busy && Boolean(bridge?.assignUnassignedClip)}
+                    onClick={(event) => {
+                      if (
+                        (event.target as Element).closest(
+                          'button, select, input, label, form, .clip-select',
+                        )
+                      ) {
+                        return;
+                      }
+                      playUnassignedClip(clip);
+                    }}
+                    onDragEnd={handleClipDragEnd}
+                    onDragStart={(event) =>
+                      handleClipDragStart(
+                        event,
+                        { clipId: clip.id, pool: true },
+                        selectionKey,
+                      )
+                    }
+                    onKeyDown={(event) => {
+                      if (
+                        event.target !== event.currentTarget ||
+                        (event.key !== 'Enter' && event.key !== ' ')
+                      ) {
+                        return;
+                      }
+                      event.preventDefault();
+                      playUnassignedClip(clip);
+                    }}
+                    tabIndex={0}
+                    title={t('actions.previewClip', {
+                      name: clip.animation_name,
+                    })}
+                  >
+                    <label className="clip-select">
+                      <input
+                        aria-label={t('actions.selectClip', {
+                          name: clip.animation_name,
+                        })}
+                        checked={isSelected}
+                        onChange={() => toggleClipSelection(clip.id)}
+                        onClick={(event) => event.stopPropagation()}
+                        type="checkbox"
+                      />
+                    </label>
+                    <span className="clip-file-icon">VRMA</span>
+                    <div className="clip-chip-copy">
+                      <strong>{clip.animation_name}</strong>
+                      <small>
+                        {t('common.uploaded')}
+                        {' · '}
+                        {t(`actions.purpose.${clip.purpose}`)}
+                        {clip.source_basename ? ` · ${clip.source_basename}` : ''}
+                        {clip.stored_filename
+                          ? ` · ${clip.stored_filename}`
+                          : ''}
+                      </small>
+                    </div>
+                    <div className="clip-controls">
+                      <button
+                        aria-label={t('actions.previewClip', {
+                          name: clip.animation_name,
+                        })}
+                        className="clip-preview"
+                        disabled={busy}
+                        onClick={() => playUnassignedClip(clip)}
+                        title={t('actions.previewButton')}
+                        type="button"
+                      >
+                        {t('actions.previewButton')}
+                      </button>
+                      <button
+                        aria-label={t('actions.editClip', {
+                          name: clip.animation_name,
+                        })}
+                        className="clip-edit"
+                        disabled={busy || !bridge?.updateUnassignedClip}
+                        onClick={() => beginEditingPoolClip(clip)}
+                        title={t('actions.editClip', {
+                          name: clip.animation_name,
+                        })}
+                        type="button"
+                      >
+                        {t('common.edit')}
+                      </button>
+                      <button
+                        aria-label={t('actions.deleteClip', {
+                          name: clip.animation_name,
+                        })}
+                        className="clip-delete"
+                        disabled={busy || !bridge?.deleteUnassignedClip}
+                        onClick={() => deleteUnassignedClip(clip)}
+                        title={t('actions.deleteClip', {
+                          name: clip.animation_name,
+                        })}
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  {isEditingPoolClip
+                    ? renderClipEditForm(clip, () => saveEditingPoolClip(clip))
+                    : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       <section className="settings-panel">
         <div className="panel-heading">
           <div>
@@ -374,6 +827,7 @@ export function SettingsAnimationsSection({
               disabled={
                 busy ||
                 !bridge?.deleteAllUserAnimationClips ||
+                (settings.unassigned_clips?.length ?? 0) === 0 &&
                 settings.animations.every(
                   (animation) =>
                     animation.clips.filter(
@@ -413,6 +867,13 @@ export function SettingsAnimationsSection({
                   isEditing ? 'editing' : ''
                 }`}
                 key={animation.id}
+                onDragLeave={() => {
+                  if (dragOverAnimationId === animation.id) {
+                    setDragOverAnimationId(null);
+                  }
+                }}
+                onDragOver={(event) => handleAnimationDragOver(event, animation.id)}
+                onDrop={(event) => void handleAnimationDrop(event, animation)}
                 ref={
                   isHighlighted
                     ? (node) => {
@@ -611,6 +1072,11 @@ export function SettingsAnimationsSection({
                       <p className="desktop-note">{t('actions.clipsManageHint')}</p>
                       {animation.clips.map((clip, clipIndex) => {
                         const isEditingClip = editingClipId === clip.id;
+                        const selectionKey = clipSelectionKey(
+                          clip.id,
+                          animation.id,
+                        );
+                        const isSelected = selectedClipKeys.has(selectionKey);
                         return (
                           <div className="clip-row" key={clip.id}>
                             <div
@@ -619,14 +1085,39 @@ export function SettingsAnimationsSection({
                               })}
                               className={`clip-chip ${
                                 previewClipId === clip.id ? 'playing' : ''
+                              } ${
+                                draggingClipKey === selectionKey ? 'dragging' : ''
                               }`}
+                              draggable={
+                                clip.removable &&
+                                !busy &&
+                                Boolean(
+                                  bridge?.moveAnimationClip ||
+                                    bridge?.assignUnassignedClip,
+                                )
+                              }
                               onClick={(event) => {
                                 if (
-                                  (event.target as Element).closest('button, select, input, label, form')
+                                  (event.target as Element).closest(
+                                    'button, select, input, label, form, .clip-select',
+                                  )
                                 ) {
                                   return;
                                 }
                                 playAnimationClip(animation, clip);
+                              }}
+                              onDragEnd={handleClipDragEnd}
+                              onDragStart={(event) => {
+                                if (!clip.removable) return;
+                                handleClipDragStart(
+                                  event,
+                                  {
+                                    clipId: clip.id,
+                                    pool: false,
+                                    animationId: animation.id,
+                                  },
+                                  selectionKey,
+                                );
                               }}
                               onKeyDown={(event) => {
                                 if (
@@ -643,6 +1134,26 @@ export function SettingsAnimationsSection({
                                 name: clip.animation_name,
                               })}
                             >
+                              {clip.removable ? (
+                                <label className="clip-select">
+                                  <input
+                                    aria-label={t('actions.selectClip', {
+                                      name: clip.animation_name,
+                                    })}
+                                    checked={isSelected}
+                                    onChange={() =>
+                                      toggleClipSelection(
+                                        clip.id,
+                                        animation.id,
+                                      )
+                                    }
+                                    onClick={(event) =>
+                                      event.stopPropagation()
+                                    }
+                                    type="checkbox"
+                                  />
+                                </label>
+                              ) : null}
                               <span className="clip-file-icon">VRMA</span>
                               <div className="clip-chip-copy">
                                 <strong>{clip.animation_name}</strong>
@@ -654,6 +1165,9 @@ export function SettingsAnimationsSection({
                                   {t(`actions.purpose.${clip.purpose}`)}
                                   {clip.source_basename
                                     ? ` · ${clip.source_basename}`
+                                    : ''}
+                                  {clip.stored_filename
+                                    ? ` · ${clip.stored_filename}`
                                     : ''}
                                 </small>
                               </div>
@@ -762,99 +1276,29 @@ export function SettingsAnimationsSection({
                                 )}
                               </div>
                             </div>
-                            {isEditingClip && clip.removable ? (
-                              <form
-                                className="clip-edit-form"
-                                onSubmit={(event) => {
-                                  event.preventDefault();
-                                  void saveEditingClip(animation, clip);
-                                }}
-                              >
-                                <label>
-                                  {t('actions.clipNameLabel')}
-                                  <input
-                                    maxLength={64}
-                                    onChange={(event) =>
-                                      setClipDraftName(event.target.value)
-                                    }
-                                    value={clipDraftName}
-                                  />
-                                </label>
-                                <label>
-                                  {t('actions.clipPurposeLabel')}
-                                  <select
-                                    onChange={(event) =>
-                                      setClipDraftPurpose(
-                                        event.target.value as ClipPurpose,
-                                      )
-                                    }
-                                    value={clipDraftPurpose}
-                                  >
-                                    <option value="loop">
-                                      {t('actions.purpose.loop')}
-                                    </option>
-                                    <option value="one-shot">
-                                      {t('actions.purpose.one-shot')}
-                                    </option>
-                                    <option value="pose">
-                                      {t('actions.purpose.pose')}
-                                    </option>
-                                  </select>
-                                </label>
-                                <label>
-                                  {t('actions.moveClipTo')}
-                                  <select
-                                    onChange={(event) =>
-                                      setClipMoveTargetId(event.target.value)
-                                    }
-                                    value={clipMoveTargetId}
-                                  >
-                                    {settings.animations.map((target) => (
-                                      <option
-                                        key={target.id}
-                                        value={target.id}
-                                      >
-                                        {target.system
-                                          ? target.animation_type === 'IDLE'
-                                            ? t('actions.idle')
-                                            : t('actions.speaking')
-                                          : target.animation_name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </label>
-                                <div className="clip-edit-actions">
-                                  <button
-                                    className="primary-button"
-                                    disabled={
-                                      busy ||
-                                      !clipDraftName.trim() ||
-                                      (!bridge?.updateAnimationClip &&
-                                        !bridge?.moveAnimationClip)
-                                    }
-                                    type="submit"
-                                  >
-                                    {t('actions.saveClip')}
-                                  </button>
-                                  <button
-                                    className="secondary-button"
-                                    disabled={busy}
-                                    onClick={cancelEditingClip}
-                                    type="button"
-                                  >
-                                    {t('common.cancel')}
-                                  </button>
-                                </div>
-                                <p className="desktop-note">
-                                  {t('actions.clipEditHint')}
-                                </p>
-                              </form>
-                            ) : null}
+                            {isEditingClip && clip.removable
+                              ? renderClipEditForm(
+                                  clip,
+                                  () => saveEditingClip(animation, clip),
+                                  {
+                                    showMoveToAction: true,
+                                    showMoveToPool: true,
+                                    animation,
+                                  },
+                                )
+                              : null}
                           </div>
                         );
                       })}
                     </div>
                   )}
+                  <div
+                    className={`animation-card-drop-target ${
+                      dragOverAnimationId === animation.id ? 'active' : ''
+                    }`}
+                  >
+                    {t('actions.poolDropHint')}
+                  </div>
                 </div>
               </article>
             );

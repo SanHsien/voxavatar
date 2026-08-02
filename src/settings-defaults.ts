@@ -82,13 +82,14 @@ export function resolveLightingSettings(
 }
 
 export const SETTINGS_FALLBACK: VoxAvatarSettingsSnapshot = {
-  schema_version: 10,
+  schema_version: 11,
   default_model_id: null,
   character_size: 1,
   ui_locale: 'zh-TW',
   packaged_animation_change_count: 0,
   models: [],
   animations: SYSTEM_ACTIONS,
+  unassigned_clips: [],
   model_lighting: {},
   voice_source: {
     mode: 'default',

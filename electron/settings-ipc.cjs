@@ -344,6 +344,43 @@ function registerSettingsIpc({
         settingsStore.reorderAnimationClip(animationId, clipId, direction),
       ),
   );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-add-unassigned-clips",
+    async () => {
+      const filePaths = await selectAssetFile("animation", true);
+      if (filePaths.length === 0) return null;
+      return publishSettings(settingsStore.addUnassignedClips(filePaths));
+    },
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-update-unassigned-clip",
+    (_event, clipId, patch) =>
+      publishSettings(settingsStore.updateUnassignedClip(clipId, patch)),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-delete-unassigned-clip",
+    (_event, clipId) =>
+      publishSettings(settingsStore.deleteUnassignedClip(clipId)),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-assign-unassigned-clip",
+    (_event, clipId, toAnimationId) =>
+      publishSettings(
+        settingsStore.assignUnassignedClip(clipId, toAnimationId),
+      ),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-move-animation-clip-to-unassigned",
+    (_event, animationId, clipId) =>
+      publishSettings(
+        settingsStore.moveAnimationClipToUnassigned(animationId, clipId),
+      ),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-update-clips-purpose",
+    (_event, targets, purpose) =>
+      publishSettings(settingsStore.updateClipsPurpose(targets, purpose)),
+  );
   handleTrustedSettingsIpc("voxavatar:settings-reveal-path", (_event, targetPath) => {
     if (typeof targetPath !== "string" || !targetPath.trim()) {
       throw new Error("Path is required.");

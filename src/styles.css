@@ -1734,6 +1734,66 @@ button {
   min-width: 0;
 }
 
+.unassigned-pool-panel .pool-clip-list {
+  margin-top: 12px;
+}
+
+.clip-batch-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+}
+
+.clip-batch-toolbar > span {
+  flex: 1 1 8rem;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.animation-card-drop-target {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
+  text-align: center;
+  transition:
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.animation-card-drop-target.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.clip-chip.dragging {
+  opacity: 0.55;
+}
+
+.clip-select {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clip-select input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
 .clip-chip {
   display: flex;
   align-items: center;

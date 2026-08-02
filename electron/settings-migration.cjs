@@ -23,6 +23,7 @@ const {
   sanitizeModelLighting,
   sanitizeModels,
   sanitizeStateSlotBindings,
+  sanitizeUnassignedClips,
   sanitizeUserAnimations,
   validateAnimationMetadata,
   validStoredAsset,
@@ -30,7 +31,7 @@ const {
   defaultPurposeForAnimationType,
 } = require("./settings-sanitize.cjs");
 
-const SETTINGS_SCHEMA_VERSION = 10;
+const SETTINGS_SCHEMA_VERSION = 11;
 const DEFAULT_IDLE_REST_MS = 8000;
 const MIN_IDLE_REST_MS = 2000;
 const MAX_IDLE_REST_MS = 60000;
@@ -53,6 +54,7 @@ function defaultState(packagedLibrary) {
     models: [],
     animations: [],
     animation_clips: {},
+    unassigned_clips: [],
     packaged_animation_overrides: {},
     hidden_packaged_animation_ids: [],
     voice_source: { ...DEFAULT_VOICE_SOURCE },
@@ -184,7 +186,7 @@ function safeReadState(settingsPath, packagedLibrary) {
   try {
     const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
     if (
-      ![1, 2, 3, 4, 5, 6, 7, 8, 9, SETTINGS_SCHEMA_VERSION].includes(
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, SETTINGS_SCHEMA_VERSION].includes(
         parsed?.schema_version,
       )
     ) {
@@ -238,10 +240,12 @@ function safeReadState(settingsPath, packagedLibrary) {
       state_slot_bindings: sanitizeStateSlotBindings(
         parsed.state_slot_bindings,
       ),
+      unassigned_clips: sanitizeUnassignedClips(parsed.unassigned_clips),
     };
 
     if (parsed.schema_version !== SETTINGS_SCHEMA_VERSION) {
       if (
+        parsed.schema_version === 10 ||
         parsed.schema_version === 9 ||
         parsed.schema_version === 8 ||
         parsed.schema_version === 7 ||
@@ -260,6 +264,7 @@ function safeReadState(settingsPath, packagedLibrary) {
               packagedLibrary,
               animations,
             ),
+            unassigned_clips: sanitizeUnassignedClips(parsed.unassigned_clips),
           },
         };
       }
@@ -273,6 +278,7 @@ function safeReadState(settingsPath, packagedLibrary) {
           ...common,
           animations: migrated.userAnimations,
           animation_clips: migrated.animationClips,
+          unassigned_clips: [],
         },
       };
     }
@@ -288,6 +294,7 @@ function safeReadState(settingsPath, packagedLibrary) {
           packagedLibrary,
           animations,
         ),
+        unassigned_clips: sanitizeUnassignedClips(parsed.unassigned_clips),
       },
     };
   } catch {

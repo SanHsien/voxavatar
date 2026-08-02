@@ -19,6 +19,10 @@ const {
   validateAnimationMetadata,
 } = require("./settings-sanitize.cjs");
 const {
+  buildReadableStoredFilename,
+  syncSourceBasename,
+} = require("./clip-storage.cjs");
+const {
   copyValidatedGlbFile,
   validateGlbFile,
 } = require("./settings-asset-validation.cjs");
@@ -26,6 +30,28 @@ const {
 function removeStoredFile(directory, filename) {
   const target = path.join(directory, filename);
   if (fs.existsSync(target)) fs.unlinkSync(target);
+}
+
+function totalUploadedClipCount(state) {
+  const assigned = Object.values(state.animation_clips ?? {}).reduce(
+    (count, clips) => count + (Array.isArray(clips) ? clips.length : 0),
+    0,
+  );
+  return assigned + (Array.isArray(state.unassigned_clips) ? state.unassigned_clips.length : 0);
+}
+
+function renameClipFile(animationDirectory, clip, nextStoredFilename) {
+  if (clip.stored_filename === nextStoredFilename) return;
+  const from = path.join(animationDirectory, clip.stored_filename);
+  const to = path.join(animationDirectory, nextStoredFilename);
+  if (!fs.existsSync(from)) {
+    throw new Error("Uploaded animation clip file is missing.");
+  }
+  if (fs.existsSync(to)) {
+    throw new Error("A clip file with this name already exists on disk.");
+  }
+  fs.renameSync(from, to);
+  clip.stored_filename = nextStoredFilename;
 }
 
 function createCatalogMutations({
@@ -177,11 +203,7 @@ function createCatalogMutations({
     if (!Array.isArray(filePaths) || filePaths.length === 0) {
       throw new Error("No VRMA files were selected.");
     }
-    const clipCount = Object.values(state.animation_clips).reduce(
-      (count, clips) => count + clips.length,
-      0,
-    );
-    if (clipCount + filePaths.length > maxCustomAnimationClips) {
+    if (totalUploadedClipCount(state) + filePaths.length > maxCustomAnimationClips) {
       throw new Error(
         `VoxAvatar supports up to ${maxCustomAnimationClips} uploaded animation clips.`,
       );
@@ -194,24 +216,22 @@ function createCatalogMutations({
     try {
       for (const filePath of filePaths) {
         const id = nodeCrypto.randomUUID();
-        const stored_filename = `${id}.vrma`;
+        const clip_name = nextClipName(animation.animation_name, existingNames);
+        const stored_filename = buildReadableStoredFilename(id, clip_name);
         copyValidatedGlbFile(
           filePath,
           path.join(animationDirectory, stored_filename),
           ".vrma",
         );
+        const source =
+          sanitizeSourceBasename(path.basename(filePath)) ??
+          syncSourceBasename(clip_name);
         added.push({
           id,
           stored_filename,
-          clip_name: nextClipName(animation.animation_name, existingNames),
+          clip_name,
           purpose,
-          ...(sanitizeSourceBasename(path.basename(filePath))
-            ? {
-                source_basename: sanitizeSourceBasename(
-                  path.basename(filePath),
-                ),
-              }
-            : {}),
+          source_basename: source,
         });
       }
     } catch (error) {
@@ -241,11 +261,7 @@ function createCatalogMutations({
     const accepted = [];
     for (const filePath of filePaths) {
       const state = getState();
-      const clipCount = Object.values(state.animation_clips).reduce(
-        (count, clips) => count + clips.length,
-        0,
-      );
-      if (clipCount + accepted.length >= maxCustomAnimationClips) {
+      if (totalUploadedClipCount(state) + accepted.length >= maxCustomAnimationClips) {
         results.push({
           filePath,
           ok: false,
@@ -271,6 +287,101 @@ function createCatalogMutations({
     let snapshot = getSnapshot();
     if (accepted.length > 0) {
       snapshot = addAnimationClips(animationId, accepted, options);
+    }
+    return { snapshot, results };
+  }
+
+  function addUnassignedClips(filePaths, options = {}) {
+    const state = getState();
+    if (!Array.isArray(filePaths) || filePaths.length === 0) {
+      throw new Error("No VRMA files were selected.");
+    }
+    if (totalUploadedClipCount(state) + filePaths.length > maxCustomAnimationClips) {
+      throw new Error(
+        `VoxAvatar supports up to ${maxCustomAnimationClips} uploaded animation clips.`,
+      );
+    }
+    const purpose = normalizeAnimationPurpose(options.purpose);
+    const existingNames = new Set(
+      (state.unassigned_clips ?? []).map((clip) => clip.clip_name),
+    );
+    const added = [];
+    try {
+      for (const filePath of filePaths) {
+        const id = nodeCrypto.randomUUID();
+        const stem = path.basename(filePath, path.extname(filePath));
+        let clip_name;
+        try {
+          clip_name = normalizeClipNameCandidate(stem);
+        } catch {
+          clip_name = nextClipName("clip", existingNames);
+        }
+        if (existingNames.has(clip_name)) {
+          clip_name = nextClipName(clip_name, existingNames);
+        } else {
+          existingNames.add(clip_name);
+        }
+        const stored_filename = buildReadableStoredFilename(id, clip_name);
+        copyValidatedGlbFile(
+          filePath,
+          path.join(animationDirectory, stored_filename),
+          ".vrma",
+        );
+        const source =
+          sanitizeSourceBasename(path.basename(filePath)) ??
+          syncSourceBasename(clip_name);
+        added.push({
+          id,
+          stored_filename,
+          clip_name,
+          purpose,
+          source_basename: source,
+        });
+      }
+    } catch (error) {
+      for (const clip of added) {
+        removeStoredFile(animationDirectory, clip.stored_filename);
+      }
+      throw error;
+    }
+    state.unassigned_clips = [...(state.unassigned_clips ?? []), ...added];
+    writeState();
+    return getSnapshot();
+  }
+
+  function addUnassignedClipsBestEffort(filePaths, options = {}) {
+    if (!Array.isArray(filePaths) || filePaths.length === 0) {
+      throw new Error("No VRMA files were selected.");
+    }
+    const results = [];
+    const accepted = [];
+    for (const filePath of filePaths) {
+      const state = getState();
+      if (totalUploadedClipCount(state) + accepted.length >= maxCustomAnimationClips) {
+        results.push({
+          filePath,
+          ok: false,
+          error: `VoxAvatar supports up to ${maxCustomAnimationClips} uploaded animation clips.`,
+          reason: "limit",
+        });
+        continue;
+      }
+      try {
+        validateGlbFile(filePath, ".vrma");
+        accepted.push(filePath);
+        results.push({ filePath, ok: true, error: null, reason: null });
+      } catch (error) {
+        results.push({
+          filePath,
+          ok: false,
+          error: error instanceof Error ? error.message : String(error),
+          reason: "invalid",
+        });
+      }
+    }
+    let snapshot = getSnapshot();
+    if (accepted.length > 0) {
+      snapshot = addUnassignedClips(accepted, options);
     }
     return { snapshot, results };
   }
@@ -318,10 +429,6 @@ function createCatalogMutations({
 
   function updateAnimationClip(animationId, clipId, patch = {}) {
     const state = getState();
-    const animation = availableAnimations().find(
-      (candidate) => candidate.id === animationId,
-    );
-    if (!animation) throw new Error("Animation action is not installed.");
     const clips = state.animation_clips[animationId] ?? [];
     const clip = clips.find((candidate) => candidate.id === clipId);
     if (!clip) throw new Error("Uploaded animation clip was not found.");
@@ -335,11 +442,70 @@ function createCatalogMutations({
       if (taken) {
         throw new Error("An animation clip with this name already exists.");
       }
+      const nextStored = buildReadableStoredFilename(clip.id, clip_name);
+      renameClipFile(animationDirectory, clip, nextStored);
       clip.clip_name = clip_name;
+      clip.source_basename = syncSourceBasename(clip_name);
     }
     if (Object.prototype.hasOwnProperty.call(patch, "purpose")) {
       clip.purpose = normalizeAnimationPurpose(patch.purpose);
     }
+    writeState();
+    return getSnapshot();
+  }
+
+  function updateUnassignedClip(clipId, patch = {}) {
+    const state = getState();
+    const clips = state.unassigned_clips ?? [];
+    const clip = clips.find((candidate) => candidate.id === clipId);
+    if (!clip) throw new Error("Uploaded animation clip was not found.");
+    if (Object.prototype.hasOwnProperty.call(patch, "clip_name")) {
+      const clip_name = normalizeClipNameCandidate(patch.clip_name);
+      const taken = clips.some(
+        (candidate) =>
+          candidate.id !== clipId && candidate.clip_name === clip_name,
+      );
+      if (taken) {
+        throw new Error("An animation clip with this name already exists.");
+      }
+      const nextStored = buildReadableStoredFilename(clip.id, clip_name);
+      renameClipFile(animationDirectory, clip, nextStored);
+      clip.clip_name = clip_name;
+      clip.source_basename = syncSourceBasename(clip_name);
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, "purpose")) {
+      clip.purpose = normalizeAnimationPurpose(patch.purpose);
+    }
+    writeState();
+    return getSnapshot();
+  }
+
+  function updateClipsPurpose(targets, purpose) {
+    if (!Array.isArray(targets) || targets.length === 0) {
+      throw new Error("No clips were selected.");
+    }
+    const nextPurpose = normalizeAnimationPurpose(purpose);
+    const state = getState();
+    let changed = 0;
+    for (const target of targets) {
+      const clipId = target?.clipId;
+      if (typeof clipId !== "string") continue;
+      if (target.pool === true || target.animationId == null) {
+        const clip = (state.unassigned_clips ?? []).find(
+          (candidate) => candidate.id === clipId,
+        );
+        if (!clip) continue;
+        clip.purpose = nextPurpose;
+        changed += 1;
+        continue;
+      }
+      const clips = state.animation_clips[target.animationId] ?? [];
+      const clip = clips.find((candidate) => candidate.id === clipId);
+      if (!clip) continue;
+      clip.purpose = nextPurpose;
+      changed += 1;
+    }
+    if (changed === 0) throw new Error("Uploaded animation clip was not found.");
     writeState();
     return getSnapshot();
   }
@@ -349,13 +515,10 @@ function createCatalogMutations({
       return getSnapshot();
     }
     const state = getState();
-    const fromAnimation = availableAnimations().find(
-      (candidate) => candidate.id === fromAnimationId,
-    );
     const toAnimation = availableAnimations().find(
       (candidate) => candidate.id === toAnimationId,
     );
-    if (!fromAnimation || !toAnimation) {
+    if (!toAnimation) {
       throw new Error("Animation action is not installed.");
     }
     const fromClips = state.animation_clips[fromAnimationId] ?? [];
@@ -369,10 +532,63 @@ function createCatalogMutations({
     const destination = state.animation_clips[toAnimationId] ?? [];
     const existingNames = new Set(destination.map((clip) => clip.clip_name));
     if (existingNames.has(moved.clip_name)) {
-      moved.clip_name = nextClipName(toAnimation.animation_name, existingNames);
+      const clip_name = nextClipName(toAnimation.animation_name, existingNames);
+      const nextStored = buildReadableStoredFilename(moved.id, clip_name);
+      renameClipFile(animationDirectory, moved, nextStored);
+      moved.clip_name = clip_name;
+      moved.source_basename = syncSourceBasename(clip_name);
     }
     destination.push(moved);
     state.animation_clips[toAnimationId] = destination;
+    writeState();
+    return getSnapshot();
+  }
+
+  function assignUnassignedClip(clipId, toAnimationId) {
+    const state = getState();
+    const toAnimation = availableAnimations().find(
+      (candidate) => candidate.id === toAnimationId,
+    );
+    if (!toAnimation) throw new Error("Animation action is not installed.");
+    const pool = state.unassigned_clips ?? [];
+    const index = pool.findIndex((clip) => clip.id === clipId);
+    if (index === -1) throw new Error("Uploaded animation clip was not found.");
+    const [moved] = pool.splice(index, 1);
+    state.unassigned_clips = pool;
+    const destination = state.animation_clips[toAnimationId] ?? [];
+    const existingNames = new Set(destination.map((clip) => clip.clip_name));
+    if (existingNames.has(moved.clip_name)) {
+      const clip_name = nextClipName(toAnimation.animation_name, existingNames);
+      const nextStored = buildReadableStoredFilename(moved.id, clip_name);
+      renameClipFile(animationDirectory, moved, nextStored);
+      moved.clip_name = clip_name;
+      moved.source_basename = syncSourceBasename(clip_name);
+    }
+    destination.push(moved);
+    state.animation_clips[toAnimationId] = destination;
+    writeState();
+    return getSnapshot();
+  }
+
+  function moveAnimationClipToUnassigned(animationId, clipId) {
+    const state = getState();
+    const fromClips = state.animation_clips[animationId] ?? [];
+    const index = fromClips.findIndex((clip) => clip.id === clipId);
+    if (index === -1) throw new Error("Uploaded animation clip was not found.");
+    const [moved] = fromClips.splice(index, 1);
+    if (fromClips.length === 0) delete state.animation_clips[animationId];
+    else state.animation_clips[animationId] = fromClips;
+    const pool = state.unassigned_clips ?? [];
+    const existingNames = new Set(pool.map((clip) => clip.clip_name));
+    if (existingNames.has(moved.clip_name)) {
+      const clip_name = nextClipName(moved.clip_name, existingNames);
+      const nextStored = buildReadableStoredFilename(moved.id, clip_name);
+      renameClipFile(animationDirectory, moved, nextStored);
+      moved.clip_name = clip_name;
+      moved.source_basename = syncSourceBasename(clip_name);
+    }
+    pool.push(moved);
+    state.unassigned_clips = pool;
     writeState();
     return getSnapshot();
   }
@@ -385,6 +601,18 @@ function createCatalogMutations({
     const [removed] = clips.splice(index, 1);
     removeStoredFile(animationDirectory, removed.stored_filename);
     if (clips.length === 0) delete state.animation_clips[animationId];
+    writeState();
+    return getSnapshot();
+  }
+
+  function deleteUnassignedClip(clipId) {
+    const state = getState();
+    const clips = state.unassigned_clips ?? [];
+    const index = clips.findIndex((clip) => clip.id === clipId);
+    if (index === -1) throw new Error("Uploaded animation clip was not found.");
+    const [removed] = clips.splice(index, 1);
+    removeStoredFile(animationDirectory, removed.stored_filename);
+    state.unassigned_clips = clips;
     writeState();
     return getSnapshot();
   }
@@ -495,7 +723,11 @@ function createCatalogMutations({
         removeStoredFile(animationDirectory, clip.stored_filename);
       }
     }
+    for (const clip of state.unassigned_clips ?? []) {
+      removeStoredFile(animationDirectory, clip.stored_filename);
+    }
     state.animation_clips = {};
+    state.unassigned_clips = [];
     writeState();
     return getSnapshot();
   }
@@ -513,20 +745,27 @@ function createCatalogMutations({
   return {
     addAnimationClips,
     addAnimationClipsBestEffort,
+    addUnassignedClips,
+    addUnassignedClipsBestEffort,
+    assignUnassignedClip,
     createAnimation,
     deleteAnimation,
     deleteAnimationClip,
     deleteAllUserAnimationClips,
     deleteAllUserModels,
     deleteModel,
+    deleteUnassignedClip,
     importModel,
     importModelsFromPaths,
     moveAnimationClip,
+    moveAnimationClipToUnassigned,
     resetPackagedAnimations,
     reorderAnimationClip,
     setDefaultModel,
     updateAnimation,
     updateAnimationClip,
+    updateClipsPurpose,
+    updateUnassignedClip,
   };
 }
 

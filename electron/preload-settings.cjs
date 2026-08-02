@@ -67,6 +67,37 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
       clipId,
       direction,
     ),
+  addUnassignedClips: () =>
+    ipcRenderer.invoke("voxavatar:settings-add-unassigned-clips"),
+  updateUnassignedClip: (clipId, patch) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-update-unassigned-clip",
+      clipId,
+      patch,
+    ),
+  deleteUnassignedClip: (clipId) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-delete-unassigned-clip",
+      clipId,
+    ),
+  assignUnassignedClip: (clipId, toAnimationId) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-assign-unassigned-clip",
+      clipId,
+      toAnimationId,
+    ),
+  moveAnimationClipToUnassigned: (animationId, clipId) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-move-animation-clip-to-unassigned",
+      animationId,
+      clipId,
+    ),
+  updateClipsPurpose: (targets, purpose) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-update-clips-purpose",
+      targets,
+      purpose,
+    ),
   revealPath: (targetPath) =>
     ipcRenderer.invoke("voxavatar:settings-reveal-path", targetPath),
   resetPackagedAnimations: () =>

@@ -101,6 +101,7 @@ interface VoxAvatarAnimationClipSettings {
   removable: boolean;
   purpose: 'loop' | 'one-shot' | 'pose';
   source_basename?: string | null;
+  stored_filename?: string;
   asset_url: string;
 }
 
@@ -139,6 +140,12 @@ type VoxAvatarStateSlotBindings = Partial<
   Record<VoxAvatarCharacterState, string | null>
 >;
 
+type VoxAvatarClipPurposeTarget = {
+  clipId: string;
+  animationId?: string | null;
+  pool?: boolean;
+};
+
 type VoxAvatarSettingsSnapshot = {
   schema_version: number;
   default_model_id: string | null;
@@ -147,6 +154,7 @@ type VoxAvatarSettingsSnapshot = {
   packaged_animation_change_count: number;
   models: VoxAvatarModelSettings[];
   animations: VoxAvatarAnimationSettings[];
+  unassigned_clips: VoxAvatarAnimationClipSettings[];
   model_lighting: Record<string, VoxAvatarLightingSettings>;
   voice_source: VoxAvatarVoiceSourceSettings;
   vrma_quality_gate: 'report' | 'strict' | 'off';
@@ -317,6 +325,29 @@ interface Window {
       animationId: string,
       clipId: string,
       direction: 'up' | 'down',
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    addUnassignedClips?(): Promise<VoxAvatarSettingsSnapshot | null>;
+    updateUnassignedClip?(
+      clipId: string,
+      patch: {
+        clip_name?: string;
+        purpose?: 'loop' | 'one-shot' | 'pose';
+      },
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    deleteUnassignedClip?(
+      clipId: string,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    assignUnassignedClip?(
+      clipId: string,
+      toAnimationId: string,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    moveAnimationClipToUnassigned?(
+      animationId: string,
+      clipId: string,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    updateClipsPurpose?(
+      targets: VoxAvatarClipPurposeTarget[],
+      purpose: 'loop' | 'one-shot' | 'pose',
     ): Promise<VoxAvatarSettingsSnapshot>;
     revealPath?(targetPath: string): Promise<void>;
     resetPackagedAnimations(): Promise<VoxAvatarSettingsSnapshot>;

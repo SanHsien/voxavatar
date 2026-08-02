@@ -12,6 +12,7 @@ const {
   validateAnimationMetadata,
   validateGlbFile,
 } = require("./settings-store.cjs");
+const { shortAssetId } = require("./clip-storage.cjs");
 const { readPackagedLibrary } = require("./library-catalog.cjs");
 
 function writeEmptyPackagedLibrary(root) {
@@ -230,7 +231,7 @@ test("keeps user library records when migrating the earlier settings schema", (c
   );
 
   const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
-  assert.equal(snapshot.schema_version, 10);
+  assert.equal(snapshot.schema_version, 11);
   assert.equal(snapshot.default_model_id, modelId);
   assert.equal(snapshot.character_size, 1.15);
   assert.ok(snapshot.models.some((model) => model.id === modelId));
@@ -593,7 +594,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     mode: "custom",
     process_pattern: "  local-tts|open-webui  ",
   });
-  assert.equal(snapshot.schema_version, 10);
+  assert.equal(snapshot.schema_version, 11);
   assert.equal(snapshot.idle_rest_ms, 8000);
   assert.deepEqual(snapshot.voice_source, {
     mode: "custom",
@@ -636,7 +637,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 10);
+  assert.equal(migrated.schema_version, 11);
   assert.equal(migrated.idle_rest_ms, 8000);
   assert.deepEqual(migrated.voice_source, {
     mode: "default",
@@ -792,7 +793,7 @@ test("migrates schema 4 fixture through legacy animation clip grouping", (contex
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 10);
+  assert.equal(snapshot.schema_version, 11);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.ok(snapshot.models.some((model) => model.id === legacy.models[0].id));
@@ -818,7 +819,7 @@ test("migrates schema 5 fixture while preserving split animation metadata and cl
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 10);
+  assert.equal(snapshot.schema_version, 11);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.equal(snapshot.ui_locale, "en");
@@ -856,7 +857,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
   const readResult = safeReadState(settingsPath, packagedLibrary);
   assert.equal(readResult.migration_error, "unsupported_schema");
   assert.equal(readResult.migrated, false);
-  assert.equal(readResult.state.schema_version, 10);
+  assert.equal(readResult.state.schema_version, 11);
   assert.deepEqual(readResult.state.models, []);
   assert.equal(
     fs.existsSync(`${settingsPath}.unmigratable-backup`),
@@ -871,7 +872,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(snapshot.schema_version, 10);
+  assert.equal(snapshot.schema_version, 11);
   assert.deepEqual(snapshot.models, []);
 });
 
@@ -988,7 +989,7 @@ test("persists state_slot_bindings and migrates schema 8 with empty bindings", (
   const packagedLibraryPath = writePackagedLibrary(root);
   const store = createSettingsStore({ userDataPath, packagedLibraryPath });
   let snapshot = store.getSnapshot();
-  assert.equal(snapshot.schema_version, 10);
+  assert.equal(snapshot.schema_version, 11);
   assert.deepEqual(snapshot.state_slot_bindings, {});
 
   snapshot = store.createAnimation({
@@ -1024,7 +1025,7 @@ test("persists state_slot_bindings and migrates schema 8 with empty bindings", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 10);
+  assert.equal(migrated.schema_version, 11);
   assert.deepEqual(migrated.state_slot_bindings, {});
 });
 
@@ -1118,6 +1119,13 @@ test("updateAnimationClip renames and sets purpose; moveAnimationClip reassigns"
   assert.ok(clip);
   assert.equal(clip.animation_name, "wave-soft");
   assert.equal(clip.purpose, "one-shot");
+  assert.equal(clip.source_basename, "wave-soft.vrma");
+  const expectedDiskName = `wave-soft--${shortAssetId(clipId)}.vrma`;
+  assert.equal(clip.stored_filename, expectedDiskName);
+  assert.equal(
+    fs.existsSync(path.join(userDataPath, "assets", "animations", expectedDiskName)),
+    true,
+  );
 
   snapshot = store.moveAnimationClip(wave.id, clipId, idle.id);
   const idleClips = snapshot.animations.find(
@@ -1128,4 +1136,86 @@ test("updateAnimationClip renames and sets purpose; moveAnimationClip reassigns"
   )?.clips;
   assert.ok(idleClips?.some((entry) => entry.id === clipId));
   assert.ok(!waveClips?.some((entry) => entry.id === clipId));
+});
+
+test("adds unassigned clips to the pool and assigns them to actions", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const sourceA = path.join(root, "pool-wave.vrma");
+  const sourceB = path.join(root, "pool-nod.vrma");
+  writeGlb(sourceA);
+  writeGlb(sourceB);
+
+  let snapshot = store.addUnassignedClips([sourceA, sourceB]);
+  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.unassigned_clips.length, 2);
+  const poolClip = snapshot.unassigned_clips[0];
+  assert.ok(poolClip);
+  assert.match(poolClip.stored_filename, /^pool-[a-z0-9-]+--[0-9a-f]{8}\.vrma$/);
+  const resolved = store.resolveAssetRequest(poolClip.asset_url);
+  assert.ok(resolved);
+  assert.equal(fs.existsSync(resolved), true);
+
+  snapshot = store.createAnimation({
+    animation_name: "greet",
+    animation_description: "A greeting.",
+    animation_trigger_scenario: "When greeting.",
+  });
+  const greet = snapshot.animations.find(
+    (animation) => animation.animation_name === "greet",
+  );
+  assert.ok(greet);
+
+  snapshot = store.assignUnassignedClip(poolClip.id, greet.id);
+  assert.equal(snapshot.unassigned_clips.length, 1);
+  const assigned = snapshot.animations
+    .find((animation) => animation.id === greet.id)
+    ?.clips.find((clip) => clip.id === poolClip.id);
+  assert.ok(assigned);
+  assert.equal(assigned.animation_name, poolClip.animation_name);
+});
+
+test("updateClipsPurpose updates pool and assigned clips", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const poolSource = path.join(root, "pose-a.vrma");
+  const actionSource = path.join(root, "pose-b.vrma");
+  writeGlb(poolSource);
+  writeGlb(actionSource);
+
+  let snapshot = store.addUnassignedClips([poolSource]);
+  const poolClip = snapshot.unassigned_clips[0];
+  assert.ok(poolClip);
+  assert.equal(poolClip.purpose, "loop");
+
+  snapshot = store.createAnimation({
+    animation_name: "pose-action",
+    animation_description: "Pose action.",
+    animation_trigger_scenario: "When posing.",
+  });
+  const action = snapshot.animations.find(
+    (animation) => animation.animation_name === "pose-action",
+  );
+  assert.ok(action);
+  snapshot = store.addAnimationClips(action.id, [actionSource]);
+  const assignedClip = snapshot.animations
+    .find((candidate) => candidate.id === action.id)
+    ?.clips.find((clip) => clip.origin === "user");
+  assert.ok(assignedClip);
+
+  snapshot = store.updateClipsPurpose(
+    [
+      { clipId: poolClip.id, pool: true },
+      { clipId: assignedClip.id, animationId: action.id },
+    ],
+    "pose",
+  );
+  const updatedPool = snapshot.unassigned_clips.find(
+    (clip) => clip.id === poolClip.id,
+  );
+  const updatedAssigned = snapshot.animations
+    .find((candidate) => candidate.id === action.id)
+    ?.clips.find((clip) => clip.id === assignedClip.id);
+  assert.equal(updatedPool?.purpose, "pose");
+  assert.equal(updatedAssigned?.purpose, "pose");
 });

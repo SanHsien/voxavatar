@@ -8,10 +8,8 @@
 
 - 顯示名為 **VoxAvatar**，識別字串為 `voxavatar`；產品只維護 Windows Electron、WASAPI 與 NSIS。
 - 上游為 `xikhar/persona`，保留 MIT 與 attribution。已 squash 的 `docs/contribution`、`feat/settings`、`feat/ui-theme`、`fix/mcp-update` 不再合併，只挑選符合本 fork 邊界的變更。
-- 上游評估水位（接續起點）：已評估至 `cf27d12`（`upstream/main` tip @ 2026-08-01）。下次從其後的新 commit 接續。
-- `327c8ca`（#12 跨平台語音來源）：採手動移植 Windows 部分（已在 fork）；不收 PipeWire／macOS／跨平台包裝／`PERSONA_*`。
-- `a72292f`（#14 授權說明＋README／`demo.jpg`）：**不合併**。本 fork 維持根目錄 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)（含空 catalog／BOOTH 本機匯入／發行閘門）；不引入上游 `demo.jpg`（無再散布權確認）；不把授權檔搬到 `public/assets/LICENSES.md` 以免破壞既有連結。
-- `cf27d12`（#15 README 圖片對齊）：**不合併**。僅調整上游 `demo.jpg` 顯示；本 README 使用 `avatar.png`，無需跟進。
+- 上游評估水位與 issue／PR 結論見 [`UPSTREAM_EVAL.md`](UPSTREAM_EVAL.md)（commit 水位 `cf27d12`；open #16／#13 範圍外，#11 已涵蓋）。
+- 硬性不收：PipeWire／Hyprland／macOS native、`PERSONA_*` 識別、未確認再散布權的上游 `demo.jpg`、把授權政策搬離根目錄 `ASSET_LICENSES.md`。
 - VoxAvatar 是桌面角色呈現層，不在應用程式內執行 LLM、保存聊天紀錄或取代聊天客戶端。
 
 ## 2. 音訊與本機整合

@@ -1,18 +1,18 @@
 # VoxAvatar 專案覆核
 
 覆核日期：2026-08-02
-基準：`v0.13.1`／`main`；GitHub Latest Release：`v0.13.0`
+基準：`v0.13.2`／`main`；GitHub Latest Release：`v0.13.0`
 
 ## 結論
 
-沒有已知未解 P0／P1。`v0.13.0` 已成為 Latest（installer＋SHA-256）；舊 `v0.5.0` 已清理。路線圖焦點為 **v0.14**。`main` tip `0.13.1` 為文件／路線圖收斂（未另 tag）。
+沒有已知未解 P0／P1。`v0.13.0` 為 Latest。上游 open PR／issue 已評估並寫入 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)（無須合併）。路線圖焦點為 **v0.14**。`main` tip `0.13.2` 為文件／評估紀錄（未另 tag）。
 
 ## 現況
 
+- Latest Release：`v0.13.0`；`main` tip 文件／路線圖為 `0.13.x`。
+- 上游：commit 水位 `cf27d12`；open PR #16／issue #13 為 macOS（不合併）；issue #11 首次取得角色文件已涵蓋。詳見 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)。
 - MCP 工具：5 個（含 opt-in `show_message`）；狀態事件正規化已備、狀態工具尚未掛上。
-- Settings schema 8；catalog CRUD 在 `settings-store-catalog.cjs`；overlay lifecycle 已抽離。
-- Idle once 輪播有 clip 快取與完成逾時後備；氣泡邊緣 layout 已接線。
-- 上游：不引入 `demo.jpg`／不搬移 `ASSET_LICENSES.md`。
+- Settings schema 8；catalog CRUD／overlay lifecycle 已抽離；Idle once 有 clip 快取與完成逾時後備。
 
 ## 仍開放
 
@@ -28,4 +28,4 @@
 
 ## 發行判定
 
-- Latest=`v0.13.0`；僅保留最新 Release／tag。`main` tip=`0.13.1`（文件）未另發版。
+- Latest=`v0.13.0`；僅保留最新 Release／tag。`main` tip=`0.13.2`（上游評估紀錄）未另發版。

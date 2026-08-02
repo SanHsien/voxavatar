@@ -124,7 +124,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.13.1`**（文件與路線圖收斂）。上游 `xikhar/persona` 已評估至 `cf27d12`（#14／#15 不合併）。
+目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.13.2`**（文件／上游評估紀錄）。上游評估見 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)。
 
 版本順序與接下來工作見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與驗證缺口見 [`REVIEW.md`](REVIEW.md)。
 
@@ -171,7 +171,7 @@ docs/            開發、整合、角色表現、決策與發行文件
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP、HTTP 事件 API 與 URL protocol |
 | [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)／[`docs/ACTION_PACK.md`](docs/ACTION_PACK.md)／[`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | 動作匯入、角色表現、action-pack 契約與素材相容性 |
 | [`docs/RELEASING.md`](docs/RELEASING.md)／[`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | 發布流程與 Windows 實機證據 |
-| [`SECURITY.md`](SECURITY.md)／[`ASSET_LICENSES.md`](ASSET_LICENSES.md)／[`docs/DECISIONS.md`](docs/DECISIONS.md) | 安全、媒體授權與現行取捨 |
+| [`SECURITY.md`](SECURITY.md)／[`ASSET_LICENSES.md`](ASSET_LICENSES.md)／[`docs/DECISIONS.md`](docs/DECISIONS.md)／[`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) | 安全、媒體授權、現行取捨與上游評估 |
 
 ## 支援與貢獻
 

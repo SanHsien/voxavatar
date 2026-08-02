@@ -13,4 +13,4 @@ VoxAvatar 是 [`xikhar/persona`](https://github.com/xikhar/persona) 的公開 fo
 
 - `origin`: `https://github.com/SanHsien/voxavatar.git`
 - `upstream`: `https://github.com/xikhar/persona.git`（只作比較與挑選變更，不直接重併已 squash 分支）
-- 上游評估水位見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1（目前至 `cf27d12`）。
+- 上游評估水位與 issue／PR 紀錄見 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)（摘要在 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。

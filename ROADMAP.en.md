@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `v0.13.1` (`main` tip; published Release tag `v0.13.0`; upstream eval watermark `cf27d12`)
+Planning baseline: `v0.13.2` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md))
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current health.
 

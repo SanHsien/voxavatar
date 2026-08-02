@@ -2,6 +2,10 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.13.2 - 2026-08-02
+
+- 新增 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)：記錄上游 open PR／issue 評估（#16／#13 範圍外、#11 已涵蓋）與既有 commit 結論；`DECISIONS`／`NOTICE`／`REVIEW` 改指向該檔。
+
 ## 0.13.1 - 2026-08-02
 
 - 更新路線圖：v0.9–v0.12 收斂為已完成摘要，現行焦點改為 v0.14（狀態槽／jsdom／Windows 驗收）；重寫「接下來三件事」。

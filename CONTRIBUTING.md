@@ -32,6 +32,7 @@ npm run dev
 - 不加入 Linux／macOS 監聽或發行目標。
 - 不提交未確認再散布權的 VRM／VRMA。
 - 保留上游 MIT 授權與 `xikhar` attribution。
+- 評估上游 commit／issue／PR 時依 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) 接續水位，只挑選符合本 fork 邊界的變更。
 
 ## 提交前驗證
 

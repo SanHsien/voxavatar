@@ -118,7 +118,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The published release is **`v0.13.0`**; `main` tip is **`0.13.1`** (docs/roadmap sync). Upstream `xikhar/persona` is evaluated through `cf27d12` (#14 / #15 skipped).
+The published release is **`v0.13.0`**; `main` tip is **`0.13.2`** (docs / upstream eval log). See [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order and next work, and [`REVIEW.md`](REVIEW.md) for current health and validation gaps (Traditional Chinese).
 
@@ -165,7 +165,7 @@ docs/            Development, integration, character behavior, decisions, and re
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP, HTTP event API, and URL protocol |
 | [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) / [`docs/ACTION_PACK.md`](docs/ACTION_PACK.md) / [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | Motion import, character behavior, action-pack contract, and media compatibility (Traditional Chinese where noted) |
 | [`docs/RELEASING.md`](docs/RELEASING.md) / [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Release workflow and Windows evidence (Traditional Chinese) |
-| [`SECURITY.en.md`](SECURITY.en.md) / [`ASSET_LICENSES.md`](ASSET_LICENSES.md) / [`docs/DECISIONS.md`](docs/DECISIONS.md) | Security, media licensing, and current decisions |
+| [`SECURITY.en.md`](SECURITY.en.md) / [`ASSET_LICENSES.md`](ASSET_LICENSES.md) / [`docs/DECISIONS.md`](docs/DECISIONS.md) / [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) | Security, media licensing, decisions, and upstream evaluation (Traditional Chinese where noted) |
 
 ## Support and contributing
 

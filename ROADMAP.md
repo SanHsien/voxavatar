@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`0.16.10`（`main`；GitHub Latest Release tag 仍為 `v0.16.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.11`（`main`；GitHub Latest Release tag 仍為 `v0.16.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,9 +11,9 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.10`／`main`；GitHub Latest Release：`v0.16.0`
+覆核基準：`0.16.11`／`main`；GitHub Latest Release：`v0.16.0`
 
-沒有已知未解 P0／P1。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。**本輪不規劃新功能路線**；關閉既有缺口與契約漂移。`main` tip `0.16.10`：離線 VRMA 結構檢視、安全改名與可重複整理流程。
+沒有已知未解 P0／P1。上游 open PR／issue 已重掃（`9287ea3` 之後無新 commit；#16 仍為範圍外不合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。**本輪不規劃新功能路線**；關閉既有缺口與契約漂移。`0.16.10` 離線 VRMA 整理；`0.16.11` 補齊 curation／未分類池／批次用途的文件與契約測。
 
 - Latest Release：`v0.16.0`（GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `9287ea3`；目前無 open PR；#16／已關閉 issue #13 為 macOS（不合併），issue #11 首次取得角色文件已涵蓋。
@@ -73,6 +73,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.16.8 | 未分類片段池、可讀磁碟檔名、批次用途（schema 11；DECISIONS §12） |
 | v0.16.9 | 模型匯入按鈕改為 form-actions 橫列間距 |
 | v0.16.10 | 離線 VRMA 結構檢視、安全改名與整理流程（DECISIONS §10） |
+| v0.16.11 | curation／未分類池 IPC／preload／動作頁契約測；上游重掃；DEVELOPMENT 指令 |
 
 ## 既有缺口收斂
 
@@ -82,6 +83,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [x] jsdom／匯入 partial failure；schema 政策；env pattern；external listener。
 - [x] docs 漂移修正；使用者手動狀態；native 分型 exit 碼與 JS／listener 測。
 - [x] Speaking 第二層頭部／上身；tray 選單抽出測試；Usage=2 runner 斷言。
+- [x] 離線 `vrma:curate` 核心流程測；未分類池／批次用途 IPC／preload／動作頁 static 測。
 
 ### 仍待／未驗
 

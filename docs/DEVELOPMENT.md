@@ -32,7 +32,7 @@ React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 | `electron/` | main、preload-avatar／preload-settings、設定、MCP／HTTP、語音來源與 Node tests |
 | `src/` | React／Three.js renderer、動作邏輯與 Vitest |
 | `native/windows/` | WASAPI process-loopback C++ helper |
-| `scripts/` | 原生 build、自測、資產／文件／版本／checksum 驗證 |
+| `scripts/` | 原生 build、自測、資產／文件／版本／checksum、離線 VRMA 整理（`vrma:curate`） |
 | `public/assets/` | UI 圖示、打包 catalog 與授權 manifest；預設不含 VRM／VRMA |
 | `docs/` | 架構、整合、動作、決策與發行文件 |
 | `.github/` | CI、CodeQL、Dependabot、Release 與貢獻模板 |
@@ -69,8 +69,11 @@ npm run dist:windows
 | `npm run native:test` | helper self-test 與 Usage=2 typed exit 斷言 |
 | `npm run baseline:bundle` | 產生／對照 renderer bundle 基準（可選） |
 | `npm run baseline:startup` | 量測 main process 關鍵模組 require 耗時（可選） |
+| `npm run vrma:curate -- …` | 離線 VRMA 結構檢視／安全改名／verify-names（維護用，非執行期） |
 | `npm run check` | 非原生的完整日常 gate |
 | `npm run dist:windows` | 原生 build／test + NSIS 安裝包 |
+
+離線整理流程與改名計畫契約見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)「離線 VRMA 整理流程」；工具刻意不推斷動作語意（[`DECISIONS.md`](DECISIONS.md) §10）。
 
 ## 效能基準（本地）
 

@@ -76,6 +76,15 @@ test("settings preload exposes management APIs without avatar bridge", async () 
   await settings.get();
   await settings.importModel({ model_name: "Studio Assistant" });
   await settings.deleteAllUserModels();
+  await settings.addUnassignedClips();
+  await settings.updateUnassignedClip("clip-pool", { purpose: "loop" });
+  await settings.assignUnassignedClip("clip-pool", "anim-1");
+  await settings.moveAnimationClipToUnassigned("anim-1", "clip-1");
+  await settings.updateClipsPurpose(
+    [{ clipId: "clip-pool", pool: true }],
+    "pose",
+  );
+  await settings.assignVrmaByFilename();
   await settings.getMcpStatus();
   await settings.getReadiness();
   await settings.getDiagnosticSummary();
@@ -87,6 +96,21 @@ test("settings preload exposes management APIs without avatar bridge", async () 
   assert.ok(
     invocations.some(
       (row) => row[0] === "voxavatar:settings-delete-all-user-models",
+    ),
+  );
+  assert.ok(
+    invocations.some(
+      (row) => row[0] === "voxavatar:settings-add-unassigned-clips",
+    ),
+  );
+  assert.ok(
+    invocations.some(
+      (row) => row[0] === "voxavatar:settings-update-clips-purpose",
+    ),
+  );
+  assert.ok(
+    invocations.some(
+      (row) => row[0] === "voxavatar:settings-assign-vrma-by-filename",
     ),
   );
   assert.deepEqual(sent, [["voxavatar:settings-set-window-theme", "light"]]);

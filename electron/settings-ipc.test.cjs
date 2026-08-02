@@ -34,6 +34,12 @@ test("registerSettingsIpc registers the bulk of settings channels", () => {
       deleteAnimation: () => ({}),
       deleteAnimationClip: () => ({}),
       reorderAnimationClip: () => ({}),
+      addUnassignedClips: () => ({}),
+      updateUnassignedClip: () => ({}),
+      deleteUnassignedClip: () => ({}),
+      assignUnassignedClip: () => ({}),
+      moveAnimationClipToUnassigned: () => ({}),
+      updateClipsPurpose: () => ({}),
       resetPackagedAnimations: () => ({}),
       deleteModel: () => ({}),
       deleteAllUserModels: () => ({}),
@@ -83,6 +89,16 @@ test("registerSettingsIpc registers the bulk of settings channels", () => {
   assert.ok(channels.includes("voxavatar:settings-import-model"));
   assert.ok(channels.includes("voxavatar:settings-get-mcp-status"));
   assert.ok(channels.includes("voxavatar:settings-assign-vrma-by-filename"));
+  for (const channel of [
+    "voxavatar:settings-add-unassigned-clips",
+    "voxavatar:settings-update-unassigned-clip",
+    "voxavatar:settings-delete-unassigned-clip",
+    "voxavatar:settings-assign-unassigned-clip",
+    "voxavatar:settings-move-animation-clip-to-unassigned",
+    "voxavatar:settings-update-clips-purpose",
+  ]) {
+    assert.ok(channels.includes(channel), `missing ${channel}`);
+  }
   assert.equal(
     registered.filter((entry) => entry.trusted === "settings").length,
     channels.length - 1,

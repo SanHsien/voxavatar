@@ -126,7 +126,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`0.16.10`**；GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 仍為 **`v0.16.0`**（累積中，本輪不另發安裝版）。GUI smoke／簽署仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`0.16.11`**；GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 仍為 **`v0.16.0`**（累積中，本輪不另發安裝版）。GUI smoke／簽署仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 
@@ -158,7 +158,7 @@ npm run dist:windows
 electron/        Electron main、preload-avatar／preload-settings、設定、MCP／HTTP 與 Node tests
 src/             React／Three.js renderer、動作邏輯與 Vitest
 native/windows/  WASAPI process-loopback C++ helper
-scripts/         build、資產、文件、Dependabot、版本與 checksum gates
+scripts/         build、資產、文件、Dependabot、版本與 checksum、離線 VRMA 整理（`vrma:curate`）gates
 public/assets/   UI 圖示與發行 manifest，預設不含 VRM／VRMA
 docs/            開發、整合、角色表現、決策與發行文件
 .github/         CI、CodeQL、Dependabot、Release 與貢獻模板

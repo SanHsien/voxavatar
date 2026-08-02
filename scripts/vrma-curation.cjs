@@ -503,6 +503,7 @@ module.exports = {
   applyRenamePlan,
   inspectVrmaDirectory,
   inspectVrmaFile,
+  main,
   validateRenamePlan,
   verifyAutomaticAssignments,
 };

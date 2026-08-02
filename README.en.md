@@ -120,7 +120,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The version on `main` is **`0.16.10`**. The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release remains **`v0.16.0`** (accumulating; no installer cut this round). GUI smoke and signing remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The version on `main` is **`0.16.11`**. The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release remains **`v0.16.0`** (accumulating; no installer cut this round). GUI smoke and signing remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 
@@ -152,7 +152,7 @@ npm run dist:windows
 electron/        Electron main, preload-avatar / preload-settings, settings, MCP/HTTP, and Node tests
 src/             React/Three.js renderer, action logic, and Vitest tests
 native/windows/  WASAPI process-loopback C++ helper
-scripts/         Build, media, docs, Dependabot, version, and checksum gates
+scripts/         Build, media, docs, Dependabot, version, checksum, and offline VRMA curation (`vrma:curate`) gates
 public/assets/   UI icon and release manifests; no VRM/VRMA by default
 docs/            Development, integration, character behavior, decisions, and release docs
 .github/         CI, CodeQL, Dependabot, Release, and contribution templates

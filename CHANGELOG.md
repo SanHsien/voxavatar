@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.11 - 2026-08-02
+
+- 上游 `xikhar/persona` 重掃：水位仍為 `9287ea3`（#16 macOS，不合併）；無 open PR；#11 仍標已涵蓋。
+- `docs/DEVELOPMENT.md`／README 補上 `npm run vrma:curate` 驗證矩陣與目錄說明。
+- 契約測補強：settings IPC／preload 鎖定未分類池與批次用途 channel；`vrma-curation` 補 assumed_purpose／schema／CLI／whitelist 案例；動作頁未分類池 static Vitest。
+
 ## 0.16.10 - 2026-08-02
 
 - 新增離線 `vrma:curate` 維護工具：解包 VRMA／Humanoid 骨架與身體區域運動量，產生結構報告但不推斷動作語意。

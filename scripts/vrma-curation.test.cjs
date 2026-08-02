@@ -9,6 +9,7 @@ const test = require("node:test");
 const {
   applyRenamePlan,
   inspectVrmaDirectory,
+  main,
   validateRenamePlan,
   verifyAutomaticAssignments,
 } = require("./vrma-curation.cjs");
@@ -33,6 +34,9 @@ test("inspects humanoid motion and reports invalid VRMA files", () => {
   assert.ok(valid.animated_bones.includes("head"));
   assert.ok(valid.motion_by_group_rad.head > 0);
   assert.equal(valid.hips_translation_range.length, 3);
+  assert.equal(typeof valid.quality.score, "number");
+  assert.equal(typeof valid.quality.assumed_purpose, "string");
+  assert.ok(valid.quality.assumed_purpose.length > 0);
   const invalid = report.files.find((file) => file.file === "._idle.vrma");
   assert.equal(invalid.valid, false);
   assert.ok(invalid.issues.includes("parse_error"));
@@ -214,4 +218,76 @@ test("verifies production filename suggestions against action-pack actions", () 
     ],
   });
   assert.equal(cleanReport.ok, true);
+});
+
+test("rename plan rejects unsupported schema versions", () => {
+  const root = fixture();
+  fs.writeFileSync(path.join(root, "one.vrma"), "one");
+
+  const result = validateRenamePlan(root, {
+    schema_version: 99,
+    renames: [{ from: "one.vrma", to: "idle-01.vrma" }],
+  });
+
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.includes("unsupported_schema_version"));
+});
+
+test("verify-names counts whitelist_slot matches for state filenames", () => {
+  const root = fixture();
+  fs.writeFileSync(path.join(root, "idle.vrma"), "idle");
+  fs.writeFileSync(path.join(root, "speaking.vrma"), "speaking");
+
+  const report = verifyAutomaticAssignments(root, {
+    schema_version: 1,
+    name: "state-pack",
+    actions: [
+      {
+        animation_name: "idle",
+        purpose: "loop",
+        state_slot: "idle",
+        files: ["idle.vrma"],
+      },
+      {
+        animation_name: "speaking",
+        purpose: "loop",
+        state_slot: "speaking",
+        files: ["speaking.vrma"],
+      },
+    ],
+  });
+
+  assert.equal(report.ok, true);
+  assert.equal(report.summary.whitelist_slot >= 0, true);
+  assert.equal(
+    report.summary.exact_name +
+      report.summary.name_prefix +
+      report.summary.whitelist_slot,
+    2,
+  );
+});
+
+test("main inspect writes --output and verify-names fails unclean packs", () => {
+  const root = fixture();
+  fs.writeFileSync(path.join(root, "idle.vrma"), buildRotationVrma());
+  const reportPath = path.join(root, "report.json");
+  const packPath = path.join(root, "pack.json");
+  fs.writeFileSync(
+    packPath,
+    JSON.stringify({
+      schema_version: 1,
+      name: "bad-pack",
+      actions: [{ animation_name: "idle", files: ["missing.vrma"] }],
+    }),
+  );
+
+  main(["inspect", root, "--output", reportPath]);
+  assert.equal(fs.existsSync(reportPath), true);
+  const written = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  assert.equal(written.summary.valid, 1);
+
+  assert.throws(
+    () => main(["verify-names", root, packPath]),
+    /do not fully match/u,
+  );
 });

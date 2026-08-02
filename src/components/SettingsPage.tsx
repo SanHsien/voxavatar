@@ -24,6 +24,10 @@ import {
   settingsT,
 } from '../settings-i18n';
 import {
+  directoryImportExtraParts,
+  formatActionPackImportNotice,
+} from '../import-feedback';
+import {
   applyTheme,
   LIGHT_QUERY,
   readStoredTheme,
@@ -595,14 +599,10 @@ export function SettingsPage() {
               imported: result.summary.imported,
               scanned: result.summary.scanned,
             }),
+        ...directoryImportExtraParts(result.summary, t),
       ];
       if (result.summary.report_path) {
-        parts.push(t('notice.reportSavedShort'));
         setReportRevealPath(result.summary.report_path);
-      } else if (result.summary.report_error) {
-        parts.push(
-          t('notice.reportFailed', { error: result.summary.report_error }),
-        );
       }
       setNotice(parts.join(' '));
       setModelName('');
@@ -669,14 +669,10 @@ export function SettingsPage() {
               imported: result.summary.imported,
               scanned: result.summary.scanned,
             }),
+        ...directoryImportExtraParts(result.summary, t),
       ];
       if (result.summary.report_path) {
-        parts.push(t('notice.reportSavedShort'));
         setReportRevealPath(result.summary.report_path);
-      } else if (result.summary.report_error) {
-        parts.push(
-          t('notice.reportFailed', { error: result.summary.report_error }),
-        );
       }
       setNotice(parts.join(' '));
     } catch (error) {
@@ -920,17 +916,8 @@ export function SettingsPage() {
         return;
       }
       updateSnapshot(result.snapshot);
-      const created = result.results.filter((item) => item.created).length;
-      const clips = result.results.reduce(
-        (total, item) => total + item.clips_imported,
-        0,
-      );
       setNotice(
-        t('notice.actionPackImported', {
-          name: result.pack_name,
-          created,
-          clips,
-        }),
+        formatActionPackImportNotice(result.pack_name, result.results, t),
       );
     } catch (error) {
       setNotice(errorMessage(error));

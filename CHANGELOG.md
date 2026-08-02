@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.15.1 - 2026-08-02
+
+- 補 Settings／氣泡 jsdom 互動測（狀態槽選取／匯入、品質門檻、語音隱私警告、投影錨點）。
+- 目錄與 action-pack 匯入 notice 顯示略過／失敗計數（partial failure 可見；既有資料不覆寫）。
+- Packaged library／catalog：unsupported `schema_version` reject 測試；[`docs/DECISIONS.md`](docs/DECISIONS.md) §9 schema 版本政策。
+- 路線圖：註明 `REVIEW.md` 已併入「目前健康」；不規劃新功能，先收既有缺口；v1.0 可驗證項打勾，實機／簽署標未驗。
+
 ## 0.15.0 - 2026-08-02
 
 - Scene／Avatar 以 VRM `head`（及 `upperChest`／`chest`／`spine` 退回）骨點接上 `head-projection`：每幀投影到 Canvas CSS 座標。

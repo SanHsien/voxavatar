@@ -160,6 +160,38 @@ test("resolves explicit and first-model packaged defaults", () => {
   );
 });
 
+test("rejects unsupported packaged library schema versions", () => {
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 2,
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 0,
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+});
+
 test("infers live roles from reserved animation names and numbered variants", () => {
   assert.equal(inferAnimationType("idle"), "IDLE");
   assert.equal(inferAnimationType("idle-2"), "IDLE");

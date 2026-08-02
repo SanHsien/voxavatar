@@ -98,6 +98,8 @@ const ZH_TW: MessageDictionary = {
     '已從目錄匯入 {imported}／{scanned} 個 VRM（保留 {keep}／觀察 {review}／淘汰 {reject}）。',
   'notice.modelsImportedOff':
     '已從目錄匯入 {imported}／{scanned} 個 VRM。',
+  'notice.importPartial':
+    '略過 {skipped}、失敗 {failed}（既有資料庫未覆蓋）。',
   'notice.animationCreated':
     '動作已建立。請到下方該動作卡片按「+ 加入 VRMA 檔案」加入片段；之後可用「編輯」修改詳情。',
   'notice.actionPresetExists':
@@ -124,6 +126,8 @@ const ZH_TW: MessageDictionary = {
   'notice.stateSlotUpdated': '狀態動作槽已更新。',
   'notice.actionPackImported':
     '已匯入 action-pack「{name}」（{created} 個新動作，{clips} 個片段）。',
+  'notice.actionPackPartial':
+    '其中 {failed} 個動作未完整匯入（失敗項未覆寫既有動作）。',
   'notice.actionPackCancelled': '已取消匯入 action-pack。',
   'notice.clipDeleted': '已移除 {name}。',
   'notice.clipReordered': '已調整 {name} 的順序。',
@@ -554,6 +558,8 @@ const EN: MessageDictionary = {
     'Imported {imported}/{scanned} VRM file(s) from the folder (keep {keep} / review {review} / reject {reject}).',
   'notice.modelsImportedOff':
     'Imported {imported}/{scanned} VRM file(s) from the folder.',
+  'notice.importPartial':
+    'Skipped {skipped}, failed {failed} (existing library unchanged for those).',
   'notice.animationCreated':
     'Action created. Use “+ Add VRMA files” on its card below to add clips; use Edit anytime to change details.',
   'notice.actionPresetExists':
@@ -580,6 +586,8 @@ const EN: MessageDictionary = {
   'notice.stateSlotUpdated': 'State motion slot updated.',
   'notice.actionPackImported':
     'Imported action-pack “{name}” ({created} new action(s), {clips} clip(s)).',
+  'notice.actionPackPartial':
+    '{failed} action(s) did not import fully (failures did not overwrite existing actions).',
   'notice.actionPackCancelled': 'Action-pack import cancelled.',
   'notice.clipDeleted': '{name} removed.',
   'notice.clipReordered': 'Reordered {name}.',

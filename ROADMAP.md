@@ -13,12 +13,12 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 覆核基準：`0.16.9`／`main`；GitHub Latest Release：`v0.16.0`
 
-沒有已知未解 P0／P1。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。**本輪不規劃新功能路線**；關閉既有缺口與契約漂移。`main` tip `0.16.9`：未分類片段池、可讀磁碟檔名、批次用途。
+沒有已知未解 P0／P1。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。**本輪不規劃新功能路線**；關閉既有缺口與契約漂移。`main` tip `0.16.9`：模型匯入按鈕改為 form-actions 橫列間距。
 
 - Latest Release：`v0.16.0`（GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `9287ea3`；目前無 open PR；#16／已關閉 issue #13 為 macOS（不合併），issue #11 首次取得角色文件已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
-- 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移。
+- 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
 本輪驗證：`npm run check` 全綠；Release／Latest／資產依 [`docs/RELEASING.md`](docs/RELEASING.md) 核對。
 
@@ -69,8 +69,9 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.16.4 | 澄清 listening 狀態槽預設綁 idle（無獨立 listening 系統動作） |
 | v0.16.5 | action-pack purpose 寫入 clip；檔名白名單 opt-in 分槽（DECISIONS §10） |
 | v0.16.6 | 設定進度完成後隱藏；釐清 VRMA 語意分槽不做 AI（DECISIONS §10／§11） |
-| v0.16.9 | 未分類片段池、可讀磁碟檔名、批次用途（schema 11；DECISIONS §12） |
 | v0.16.7 | 動作 VRMA 預覽／顯示名稱／用途／移至其他動作（schema 10；DECISIONS §12） |
+| v0.16.8 | 未分類片段池、可讀磁碟檔名、批次用途（schema 11；DECISIONS §12） |
+| v0.16.9 | 模型匯入按鈕改為 form-actions 橫列間距 |
 
 ## 既有缺口收斂
 

@@ -333,6 +333,18 @@ interface Window {
       }>;
       bindings: VoxAvatarStateSlotBindings;
     } | null>;
+    assignVrmaByFilename?(): Promise<{
+      snapshot: VoxAvatarSettingsSnapshot;
+      assigned: number;
+      skipped: number;
+      cancelled: boolean;
+      results: Array<{
+        file: string;
+        ok: boolean;
+        error: string | null;
+        animationId: string;
+      }>;
+    } | null>;
     setUiLocale?(locale: 'zh-TW' | 'en'): Promise<VoxAvatarSettingsSnapshot>;
     setVoiceSource(
       voiceSource: VoxAvatarVoiceSourceSettings,

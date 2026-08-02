@@ -1059,3 +1059,25 @@ test("suggests default idle/speaking bindings when system clips become playable"
   assert.equal(snapshot.state_slot_bindings.listening, "idle");
   assert.equal(snapshot.state_slot_bindings.speaking, "speaking");
 });
+
+test("addAnimationClips accepts purpose override from options", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.getSnapshot();
+  const speaking = snapshot.animations.find(
+    (animation) => animation.animation_name === "speaking",
+  );
+  assert.ok(speaking);
+  const source = path.join(root, "pose-clip.vrma");
+  writeGlb(source);
+  snapshot = store.addAnimationClips(speaking.id, [source], {
+    purpose: "pose",
+  });
+  const clips = snapshot.animations.find(
+    (animation) => animation.id === speaking.id,
+  )?.clips;
+  assert.ok(clips && clips.length > 0);
+  const userClip = clips.find((clip) => clip.origin === "user");
+  assert.ok(userClip);
+  assert.equal(userClip.purpose, "pose");
+});

@@ -78,6 +78,10 @@ const {
   evaluateDirectoryImport,
 } = require("./directory-import.cjs");
 const { importActionPackFromPath } = require("./action-pack-import.cjs");
+const {
+  assignableVrmaSuggestions,
+  suggestVrmaAssignments,
+} = require("./vrma-assignment-suggest.cjs");
 const { createRendererWindows } = require("./renderer-windows.cjs");
 const { registerSettingsIpc } = require("./settings-ipc.cjs");
 const { createOverlayLifecycle } = require("./overlay-lifecycle.cjs");
@@ -231,6 +235,45 @@ async function confirmDirectoryImport({
         : t.importConfirmMessageAnimation,
     detail,
     buttons: [t.importConfirmProceed, t.importConfirmCancel],
+    defaultId: 0,
+    cancelId: 1,
+    noLink: true,
+  };
+  const result = parent
+    ? await dialog.showMessageBox(parent, options)
+    : await dialog.showMessageBox(options);
+  return result.response === 0;
+}
+
+/** 檔名白名單建議分槽：列出可寫入對應後請使用者確認。 */
+async function confirmAssignByFilename({ assignable, skipped, total }) {
+  const t = currentMenuStrings();
+  const parent = settingsDialogParent();
+  const lines = (Array.isArray(assignable) ? assignable : [])
+    .slice(0, 12)
+    .map((item) => `${item.basename} → ${item.animationName}`);
+  if ((assignable?.length ?? 0) > 12) {
+    lines.push(`… +${assignable.length - 12}`);
+  }
+  const detail = [
+    String(t.assignConfirmDetail ?? "")
+      .replaceAll("{assign}", String(assignable?.length ?? 0))
+      .replaceAll("{skipped}", String(skipped ?? 0))
+      .replaceAll("{total}", String(total ?? 0)),
+    "",
+    ...lines,
+  ]
+    .filter((line) => line != null)
+    .join("\n");
+  const options = {
+    type: "question",
+    title: t.assignConfirmTitle ?? t.importConfirmTitle,
+    message: t.assignConfirmMessage ?? t.importConfirmMessageAnimation,
+    detail,
+    buttons: [
+      t.assignConfirmProceed ?? t.importConfirmProceed,
+      t.assignConfirmCancel ?? t.importConfirmCancel,
+    ],
     defaultId: 0,
     cancelId: 1,
     noLink: true,
@@ -1149,6 +1192,7 @@ if (!app.requestSingleInstanceLock()) {
       selectActionPackFile,
       importActionPackFromPath,
       confirmDirectoryImport,
+      confirmAssignByFilename,
       showAboutDialog,
       restartAudioListener,
       createMcpSettingsStatus,
@@ -1169,6 +1213,8 @@ if (!app.requestSingleInstanceLock()) {
       writeMarkdownReport,
       buildDirectoryImportSummary,
       evaluateDirectoryImport,
+      suggestVrmaAssignments,
+      assignableVrmaSuggestions,
     });
     ipcMain.on("voxavatar:hide", (event) => {
       if (!avatarWindow || avatarWindow.isDestroyed()) return;

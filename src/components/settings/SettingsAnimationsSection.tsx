@@ -18,6 +18,7 @@ export interface SettingsAnimationsSectionProps {
   addAnimationClipsFromDirectory: (
     animation: VoxAvatarAnimationSettings,
   ) => Promise<void>;
+  assignVrmaByFilename: () => Promise<void>;
   animationMetadata: CustomAnimationMetadata;
   applyActionPreset: (preset: ActionPresetDefinition) => void;
   applyAndCreateActionPreset: (preset: ActionPresetDefinition) => Promise<void>;
@@ -109,6 +110,7 @@ function ClipAddButtons({
 export function SettingsAnimationsSection({
   addAnimationClips,
   addAnimationClipsFromDirectory,
+  assignVrmaByFilename,
   animationMetadata,
   applyActionPreset,
   applyAndCreateActionPreset,
@@ -292,8 +294,17 @@ export function SettingsAnimationsSection({
           <div>
             <h2>{t('actions.listTitle')}</h2>
             <p>{t('actions.listDesc')}</p>
+            <p>{t('actions.assignByFilenameHint')}</p>
           </div>
           <div className="panel-heading-actions">
+            <button
+              className="secondary-button"
+              disabled={busy || !bridge?.assignVrmaByFilename}
+              onClick={() => void assignVrmaByFilename()}
+              type="button"
+            >
+              {t('actions.assignByFilename')}
+            </button>
             <button
               className="secondary-button danger-text-button"
               disabled={

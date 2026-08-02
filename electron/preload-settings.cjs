@@ -87,6 +87,8 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
     ),
   importActionPack: () =>
     ipcRenderer.invoke("voxavatar:settings-import-action-pack"),
+  assignVrmaByFilename: () =>
+    ipcRenderer.invoke("voxavatar:settings-assign-vrma-by-filename"),
   setUiLocale: (locale) =>
     ipcRenderer.invoke("voxavatar:settings-set-ui-locale", locale),
   setVoiceSource: (voiceSource) =>

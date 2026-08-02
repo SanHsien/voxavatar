@@ -926,6 +926,38 @@ export function SettingsPage() {
     }
   };
 
+  const assignVrmaByFilename = async () => {
+    if (!bridge?.assignVrmaByFilename) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const result = await bridge.assignVrmaByFilename();
+      if (!result) {
+        setNotice(t('notice.assignByFilenameCancelled'));
+        return;
+      }
+      updateSnapshot(result.snapshot);
+      if (result.cancelled) {
+        setNotice(t('notice.assignByFilenameCancelled'));
+        return;
+      }
+      if (result.assigned === 0) {
+        setNotice(t('notice.assignByFilenameNone'));
+        return;
+      }
+      setNotice(
+        t('notice.assignByFilenameDone', {
+          assigned: result.assigned,
+          skipped: result.skipped,
+        }),
+      );
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const deleteAnimation = (animation: VoxAvatarAnimationSettings) => {
     if (!bridge || !animation.removable) return;
     openConfirmation({
@@ -1436,6 +1468,7 @@ export function SettingsPage() {
               <SettingsAnimationsSection
               addAnimationClips={addAnimationClips}
               addAnimationClipsFromDirectory={addAnimationClipsFromDirectory}
+              assignVrmaByFilename={assignVrmaByFilename}
               animationMetadata={animationMetadata}
               applyActionPreset={applyActionPreset}
               applyAndCreateActionPreset={applyAndCreateActionPreset}

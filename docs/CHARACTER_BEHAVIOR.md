@@ -105,6 +105,18 @@ Settings 面板內有可展開說明與「複製範例」；完整範例：
 - 不提供絕對路徑、URL、或 app data 外路徑。
 - 不取代 catalog／settings schema；實際安裝仍走既有匯入流程。
 - 不因 action-pack 自動啟用 MCP 擴權。
+- 不以品質分數、動作特徵、聊天或情緒內容自動猜測 VRMA 應屬於哪個動作。
+
+### 動作↔VRMA 自動對應（政策摘要）
+
+| 層級 | 行為 |
+| --- | --- |
+| **明示契約（正式）** | `action-pack.json` 的 `files`＋`state_slot`＋`purpose`；匯入時寫入 clip `purpose` 並合併狀態槽 |
+| **同名預選** | 系統狀態槽在可播放時預選 idle／speaking（listening 綁 idle） |
+| **檔名白名單（opt-in）** | Settings「依檔名建議分槽」：僅同名／前綴或 idle／speaking 等白名單，**須確認**才寫入；不明確略過 |
+| **不做** | 語意／情緒／音訊／品質分數自動分槽 |
+
+詳見 [`DECISIONS.md`](DECISIONS.md) §3／§10。
 
 ## 浮動對話氣泡
 

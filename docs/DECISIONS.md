@@ -93,6 +93,7 @@
 - 目錄品質報告是啟發式輔助，不能取代人工預覽或授權審查。VRM 與 VRMA 共用既有 quality-gate 設定鍵與分數門檻（淘汰／保留），避免平行設定漂移。
 - Idle、Speaking、自訂動作與後續狀態／氣泡契約集中在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 - VRMA clip 可標註用途 `loop`／`one-shot`／`pose`（settings schema ≥7）；品質分析依用途套規則。
+- **動作↔VRMA 自動對應**：正式來源是 action-pack 明示 `files`／`state_slot`／`purpose`（匯入時寫入 clip purpose）與狀態槽同名預選。可選「依檔名白名單建議分槽」須使用者確認；**禁止**以品質分數、動作特徵、聊天／情緒／音訊內容語意猜分槽。
 
 ## 4. Electron 與狀態邊界
 
@@ -136,4 +137,11 @@
 - **Settings**（`settings-migration.cjs`）：目前 `schema_version`＝9。允許清單內舊版（1–8）讀取時遷移並寫回；不在清單者備份為 `settings.json.unmigratable-backup` 並回報 `unsupported_schema`。升版須加 migration 路徑與 fixture 測試。
 - **MCP tools／status**（`mcp-schemas.cjs`）：`tools_schema_version`／`status_schema_version` 隨工具契約變更遞增；成功與失敗皆回結構化 JSON。政策與相容說明見 [`INTEGRATIONS.md`](INTEGRATIONS.md)。
 - **Packaged library／catalog**（`library-catalog.cjs`）：`schema_version` 必須精確等於 `PACKAGED_LIBRARY_SCHEMA_VERSION`（目前為 1）。不支援就地 migration；不匹配直接拒絕載入，避免半套 catalog 污染執行期。升版時改常數並同步 `library.json`／example／測試。
-- **action-pack.json**：獨立 `schema_version`（見 `action-pack.cjs`）；匯入仍走 GLB／路徑／catalog gate，失敗項不覆寫既有動作。
+- **action-pack.json**：獨立 `schema_version`（見 `action-pack.cjs`）；匯入仍走 GLB／路徑／catalog gate，失敗項不覆寫既有動作；`purpose` 寫入對應 clip。
+
+## 10. 動作↔VRMA 自動對應
+
+- **A（已落地）**：action-pack 明示分槽＋`purpose`；狀態槽同名／類型預選（listening→idle）。這是產品正式「自動」路徑。
+- **B（已落地、opt-in）**：檔名白名單／動作名前綴建議（`suggestVrmaAssignment`）；Settings「依檔名建議分槽」選檔後列出對應並確認才寫入；無匹配則略過，不新建動作。
+- **C（明確不做）**：不以 VRMA 品質分數、骨架特徵、聊天畫面、情緒或音訊內容推斷應屬哪個動作。
+- 播放層維持同動作多 clip 隨機（避重複）；自動對應只解決「檔案進哪個動作」，不改播放挑選語意。

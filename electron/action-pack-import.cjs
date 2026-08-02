@@ -114,6 +114,7 @@ function importActionPackFromPath({
       const batch = settingsStore.addAnimationClipsBestEffort(
         animationId,
         filePaths,
+        { purpose: action.purpose },
       );
       snapshot = batch.snapshot;
       const imported = batch.results.filter((item) => item.ok).length;

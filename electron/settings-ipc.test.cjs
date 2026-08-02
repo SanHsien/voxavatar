@@ -80,6 +80,7 @@ test("registerSettingsIpc registers the bulk of settings channels", () => {
   assert.ok(channels.includes("voxavatar:settings-get"));
   assert.ok(channels.includes("voxavatar:settings-import-model"));
   assert.ok(channels.includes("voxavatar:settings-get-mcp-status"));
+  assert.ok(channels.includes("voxavatar:settings-assign-vrma-by-filename"));
   assert.equal(
     registered.filter((entry) => entry.trusted === "settings").length,
     channels.length - 1,

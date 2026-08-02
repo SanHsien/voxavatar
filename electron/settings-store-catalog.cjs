@@ -12,6 +12,7 @@ const { SYSTEM_ANIMATION_IDS } = require("./library-catalog.cjs");
 const {
   defaultPurposeForAnimationType,
   nextClipName,
+  normalizeAnimationPurpose,
   singleLine,
   validateAnimationMetadata,
 } = require("./settings-sanitize.cjs");
@@ -158,7 +159,14 @@ function createCatalogMutations({
     return getSnapshot();
   }
 
-  function addAnimationClips(animationId, filePaths) {
+  function resolveClipPurpose(animation, options = {}) {
+    if (options && Object.prototype.hasOwnProperty.call(options, "purpose")) {
+      return normalizeAnimationPurpose(options.purpose);
+    }
+    return defaultPurposeForAnimationType(animation.animation_type);
+  }
+
+  function addAnimationClips(animationId, filePaths, options = {}) {
     const state = getState();
     const animation = availableAnimations().find(
       (candidate) => candidate.id === animationId,
@@ -176,6 +184,7 @@ function createCatalogMutations({
         `VoxAvatar supports up to ${maxCustomAnimationClips} uploaded animation clips.`,
       );
     }
+    const purpose = resolveClipPurpose(animation, options);
     const existingNames = new Set(
       animation.clips.map((clip) => clip.animation_name),
     );
@@ -193,7 +202,7 @@ function createCatalogMutations({
           id,
           stored_filename,
           clip_name: nextClipName(animation.animation_name, existingNames),
-          purpose: defaultPurposeForAnimationType(animation.animation_type),
+          purpose,
         });
       }
     } catch (error) {
@@ -210,7 +219,7 @@ function createCatalogMutations({
     return getSnapshot();
   }
 
-  function addAnimationClipsBestEffort(animationId, filePaths) {
+  function addAnimationClipsBestEffort(animationId, filePaths, options = {}) {
     const animation = availableAnimations().find(
       (candidate) => candidate.id === animationId,
     );
@@ -252,7 +261,7 @@ function createCatalogMutations({
 
     let snapshot = getSnapshot();
     if (accepted.length > 0) {
-      snapshot = addAnimationClips(animationId, accepted);
+      snapshot = addAnimationClips(animationId, accepted, options);
     }
     return { snapshot, results };
   }

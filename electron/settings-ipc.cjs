@@ -13,6 +13,7 @@ function registerSettingsIpc({
   selectActionPackFile,
   importActionPackFromPath,
   confirmDirectoryImport,
+  confirmAssignByFilename,
   showAboutDialog,
   restartAudioListener,
   createMcpSettingsStatus,
@@ -33,6 +34,8 @@ function registerSettingsIpc({
   writeMarkdownReport,
   buildDirectoryImportSummary,
   evaluateDirectoryImport,
+  suggestVrmaAssignments,
+  assignableVrmaSuggestions,
 }) {
   handleTrustedIpc("voxavatar:settings-get", () => settingsStore.getSnapshot());
   handleTrustedSettingsIpc("voxavatar:settings-import-model", async (_event, metadata) => {
@@ -396,6 +399,95 @@ function registerSettingsIpc({
       });
       publishSettings(result.snapshot);
       return result;
+    },
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-assign-vrma-by-filename",
+    async () => {
+      if (typeof suggestVrmaAssignments !== "function") {
+        throw new Error("vrma_assignment_suggest_unavailable");
+      }
+      const filePaths = await selectAssetFile("animation", true);
+      if (!filePaths || filePaths.length === 0) return null;
+
+      const snapshot = settingsStore.getSnapshot();
+      const suggestions = suggestVrmaAssignments(
+        filePaths,
+        snapshot.animations ?? [],
+      ).map((item, index) => ({
+        ...item,
+        filePath: filePaths[index],
+      }));
+      const assignable =
+        typeof assignableVrmaSuggestions === "function"
+          ? assignableVrmaSuggestions(suggestions)
+          : suggestions.filter(
+              (item) =>
+                typeof item.animationId === "string" && item.animationId,
+            );
+      const skipped = suggestions.length - assignable.length;
+
+      if (assignable.length === 0) {
+        return {
+          snapshot,
+          assigned: 0,
+          skipped,
+          cancelled: false,
+          results: [],
+        };
+      }
+
+      const confirmed =
+        typeof confirmAssignByFilename === "function"
+          ? await confirmAssignByFilename({
+              assignable,
+              skipped,
+              total: suggestions.length,
+            })
+          : false;
+      if (!confirmed) {
+        return {
+          snapshot,
+          assigned: 0,
+          skipped,
+          cancelled: true,
+          results: [],
+        };
+      }
+
+      const byAnimation = new Map();
+      for (const item of assignable) {
+        const list = byAnimation.get(item.animationId) ?? [];
+        list.push(item.filePath);
+        byAnimation.set(item.animationId, list);
+      }
+
+      let nextSnapshot = snapshot;
+      const results = [];
+      for (const [animationId, paths] of byAnimation) {
+        const batch = settingsStore.addAnimationClipsBestEffort(
+          animationId,
+          paths,
+        );
+        nextSnapshot = batch.snapshot;
+        for (const item of batch.results) {
+          results.push({
+            file: path.basename(item.filePath),
+            ok: item.ok,
+            error: item.error,
+            animationId,
+          });
+        }
+      }
+
+      publishSettings(nextSnapshot);
+      return {
+        snapshot: nextSnapshot,
+        assigned: results.filter((item) => item.ok).length,
+        skipped,
+        cancelled: false,
+        results,
+      };
     },
   );
   handleTrustedSettingsIpc("voxavatar:settings-set-ui-locale", (_event, locale) =>

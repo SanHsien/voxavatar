@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.5 - 2026-08-02
+
+- action-pack 匯入會把各動作的 `purpose` 寫入對應 VRMA clip（不再一律依動作類型預設）。
+- 新增檔名白名單建議分槽（opt-in）：Settings → 動作 →「依檔名建議分槽…」，須確認後才寫入；不明確檔案略過。政策見 `docs/DECISIONS.md` §10。
+- 同步 CHARACTER_BEHAVIOR／ROADMAP：澄清自動對應＝pack／同名預選／白名單確認，不做語意猜分。
+
 ## 0.16.4 - 2026-08-02
 
 - 澄清狀態槽預設：沒有獨立 listening 系統動作；有可播放 Idle 時 idle／listening 槽預選 `idle`，有 Speaking 時 speaking 預選 `speaking`。Settings 文案與 CHARACTER_BEHAVIOR 同步。

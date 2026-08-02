@@ -129,6 +129,11 @@ const ZH_TW: MessageDictionary = {
   'notice.actionPackPartial':
     '其中 {failed} 個動作未完整匯入（失敗項未覆寫既有動作）。',
   'notice.actionPackCancelled': '已取消匯入 action-pack。',
+  'notice.assignByFilenameDone':
+    '依檔名分槽完成：已加入 {assigned} 個，略過 {skipped} 個無法對應的檔案。',
+  'notice.assignByFilenameNone':
+    '沒有可對應的檔案（需與既有動作名相符，或符合 idle／speaking 等白名單且目標動作已存在）。',
+  'notice.assignByFilenameCancelled': '已取消依檔名分槽。',
   'notice.clipDeleted': '已移除 {name}。',
   'notice.clipReordered': '已調整 {name} 的順序。',
   'notice.packagedRestored': '內建動作已還原。',
@@ -218,6 +223,9 @@ const ZH_TW: MessageDictionary = {
   'actions.listTitle': '動作列表',
   'actions.listDesc':
     '緊接在上方建立區之後。系統待機／說話可用「+ 加入 VRMA」；自訂動作另有「編輯」。點選片段可預覽。',
+  'actions.assignByFilename': '依檔名建議分槽…',
+  'actions.assignByFilenameHint':
+    '選多個 VRMA 後，依檔名與白名單建議加入既有動作（須確認；不明確則略過）。正式分槽仍建議用 action-pack。',
   'actions.resetPackaged': '重設內建動作',
   'actions.deleteAllClips': '一鍵刪除全部 VRMA',
   'actions.systemAction': '系統動作',
@@ -608,6 +616,11 @@ const EN: MessageDictionary = {
   'notice.actionPackPartial':
     '{failed} action(s) did not import fully (failures did not overwrite existing actions).',
   'notice.actionPackCancelled': 'Action-pack import cancelled.',
+  'notice.assignByFilenameDone':
+    'Filename assignment done: added {assigned}, skipped {skipped} unmatched file(s).',
+  'notice.assignByFilenameNone':
+    'No assignable files (need an existing action name match, or a whitelist stem like idle/speaking with that action installed).',
+  'notice.assignByFilenameCancelled': 'Filename assignment cancelled.',
   'notice.clipDeleted': '{name} removed.',
   'notice.clipReordered': 'Reordered {name}.',
   'notice.packagedRestored': 'Packaged animation actions restored.',
@@ -698,6 +711,9 @@ const EN: MessageDictionary = {
   'actions.listTitle': 'Animation actions',
   'actions.listDesc':
     'Directly under the create form. System Idle/Speaking use “+ Add VRMA”; custom actions also have Edit. Click a clip to preview.',
+  'actions.assignByFilename': 'Assign by filename…',
+  'actions.assignByFilenameHint':
+    'Pick multiple VRMA files; whitelist/name matches suggest existing actions (confirm required; unclear files skipped). Prefer action-pack for explicit mapping.',
   'actions.resetPackaged': 'Reset packaged actions',
   'actions.deleteAllClips': 'Delete all VRMA',
   'actions.systemAction': 'System action',

@@ -21,6 +21,12 @@ const LOCALES = Object.freeze({
     importConfirmDetailOff: "掃描 {scanned} 個檔案，將匯入 {import} 個。",
     importConfirmProceed: "匯入",
     importConfirmCancel: "取消",
+    assignConfirmTitle: "確認依檔名分槽",
+    assignConfirmMessage: "要依檔名白名單將 VRMA 加入建議動作嗎？",
+    assignConfirmDetail:
+      "可對應 {assign}／略過 {skipped}（共選 {total}）。僅寫入明確相符或白名單目標；不會猜測情緒或聊天內容。",
+    assignConfirmProceed: "加入",
+    assignConfirmCancel: "取消",
     previewListening: "預覽聆聽",
     previewSpeaking: "預覽說話",
     characterState: "角色狀態",
@@ -60,6 +66,13 @@ const LOCALES = Object.freeze({
     importConfirmDetailOff: "Scanned {scanned} files; will import {import}.",
     importConfirmProceed: "Import",
     importConfirmCancel: "Cancel",
+    assignConfirmTitle: "Confirm filename assignment",
+    assignConfirmMessage:
+      "Add VRMA files to suggested actions using the filename whitelist?",
+    assignConfirmDetail:
+      "Assignable {assign} / skipped {skipped} (selected {total}). Only exact or whitelist targets are written; never guesses emotion or chat.",
+    assignConfirmProceed: "Add",
+    assignConfirmCancel: "Cancel",
     previewListening: "Preview listening",
     previewSpeaking: "Preview speaking",
     characterState: "Character state",

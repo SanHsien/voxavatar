@@ -19,6 +19,7 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 | `control_window` | `action`: `show`／`hide`／`toggle` | 控制角色視窗；hide 不會結束程式 |
 | `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）、版本化 `readiness`，以及 `mcp_show_message_enabled`／`message_visible`（不含訊息文字） |
 | `show_message` | `text`；可選 `duration_ms`／`mood` | 在角色旁顯示短句氣泡（Settings 預設關閉；需 opt-in） |
+| `set_character_state` | `state`；可選 `ttl_ms` | 設定呈現狀態（idle／listening／speaking／working／reviewing／success／failed）；經 `normalizeExternalStateEvent`；session 斷線清除；依 Settings 狀態槽播動作 |
 
 ### Agent 應如何使用
 
@@ -27,9 +28,10 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 1. 初次連線或失敗後先呼叫 `get_status`，依 `readiness.next_step` 說明缺少模型、語音來源或可選動作。
 2. 要做角色反應時先呼叫 `list_animations`，不要猜動作名稱。
 3. 依 `animation_trigger_scenario` 選最符合情境的動作，再呼叫 `play_animation`；同一回覆不要高頻重播。
-4. 只有使用者要求或角色被隱藏時才用 `control_window`；不要用反覆 toggle 代替讀取狀態。
-5. 短訊息先確認 Settings 已啟用 AI 訊息，再呼叫 `show_message`；以回傳 `displayed` 判定是否呈現。
-6. 工具失敗時讀結構化 `error`，提供可操作的修復方式，不宣稱已播放或已顯示。
+4. 長任務可用 `set_character_state`（例如 `working`／`success`／`failed`），不要從聊天內容臆測情緒。
+5. 只有使用者要求或角色被隱藏時才用 `control_window`；不要用反覆 toggle 代替讀取狀態。
+6. 短訊息先確認 Settings 已啟用 AI 訊息，再呼叫 `show_message`；以回傳 `displayed` 判定是否呈現。
+7. 工具失敗時讀結構化 `error`，提供可操作的修復方式，不宣稱已播放或已顯示。
 
 使用者可直接說：「檢查 VoxAvatar 是否就緒」、「列出適合打招呼的動作」、「播放 `wave-hello`」、「隱藏角色」或（啟用後）「在角色旁顯示：完成！」。`play_animation` 只控制身體動作；口型由播放音量驅動，MCP 不會合成語音。
 
@@ -61,8 +63,8 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 
 | 常數 | 目前值 | 用途 |
 | --- | --- | --- |
-| `status_schema_version` | `1` | `get_status` 與設定頁 MCP 狀態區塊的外層 envelope |
-| `tools_schema_version` | `1` | `list_animations`、`play_animation`、`control_window` 的 envelope |
+| `status_schema_version` | `2` | `get_status` 與設定頁 MCP 狀態區塊的外層 envelope |
+| `tools_schema_version` | `3` | 工具結果 envelope（含 `set_character_state`／`show_message`） |
 | `readiness.schema_version` | `1` | `get_status.readiness` 內嵌步驟語彙（`electron/app-readiness.cjs`） |
 
 #### `get_status` 主要欄位
@@ -78,10 +80,12 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 | `list_animations` | `schema_version`、`message`、`count`、`animations[]`（`animation_name`、`animation_description`、`animation_trigger_scenario`） |
 | `play_animation` | `schema_version`、`message`、`animation`、`played`；失敗時另有 `error`（`animation_not_playable` 或 `model_or_clips_missing`） |
 | `control_window` | `schema_version`、`message`、`action`、`visible` |
+| `show_message` | `schema_version`、`message`、`displayed`；可選 `message_id`／`expires_at`；失敗時 `error` |
+| `set_character_state` | `schema_version`、`message`、`applied`；可選 `state`／`expires_at`；失敗時 `error`（`invalid_state`／`invalid_ttl`／`avatar_unavailable`） |
 
 #### SemVer 相容政策
 
-- **同 MAJOR**（例如仍為 `1`）：可新增 optional 欄位；Agent 應忽略未知欄位。
+- **同 MAJOR**（例如 `status_schema_version` 仍為 `2`、`tools_schema_version` 仍為 `3`）：可新增 optional 欄位；Agent 應忽略未知欄位。
 - **升 MAJOR**：移除欄位、改名或改變語意時必須 bump `status_schema_version` 或 `tools_schema_version`，並在 CHANGELOG 說明。
 - `readiness.schema_version` 獨立演進；變更時一併檢查 `get_status` 文件與整合測試。
 - Agent 應優先讀 `readiness.steps`、`listener.state`／`readiness.listener_state` 與工具 JSON 欄位，不要只解析 `message` 字串。
@@ -132,7 +136,7 @@ const snapshot = JSON.parse(status.content[0].text);
 | `play_animation` 回 `model_or_clips_missing` | 匯入 VRM 並至少設定一個可播放 clip |
 | `play_animation` 回 `animation_not_playable` | 先 `list_animations` 取得最新 catalog |
 | 404 `MCP session not found` | Session 已過期或被關閉；重新 connect／initialize |
-| 工具 JSON 解析失敗 | 確認 VoxAvatar 版本與 `tools_schema_version`／`status_schema_version` 是否仍為 MAJOR `1` |
+| 工具 JSON 解析失敗 | 確認 VoxAvatar 版本與 `tools_schema_version`／`status_schema_version`（目前 MAJOR 為 `3`／`2`） |
 
 MCP 只控制視覺狀態，不會合成或播放語音。
 

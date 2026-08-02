@@ -125,6 +125,19 @@ interface VoxAvatarVoiceSourceCatalog {
   listener?: AudioListenerStatus | null;
 }
 
+type VoxAvatarCharacterState =
+  | 'idle'
+  | 'listening'
+  | 'speaking'
+  | 'working'
+  | 'reviewing'
+  | 'success'
+  | 'failed';
+
+type VoxAvatarStateSlotBindings = Partial<
+  Record<VoxAvatarCharacterState, string | null>
+>;
+
 type VoxAvatarSettingsSnapshot = {
   schema_version: number;
   default_model_id: string | null;
@@ -136,9 +149,12 @@ type VoxAvatarSettingsSnapshot = {
   model_lighting: Record<string, VoxAvatarLightingSettings>;
   voice_source: VoxAvatarVoiceSourceSettings;
   vrma_quality_gate: 'report' | 'strict' | 'off';
+  vrma_quality_reject_below: number;
+  vrma_quality_keep_at_least: number;
   vrma_report_dir: string | null;
   idle_rest_ms: number;
   mcp_show_message_enabled: boolean;
+  state_slot_bindings: VoxAvatarStateSlotBindings;
 };
 
 type VoxAvatarDirectoryImportKind = 'model' | 'animation';
@@ -211,6 +227,18 @@ type AvatarBridgeEvent =
       atMs: number;
     }
   | { type: 'message-clear'; sourceId?: string | null; atMs: number }
+  | {
+      type: 'character-state';
+      event: {
+        id: string;
+        state: VoxAvatarCharacterState;
+        sourceKind: 'user' | 'system' | 'voice' | 'mcp' | 'integration';
+        sourceId?: string;
+        atMs: number;
+        ttlMs?: number;
+      };
+    }
+  | { type: 'character-state-clear'; sourceId?: string | null; atMs: number }
   | { type: 'listener-status'; status: AudioListenerStatus }
   | { type: 'bridge-status'; connected: boolean };
 
@@ -252,6 +280,12 @@ interface Window {
     setVrmaQualityGate?(
       value: 'report' | 'strict' | 'off',
     ): Promise<VoxAvatarSettingsSnapshot>;
+    setVrmaQualityScoreThresholds?(value: {
+      reject_below?: number;
+      keep_at_least?: number;
+      rejectBelow?: number;
+      keepAtLeast?: number;
+    }): Promise<VoxAvatarSettingsSnapshot>;
     chooseVrmaReportDir?(): Promise<VoxAvatarSettingsSnapshot | null>;
     clearVrmaReportDir?(): Promise<VoxAvatarSettingsSnapshot>;
     updateAnimation(
@@ -279,6 +313,24 @@ interface Window {
     setMcpShowMessageEnabled?(
       enabled: boolean,
     ): Promise<VoxAvatarSettingsSnapshot>;
+    setStateSlotBindings?(
+      bindings: VoxAvatarStateSlotBindings,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    setStateSlotBinding?(
+      state: VoxAvatarCharacterState,
+      animationName: string | null,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    importActionPack?(): Promise<{
+      snapshot: VoxAvatarSettingsSnapshot;
+      pack_name: string;
+      results: Array<{
+        animation_name: string;
+        created: boolean;
+        clips_imported: number;
+        error: string | null;
+      }>;
+      bindings: VoxAvatarStateSlotBindings;
+    } | null>;
     setUiLocale?(locale: 'zh-TW' | 'en'): Promise<VoxAvatarSettingsSnapshot>;
     setVoiceSource(
       voiceSource: VoxAvatarVoiceSourceSettings,

@@ -2,6 +2,15 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.14.0 - 2026-08-02
+
+- Settings schema 9：新增 `state_slot_bindings`（idle／listening／speaking／working／reviewing／success／failed → 可播放動作名）。
+- Settings「系統狀態動作槽」：可綁定狀態→動作，並匯入 `action-pack.json`（仍走既有 GLB／路徑／catalog gate，合併 `state_slot`）。
+- MCP 新增 `set_character_state`（經 `normalizeExternalStateEvent`）；session 斷線清除該來源狀態；`tools_schema_version` 升為 3。
+- Avatar overlay：外部狀態事件驅動系統槽動作；TTL 到期自動剪除並重算仲裁。
+- Settings 目錄匯入品質把關：可調整 VRM／VRMA 共用分數門檻（`vrma_quality_reject_below`／`vrma_quality_keep_at_least`，預設 60／75）；分析器與 Markdown 報告跟隨設定。
+- 整合／角色行為／README／路線圖同步（6 個 MCP 工具）。
+
 ## 0.13.5 - 2026-08-02
 
 - 修正設定 → 語音：切離「輸出裝置」後，「隱私邊界警告」改依目前 UI 選取立即隱藏，不再因 settings 非同步寫入落後而殘留。

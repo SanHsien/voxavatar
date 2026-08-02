@@ -168,11 +168,23 @@ function resolveActionNameForState(pack, state) {
   return match?.animation_name ?? null;
 }
 
+function bindingsFromActionPackActions(actions) {
+  const bindings = {};
+  if (!Array.isArray(actions)) return bindings;
+  for (const action of actions) {
+    if (!action?.state_slot || !action.animation_name) continue;
+    if (bindings[action.state_slot]) continue;
+    bindings[action.state_slot] = action.animation_name;
+  }
+  return bindings;
+}
+
 module.exports = {
   ACTION_NAME_PATTERN,
   ACTION_PACK_SCHEMA_VERSION,
   CHARACTER_STATES,
   RELATIVE_VRMA_PATTERN,
+  bindingsFromActionPackActions,
   resolveActionNameForState,
   validateActionPack,
 };

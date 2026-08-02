@@ -11,6 +11,7 @@ const {
   analyzeVrmaFile,
   formatMarkdownReport,
   normalizeQualityGate,
+  normalizeQualityScoreThresholds,
   normalizeReportDir,
   writeMarkdownReport,
 } = require("./vrma-quality.cjs");
@@ -31,6 +32,21 @@ test("normalizeQualityGate defaults to report", () => {
   assert.equal(normalizeQualityGate("nope"), QUALITY_GATE.REPORT);
 });
 
+test("normalizeQualityScoreThresholds clamps and enforces keep >= reject", () => {
+  assert.deepEqual(normalizeQualityScoreThresholds({}), {
+    rejectBelow: 60,
+    keepAtLeast: 75,
+  });
+  assert.deepEqual(
+    normalizeQualityScoreThresholds({ reject_below: -5, keep_at_least: 120 }),
+    { rejectBelow: 0, keepAtLeast: 100 },
+  );
+  assert.deepEqual(
+    normalizeQualityScoreThresholds({ rejectBelow: 80, keepAtLeast: 50 }),
+    { rejectBelow: 80, keepAtLeast: 80 },
+  );
+});
+
 test("normalizeReportDir resolves absolute paths and blanks to null", () => {
   assert.equal(normalizeReportDir(""), null);
   assert.equal(normalizeReportDir("   "), null);
@@ -45,6 +61,25 @@ test("smooth looping VRMA scores as keep or mild review", (context) => {
   assert.ok(report.score >= 70);
   assert.notEqual(report.verdict, VERDICT.REJECT);
   assert.ok(report.metrics.durationSec > 1);
+});
+
+test("custom thresholds are applied to reports and markdown", (context) => {
+  const { filePath } = writeTempVrma(context, buildRotationVrma());
+  const report = analyzeVrmaFile(filePath, {
+    rejectBelow: 40,
+    keepAtLeast: 90,
+  });
+  assert.deepEqual(report.thresholds, { rejectBelow: 40, keepAtLeast: 90 });
+  assert.equal(report.verdict, VERDICT.KEEP);
+
+  const markdown = formatMarkdownReport([report], {
+    gate: QUALITY_GATE.STRICT,
+    rejectBelow: 40,
+    keepAtLeast: 90,
+  });
+  assert.match(markdown, /淘汰 < 40/);
+  assert.match(markdown, /保留 ≥ 90/);
+  assert.match(markdown, /觀察 40–89/);
 });
 
 test("velocity spike VRMA is marked review or reject", (context) => {

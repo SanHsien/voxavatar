@@ -230,7 +230,7 @@ test("keeps user library records when migrating the earlier settings schema", (c
   );
 
   const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
-  assert.equal(snapshot.schema_version, 8);
+  assert.equal(snapshot.schema_version, 9);
   assert.equal(snapshot.default_model_id, modelId);
   assert.equal(snapshot.character_size, 1.15);
   assert.ok(snapshot.models.some((model) => model.id === modelId));
@@ -593,7 +593,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     mode: "custom",
     process_pattern: "  local-tts|open-webui  ",
   });
-  assert.equal(snapshot.schema_version, 8);
+  assert.equal(snapshot.schema_version, 9);
   assert.equal(snapshot.idle_rest_ms, 8000);
   assert.deepEqual(snapshot.voice_source, {
     mode: "custom",
@@ -636,7 +636,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 8);
+  assert.equal(migrated.schema_version, 9);
   assert.equal(migrated.idle_rest_ms, 8000);
   assert.deepEqual(migrated.voice_source, {
     mode: "default",
@@ -648,10 +648,12 @@ test("persists a custom voice source and migrates older settings to schema 6", (
   assert.equal(migrated.vrma_report_dir, null);
 });
 
-test("persists VRMA quality gate and report directory", (context) => {
+test("persists VRMA quality gate, score thresholds, and report directory", (context) => {
   const { userDataPath, packagedLibraryPath } = fixture(context);
   const store = createSettingsStore({ userDataPath, packagedLibraryPath });
   assert.equal(store.getSnapshot().vrma_quality_gate, "strict");
+  assert.equal(store.getSnapshot().vrma_quality_reject_below, 60);
+  assert.equal(store.getSnapshot().vrma_quality_keep_at_least, 75);
   assert.equal(store.getSnapshot().vrma_report_dir, null);
 
   let snapshot = store.setVrmaQualityGate("report");
@@ -660,6 +662,19 @@ test("persists VRMA quality gate and report directory", (context) => {
   assert.equal(snapshot.vrma_quality_gate, "strict");
   snapshot = store.setVrmaQualityGate("nope");
   assert.equal(snapshot.vrma_quality_gate, "report");
+
+  snapshot = store.setVrmaQualityScoreThresholds({
+    reject_below: 50,
+    keep_at_least: 80,
+  });
+  assert.equal(snapshot.vrma_quality_reject_below, 50);
+  assert.equal(snapshot.vrma_quality_keep_at_least, 80);
+  snapshot = store.setVrmaQualityScoreThresholds({
+    reject_below: 90,
+    keep_at_least: 70,
+  });
+  assert.equal(snapshot.vrma_quality_reject_below, 90);
+  assert.equal(snapshot.vrma_quality_keep_at_least, 90);
 
   const reportDir = path.join(userDataPath, "reports");
   fs.mkdirSync(reportDir, { recursive: true });
@@ -673,6 +688,8 @@ test("persists VRMA quality gate and report directory", (context) => {
     packagedLibraryPath,
   }).getSnapshot();
   assert.equal(reloaded.vrma_quality_gate, "report");
+  assert.equal(reloaded.vrma_quality_reject_below, 90);
+  assert.equal(reloaded.vrma_quality_keep_at_least, 90);
 });
 
 test("deletes all user models and all uploaded VRMA clips in one step", (context) => {
@@ -775,7 +792,7 @@ test("migrates schema 4 fixture through legacy animation clip grouping", (contex
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 8);
+  assert.equal(snapshot.schema_version, 9);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.ok(snapshot.models.some((model) => model.id === legacy.models[0].id));
@@ -801,7 +818,7 @@ test("migrates schema 5 fixture while preserving split animation metadata and cl
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 8);
+  assert.equal(snapshot.schema_version, 9);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.equal(snapshot.ui_locale, "en");
@@ -839,7 +856,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
   const readResult = safeReadState(settingsPath, packagedLibrary);
   assert.equal(readResult.migration_error, "unsupported_schema");
   assert.equal(readResult.migrated, false);
-  assert.equal(readResult.state.schema_version, 8);
+  assert.equal(readResult.state.schema_version, 9);
   assert.deepEqual(readResult.state.models, []);
   assert.equal(
     fs.existsSync(`${settingsPath}.unmigratable-backup`),
@@ -854,7 +871,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(snapshot.schema_version, 8);
+  assert.equal(snapshot.schema_version, 9);
   assert.deepEqual(snapshot.models, []);
 });
 
@@ -964,4 +981,49 @@ test("reorders uploaded clips within an action and persists the new order", (con
     () => store.reorderAnimationClip(actionId, action.clips[0].id, "sideways"),
     /direction must be 'up' or 'down'/,
   );
+});
+
+test("persists state_slot_bindings and migrates schema 8 with empty bindings", (context) => {
+  const { root, userDataPath } = fixture(context);
+  const packagedLibraryPath = writePackagedLibrary(root);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.getSnapshot();
+  assert.equal(snapshot.schema_version, 9);
+  assert.deepEqual(snapshot.state_slot_bindings, {});
+
+  snapshot = store.createAnimation({
+    animation_name: "work-loop",
+    animation_description: "Working motion.",
+    animation_trigger_scenario: "Use when the agent is busy.",
+  });
+  const source = path.join(root, "work.vrma");
+  writeGlb(source);
+  const actionId = snapshot.animations.find(
+    (animation) => animation.animation_name === "work-loop",
+  ).id;
+  store.addAnimationClips(actionId, [source]);
+  snapshot = store.setStateSlotBinding("working", "work-loop");
+  assert.equal(snapshot.state_slot_bindings.working, "work-loop");
+
+  snapshot = store.setStateSlotBindings({
+    working: "work-loop",
+    success: "missing-name",
+    failed: null,
+  });
+  assert.equal(snapshot.state_slot_bindings.working, "work-loop");
+  assert.equal(snapshot.state_slot_bindings.success, "missing-name");
+  assert.equal(snapshot.state_slot_bindings.failed, null);
+
+  const settingsPath = path.join(userDataPath, "settings.json");
+  const onDisk = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  onDisk.schema_version = 8;
+  delete onDisk.state_slot_bindings;
+  fs.writeFileSync(settingsPath, JSON.stringify(onDisk, null, 2));
+
+  const migrated = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(migrated.schema_version, 9);
+  assert.deepEqual(migrated.state_slot_bindings, {});
 });

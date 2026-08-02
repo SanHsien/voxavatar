@@ -112,6 +112,7 @@ const ZH_TW: MessageDictionary = {
   'notice.revealReport': '在檔案總管顯示',
   'notice.reportFailed': '品質報告寫入失敗：{error}',
   'notice.qualityGateUpdated': '目錄匯入品質把關已更新。',
+  'notice.qualityScoreUpdated': '品質分數門檻已更新。',
   'notice.reportDirUpdated': '報告儲存位置已更新。',
   'notice.reportDirCleared': '報告改回存入掃描目錄。',
   'notice.defaultModelUpdated': '預設模型已更新。',
@@ -120,6 +121,10 @@ const ZH_TW: MessageDictionary = {
   'notice.clipsDeletedAll': '已刪除全部使用者 VRMA 片段（{count} 個）。',
   'notice.animationUpdated': '動作詳情已更新。',
   'notice.animationDeleted': '動作已從使用中資料庫移除。',
+  'notice.stateSlotUpdated': '狀態動作槽已更新。',
+  'notice.actionPackImported':
+    '已匯入 action-pack「{name}」（{created} 個新動作，{clips} 個片段）。',
+  'notice.actionPackCancelled': '已取消匯入 action-pack。',
   'notice.clipDeleted': '已移除 {name}。',
   'notice.clipReordered': '已調整 {name} 的順序。',
   'notice.packagedRestored': '內建動作已還原。',
@@ -225,10 +230,15 @@ const ZH_TW: MessageDictionary = {
   'actions.addClipsFolder': '+ 從目錄批次加入',
   'actions.qualityGateTitle': '目錄匯入品質把關',
   'actions.qualityGateDesc':
-    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。預設嚴格模式：分數低於 60 淘汰、60–74 觀察、75 以上保留。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
+    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。目前門檻：分數低於 {reject} 淘汰、{reviewLow}–{reviewHigh} 觀察、{keep} 以上保留。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
+  'actions.qualityGateMode': '把關模式',
   'actions.qualityGate.report': '分析並寫報告（全部匯入）',
   'actions.qualityGate.strict': '嚴格：略過評為「淘汰」的檔案',
   'actions.qualityGate.off': '關閉分析（最快）',
+  'actions.qualityRejectBelow': '淘汰分數門檻（低於此分）',
+  'actions.qualityKeepAtLeast': '保留分數門檻（達標且無高嚴重度）',
+  'actions.qualityScoreHint':
+    '預覽：< {reject} 淘汰；{reviewLow}–{reviewHigh} 觀察；≥ {keep} 保留。保留門檻不可低於淘汰門檻。',
   'actions.reportDirTitle': '報告儲存位置',
   'actions.reportDirDesc':
     '預設寫入你選的掃描目錄（VRM：voxavatar-vrm-report.md；VRMA：voxavatar-vrma-report.md）。也可指定固定資料夾。',
@@ -268,6 +278,20 @@ const ZH_TW: MessageDictionary = {
   'actions.createDescPlaceholder': '描述動作的外觀與感覺。',
   'actions.createTriggerPlaceholder': '說明代理應在何時選用此動作。',
   'actions.createButton': '建立動作',
+
+  'stateSlots.title': '系統狀態動作槽',
+  'stateSlots.desc':
+    '為 idle／listening／speaking／working／reviewing／success／failed 綁定可播放動作。MCP set_character_state 與語音仲裁會依此選動作；空白則退回 Idle／Speaking 預設。也可匯入 action-pack.json（仍走既有 GLB／路徑 gate）。',
+  'stateSlots.importPack': '匯入 action-pack…',
+  'stateSlots.none': '（未綁定）',
+  'stateSlots.noPlayable': '尚無可播放動作。請先為動作加入 VRMA 片段。',
+  'stateSlots.state.idle': 'idle 待機',
+  'stateSlots.state.listening': 'listening 聆聽',
+  'stateSlots.state.speaking': 'speaking 說話',
+  'stateSlots.state.working': 'working 工作中',
+  'stateSlots.state.reviewing': 'reviewing 檢視中',
+  'stateSlots.state.success': 'success 成功',
+  'stateSlots.state.failed': 'failed 失敗',
 
   'appearance.localeTitle': '介面語言',
   'appearance.localeDesc': '介面語言會套用到設定頁與選單。',
@@ -544,6 +568,7 @@ const EN: MessageDictionary = {
   'notice.revealReport': 'Show in Explorer',
   'notice.reportFailed': 'Could not write quality report: {error}',
   'notice.qualityGateUpdated': 'Folder-import quality gate updated.',
+  'notice.qualityScoreUpdated': 'Quality score thresholds updated.',
   'notice.reportDirUpdated': 'Report save location updated.',
   'notice.reportDirCleared': 'Reports will be saved in the scanned folder again.',
   'notice.defaultModelUpdated': 'Default model updated.',
@@ -552,6 +577,10 @@ const EN: MessageDictionary = {
   'notice.clipsDeletedAll': 'Deleted all user VRMA clips ({count}).',
   'notice.animationUpdated': 'Animation details updated.',
   'notice.animationDeleted': 'Animation action removed from your active library.',
+  'notice.stateSlotUpdated': 'State motion slot updated.',
+  'notice.actionPackImported':
+    'Imported action-pack “{name}” ({created} new action(s), {clips} clip(s)).',
+  'notice.actionPackCancelled': 'Action-pack import cancelled.',
   'notice.clipDeleted': '{name} removed.',
   'notice.clipReordered': 'Reordered {name}.',
   'notice.packagedRestored': 'Packaged animation actions restored.',
@@ -658,10 +687,15 @@ const EN: MessageDictionary = {
   'actions.addClipsFolder': '+ Add from folder',
   'actions.qualityGateTitle': 'Folder-import quality gate',
   'actions.qualityGateDesc':
-    'Applied when importing VRM or VRMA from a folder (one shared setting). Default strict mode: reject below 60, review 60–74, keep at 75+. VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
+    'Applied when importing VRM or VRMA from a folder (one shared setting). Current thresholds: reject below {reject}, review {reviewLow}–{reviewHigh}, keep at {keep}+. VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
+  'actions.qualityGateMode': 'Gate mode',
   'actions.qualityGate.report': 'Analyze and write report (import all)',
   'actions.qualityGate.strict': 'Strict: skip clips judged “reject”',
   'actions.qualityGate.off': 'Disable analysis (fastest)',
+  'actions.qualityRejectBelow': 'Reject score threshold (below)',
+  'actions.qualityKeepAtLeast': 'Keep score threshold (and no high severity)',
+  'actions.qualityScoreHint':
+    'Preview: < {reject} reject; {reviewLow}–{reviewHigh} review; ≥ {keep} keep. Keep threshold cannot be lower than reject.',
   'actions.reportDirTitle': 'Report save location',
   'actions.reportDirDesc':
     'By default the report is written into the folder you scanned (VRM: voxavatar-vrm-report.md; VRMA: voxavatar-vrma-report.md). You can also pick a fixed folder.',
@@ -701,6 +735,21 @@ const EN: MessageDictionary = {
   'actions.createDescPlaceholder': 'Describe what the movement looks and feels like.',
   'actions.createTriggerPlaceholder': 'Explain when an agent should choose this action.',
   'actions.createButton': 'Create action',
+
+  'stateSlots.title': 'System state motion slots',
+  'stateSlots.desc':
+    'Bind playable actions to idle / listening / speaking / working / reviewing / success / failed. MCP set_character_state and voice arbitration use these slots; leave empty to fall back to Idle/Speaking defaults. You can also import action-pack.json (still through existing GLB/path gates).',
+  'stateSlots.importPack': 'Import action-pack…',
+  'stateSlots.none': '(unbound)',
+  'stateSlots.noPlayable':
+    'No playable actions yet. Add VRMA clips to an action first.',
+  'stateSlots.state.idle': 'idle',
+  'stateSlots.state.listening': 'listening',
+  'stateSlots.state.speaking': 'speaking',
+  'stateSlots.state.working': 'working',
+  'stateSlots.state.reviewing': 'reviewing',
+  'stateSlots.state.success': 'success',
+  'stateSlots.state.failed': 'failed',
 
   'appearance.localeTitle': 'Interface language',
   'appearance.localeDesc':

@@ -23,6 +23,11 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
     ),
   setVrmaQualityGate: (value) =>
     ipcRenderer.invoke("voxavatar:settings-set-vrma-quality-gate", value),
+  setVrmaQualityScoreThresholds: (value) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-set-vrma-quality-score-thresholds",
+      value,
+    ),
   chooseVrmaReportDir: () =>
     ipcRenderer.invoke("voxavatar:settings-choose-vrma-report-dir"),
   clearVrmaReportDir: () =>
@@ -69,6 +74,19 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
       "voxavatar:settings-set-mcp-show-message-enabled",
       enabled,
     ),
+  setStateSlotBindings: (bindings) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-set-state-slot-bindings",
+      bindings,
+    ),
+  setStateSlotBinding: (stateKey, animationName) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-set-state-slot-binding",
+      stateKey,
+      animationName,
+    ),
+  importActionPack: () =>
+    ipcRenderer.invoke("voxavatar:settings-import-action-pack"),
   setUiLocale: (locale) =>
     ipcRenderer.invoke("voxavatar:settings-set-ui-locale", locale),
   setVoiceSource: (voiceSource) =>

@@ -11,6 +11,7 @@ const {
   formatListAnimations,
   formatPlayAnimation,
   formatShowMessage,
+  formatSetCharacterState,
   serializeToolResult,
 } = require("./mcp-schemas.cjs");
 
@@ -22,7 +23,7 @@ const sampleAnimation = {
 
 test("MCP schema helpers expose stable version constants", () => {
   assert.equal(STATUS_SCHEMA_VERSION, 2);
-  assert.equal(TOOLS_SCHEMA_VERSION, 2);
+  assert.equal(TOOLS_SCHEMA_VERSION, 3);
 });
 
 test("formatListAnimations returns structured catalog output", () => {
@@ -110,6 +111,27 @@ test("formatShowMessage covers success and opt-in errors", () => {
   });
   assert.equal(disabled.error, "agent_messages_disabled");
   assert.match(disabled.message, /disabled/i);
+});
+
+test("formatSetCharacterState covers success and validation errors", () => {
+  const ok = formatSetCharacterState({
+    applied: true,
+    state: "working",
+    expiresAt: "2026-08-02T00:00:00.000Z",
+  });
+  assert.equal(ok.schema_version, TOOLS_SCHEMA_VERSION);
+  assert.equal(ok.applied, true);
+  assert.equal(ok.state, "working");
+  assert.equal(ok.expires_at, "2026-08-02T00:00:00.000Z");
+  assert.match(ok.message, /working/);
+
+  const invalid = formatSetCharacterState({
+    applied: false,
+    error: "invalid_state",
+  });
+  assert.equal(invalid.applied, false);
+  assert.equal(invalid.error, "invalid_state");
+  assert.match(invalid.message, /idle, listening, speaking/);
 });
 
 test("serializeToolResult emits JSON text content", () => {

@@ -88,6 +88,41 @@ function normalizeQualityGate(value) {
   return QUALITY_GATE.REPORT;
 }
 
+/**
+ * 正規化 VRM／VRMA 共用分數門檻。
+ * @returns {{ rejectBelow: number, keepAtLeast: number }}
+ */
+function normalizeQualityScoreThresholds(raw = {}) {
+  const parse = (value, fallback) => {
+    const number = Math.round(Number(value));
+    if (!Number.isFinite(number)) return fallback;
+    return Math.max(0, Math.min(100, number));
+  };
+  let rejectBelow = parse(
+    raw.rejectBelow ?? raw.reject_below ?? raw.vrma_quality_reject_below,
+    REJECT_SCORE_BELOW,
+  );
+  let keepAtLeast = parse(
+    raw.keepAtLeast ?? raw.keep_at_least ?? raw.vrma_quality_keep_at_least,
+    KEEP_SCORE_AT_LEAST,
+  );
+  if (keepAtLeast < rejectBelow) {
+    keepAtLeast = rejectBelow;
+  }
+  return { rejectBelow, keepAtLeast };
+}
+
+function resolveScoreThresholds(options = {}) {
+  if (
+    options.thresholds &&
+    typeof options.thresholds === "object" &&
+    !Array.isArray(options.thresholds)
+  ) {
+    return normalizeQualityScoreThresholds(options.thresholds);
+  }
+  return normalizeQualityScoreThresholds(options);
+}
+
 function normalizeReportDir(value) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -502,15 +537,16 @@ function scoreReport(filePath, parsed, tracks, options = {}) {
   }
 
   score = Math.max(0, Math.min(100, Math.round(score)));
+  const { rejectBelow, keepAtLeast } = resolveScoreThresholds(options);
   let verdict = VERDICT.KEEP;
   if (
-    score < REJECT_SCORE_BELOW ||
+    score < rejectBelow ||
     issues.some((issue) => issue.severity === "critical") ||
     issues.some((issue) => issue.code === "no_animation")
   ) {
     verdict = VERDICT.REJECT;
   } else if (
-    score < KEEP_SCORE_AT_LEAST ||
+    score < keepAtLeast ||
     issues.some((issue) => issue.severity === "high")
   ) {
     verdict = VERDICT.REVIEW;
@@ -523,6 +559,7 @@ function scoreReport(filePath, parsed, tracks, options = {}) {
     score,
     verdict,
     purpose,
+    thresholds: { rejectBelow, keepAtLeast },
     issues,
     metrics: {
       purpose,
@@ -564,7 +601,7 @@ function analyzeVrmaFile(filePath, options = {}) {
     }
     const parsed = readGlb(filePath);
     const tracks = analyzeAnimationTracks(parsed.json, parsed.bin);
-    return scoreReport(filePath, parsed, tracks, { purpose });
+    return scoreReport(filePath, parsed, tracks, options);
   } catch (error) {
     return {
       filePath,
@@ -599,6 +636,7 @@ function formatMarkdownReport(reports, options = {}) {
   const generatedAt = options.generatedAt ?? new Date().toISOString();
   const sourceDir = options.sourceDir ?? "";
   const gate = normalizeQualityGate(options.gate);
+  const { rejectBelow, keepAtLeast } = resolveScoreThresholds(options);
   const sorted = [...reports].sort((a, b) => a.score - b.score);
 
   const counts = {
@@ -607,12 +645,14 @@ function formatMarkdownReport(reports, options = {}) {
     reject: sorted.filter((item) => item.verdict === VERDICT.REJECT).length,
   };
 
+  const reviewUpper = Math.max(rejectBelow, keepAtLeast - 1);
   const lines = [
     "# VoxAvatar VRMA 品質報告",
     "",
     `- 產生時間：\`${generatedAt}\``,
     sourceDir ? `- 掃描目錄：\`${sourceDir}\`` : null,
     `- 把關模式：\`${gate}\`（report＝全部匯入並寫報告；strict＝略過淘汰；off＝不分析）`,
+    `- 分數門檻：淘汰 < ${rejectBelow}；觀察 ${rejectBelow}–${reviewUpper}；保留 ≥ ${keepAtLeast}`,
     `- 檔案數：${sorted.length}（保留 ${counts.keep}／觀察 ${counts.review}／淘汰 ${counts.reject}）`,
     "",
     "> 本報告為啟發式自動判斷，僅供參考。最終請以 VoxAvatar 設定頁的即時預覽為準。",
@@ -621,9 +661,9 @@ function formatMarkdownReport(reports, options = {}) {
     "",
     "| 結果 | 條件概要 |",
     "| --- | --- |",
-    "| 保留 | 分數 ≥ 75，且無高嚴重度問題 |",
-    "| 觀察 | 分數 60–74，或有高嚴重度問題 |",
-    "| 淘汰 | 分數 < 60，或無法解析／無動畫 |",
+    `| 保留 | 分數 ≥ ${keepAtLeast}，且無高嚴重度問題 |`,
+    `| 觀察 | 分數 ${rejectBelow}–${reviewUpper}，或有高嚴重度問題 |`,
+    `| 淘汰 | 分數 < ${rejectBelow}，或無法解析／無動畫 |`,
     "",
     "主要檢查：時長、關鍵幀密度、旋轉突波、循環接縫、運動量、人形骨骼覆蓋。",
     "",
@@ -720,9 +760,11 @@ module.exports = {
   formatMarkdownReport,
   normalizeAnimationPurpose,
   normalizeQualityGate,
+  normalizeQualityScoreThresholds,
   normalizeReportDir,
   readGlb,
   resolveReportPath,
+  resolveScoreThresholds,
   scoreReport,
   summarizeReports,
   verdictLabelZh,

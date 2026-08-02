@@ -1287,6 +1287,13 @@ button {
   justify-content: flex-start;
 }
 
+.state-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .action-preset-block {
   display: flex;
   flex-direction: column;
@@ -1565,6 +1572,23 @@ button {
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--border);
+}
+
+.quality-score-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.quality-score-row input[type='number'] {
+  width: 100%;
+}
+
+.quality-score-hint {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
 }
 
 .report-dir-copy {

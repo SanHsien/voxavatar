@@ -3,22 +3,22 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `v0.13.5` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `v0.14.0` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
 ## Current health
 
-Review baseline: `v0.13.5` / `main`; GitHub Latest Release: `v0.13.0`
+Review baseline: `v0.14.0` / `main`; GitHub Latest Release: `v0.13.0`
 
-No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). Roadmap focus is **v0.14**. `main` tip `0.13.5` includes the voice output privacy-warning display fix (no extra tag).
+No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). Roadmap focus is **remaining v0.14** (jsdom / precise head / Windows validation). `main` tip `0.14.0` includes state-slot UI, MCP `set_character_state`, and action-pack import (no extra tag).
 
-- Latest Release: `v0.13.0`; `main` tip is `0.13.x`.
+- Latest Release: `v0.13.0`; `main` tip is `0.14.0`.
 - Upstream: commit watermark `cf27d12`; open PR #16 / issue #13 are macOS (skip); issue #11 first-run avatar docs already covered.
-- MCP tools: 5 (including opt-in `show_message`); state-event normalize ready, state tools not wired yet.
-- Settings: custom actions support multi-clip VRMA on cards; output-device privacy warning follows the current UI selection immediately.
+- MCP tools: 6 (including opt-in `show_message` and `set_character_state`); `tools_schema_version` = 3.
+- Settings: system state-slot bindings; action-pack import (still through GLB/path/catalog gates); adjustable shared VRM/VRMA score thresholds for folder import; multi-clip custom actions; output-device privacy warning follows the current UI selection immediately.
 
-Still open: system state-slot UI; MCP state tools; action-pack import pipeline; App/Settings jsdom integration; precise head projection, DPI/30%/Idle long-run on real hardware; installer signing and Windows GUI smoke (unverified without keys/desktop).
+Still open: App/Settings jsdom integration; precise head projection, DPI/30%/Idle long-run on real hardware; installer signing and Windows GUI smoke (unverified without keys/desktop).
 
 This round: `npm run check` green; Release/Latest/assets verified per [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -38,25 +38,26 @@ This round: `npm run check` green; Release/Latest/assets verified per [`docs/REL
 | v0.2.x | Voice sources, IPC/preload, readiness, diagnostics, MCP sessions, and action queue |
 | v0.3.x | Confirmed media import, migration fixtures, clip ordering, and quality reports |
 | v0.4.x | Structured MCP schemas, integration docs, and multi-client tests |
-| v0.5.x | Error recovery, settings splits, bundle/SBOM/release-evidence tools |
-| v0.6.x | Settings/IPC/asset-validation convergence and renderer error tests |
-| v0.7.x | Bundle/startup baselines, non-critical lazy loading, and further settings splits |
-| v0.8.x | Synthetic VRM/VRMA matrix, exporter notes, and import rollback |
-| v0.9–v0.10 | Motion purpose, state arbitration, bubble DOM, `show_message` opt-in, lip-sync gain wiring |
-| v0.11–v0.12 | action-pack contract, overlay/catalog splits, state-event normalize, Idle long-run freeze fix |
+| v0.5.x | Error recovery, settings module split, bundle/SBOM/release-evidence tooling |
+| v0.6.x | Settings/IPC/asset validation consolidation and renderer error tests |
+| v0.7.x | Bundle/startup baselines, non-first-screen lazy-load, and Settings page split |
+| v0.8.x | Synthetic VRM/VRMA compatibility matrix, exporter notes, and import rollback |
+| v0.9–v0.10 | Motion purpose, state arbitration, bubble DOM, opt-in `show_message`, lip-sync gain wiring |
+| v0.11–v0.12 | Action-pack contract, overlay/catalog extraction, state-event normalize, Idle long-run freeze fix |
 | v0.13.0 | Upstream #14/#15 evaluated and skipped; batch Release of accumulated work |
+| v0.14.0 | System state-slot UI, MCP `set_character_state`, action-pack import, settings schema 9 |
 
-Completed v0.9–v0.12 items are no longer repeated here. Remaining work lives under v0.14 below.
+Completed v0.9–v0.13 items stay in the summary only; remaining work is under v0.14 below.
 
-## v0.14.x: state-slot wiring, deeper tests, and Windows validation
+## v0.14.x: deeper tests and Windows validation
 
-### Character and MCP
+### Character and MCP (done this round)
 
 The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) (Traditional Chinese).
 
-- System state-slot UI (Settings bindings from state → motion); MCP state tool on top of `normalizeExternalStateEvent`.
-- Real `action-pack.json` import pipeline (must not bypass license / path / GLB gates).
-- Precise head projection for lip-sync gain and bubble anchors (currently size-based estimates).
+- [x] System state-slot UI (Settings bindings from state → motion); MCP `set_character_state` on `normalizeExternalStateEvent`.
+- [x] Real `action-pack.json` import pipeline (must not bypass license / path / GLB gates).
+- [ ] Precise head projection for lip-sync gain and bubble anchors (currently size-based estimates).
 
 ### Testing and quality
 
@@ -96,6 +97,6 @@ The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVI
 
 ## Next three actions
 
-1. Wire system state-slot UI and an MCP state tool on the existing normalize/arbitrate path.
-2. Add App/Settings jsdom coverage and an action-pack import pipeline that still respects gates.
+1. Add App/Settings jsdom coverage and deepen state-slot / action-pack import tests.
+2. Precise head projection for lip-sync gain and bubble anchors.
 3. When Windows/secrets are available, complete smoke, signing, and 30%/DPI real-machine evidence.

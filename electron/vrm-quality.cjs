@@ -14,8 +14,10 @@ const {
   REJECT_SCORE_BELOW,
   VERDICT,
   normalizeQualityGate,
+  normalizeQualityScoreThresholds,
   normalizeReportDir,
   readGlb,
+  resolveScoreThresholds,
   summarizeReports,
   verdictLabelZh,
 } = require("./vrma-quality.cjs");
@@ -148,7 +150,7 @@ function hasLookAt(json) {
   );
 }
 
-function scoreReport(filePath, parsed) {
+function scoreReport(filePath, parsed, options = {}) {
   const { json, byteLength } = parsed;
   const issues = [];
   let score = 100;
@@ -272,14 +274,15 @@ function scoreReport(filePath, parsed) {
   }
 
   score = Math.max(0, Math.min(100, Math.round(score)));
+  const { rejectBelow, keepAtLeast } = resolveScoreThresholds(options);
   let verdict = VERDICT.KEEP;
   if (
-    score < REJECT_SCORE_BELOW ||
+    score < rejectBelow ||
     issues.some((issue) => issue.severity === "critical")
   ) {
     verdict = VERDICT.REJECT;
   } else if (
-    score < KEEP_SCORE_AT_LEAST ||
+    score < keepAtLeast ||
     issues.some((issue) => issue.severity === "high")
   ) {
     verdict = VERDICT.REVIEW;
@@ -291,6 +294,7 @@ function scoreReport(filePath, parsed) {
     byteLength,
     score,
     verdict,
+    thresholds: { rejectBelow, keepAtLeast },
     issues,
     metrics: {
       meshCount: meshes,
@@ -306,7 +310,7 @@ function scoreReport(filePath, parsed) {
   };
 }
 
-function analyzeVrmFile(filePath) {
+function analyzeVrmFile(filePath, options = {}) {
   try {
     if (path.extname(filePath).toLowerCase() !== ".vrm") {
       return {
@@ -326,7 +330,7 @@ function analyzeVrmFile(filePath) {
       };
     }
     const parsed = readGlb(filePath);
-    return scoreReport(filePath, parsed);
+    return scoreReport(filePath, parsed, options);
   } catch (error) {
     return {
       filePath,
@@ -346,16 +350,18 @@ function analyzeVrmFile(filePath) {
   }
 }
 
-function analyzeVrmFiles(filePaths) {
-  return filePaths.map((filePath) => analyzeVrmFile(filePath));
+function analyzeVrmFiles(filePaths, options = {}) {
+  return filePaths.map((filePath) => analyzeVrmFile(filePath, options));
 }
 
 function formatMarkdownReport(reports, options = {}) {
   const generatedAt = options.generatedAt ?? new Date().toISOString();
   const sourceDir = options.sourceDir ?? "";
   const gate = normalizeQualityGate(options.gate);
+  const { rejectBelow, keepAtLeast } = resolveScoreThresholds(options);
   const sorted = [...reports].sort((a, b) => a.score - b.score);
   const counts = summarizeReports(sorted);
+  const reviewUpper = Math.max(rejectBelow, keepAtLeast - 1);
 
   const lines = [
     "# VoxAvatar VRM 品質報告",
@@ -363,6 +369,7 @@ function formatMarkdownReport(reports, options = {}) {
     `- 產生時間：\`${generatedAt}\``,
     sourceDir ? `- 掃描目錄：\`${sourceDir}\`` : null,
     `- 把關模式：\`${gate}\`（report＝全部匯入並寫報告；strict＝略過淘汰；off＝不分析）`,
+    `- 分數門檻：淘汰 < ${rejectBelow}；觀察 ${rejectBelow}–${reviewUpper}；保留 ≥ ${keepAtLeast}`,
     `- 檔案數：${sorted.length}（保留 ${counts.keep}／觀察 ${counts.review}／淘汰 ${counts.reject}）`,
     "",
     "> 本報告為啟發式自動判斷，僅供參考。最終請以 VoxAvatar 設定頁的即時預覽為準。",
@@ -371,9 +378,9 @@ function formatMarkdownReport(reports, options = {}) {
     "",
     "| 結果 | 條件概要 |",
     "| --- | --- |",
-    "| 保留 | 分數 ≥ 75，且無高嚴重度問題 |",
-    "| 觀察 | 分數 60–74，或有高嚴重度問題 |",
-    "| 淘汰 | 分數 < 60，或無法解析／缺 VRM 擴充／無 mesh |",
+    `| 保留 | 分數 ≥ ${keepAtLeast}，且無高嚴重度問題 |`,
+    `| 觀察 | 分數 ${rejectBelow}–${reviewUpper}，或有高嚴重度問題 |`,
+    `| 淘汰 | 分數 < ${rejectBelow}，或無法解析／缺 VRM 擴充／無 mesh |`,
     "",
     "主要檢查：VRM 擴充、mesh／node、humanoid 覆蓋、檔案大小、粗估三角面、材質／貼圖、表情與 lookAt。",
     "",
@@ -465,8 +472,10 @@ module.exports = {
   humanoidBoneMap,
   normalizeHumanoidBoneName,
   normalizeQualityGate,
+  normalizeQualityScoreThresholds,
   normalizeReportDir,
   resolveReportPath,
+  resolveScoreThresholds,
   scoreReport,
   summarizeReports,
   writeMarkdownReport,

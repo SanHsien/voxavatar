@@ -3,22 +3,22 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`v0.13.5`（`main` tip；正式 Release tag `v0.13.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`v0.14.0`（`main` tip；正式 Release tag `v0.13.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 目前健康
 
-覆核基準：`v0.13.5`／`main`；GitHub Latest Release：`v0.13.0`
+覆核基準：`v0.14.0`／`main`；GitHub Latest Release：`v0.13.0`
 
-沒有已知未解 P0／P1。`v0.13.0` 為 Latest。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。路線圖焦點為 **v0.14**。`main` tip `0.13.5` 含語音輸出隱私警告顯示修正（未另 tag）。
+沒有已知未解 P0／P1。`v0.13.0` 為 Latest。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。路線圖焦點為 **v0.14 後續**（jsdom／精確 head／Windows 驗收）。`main` tip `0.14.0` 含狀態槽 UI、MCP `set_character_state`、action-pack 匯入（未另 tag）。
 
-- Latest Release：`v0.13.0`；`main` tip 為 `0.13.x`。
+- Latest Release：`v0.13.0`；`main` tip 為 `0.14.0`。
 - 上游：commit 水位 `cf27d12`；open PR #16／issue #13 為 macOS（不合併）；issue #11 首次取得角色文件已涵蓋。
-- MCP 工具：5 個（含 opt-in `show_message`）；狀態事件正規化已備、狀態工具尚未掛上。
-- Settings：自訂動作建立後可在卡片加入多段 VRMA；語音「輸出裝置」隱私警告改依 UI 選取即時顯示／隱藏。
+- MCP 工具：6 個（含 opt-in `show_message` 與 `set_character_state`）；`tools_schema_version`＝3。
+- Settings：系統狀態動作槽綁定；action-pack 可匯入（仍走 GLB／路徑／catalog gate）；目錄匯入可調 VRM／VRMA 共用分數門檻；自訂動作多段 VRMA；語音輸出隱私警告依 UI 選取即時顯示／隱藏。
 
-仍開放：系統狀態動作槽 UI；MCP 狀態工具；action-pack 匯入管線；App／Settings jsdom 整合；精確 head 投影、DPI／30%／Idle 長跑實機；Installer 簽署與 Windows GUI smoke（無密鑰／桌面時標未驗）。
+仍開放：App／Settings jsdom 整合；精確 head 投影、DPI／30%／Idle 長跑實機；Installer 簽署與 Windows GUI smoke（無密鑰／桌面時標未驗）。
 
 本輪驗證：`npm run check` 全綠；Release／Latest／資產依 [`docs/RELEASING.md`](docs/RELEASING.md) 核對。
 
@@ -45,18 +45,19 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.9–v0.10 | 動作用途、狀態仲裁、氣泡 DOM、`show_message` opt-in、口型增益接線 |
 | v0.11–v0.12 | action-pack 契約、overlay／catalog 抽離、狀態事件正規化、Idle 長跑停住修復 |
 | v0.13.0 | 上游 #14／#15 評估不合併；批次 Release 累積功能 |
+| v0.14.0 | 系統狀態槽 UI、MCP `set_character_state`、action-pack 匯入、settings schema 9 |
 
-v0.9–v0.12 已完成項不再逐條留在路線圖；未完成工作見下方 v0.14。
+v0.9–v0.13 已完成項不再逐條留在路線圖；未完成工作見下方 v0.14 後續。
 
-## v0.14.x：狀態槽接線、測試深化與 Windows 驗收
+## v0.14.x：測試深化與 Windows 驗收
 
-### 角色與 MCP
+### 角色與 MCP（本輪已完成）
 
 完整契約見 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
-- 系統狀態動作槽 UI（Settings 綁定狀態→動作）；MCP 狀態工具接上 `normalizeExternalStateEvent`。
-- `action-pack.json` 實際匯入管線（仍不得繞過授權／路徑／GLB gate）。
-- 精確 head 投影驅動口型增益與氣泡錨點（目前為角色尺寸估算）。
+- [x] 系統狀態動作槽 UI（Settings 綁定狀態→動作）；MCP `set_character_state` 接上 `normalizeExternalStateEvent`。
+- [x] `action-pack.json` 實際匯入管線（仍不得繞過授權／路徑／GLB gate）。
+- [ ] 精確 head 投影驅動口型增益與氣泡錨點（目前為角色尺寸估算）。
 
 ### 測試與品質
 
@@ -96,6 +97,6 @@ v0.9–v0.12 已完成項不再逐條留在路線圖；未完成工作見下方 
 
 ## 接下來三件事
 
-1. 接上系統狀態槽 UI 與 MCP 狀態工具（沿用既有正規化與仲裁）。
-2. 補 App／Settings jsdom 整合與 action-pack 匯入管線（不繞過 gate）。
+1. 補 App／Settings jsdom 整合測試，深化狀態槽與 action-pack 匯入覆蓋。
+2. 精確 head 投影驅動口型增益與氣泡錨點。
 3. 有 Windows／密鑰時補 smoke、簽署與 30%／DPI 實機證據。

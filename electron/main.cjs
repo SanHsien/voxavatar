@@ -43,6 +43,10 @@ const {
   normalizeCharacterMessage,
 } = require("./character-message.cjs");
 const {
+  defaultTtlForState,
+  normalizeExternalStateEvent,
+} = require("./character-state.cjs");
+const {
   createMessageRateLimiter,
 } = require("./message-rate-limit.cjs");
 const { randomUUID } = require("node:crypto");
@@ -73,6 +77,7 @@ const {
   buildDirectoryImportSummary,
   evaluateDirectoryImport,
 } = require("./directory-import.cjs");
+const { importActionPackFromPath } = require("./action-pack-import.cjs");
 const { createRendererWindows } = require("./renderer-windows.cjs");
 const { registerSettingsIpc } = require("./settings-ipc.cjs");
 const { createOverlayLifecycle } = require("./overlay-lifecycle.cjs");
@@ -646,6 +651,80 @@ function clearMessageForSource(sourceId) {
   });
 }
 
+function emitCharacterStateToRenderer(event) {
+  if (!avatarWindow || avatarWindow.isDestroyed()) return;
+  const payload = { type: "character-state", event };
+  if (avatarWindow.webContents.isLoading()) {
+    pendingRendererEvents.set(`character-state:${event.id}`, payload);
+    ensureRendererLoadHook();
+    return;
+  }
+  avatarWindow.webContents.send("voxavatar:event", payload);
+}
+
+function clearCharacterStateForSource(sourceId) {
+  if (!sourceId) return;
+  if (!avatarWindow || avatarWindow.isDestroyed()) return;
+  const payload = {
+    type: "character-state-clear",
+    sourceId,
+    atMs: Date.now(),
+  };
+  if (avatarWindow.webContents.isLoading()) {
+    pendingRendererEvents.set(`character-state-clear:${sourceId}`, payload);
+    ensureRendererLoadHook();
+    return;
+  }
+  avatarWindow.webContents.send("voxavatar:event", payload);
+}
+
+function onMcpSessionClosed(sourceId) {
+  clearMessageForSource(sourceId);
+  clearCharacterStateForSource(sourceId);
+}
+
+function applyCharacterState(input, { sessionId = null } = {}) {
+  if (!hasConfiguredModel()) {
+    return { applied: false, error: "avatar_unavailable" };
+  }
+  const nowMs = Date.now();
+  const normalized = normalizeExternalStateEvent(
+    {
+      state: input?.state,
+      ttlMs: input?.ttl_ms ?? input?.ttlMs,
+      sourceKind: "mcp",
+      sourceId: sessionId ?? undefined,
+    },
+    nowMs,
+  );
+  if (!normalized.ok) {
+    return {
+      applied: false,
+      error:
+        normalized.error === "invalid_ttl" ? "invalid_ttl" : "invalid_state",
+    };
+  }
+  const ttl =
+    normalized.event.ttlMs != null
+      ? normalized.event.ttlMs
+      : defaultTtlForState(normalized.event.state);
+  const event = { ...normalized.event, ttlMs: ttl };
+  const expiresAt =
+    ttl > 0 ? new Date(event.atMs + ttl).toISOString() : null;
+  showOverlay();
+  emitCharacterStateToRenderer(event);
+  debugLog("character-state", {
+    state: event.state,
+    sourceId: event.sourceId,
+    ttlMs: ttl,
+  });
+  return {
+    applied: true,
+    state: event.state,
+    expiresAt,
+  };
+}
+
 function showCharacterMessage(input, { sessionId = null } = {}) {
   if (!settingsStore?.getSnapshot()?.mcp_show_message_enabled) {
     return { displayed: false, error: "agent_messages_disabled" };
@@ -756,6 +835,25 @@ async function selectAssetDirectory(title) {
   const options = {
     title,
     properties: ["openDirectory"],
+  };
+  return withAvatarAlwaysOnTopPaused(async () => {
+    const result =
+      settingsWindow && !settingsWindow.isDestroyed()
+        ? await dialog.showOpenDialog(settingsWindow, options)
+        : await dialog.showOpenDialog(options);
+    if (result.canceled) return null;
+    return result.filePaths[0] ?? null;
+  });
+}
+
+async function selectActionPackFile() {
+  const options = {
+    title: "選擇 action-pack.json",
+    properties: ["openFile"],
+    filters: [
+      { name: "Action pack JSON", extensions: ["json"] },
+      { name: "All files", extensions: ["*"] },
+    ],
   };
   return withAvatarAlwaysOnTopPaused(async () => {
     const result =
@@ -977,6 +1075,8 @@ if (!app.requestSingleInstanceLock()) {
       publishSettings,
       selectAssetFile,
       selectAssetDirectory,
+      selectActionPackFile,
+      importActionPackFromPath,
       confirmDirectoryImport,
       showAboutDialog,
       restartAudioListener,
@@ -1053,7 +1153,8 @@ if (!app.requestSingleInstanceLock()) {
       onAnimation: playConfiguredAnimation,
       onWindowAction: handleMcpWindowAction,
       onShowMessage: showCharacterMessage,
-      onSessionClosed: clearMessageForSource,
+      onCharacterState: applyCharacterState,
+      onSessionClosed: onMcpSessionClosed,
       getStatus: getMcpStatus,
       getAnimations: () =>
         settingsStore

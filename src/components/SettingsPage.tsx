@@ -32,6 +32,7 @@ import {
 } from '../theme';
 import { SettingsModelsSection } from './settings/SettingsModelsSection';
 import { SettingsAnimationsSection } from './settings/SettingsAnimationsSection';
+import { SettingsStateSlotsSection } from './settings/SettingsStateSlotsSection';
 import { SettingsVoiceSection } from './settings/SettingsVoiceSection';
 import {
   SettingsAppearanceSection,
@@ -40,6 +41,7 @@ import {
 import { SettingsMcpSection } from './settings/SettingsMcpSection';
 import { SettingsPreviewPanel } from './settings/SettingsPreviewPanel';
 import { SettingsConfirmationDialog } from './settings/SettingsConfirmationDialog';
+import type { CharacterState } from '../character-state';
 
 type SettingsSection = 'models' | 'animations' | 'appearance' | 'voice' | 'mcp';
 
@@ -692,6 +694,22 @@ export function SettingsPage() {
     await run(() => setGate(value), t('notice.qualityGateUpdated'));
   };
 
+  const setVrmaQualityScoreThresholds = async (
+    rejectBelow: number,
+    keepAtLeast: number,
+  ) => {
+    const setThresholds = bridge?.setVrmaQualityScoreThresholds;
+    if (!setThresholds) return;
+    await run(
+      () =>
+        setThresholds({
+          reject_below: rejectBelow,
+          keep_at_least: keepAtLeast,
+        }),
+      t('notice.qualityScoreUpdated'),
+    );
+  };
+
   const chooseVrmaReportDir = async () => {
     const chooseDir = bridge?.chooseVrmaReportDir;
     if (!chooseDir) return;
@@ -878,6 +896,47 @@ export function SettingsPage() {
       setPreviewAnimation(updated ?? null);
     }
     setEditingAnimationId(null);
+  };
+
+  const setStateSlotBinding = async (
+    state: CharacterState,
+    animationName: string | null,
+  ) => {
+    if (!bridge?.setStateSlotBinding) return;
+    await run(
+      () => bridge.setStateSlotBinding!(state, animationName),
+      t('notice.stateSlotUpdated'),
+    );
+  };
+
+  const importActionPack = async () => {
+    if (!bridge?.importActionPack) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const result = await bridge.importActionPack();
+      if (!result) {
+        setNotice(t('notice.actionPackCancelled'));
+        return;
+      }
+      updateSnapshot(result.snapshot);
+      const created = result.results.filter((item) => item.created).length;
+      const clips = result.results.reduce(
+        (total, item) => total + item.clips_imported,
+        0,
+      );
+      setNotice(
+        t('notice.actionPackImported', {
+          name: result.pack_name,
+          created,
+          clips,
+        }),
+      );
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const deleteAnimation = (animation: VoxAvatarAnimationSettings) => {
@@ -1379,13 +1438,23 @@ export function SettingsPage() {
               setModelName={setModelName}
               setSelectedModelId={setSelectedModelId}
               setVrmaQualityGate={setVrmaQualityGate}
+              setVrmaQualityScoreThresholds={setVrmaQualityScoreThresholds}
               settings={settings}
               t={t}
             />
           )}
 
           {section === 'animations' && (
-            <SettingsAnimationsSection
+            <>
+              <SettingsStateSlotsSection
+                bridge={bridge}
+                busy={busy}
+                importActionPack={importActionPack}
+                setStateSlotBinding={setStateSlotBinding}
+                settings={settings}
+                t={t}
+              />
+              <SettingsAnimationsSection
               addAnimationClips={addAnimationClips}
               addAnimationClipsFromDirectory={addAnimationClipsFromDirectory}
               animationMetadata={animationMetadata}
@@ -1415,9 +1484,11 @@ export function SettingsPage() {
               setEditingAnimationMetadata={setEditingAnimationMetadata}
               setSelectedActionPresetId={setSelectedActionPresetId}
               setVrmaQualityGate={setVrmaQualityGate}
+              setVrmaQualityScoreThresholds={setVrmaQualityScoreThresholds}
               settings={settings}
               t={t}
             />
+            </>
           )}
 
           {section === 'appearance' && (

@@ -10,6 +10,8 @@ function registerSettingsIpc({
   publishSettings,
   selectAssetFile,
   selectAssetDirectory,
+  selectActionPackFile,
+  importActionPackFromPath,
   confirmDirectoryImport,
   showAboutDialog,
   restartAudioListener,
@@ -46,10 +48,13 @@ function registerSettingsIpc({
       const rootDir = await selectAssetDirectory("選擇含 VRM 的資料夾");
       if (!rootDir) return null;
       const scan = collectAssetFiles(rootDir, { extensions: [".vrm"] });
-      const gate = normalizeQualityGate(
-        settingsStore.getSnapshot().vrma_quality_gate,
-      );
-      const preferredReportDir = settingsStore.getSnapshot().vrma_report_dir;
+      const settingsSnapshot = settingsStore.getSnapshot();
+      const gate = normalizeQualityGate(settingsSnapshot.vrma_quality_gate);
+      const preferredReportDir = settingsSnapshot.vrma_report_dir;
+      const scoreOptions = {
+        rejectBelow: settingsSnapshot.vrma_quality_reject_below,
+        keepAtLeast: settingsSnapshot.vrma_quality_keep_at_least,
+      };
 
       if (scan.files.length === 0) {
         return {
@@ -75,9 +80,10 @@ function registerSettingsIpc({
         kind: "model",
         filePaths: scan.files,
         gate,
-        analyzeFn: analyzeVrmFiles,
+        analyzeFn: (filePaths) => analyzeVrmFiles(filePaths, scoreOptions),
         summarizeFn: summarizeVrmReports,
-        writeReportFn: writeVrmMarkdownReport,
+        writeReportFn: (reports, options) =>
+          writeVrmMarkdownReport(reports, { ...options, ...scoreOptions }),
         preferredReportDir,
         sourceDir: rootDir,
       });
@@ -159,10 +165,13 @@ function registerSettingsIpc({
       if (!rootDir) return null;
 
       const scan = collectAssetFiles(rootDir, { extensions: [".vrma"] });
-      const gate = normalizeQualityGate(
-        settingsStore.getSnapshot().vrma_quality_gate,
-      );
-      const preferredReportDir = settingsStore.getSnapshot().vrma_report_dir;
+      const settingsSnapshot = settingsStore.getSnapshot();
+      const gate = normalizeQualityGate(settingsSnapshot.vrma_quality_gate);
+      const preferredReportDir = settingsSnapshot.vrma_report_dir;
+      const scoreOptions = {
+        rejectBelow: settingsSnapshot.vrma_quality_reject_below,
+        keepAtLeast: settingsSnapshot.vrma_quality_keep_at_least,
+      };
 
       if (scan.files.length === 0) {
         return {
@@ -184,9 +193,9 @@ function registerSettingsIpc({
         };
       }
 
-      const targetAnimation = settingsStore
-        .getSnapshot()
-        .animations.find((animation) => animation.id === animationId);
+      const targetAnimation = settingsSnapshot.animations.find(
+        (animation) => animation.id === animationId,
+      );
       const purpose =
         targetAnimation?.clips?.[0]?.purpose ??
         (targetAnimation?.animation_type === "IDLE" ||
@@ -198,9 +207,11 @@ function registerSettingsIpc({
         kind: "animation",
         filePaths: scan.files,
         gate,
-        analyzeFn: (filePaths) => analyzeVrmaFiles(filePaths, { purpose }),
+        analyzeFn: (filePaths) =>
+          analyzeVrmaFiles(filePaths, { purpose, ...scoreOptions }),
         summarizeFn: summarizeReports,
-        writeReportFn: writeMarkdownReport,
+        writeReportFn: (reports, options) =>
+          writeMarkdownReport(reports, { ...options, ...scoreOptions }),
         preferredReportDir,
         sourceDir: rootDir,
       });
@@ -267,6 +278,11 @@ function registerSettingsIpc({
     "voxavatar:settings-set-vrma-quality-gate",
     (_event, value) =>
       publishSettings(settingsStore.setVrmaQualityGate(value)),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-set-vrma-quality-score-thresholds",
+    (_event, value) =>
+      publishSettings(settingsStore.setVrmaQualityScoreThresholds(value)),
   );
   handleTrustedSettingsIpc(
     "voxavatar:settings-choose-vrma-report-dir",
@@ -351,6 +367,36 @@ function registerSettingsIpc({
     "voxavatar:settings-set-mcp-show-message-enabled",
     (_event, enabled) =>
       publishSettings(settingsStore.setMcpShowMessageEnabled(enabled)),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-set-state-slot-bindings",
+    (_event, bindings) =>
+      publishSettings(settingsStore.setStateSlotBindings(bindings)),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-set-state-slot-binding",
+    (_event, stateKey, animationName) =>
+      publishSettings(
+        settingsStore.setStateSlotBinding(stateKey, animationName),
+      ),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-import-action-pack",
+    async () => {
+      if (typeof selectActionPackFile !== "function") return null;
+      if (typeof importActionPackFromPath !== "function") {
+        throw new Error("action_pack_import_unavailable");
+      }
+      const packPath = await selectActionPackFile();
+      if (!packPath) return null;
+      const result = importActionPackFromPath({
+        packPath,
+        settingsStore,
+        mergeBindings: true,
+      });
+      publishSettings(result.snapshot);
+      return result;
+    },
   );
   handleTrustedSettingsIpc("voxavatar:settings-set-ui-locale", (_event, locale) =>
     publishSettings(settingsStore.setUiLocale(locale)),

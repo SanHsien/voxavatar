@@ -575,3 +575,79 @@ test("VoxAvatar MCP closes active sessions and allows a fresh client after handl
   assert.equal(statusPayload.windowVisible, false);
   await newClient.close().catch(() => {});
 });
+
+test("set_character_state applies presentation state and reports errors", async () => {
+  const appliedStates = [];
+  const mcpHandler = createVoxAvatarMcpHandler({
+    onAnimation: () => {},
+    onWindowAction: () => true,
+    getStatus: () => ({
+      windowVisible: true,
+      voiceState: {
+        activity: "idle",
+        microphoneMuted: false,
+        outputMuted: false,
+        phase: "inactive",
+      },
+      listener: {
+        available: true,
+        capturing: false,
+        monitoring: false,
+        source: null,
+      },
+    }),
+    getAnimations: () => [],
+    onCharacterState: (input, meta) => {
+      appliedStates.push({ input, meta });
+      if (input.state === "working") {
+        return {
+          applied: true,
+          state: "working",
+          expiresAt: "2026-08-02T00:00:05.000Z",
+        };
+      }
+      return { applied: false, error: "avatar_unavailable" };
+    },
+  });
+  const bridge = createBridgeServer({
+    port: 0,
+    onEvent: () => {},
+    mcpHandler,
+  });
+  const address = await bridge.listen();
+  const client = new Client({ name: "voxavatar-state-test", version: "1.0.0" });
+  const transport = new StreamableHTTPClientTransport(
+    new URL(`http://127.0.0.1:${address.port}/mcp`),
+  );
+  try {
+    await client.connect(transport);
+    const tools = await client.listTools();
+    assert.ok(tools.tools.some((tool) => tool.name === "set_character_state"));
+
+    const ok = parseToolPayload(
+      await client.callTool({
+        name: "set_character_state",
+        arguments: { state: "working", ttl_ms: 5000 },
+      }),
+    );
+    assert.equal(ok.schema_version, TOOLS_SCHEMA_VERSION);
+    assert.equal(ok.applied, true);
+    assert.equal(ok.state, "working");
+    assert.equal(appliedStates[0].input.state, "working");
+    assert.equal(appliedStates[0].input.ttl_ms, 5000);
+    assert.ok(appliedStates[0].meta.sessionId);
+
+    const errorResult = await client.callTool({
+      name: "set_character_state",
+      arguments: { state: "success" },
+    });
+    assert.equal(errorResult.isError, true);
+    const errorPayload = parseToolPayload(errorResult);
+    assert.equal(errorPayload.applied, false);
+    assert.equal(errorPayload.error, "avatar_unavailable");
+  } finally {
+    await client.close().catch(() => {});
+    await mcpHandler.close().catch(() => {});
+    await bridge.close().catch(() => {});
+  }
+});

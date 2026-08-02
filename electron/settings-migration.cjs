@@ -12,13 +12,17 @@ const {
 const { normalizeUiLocale } = require("./i18n.cjs");
 const {
   QUALITY_GATE,
+  KEEP_SCORE_AT_LEAST,
+  REJECT_SCORE_BELOW,
   normalizeQualityGate,
+  normalizeQualityScoreThresholds,
   normalizeReportDir,
 } = require("./vrma-quality.cjs");
 const {
   sanitizeAnimationClips,
   sanitizeModelLighting,
   sanitizeModels,
+  sanitizeStateSlotBindings,
   sanitizeUserAnimations,
   validateAnimationMetadata,
   validStoredAsset,
@@ -26,7 +30,7 @@ const {
   defaultPurposeForAnimationType,
 } = require("./settings-sanitize.cjs");
 
-const SETTINGS_SCHEMA_VERSION = 8;
+const SETTINGS_SCHEMA_VERSION = 9;
 const DEFAULT_IDLE_REST_MS = 8000;
 const MIN_IDLE_REST_MS = 2000;
 const MAX_IDLE_REST_MS = 60000;
@@ -53,9 +57,12 @@ function defaultState(packagedLibrary) {
     hidden_packaged_animation_ids: [],
     voice_source: { ...DEFAULT_VOICE_SOURCE },
     vrma_quality_gate: QUALITY_GATE.STRICT,
+    vrma_quality_reject_below: REJECT_SCORE_BELOW,
+    vrma_quality_keep_at_least: KEEP_SCORE_AT_LEAST,
     vrma_report_dir: null,
     idle_rest_ms: DEFAULT_IDLE_REST_MS,
     mcp_show_message_enabled: false,
+    state_slot_bindings: {},
   };
 }
 
@@ -177,7 +184,7 @@ function safeReadState(settingsPath, packagedLibrary) {
   try {
     const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
     if (
-      ![1, 2, 3, 4, 5, 6, 7, SETTINGS_SCHEMA_VERSION].includes(
+      ![1, 2, 3, 4, 5, 6, 7, 8, SETTINGS_SCHEMA_VERSION].includes(
         parsed?.schema_version,
       )
     ) {
@@ -202,6 +209,10 @@ function safeReadState(settingsPath, packagedLibrary) {
       ...models.map((model) => model.id),
     ]);
     const voiceSource = normalizeVoiceSource(parsed.voice_source);
+    const qualityThresholds = normalizeQualityScoreThresholds({
+      reject_below: parsed.vrma_quality_reject_below,
+      keep_at_least: parsed.vrma_quality_keep_at_least,
+    });
     const common = {
       ...fallback,
       default_model_id:
@@ -219,13 +230,19 @@ function safeReadState(settingsPath, packagedLibrary) {
       hidden_packaged_animation_ids: hidden,
       voice_source: voiceSource,
       vrma_quality_gate: normalizeQualityGate(parsed.vrma_quality_gate),
+      vrma_quality_reject_below: qualityThresholds.rejectBelow,
+      vrma_quality_keep_at_least: qualityThresholds.keepAtLeast,
       vrma_report_dir: normalizeReportDir(parsed.vrma_report_dir),
       idle_rest_ms: normalizeIdleRestMs(parsed.idle_rest_ms),
       mcp_show_message_enabled: parsed.mcp_show_message_enabled === true,
+      state_slot_bindings: sanitizeStateSlotBindings(
+        parsed.state_slot_bindings,
+      ),
     };
 
     if (parsed.schema_version !== SETTINGS_SCHEMA_VERSION) {
       if (
+        parsed.schema_version === 8 ||
         parsed.schema_version === 7 ||
         parsed.schema_version === 6 ||
         parsed.schema_version === 5 ||

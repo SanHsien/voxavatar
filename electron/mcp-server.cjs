@@ -19,6 +19,7 @@ const {
   formatGetStatus,
   formatListAnimations,
   formatPlayAnimation,
+  formatSetCharacterState,
   formatShowMessage,
   serializeToolResult,
 } = require("./mcp-schemas.cjs");
@@ -26,11 +27,20 @@ const {
 const MCP_PATH = "/mcp";
 const WINDOW_ACTIONS = ["show", "hide", "toggle"];
 const MESSAGE_MOODS = ["neutral", "cheerful", "thinking", "warning"];
+const CHARACTER_STATES = [
+  "idle",
+  "listening",
+  "speaking",
+  "working",
+  "reviewing",
+  "success",
+  "failed",
+];
 const MAX_MCP_SESSIONS = 32;
 const MCP_SESSION_IDLE_TTL_MS = 30 * 60 * 1000;
 const MCP_SESSION_SWEEP_MS = 60_000;
 const SERVER_INSTRUCTIONS =
-  "VoxAvatar controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle VoxAvatar. Use show_message only for short user-facing captions when Settings allows agent messages. VoxAvatar never speaks or plays audio. get_status and list_animations are read-only.";
+  "VoxAvatar controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle VoxAvatar. Use set_character_state for presentation states such as working, success, or failed (never invent chat content). Use show_message only for short user-facing captions when Settings allows agent messages. VoxAvatar never speaks or plays audio. get_status and list_animations are read-only.";
 
 function animationToolDescription(animations) {
   return [
@@ -56,6 +66,7 @@ function createVoxAvatarMcpServer({
   onAnimation,
   onWindowAction,
   onShowMessage = null,
+  onCharacterState = null,
   getStatus,
   getAnimations = () => [],
   getSessionId = () => null,
@@ -216,6 +227,48 @@ function createVoxAvatarMcpServer({
         );
         const payload = formatShowMessage(result ?? { displayed: false });
         if (!result?.displayed) {
+          return { ...serializeToolResult(payload), isError: true };
+        }
+        return serializeToolResult(payload);
+      },
+    );
+  }
+
+  if (typeof onCharacterState === "function") {
+    server.registerTool(
+      "set_character_state",
+      {
+        title: "Set VoxAvatar character state",
+        description:
+          "Set a presentation state for the desktop character (idle, listening, speaking, working, reviewing, success, failed). Does not invent chat content. Optional ttl_ms bounds how long the state stays active; session disconnect clears it.",
+        inputSchema: {
+          state: z
+            .enum(CHARACTER_STATES)
+            .describe("Presentation state to apply."),
+          ttl_ms: z
+            .number()
+            .int()
+            .min(0)
+            .max(600_000)
+            .optional()
+            .describe("Optional time-to-live in milliseconds (0–600000)."),
+        },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
+      },
+      async ({ state, ttl_ms }) => {
+        const result = await onCharacterState(
+          { state, ttl_ms },
+          { sessionId: getSessionId() },
+        );
+        const payload = formatSetCharacterState(
+          result ?? { applied: false },
+        );
+        if (!result?.applied) {
           return { ...serializeToolResult(payload), isError: true };
         }
         return serializeToolResult(payload);

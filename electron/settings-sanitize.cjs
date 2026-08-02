@@ -204,8 +204,39 @@ function nextClipName(animationName, existingNames) {
   return clipName;
 }
 
+const CHARACTER_STATE_KEYS = Object.freeze([
+  "idle",
+  "listening",
+  "speaking",
+  "working",
+  "reviewing",
+  "success",
+  "failed",
+]);
+
+function sanitizeStateSlotBindings(raw) {
+  const sanitized = {};
+  if (raw == null || typeof raw !== "object" || Array.isArray(raw)) {
+    return sanitized;
+  }
+  for (const state of CHARACTER_STATE_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(raw, state)) continue;
+    const value = raw[state];
+    if (value == null || value === "") {
+      sanitized[state] = null;
+      continue;
+    }
+    if (typeof value !== "string") continue;
+    const name = value.trim().toLowerCase();
+    if (!ANIMATION_NAME_PATTERN.test(name)) continue;
+    sanitized[state] = name;
+  }
+  return sanitized;
+}
+
 module.exports = {
   ASSET_ID_PATTERN,
+  CHARACTER_STATE_KEYS,
   DEFAULT_MODEL_LIGHTING,
   MODEL_LIGHTING_RANGES,
   completeModelLighting,
@@ -216,6 +247,7 @@ module.exports = {
   sanitizeAnimationClips,
   sanitizeModelLighting,
   sanitizeModels,
+  sanitizeStateSlotBindings,
   sanitizeUserAnimations,
   singleLine,
   validStoredAsset,

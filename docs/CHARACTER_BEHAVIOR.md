@@ -51,7 +51,7 @@
 7. `listening`
 8. `idle`
 
-相同狀態同時到達時，以最新的有效事件取代舊事件。所有外部狀態都有 bounded TTL，`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁；語音來源仍只由本機 voice 路徑產生。系統槽 UI／MCP 狀態工具仍待接線。
+相同狀態同時到達時，以最新的有效事件取代舊事件。所有外部狀態都有 bounded TTL，`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名；MCP `set_character_state` 已接線。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
 
 ### 動作用途
 
@@ -61,7 +61,7 @@ VRMA 品質分析先區分用途，再套用規則：
 - `one-shot`：招手、跳舞、成功或失敗回饋，不因首尾不可銜接而扣分。
 - `pose`：短暫或靜態姿勢，重點是骨架、位移與穩定性。
 
-動作包可用薄的 `action-pack.json` 描述名稱、用途、狀態槽與檔案參照；它不能繞過既有匯入驗證、授權 gate 或 app-controlled 資產路徑。狀態槽名稱解析見 `src/character-state-slots.ts`（系統槽 UI／實際匯入管線仍待）。詳見下方「action-pack.json 契約」。
+動作包可用薄的 `action-pack.json` 描述名稱、用途、狀態槽與檔案參照；它不能繞過既有匯入驗證、授權 gate 或 app-controlled 資產路徑。狀態槽名稱解析見 `src/character-state-slots.ts`；Settings 可綁定系統槽並匯入 action-pack（仍走既有 gate）。詳見下方「action-pack.json 契約」。
 
 ### action-pack.json 契約
 

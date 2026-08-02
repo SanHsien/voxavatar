@@ -14,6 +14,7 @@ const {
 const { normalizeUiLocale } = require("./i18n.cjs");
 const {
   normalizeQualityGate,
+  normalizeQualityScoreThresholds,
   normalizeReportDir,
 } = require("./vrma-quality.cjs");
 const {
@@ -33,6 +34,7 @@ const {
   normalizeAnimationPurpose,
   roundedLightingNumber,
   sanitizeModelLighting,
+  sanitizeStateSlotBindings,
   validateAnimationMetadata,
 } = require("./settings-sanitize.cjs");
 const { validateGlbFile } = require("./settings-asset-validation.cjs");
@@ -200,6 +202,10 @@ function createSettingsStore({
       ...Object.keys(state.packaged_animation_overrides),
       ...state.hidden_packaged_animation_ids,
     ]);
+    const qualityThresholds = normalizeQualityScoreThresholds({
+      reject_below: state.vrma_quality_reject_below,
+      keep_at_least: state.vrma_quality_keep_at_least,
+    });
     return {
       schema_version: SETTINGS_SCHEMA_VERSION,
       default_model_id: defaultModel,
@@ -219,9 +225,14 @@ function createSettingsStore({
       ),
       voice_source: normalizeVoiceSource(state.voice_source),
       vrma_quality_gate: normalizeQualityGate(state.vrma_quality_gate),
+      vrma_quality_reject_below: qualityThresholds.rejectBelow,
+      vrma_quality_keep_at_least: qualityThresholds.keepAtLeast,
       vrma_report_dir: normalizeReportDir(state.vrma_report_dir),
       idle_rest_ms: normalizeIdleRestMs(state.idle_rest_ms),
       mcp_show_message_enabled: state.mcp_show_message_enabled === true,
+      state_slot_bindings: sanitizeStateSlotBindings(
+        state.state_slot_bindings,
+      ),
     };
   }
 
@@ -256,6 +267,14 @@ function createSettingsStore({
 
   function setVrmaQualityGate(value) {
     state.vrma_quality_gate = normalizeQualityGate(value);
+    writeState();
+    return getSnapshot();
+  }
+
+  function setVrmaQualityScoreThresholds(value) {
+    const normalized = normalizeQualityScoreThresholds(value);
+    state.vrma_quality_reject_below = normalized.rejectBelow;
+    state.vrma_quality_keep_at_least = normalized.keepAtLeast;
     writeState();
     return getSnapshot();
   }
@@ -296,6 +315,32 @@ function createSettingsStore({
 
   function setMcpShowMessageEnabled(value) {
     state.mcp_show_message_enabled = value === true;
+    writeState();
+    return getSnapshot();
+  }
+
+  function setStateSlotBindings(value) {
+    state.state_slot_bindings = sanitizeStateSlotBindings(value);
+    writeState();
+    return getSnapshot();
+  }
+
+  function setStateSlotBinding(stateKey, animationName) {
+    const next = {
+      ...sanitizeStateSlotBindings(state.state_slot_bindings),
+    };
+    if (animationName == null || animationName === "") {
+      next[stateKey] = null;
+    } else {
+      const patched = sanitizeStateSlotBindings({
+        [stateKey]: animationName,
+      });
+      if (!(stateKey in patched)) {
+        throw new Error("Invalid character state or animation name.");
+      }
+      next[stateKey] = patched[stateKey];
+    }
+    state.state_slot_bindings = next;
     writeState();
     return getSnapshot();
   }
@@ -443,9 +488,12 @@ function createSettingsStore({
     setCharacterSize,
     setIdleRestMs,
     setMcpShowMessageEnabled,
+    setStateSlotBinding,
+    setStateSlotBindings,
     setUiLocale,
     setVoiceSource,
     setVrmaQualityGate,
+    setVrmaQualityScoreThresholds,
     setVrmaReportDir,
     setDefaultModel,
     setModelLighting,

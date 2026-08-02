@@ -1,7 +1,7 @@
 "use strict";
 
 const STATUS_SCHEMA_VERSION = 2;
-const TOOLS_SCHEMA_VERSION = 2;
+const TOOLS_SCHEMA_VERSION = 3;
 
 function serializeToolResult(object) {
   return {
@@ -110,6 +110,35 @@ function formatShowMessage({
   };
 }
 
+function formatSetCharacterState({
+  applied,
+  state = null,
+  expiresAt = null,
+  error = null,
+}) {
+  let message;
+  if (applied) {
+    message = `Character presentation state set to ${state}.`;
+  } else if (error === "invalid_state") {
+    message =
+      "State must be one of idle, listening, speaking, working, reviewing, success, or failed.";
+  } else if (error === "invalid_ttl") {
+    message = "ttl_ms must be a finite number between 0 and 600000.";
+  } else if (error === "avatar_unavailable") {
+    message = "VoxAvatar cannot apply state until a model is configured.";
+  } else {
+    message = "Unable to apply character state.";
+  }
+  return {
+    schema_version: TOOLS_SCHEMA_VERSION,
+    message,
+    applied: Boolean(applied),
+    ...(state ? { state } : {}),
+    ...(expiresAt ? { expires_at: expiresAt } : {}),
+    ...(error ? { error } : {}),
+  };
+}
+
 module.exports = {
   STATUS_SCHEMA_VERSION,
   TOOLS_SCHEMA_VERSION,
@@ -120,4 +149,5 @@ module.exports = {
   formatPlayAnimation,
   formatControlWindow,
   formatShowMessage,
+  formatSetCharacterState,
 };

@@ -90,11 +90,13 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 
 ## 快速開始
 
-1. 從 [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest) 下載 Windows 安裝程式。
-2. 啟動 VoxAvatar；首次沒有模型時會自動開啟設定頁。
-3. 在「模型」匯入你有權使用的 `.vrm`。安裝包預設不內建第三方角色。
-4. 在 Idle／Speaking 或自訂動作加入 `.vrma`；沒有 VRMA 時仍可做口型。
-5. 在「語音」選擇會播放助理聲音的應用程式。
+1. 從 [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest) 下載 Windows 安裝程式（`VoxAvatar-*-windows-x64-setup.exe`）。
+2. **簽署狀態**：現行公開安裝包為 **NotSigned（未 Authenticode 簽署）**。SmartScreen 可能顯示未知發行者；請以同頁的 `SHA256SUMS.txt` 核對檔案雜湊後再安裝。有簽署密鑰後的版本會在 Release／About 明確標示。
+3. 啟動 VoxAvatar；首次沒有模型時會自動開啟設定頁。
+4. 在「模型」匯入你有權使用的 `.vrm`。安裝包預設不內建第三方角色。
+5. 在 Idle／Speaking 或自訂動作加入 `.vrma`；沒有 VRMA 時仍可做口型。
+6. 在「語音」選擇會播放助理聲音的應用程式。
+7. 依設定頁指示把本機 MCP 接到 Codex 或其他相容代理。
 
 模型與動作可從 [VRoid Hub](https://hub.vroid.com/)、[BOOTH](https://booth.pm/) 或 [VRoid Studio](https://vroid.com/studio) 合法取得。每個素材的下載、Avatar、商用與再散布條款各自不同，詳見 [`ASSET_LICENSES.md`](ASSET_LICENSES.md) 與 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)。
 
@@ -126,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`0.16.13`**；GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 為 **`v0.16.12`**（累積中，本輪不另發安裝版）。GUI smoke／簽署仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`0.16.14`**（未簽署標示、誠實 release-evidence、helper 降級人話）。GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。本輪 batch cut 後 Latest Release 為 **`v0.16.14`**；GUI smoke／Authenticode 仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

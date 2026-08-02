@@ -69,11 +69,12 @@ npm run dist:windows
 | `npm run native:test` | helper self-test 與 Usage=2 typed exit 斷言 |
 | `npm run baseline:bundle` | 產生／對照 renderer bundle 基準（可選） |
 | `npm run baseline:startup` | 量測 main process 關鍵模組 require 耗時（可選） |
-| `npm run vrma:curate -- …` | 離線 VRMA 結構檢視／安全改名／verify-names（維護用，非執行期） |
+| `npm run evidence:manifest -- --version <ver> [--smoke-md] …` | 寫入 `docs/release-evidence/v{ver}/manifest.json`（可選 windows-smoke.md）；可填 installer SHA／size |
+| `npm run sbom` | 從 lockfile 產生 production SBOM（預設 `release/sbom.json`） |
 | `npm run check` | 非原生的完整日常 gate |
 | `npm run dist:windows` | 原生 build／test + NSIS 安裝包 |
 
-離線整理流程與改名計畫契約見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)「離線 VRMA 整理流程」；工具刻意不推斷動作語意（[`DECISIONS.md`](DECISIONS.md) §10）。
+離線整理流程與改名計畫契約見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)「離線 VRMA 整理流程」；工具刻意不推斷動作語意（[`DECISIONS.md`](DECISIONS.md) §10）。發行證據目錄見 [`RELEASING.md`](RELEASING.md) 與 `docs/release-evidence/`。
 
 ## 效能基準（本地）
 

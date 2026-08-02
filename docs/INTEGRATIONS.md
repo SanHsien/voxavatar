@@ -17,7 +17,7 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 | `list_animations` | 無 | 列出目前可播放動作、描述與觸發情境 |
 | `play_animation` | `animation`: 動作名稱 | 顯示角色並隨機播放該動作的一個片段 |
 | `control_window` | `action`: `show`／`hide`／`toggle` | 控制角色視窗；hide 不會結束程式 |
-| `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）、版本化 `readiness`，以及 `mcp_show_message_enabled`／`message_visible`（不含訊息文字） |
+| `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state` 與可選 `helper_error`）、版本化 `readiness`，以及 `mcp_show_message_enabled`／`message_visible`（不含訊息文字） |
 | `show_message` | `text`；可選 `duration_ms`／`mood` | 在角色旁顯示短句氣泡（Settings 預設關閉；需 opt-in） |
 | `set_character_state` | `state`；可選 `ttl_ms` | 設定呈現狀態（idle／listening／speaking／working／reviewing／success／failed）；經 `normalizeExternalStateEvent`；`ttl_ms` 省略或 `0` 用狀態預設 TTL；session 斷線清除；依 Settings 狀態槽播動作 |
 
@@ -71,6 +71,8 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 
 - `status_schema_version`、`message`
 - `modelConfigured`、`windowVisible`、`voiceState`、`listener`
+- `listener.state`：`inactive`／`external`／`missing`／`launch_failed`／`target_missing`／`no_output`／`listening`
+- `listener.helper_error`（可選）：與 Settings 共用的分類碼，例如 `native_helper_missing`、`native_helper_com_error`、`native_helper_wasapi_error`、`native_helper_device_error`。Agent 應優先讀此欄位，不要只解析可能含路徑的 `listener.error` 字串。
 - `readiness`：`complete`、`steps`、`next_step`、`listener_state`、`playable_actions` 等
 
 #### 其他工具主要欄位
@@ -88,7 +90,7 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 - **同 MAJOR**（例如 `status_schema_version` 仍為 `2`、`tools_schema_version` 仍為 `3`）：可新增 optional 欄位；Agent 應忽略未知欄位。
 - **升 MAJOR**：移除欄位、改名或改變語意時必須 bump `status_schema_version` 或 `tools_schema_version`，並在 CHANGELOG 說明。
 - `readiness.schema_version` 獨立演進；變更時一併檢查 `get_status` 文件與整合測試。
-- Agent 應優先讀 `readiness.steps`、`listener.state`／`readiness.listener_state` 與工具 JSON 欄位，不要只解析 `message` 字串。
+- Agent 應優先讀 `readiness.steps`、`listener.state`／`listener.helper_error`／`readiness.listener_state` 與工具 JSON 欄位，不要只解析 `message` 或 raw `error` 字串。
 
 `list_animations`／`play_animation` 以目前設定 catalog 為準；設定變更後既有 MCP session 會收到 `tools/list_changed` 並更新 `play_animation` 描述。高頻 `play_animation` 經有界佇列合併同名請求，避免 renderer 被淹沒。
 

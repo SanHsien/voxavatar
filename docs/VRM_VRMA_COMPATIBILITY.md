@@ -65,6 +65,16 @@
 2. Three.js 載入、骨架對位、表情與 VRMA 播放的實機結果欄位。
 3. 與 [`docs/RELEASING.md`](RELEASING.md)「Windows 發行驗收」匯入 smoke 的交叉引用。
 
+### 真實樣本證據列（尚未填寫結果）
+
+| Exporter | 樣本來源（授權清楚才填） | 工具版本 | 匯入／品質結果 | Three.js 播放 | 證據連結 | 狀態 |
+| --- | --- | --- | --- | --- | --- | --- |
+| VRoid Studio | **未驗**（尚無授權清楚之可引用樣本） | — | 未驗 | 未驗 | [`docs/release-evidence/`](release-evidence/) | pending-human-sample |
+| UniVRM | **未驗** | — | 未驗 | 未驗 | 同上 | pending-human-sample |
+| Blender VRM Add-on | **未驗** | — | 未驗 | 未驗 | 同上 | pending-human-sample |
+
+填寫時只記錄來源 URL、授權摘要、工具版本與通過／失敗／未驗；**不要**提交 `.vrm`／`.vrma` 二進位。匯入 smoke 步驟見 [`RELEASING.md`](RELEASING.md)。
+
 ## 相關文件
 
 - Fixture 說明：[`electron/fixtures/vrm-vrma/README.md`](../electron/fixtures/vrm-vrma/README.md)

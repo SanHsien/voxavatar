@@ -1591,7 +1591,10 @@ export function SettingsPage() {
               </div>
               <p className="desktop-note">{t('setup.incomplete')}</p>
               <ul className="setup-checklist">
-                {readiness.steps.map((step) => (
+                {readiness.steps.map((step) => {
+                  const codeKey = `setup.code.${step.code}`;
+                  const codeLabel = t(codeKey);
+                  return (
                   <li
                     className={
                       step.ready
@@ -1604,7 +1607,7 @@ export function SettingsPage() {
                   >
                     <div>
                       <strong>{t(`setup.step.${step.id}`)}</strong>
-                      <small>{step.code}</small>
+                      <small>{codeLabel === codeKey ? step.code : codeLabel}</small>
                     </div>
                     {step.next_action && (
                       <button
@@ -1616,8 +1619,14 @@ export function SettingsPage() {
                       </button>
                     )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
+              {readiness.steps.some(
+                (step) =>
+                  step.code === 'helper_missing' ||
+                  step.next_action === 'install_or_build_helper',
+              ) && <p className="desktop-note">{t('setup.helperNote')}</p>}
             </section>
           )}
 

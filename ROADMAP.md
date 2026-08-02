@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`0.16.13`（`main`；GitHub Latest Release：`v0.16.12`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.14`（`main`；GitHub Latest Release 將切至本輪 batch cut；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,12 +11,12 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.13`／`main`；GitHub Latest Release：`v0.16.12`
+覆核基準：`0.16.14`／`main`；GitHub Latest Release：本輪 batch cut（自 `v0.16.12` 累積）
 
-沒有已知未解 P0／P1。上游 open PR／issue 已重掃（`9287ea3` 之後無新 commit；#16 仍為範圍外不合併）。**本輪不規劃新功能路線**；關閉既有缺口與契約漂移。`0.16.13` 補齊 assign／action-pack IPC 形狀、MCP `show_message`、Appearance／確認對話／secureRenderer／avatar preload 契約。
+沒有已知未解 P0／P1。上游仍為 `9287ea3`（無新 commit）。**本輪不規劃新功能路線**；關閉證據／未簽署標示／helper 降級等非僅測試缺口。`0.16.14` 落地誠實 release-evidence、NotSigned 標示與 listener 人話。
 
-- Latest Release：`v0.16.12`（GUI／簽署／真實 exporter 仍標未驗；本輪不另發安裝版）。
-- 上游：commit 水位 `9287ea3`；目前無 open PR；#16／已關閉 issue #13 為 macOS（不合併），issue #11 首次取得角色文件已涵蓋。
+- Latest Release：本輪切至 `v0.16.14`（GUI／簽署／真實 exporter 仍標未驗；證據見 `docs/release-evidence/`）。
+- 上游：commit 水位 `9287ea3`；無 open PR；#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
@@ -76,6 +76,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.16.11 | curation／未分類池 IPC／preload／動作頁契約測；上游重掃；DEVELOPMENT 指令 |
 | v0.16.12 | schema／IPC／tray／Speaking bone／Settings 互動契約收斂；batch cut 安裝版 |
 | v0.16.13 | assign／action-pack IPC 形狀；MCP show_message；Appearance／確認對話；secureRenderer／avatar preload |
+| v0.16.14 | NotSigned 標示；release-evidence；helper_error 人話／遮罩；INTEGRATIONS／相容證據骨架 |
 
 ## 既有缺口收斂
 
@@ -88,6 +89,12 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [x] 離線 `vrma:curate` 核心流程測；未分類池／批次用途 IPC／preload／動作頁 static 測。
 - [x] schema 10→11 migration；池改名／刪除／移回；IPC handler 轉發；exit 10–13 矩陣；tray 頂層；Speaking bone；Settings 互動（動作／模型／複製範例／設定進度閘門）。
 - [x] assign-by-filename／import-action-pack 回傳形狀；MCP `show_message`；HTTP character-state POST；Appearance／ConfirmationDialog／Voice application／MCP toggle；secureRenderer；avatar preload 訂閱 API。
+
+### 證據／降級說明（已完成，非宣稱 GUI 通過）
+
+- [x] Latest／tip `docs/release-evidence/` 誠實骨架（SHA／NotSigned／清單全標未驗）。
+- [x] README／SECURITY／About／Release notes 未簽署標示。
+- [x] Settings helper_error 人話與 raw error 遮罩；設定進度 code 人話。
 
 ### 仍待／未驗
 

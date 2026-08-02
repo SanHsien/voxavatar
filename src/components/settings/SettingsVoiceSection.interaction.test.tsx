@@ -61,6 +61,68 @@ describe('SettingsVoiceSection interaction', () => {
     expect(screen.queryByTestId('voice-output-privacy')).toBeNull();
   });
 
+  it('shows human-readable helper missing hint without raw paths', () => {
+    render(
+      <SettingsVoiceSection
+        bridge={
+          { get: vi.fn() } as unknown as NonNullable<
+            Window['voxavatarSettings']
+          >
+        }
+        busy={false}
+        chooseApplicationSource={vi.fn()}
+        chooseVoiceMode={vi.fn()}
+        copyText={vi.fn()}
+        listenerStateKey="helper.state.missing"
+        listenerStatus={{
+          available: false,
+          capturing: false,
+          monitoring: false,
+          state: 'missing',
+          helper_error: 'native_helper_missing',
+          error: 'C:\\Users\\SanHsien\\voxavatar-audio-listener.exe missing',
+          source: null,
+        }}
+        refreshVoiceSources={vi.fn()}
+        saveCustomVoiceSource={vi.fn()}
+        selectedVoiceSourceAvailable={false}
+        setVoiceMode={vi.fn()}
+        setVoicePattern={vi.fn()}
+        setVoiceSourceSearch={vi.fn()}
+        settings={{
+          ...SETTINGS_FALLBACK,
+          voice_source: {
+            mode: 'application' as const,
+            process_pattern: null,
+            source_id: null,
+            source_name: null,
+          },
+        }}
+        t={(key: string, vars?: Record<string, string | number>) =>
+          settingsT('zh-TW', key, vars)
+        }
+        visibleVoiceSources={[]}
+        voiceCatalog={null}
+        voiceHeading="語音"
+        voicePattern=""
+        voiceSourceDirty={false}
+        voiceSourceSearch=""
+        voiceSourcesLoading={false}
+        voiceMode="application"
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        settingsT('zh-TW', 'helper.error.native_helper_missing'),
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(settingsT('zh-TW', 'helper.missingHint')),
+    ).toBeTruthy();
+    expect(screen.queryByText(/SanHsien/i)).toBeNull();
+  });
+
   it('selects application voice mode from the segmented control', async () => {
     const user = userEvent.setup();
     const setVoiceMode = vi.fn();

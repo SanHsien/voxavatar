@@ -21,4 +21,10 @@ Use [GitHub Private Vulnerability Reporting](https://github.com/SanHsien/voxavat
 - Custom process matchers are limited to a bounded safe subset that rejects obvious ReDoS patterns.
 - Imported media is copied to per-user application data. The renderer can access only registered IDs through `voxavatar-asset:`.
 
+### Installer integrity and signing
+
+- Every GitHub Release includes `SHA256SUMS.txt`; verify the installer hash after download.
+- Until `WIN_CSC_*` signing secrets are available, public installers are labeled **NotSigned**. The About dialog and Release notes say the same. SmartScreen may warn about an unknown publisher—that is not a completed Windows desktop acceptance.
+- Without signing secrets, do **not** claim Authenticode signing or SmartScreen clearance. Desktop smoke / signing evidence lives under [`docs/release-evidence/`](docs/release-evidence/) and [`docs/RELEASING.md`](docs/RELEASING.md).
+
 Security-boundary changes require tests and a threat explanation. Use the issue template, not the vulnerability channel, for ordinary bugs.

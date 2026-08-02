@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.14 - 2026-08-02
+
+- 公開安裝包明確標示 **NotSigned**：README／SECURITY 下載與完整性說明、About 對話框簽署狀態、Release workflow／`v0.16.12` notes 誠實段。
+- 建立 `docs/release-evidence/v0.16.12`（含 installer SHA／size／NotSigned）與 tip 證據占位；`evidence:manifest` 支援填入資產並產生 `windows-smoke.md` 骨架。
+- Settings 語音／設定進度：typed `helper_error` 人話、raw error 遮罩、缺 helper 下一步說明；INTEGRATIONS 補 listener 契約；VRM 相容真實樣本證據列骨架。
+- About `formatAboutDetail` 與 Voice helper-missing 互動測鎖定未簽署／人話契約。
+
 ## 0.16.13 - 2026-08-02
 
 - 鎖定 `assign-vrma-by-filename`／`import-action-pack` IPC 回傳形狀（cancel／skip／confirm／assign）。

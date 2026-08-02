@@ -182,11 +182,12 @@ function showAboutDialog() {
       : avatarWindow && !avatarWindow.isDestroyed()
         ? avatarWindow
         : undefined;
+  const { formatAboutDetail } = require("./i18n.cjs");
   const options = {
     type: "info",
     title: t.aboutTitle,
     message: "VoxAvatar",
-    detail: String(t.aboutDetail).replaceAll("{version}", version),
+    detail: formatAboutDetail(t, version),
     buttons: [t.aboutOk],
     noLink: true,
   };

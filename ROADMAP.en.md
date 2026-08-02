@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.13` (`main`; GitHub Latest Release: `v0.16.12`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.14` (`main`; GitHub Latest Release will move to this batch cut; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,11 +11,11 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.13` / `main`; GitHub Latest Release: `v0.16.12`
+Review baseline: `0.16.14` / `main`; GitHub Latest Release: this batch cut (accumulated since `v0.16.12`)
 
-No known open P0/P1. Upstream open PR/issues re-scanned (`9287ea3` has no newer tip commits; #16 remains out of scope). **No new feature tracks this round**—close existing gaps and contract drift. `0.16.13` closes assign/action-pack IPC shapes, MCP `show_message`, Appearance/confirmation dialog, secureRenderer, and avatar preload contracts.
+No known open P0/P1. Upstream remains `9287ea3` (no newer tip commits). **No new feature tracks this round**—close evidence / unsigned labeling / helper-degradation gaps that are not test-only. `0.16.14` ships honest release-evidence, NotSigned labeling, and human-readable listener copy.
 
-- Latest Release: `v0.16.12` (GUI/signing/real exporters still unverified; no installer cut this round).
+- Latest Release: cut to `v0.16.14` this round (GUI / signing / real exporters still unverified; evidence under `docs/release-evidence/`).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
@@ -76,6 +76,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.16.11 | Curation / unassigned-pool IPC·preload·Animations UI contract tests; upstream re-scan; DEVELOPMENT commands |
 | v0.16.12 | Schema/IPC/tray/Speaking-bone/Settings interaction contracts; installer batch cut |
 | v0.16.13 | Assign/action-pack IPC shapes; MCP show_message; Appearance/confirmation; secureRenderer/avatar preload |
+| v0.16.14 | NotSigned labeling; release-evidence; helper_error copy/redaction; INTEGRATIONS / compatibility evidence scaffold |
 
 ## Closing existing gaps
 
@@ -88,6 +89,12 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 - [x] Offline `vrma:curate` core flow tests; unassigned pool / batch-purpose IPC·preload·Animations static tests.
 - [x] Schema 10→11 migration; pool rename/delete/return; IPC handler forwarding; exit 10–13 matrix; tray top-level; Speaking bones; Settings interactions (animations/models/copy example/setup gate).
 - [x] Assign-by-filename / import-action-pack return shapes; MCP `show_message`; HTTP character-state POST; Appearance / ConfirmationDialog / Voice application / MCP toggle; secureRenderer; avatar preload subscribe APIs.
+
+### Evidence / degradation copy (done; not a GUI-pass claim)
+
+- [x] Honest Latest/tip `docs/release-evidence/` skeletons (SHA / NotSigned / checklist all unverified).
+- [x] README / SECURITY / About / Release notes unsigned labeling.
+- [x] Settings helper_error human copy and raw-error redaction; setup progress code labels.
 
 ### Still open / unverified
 

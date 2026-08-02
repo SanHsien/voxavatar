@@ -92,6 +92,36 @@ const ZH_TW: MessageDictionary = {
   'helper.state.target_missing': '找不到目標行程',
   'helper.state.no_output': '已附掛、尚無輸出',
   'helper.state.listening': '正在接收音量',
+  'helper.error.native_helper_missing':
+    '找不到原生 listener。請使用正式 Windows 安裝包，或本機執行 npm run native:build。',
+  'helper.error.native_helper_spawn_failed':
+    '無法啟動原生 listener（權限或路徑問題）。',
+  'helper.error.native_helper_com_error':
+    'COM 初始化失敗。請確認以一般桌面工作階段執行，並重試。',
+  'helper.error.native_helper_wasapi_error':
+    'WASAPI／音訊端點失敗。請檢查預設播放裝置後重試。',
+  'helper.error.native_helper_device_error':
+    '找不到可用的播放裝置。請連接或啟用輸出裝置。',
+  'helper.error.native_helper_usage': '原生 listener 參數無效（Usage）。',
+  'helper.error.native_helper_permission': '啟動 helper 時權限被拒。',
+  'helper.error.native_helper_exit_nonzero': '原生 listener 異常結束。',
+  'helper.error.native_helper_unknown': '原生 listener 發生未知錯誤。',
+  'helper.missingHint':
+    '開發模式若尚未編譯 helper，語音 loopback 會不可用；正式安裝包應內含 voxavatar-audio-listener.exe。',
+  'setup.code.model_missing': '尚未匯入或選取模型',
+  'setup.code.model_configured': '模型已就緒',
+  'setup.code.animations_optional_empty': '尚無可播放動作（可選）',
+  'setup.code.animations_ready': '已有可播放動作',
+  'setup.code.helper_missing': '缺少原生 listener',
+  'setup.code.helper_launch_failed': '原生 listener 啟動失敗',
+  'setup.code.listener_inactive': '語音 listener 尚未就緒',
+  'setup.code.voice_external': '外部事件語音模式',
+  'setup.code.mcp_offline': '本機 MCP 尚未上線',
+  'setup.code.mcp_online': '本機 MCP 已上線',
+  'setup.code.mcp_starting': '本機 MCP 啟動中',
+  'setup.code.mcp_unavailable': '本機 MCP 不可用',
+  'setup.helperNote':
+    '需要原生 listener 時：下載正式安裝包，或在有 Visual Studio Build Tools 的環境執行 npm run native:build。',
   'diagnostic.label': '診斷摘要',
   'notice.modelAdded': '模型已加入資料庫。',
   'notice.modelsImported':
@@ -611,6 +641,36 @@ const EN: MessageDictionary = {
   'helper.state.target_missing': 'Target process not found',
   'helper.state.no_output': 'Attached, no output yet',
   'helper.state.listening': 'Receiving levels',
+  'helper.error.native_helper_missing':
+    'Native listener not found. Use the official Windows installer, or run npm run native:build locally.',
+  'helper.error.native_helper_spawn_failed':
+    'Could not start the native listener (permission or path issue).',
+  'helper.error.native_helper_com_error':
+    'COM initialization failed. Run in a normal desktop session and retry.',
+  'helper.error.native_helper_wasapi_error':
+    'WASAPI / audio endpoint failed. Check the default playback device and retry.',
+  'helper.error.native_helper_device_error':
+    'No usable playback device. Connect or enable an output device.',
+  'helper.error.native_helper_usage': 'Native listener arguments were invalid (Usage).',
+  'helper.error.native_helper_permission': 'Permission denied when starting the helper.',
+  'helper.error.native_helper_exit_nonzero': 'Native listener exited abnormally.',
+  'helper.error.native_helper_unknown': 'Native listener reported an unknown error.',
+  'helper.missingHint':
+    'In development, loopback voice is unavailable until the helper is built; official installers ship voxavatar-audio-listener.exe.',
+  'setup.code.model_missing': 'No model imported or selected',
+  'setup.code.model_configured': 'Model ready',
+  'setup.code.animations_optional_empty': 'No playable actions yet (optional)',
+  'setup.code.animations_ready': 'Playable actions available',
+  'setup.code.helper_missing': 'Native listener missing',
+  'setup.code.helper_launch_failed': 'Native listener failed to start',
+  'setup.code.listener_inactive': 'Voice listener not ready',
+  'setup.code.voice_external': 'External-events voice mode',
+  'setup.code.mcp_offline': 'Local MCP is offline',
+  'setup.code.mcp_online': 'Local MCP is online',
+  'setup.code.mcp_starting': 'Local MCP is starting',
+  'setup.code.mcp_unavailable': 'Local MCP is unavailable',
+  'setup.helperNote':
+    'When a native listener is required: download the official installer, or run npm run native:build with Visual Studio Build Tools.',
   'diagnostic.label': 'Diagnostic summary',
   'notice.modelAdded': 'Model added to your library.',
   'notice.modelsImported':

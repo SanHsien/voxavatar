@@ -17,6 +17,7 @@ interface AudioListenerStatus {
   available: boolean;
   capturing: boolean;
   error?: string;
+  helper_error?: string;
   monitoring: boolean;
   source: string | null;
   state?:

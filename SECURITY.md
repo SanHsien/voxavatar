@@ -22,4 +22,10 @@
 - 自訂 process matcher 限制為有界安全子集，拒絕明顯易 ReDoS 的 pattern。
 - 使用者匯入媒體會複製到每使用者應用資料，renderer 只能以已登記 ID 經 `voxavatar-asset:` 讀取。
 
+### 安裝包完整性與簽署
+
+- 每個 GitHub Release 附 `SHA256SUMS.txt`；下載後請核對 installer 雜湊。
+- 在提供 `WIN_CSC_*` 簽署密鑰前，公開安裝包標示為 **NotSigned**；About 對話框與 Release notes 也會寫明。SmartScreen 可能提示未知發行者——這不代表通過完整 Windows 桌面驗收。
+- 缺少簽署密鑰時**不得**宣稱已 Authenticode 簽署或已通過 SmartScreen。實機 smoke／簽署狀態證據見 [`docs/release-evidence/`](docs/release-evidence/) 與 [`docs/RELEASING.md`](docs/RELEASING.md)。
+
 安全邊界的變更必須附測試與威脅說明。一般錯誤請用 issue template，不要透過漏洞管道回報。

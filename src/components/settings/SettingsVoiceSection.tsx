@@ -1,3 +1,5 @@
+import { resolveListenerStatusDetail } from '../../listener-status-copy';
+
 type SettingsBridge = NonNullable<Window['voxavatarSettings']>;
 
 type SettingsTranslate = (
@@ -369,10 +371,15 @@ export function SettingsVoiceSection({
                         : t(listenerStateKey)}
                     </strong>
                     <small>
-                      {listenerStatus?.error ??
-                        listenerStatus?.source ??
-                        t('voice.state.noStream')}
+                      {resolveListenerStatusDetail(listenerStatus, t)}
                     </small>
+                    {listenerStatus?.state === 'missing' ||
+                    listenerStatus?.helper_error ===
+                      'native_helper_missing' ? (
+                      <small className="desktop-note">
+                        {t('helper.missingHint')}
+                      </small>
+                    ) : null}
                   </article>
                   <article>
                     <span>{t('voice.statusAvailable')}</span>

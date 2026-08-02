@@ -75,7 +75,7 @@ GitHub Actions 能證明程式可在乾淨 Windows runner 編譯、測試與打�
 
 記錄放在 `docs/release-evidence/v{version}/windows-smoke.md`。不得提交使用者名稱、絕對路徑、VRM／VRMA 原檔、憑證、音訊、對話或其他私人內容；截圖先裁切或遮蔽。
 
-用 `npm run evidence:manifest -- --version <version>` 建立機讀的 `manifest.json` metadata 模板；人工依本節另建立 `windows-smoke.md`。每個版本只保留實際執行結果；無法執行的項目寫「未驗」與原因，不可預先勾選。證據目錄不是 installer、log dump 或私人媒體的保存位置。
+用 `npm run evidence:manifest -- --version <version> [--installer-name …] [--installer-sha256 …] [--installer-size …] [--smoke-md] [--no-installer]` 建立機讀的 `manifest.json`，可選 `windows-smoke.md` 骨架。每個版本只保留實際執行結果；無法執行的項目寫「未驗」與原因，不可預先勾選通過。證據目錄不是 installer、log dump 或私人媒體的保存位置。
 
 至少記錄：
 

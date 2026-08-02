@@ -225,6 +225,14 @@ jobs:
         with:
           tag_name: ${{ needs.resolve-release.outputs.release_tag }}
           name: VoxAvatar ${{ needs.resolve-release.outputs.release_tag }}
+          body: |
+            ## Signing / Windows verification
+
+            - Authenticode: **NotSigned** unless this release explicitly documents a signed publisher.
+            - SmartScreen / GUI smoke / DPI / real WASAPI: **未驗** until evidence exists under `docs/release-evidence/`.
+            - Verify `SHA256SUMS.txt` before installing.
+
+            ---
           generate_release_notes: true
           # 不要因 tag 含 -beta 就標 Pre-release：GitHub 首頁 Latest 會略過，
           # 看起來像「只有 tag、沒有 Release」。beta 版號仍寫在 tag／標題裡。

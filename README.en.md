@@ -90,11 +90,13 @@ Visual Studio Build Tools is not required for normal UI, settings, MCP, document
 
 ## Quick start
 
-1. Download the Windows installer from [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest).
-2. Launch VoxAvatar. Settings opens automatically when no model is configured.
-3. Under **Models**, import a `.vrm` you are allowed to use. Releases do not ship third-party characters by default.
-4. Add `.vrma` clips to Idle, Speaking, or custom actions. Lip sync still works without motion clips.
-5. Under **Voice**, select the application that plays assistant audio.
+1. Download the Windows installer (`VoxAvatar-*-windows-x64-setup.exe`) from [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest).
+2. **Signing**: current public installers are **NotSigned** (no Authenticode signature). SmartScreen may warn about an unknown publisher—verify the file against `SHA256SUMS.txt` on the Release page before installing. Future signed builds will say so in the Release notes and the About dialog.
+3. Launch VoxAvatar. Settings opens automatically when no model is configured.
+4. Under **Models**, import a `.vrm` you are allowed to use. Releases do not ship third-party characters by default.
+5. Add `.vrma` clips to Idle, Speaking, or custom actions. Lip sync still works without motion clips.
+6. Under **Voice**, select the application that plays assistant audio.
+7. Follow Settings to connect local MCP to Codex or another compatible agent.
 
 Find lawful models and motions on [VRoid Hub](https://hub.vroid.com/), [BOOTH](https://booth.pm/), or create an original model with [VRoid Studio](https://vroid.com/studio). Download, avatar use, commercial use, and redistribution terms vary by asset. See [`ASSET_LICENSES.md`](ASSET_LICENSES.md) and [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) (Traditional Chinese).
 
@@ -120,7 +122,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The version on `main` is **`0.16.13`**. The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release is **`v0.16.12`** (accumulating; no installer cut this round). GUI smoke and signing remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The version on `main` is **`0.16.14`** (unsigned-installer labeling, honest release-evidence, human-readable helper degradation). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. After this batch cut, GitHub Latest Release is **`v0.16.14`**; GUI smoke and Authenticode remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 

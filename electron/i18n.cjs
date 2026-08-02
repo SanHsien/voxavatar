@@ -11,7 +11,8 @@ const LOCALES = Object.freeze({
     about: "關於 VoxAvatar…",
     aboutTitle: "關於 VoxAvatar",
     aboutDetail:
-      "版本 {version}\n\nWindows 桌面 VRM 語音伴侶。\n語音監聽預設僅針對指定應用程式；若啟用「輸出裝置」模式，會監聽目前播放裝置上的所有聲音。",
+      "版本 {version}\n簽署狀態：{signingStatus}\n\nWindows 桌面 VRM 語音伴侶。\n語音監聽預設僅針對指定應用程式；若啟用「輸出裝置」模式，會監聽目前播放裝置上的所有聲音。\n現行公開安裝包未做 Authenticode 簽署，SmartScreen 可能提示未知發行者；請核對 Release 的 SHA256SUMS.txt。",
+    signingNotSigned: "未簽署（NotSigned）",
     aboutOk: "確定",
     importConfirmTitle: "確認目錄匯入",
     importConfirmMessageModel: "要匯入掃描到的 VRM 嗎？",
@@ -56,7 +57,8 @@ const LOCALES = Object.freeze({
     about: "About VoxAvatar…",
     aboutTitle: "About VoxAvatar",
     aboutDetail:
-      "Version {version}\n\nWindows desktop VRM voice companion.\nVoice listening defaults to a selected app; Output-device mode listens to all audio on the current playback device.",
+      "Version {version}\nSigning: {signingStatus}\n\nWindows desktop VRM voice companion.\nVoice listening defaults to a selected app; Output-device mode listens to all audio on the current playback device.\nCurrent public installers are not Authenticode-signed; SmartScreen may warn about an unknown publisher. Verify SHA256SUMS.txt from the Release.",
+    signingNotSigned: "NotSigned",
     aboutOk: "OK",
     importConfirmTitle: "Confirm directory import",
     importConfirmMessageModel: "Import the scanned VRM files?",
@@ -102,8 +104,21 @@ function menuStrings(locale) {
   return LOCALES[normalizeUiLocale(locale)] ?? LOCALES["zh-TW"];
 }
 
+/** 組裝 About 對話框 detail；簽署狀態預設 NotSigned。 */
+function formatAboutDetail(localeOrStrings, version) {
+  const strings =
+    typeof localeOrStrings === "string"
+      ? menuStrings(localeOrStrings)
+      : localeOrStrings;
+  const signingStatus = strings.signingNotSigned ?? "NotSigned";
+  return String(strings.aboutDetail)
+    .replaceAll("{version}", String(version ?? ""))
+    .replaceAll("{signingStatus}", signingStatus);
+}
+
 module.exports = {
   LOCALES,
+  formatAboutDetail,
   menuStrings,
   normalizeUiLocale,
 };

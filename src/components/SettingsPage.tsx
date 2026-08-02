@@ -1034,6 +1034,62 @@ export function SettingsPage() {
     }
   };
 
+  const updateAnimationClip = async (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+    patch: {
+      clip_name?: string;
+      purpose?: VoxAvatarAnimationClipSettings['purpose'];
+    },
+  ) => {
+    const update = bridge?.updateAnimationClip;
+    if (!update || !clip.removable) return false;
+    const snapshot = await run(
+      () => update(animation.id, clip.id, patch),
+      t('notice.clipUpdated', { name: patch.clip_name ?? clip.animation_name }),
+    );
+    if (!snapshot) return false;
+    const updated = snapshot.animations.find(
+      (candidate) => candidate.id === animation.id,
+    );
+    if (previewAnimation?.id === animation.id) {
+      setPreviewAnimation(updated ?? null);
+    }
+    return true;
+  };
+
+  const moveAnimationClip = async (
+    from: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+    toAnimationId: string,
+  ) => {
+    const move = bridge?.moveAnimationClip;
+    if (!move || !clip.removable) return false;
+    const target = settings.animations.find(
+      (candidate) => candidate.id === toAnimationId,
+    );
+    const snapshot = await run(
+      () => move(from.id, clip.id, toAnimationId),
+      t('notice.clipMoved', {
+        name: clip.animation_name,
+        action: target?.animation_name ?? toAnimationId,
+      }),
+    );
+    if (!snapshot) return false;
+    if (previewClipId === clip.id) {
+      const updatedTarget = snapshot.animations.find(
+        (candidate) => candidate.id === toAnimationId,
+      );
+      setPreviewAnimation(updatedTarget ?? null);
+    } else if (previewAnimation?.id === from.id) {
+      const updatedFrom = snapshot.animations.find(
+        (candidate) => candidate.id === from.id,
+      );
+      setPreviewAnimation(updatedFrom ?? null);
+    }
+    return true;
+  };
+
   const revealReportPath = async () => {
     const reveal = bridge?.revealPath;
     if (!reveal || !reportRevealPath) return;
@@ -1481,6 +1537,7 @@ export function SettingsPage() {
               editingAnimationMetadata={editingAnimationMetadata}
               highlightedAnimationId={highlightedAnimationId}
               locale={locale}
+              moveAnimationClip={moveAnimationClip}
               playAnimationClip={playAnimationClip}
               previewClipId={previewClipId}
               reorderAnimationClip={reorderAnimationClip}
@@ -1495,6 +1552,7 @@ export function SettingsPage() {
               setVrmaQualityScoreThresholds={setVrmaQualityScoreThresholds}
               settings={settings}
               t={t}
+              updateAnimationClip={updateAnimationClip}
             />
               <SettingsStateSlotsSection
                 bridge={bridge}

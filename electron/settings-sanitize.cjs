@@ -162,6 +162,30 @@ function sanitizeUserAnimations(animations) {
   });
 }
 
+function sanitizeSourceBasename(value) {
+  if (typeof value !== "string") return null;
+  const base = value.trim();
+  if (!base || base.length > 120) return null;
+  if (/[/\\]/.test(base) || base === "." || base === "..") return null;
+  return base;
+}
+
+function normalizeClipNameCandidate(value) {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  if (!ANIMATION_NAME_PATTERN.test(normalized)) {
+    throw new Error(
+      "Clip names must start with a letter and use lowercase letters, numbers, and hyphens.",
+    );
+  }
+  return normalized;
+}
+
 function sanitizeAnimationClips(animationClips, knownAnimationIds, options = {}) {
   if (animationClips == null || typeof animationClips !== "object") return {};
   const purposeByAnimationId =
@@ -177,6 +201,7 @@ function sanitizeAnimationClips(animationClips, knownAnimationIds, options = {})
       try {
         const clip_name = singleLine(clip.clip_name, "Clip name", 64).toLowerCase();
         if (!ANIMATION_NAME_PATTERN.test(clip_name)) return [];
+        const source_basename = sanitizeSourceBasename(clip.source_basename);
         return [
           {
             id: clip.id,
@@ -185,6 +210,7 @@ function sanitizeAnimationClips(animationClips, knownAnimationIds, options = {})
             purpose: normalizeAnimationPurpose(
               clip.purpose ?? fallbackPurpose,
             ),
+            ...(source_basename ? { source_basename } : {}),
           },
         ];
       } catch {
@@ -243,10 +269,12 @@ module.exports = {
   defaultPurposeForAnimationType,
   nextClipName,
   normalizeAnimationPurpose,
+  normalizeClipNameCandidate,
   roundedLightingNumber,
   sanitizeAnimationClips,
   sanitizeModelLighting,
   sanitizeModels,
+  sanitizeSourceBasename,
   sanitizeStateSlotBindings,
   sanitizeUserAnimations,
   singleLine,

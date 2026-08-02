@@ -30,7 +30,7 @@ const {
   defaultPurposeForAnimationType,
 } = require("./settings-sanitize.cjs");
 
-const SETTINGS_SCHEMA_VERSION = 9;
+const SETTINGS_SCHEMA_VERSION = 10;
 const DEFAULT_IDLE_REST_MS = 8000;
 const MIN_IDLE_REST_MS = 2000;
 const MAX_IDLE_REST_MS = 60000;
@@ -184,7 +184,7 @@ function safeReadState(settingsPath, packagedLibrary) {
   try {
     const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
     if (
-      ![1, 2, 3, 4, 5, 6, 7, 8, SETTINGS_SCHEMA_VERSION].includes(
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9, SETTINGS_SCHEMA_VERSION].includes(
         parsed?.schema_version,
       )
     ) {
@@ -242,6 +242,7 @@ function safeReadState(settingsPath, packagedLibrary) {
 
     if (parsed.schema_version !== SETTINGS_SCHEMA_VERSION) {
       if (
+        parsed.schema_version === 9 ||
         parsed.schema_version === 8 ||
         parsed.schema_version === 7 ||
         parsed.schema_version === 6 ||

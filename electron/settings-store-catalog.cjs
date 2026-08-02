@@ -13,6 +13,8 @@ const {
   defaultPurposeForAnimationType,
   nextClipName,
   normalizeAnimationPurpose,
+  normalizeClipNameCandidate,
+  sanitizeSourceBasename,
   singleLine,
   validateAnimationMetadata,
 } = require("./settings-sanitize.cjs");
@@ -203,6 +205,13 @@ function createCatalogMutations({
           stored_filename,
           clip_name: nextClipName(animation.animation_name, existingNames),
           purpose,
+          ...(sanitizeSourceBasename(path.basename(filePath))
+            ? {
+                source_basename: sanitizeSourceBasename(
+                  path.basename(filePath),
+                ),
+              }
+            : {}),
         });
       }
     } catch (error) {
@@ -294,11 +303,6 @@ function createCatalogMutations({
       } else {
         state.packaged_animation_overrides[animationId] = normalized;
       }
-      (state.animation_clips[animationId] ?? []).forEach((clip, index) => {
-        clip.clip_name = `${normalized.animation_name}${
-          packaged.asset_paths.length + index + 1
-        }`;
-      });
       writeState();
       return getSnapshot();
     }
@@ -308,9 +312,67 @@ function createCatalogMutations({
     );
     if (!userAnimation) throw new Error("Animation action is not installed.");
     Object.assign(userAnimation, normalized);
-    (state.animation_clips[animationId] ?? []).forEach((clip, index) => {
-      clip.clip_name = `${normalized.animation_name}${index + 1}`;
-    });
+    writeState();
+    return getSnapshot();
+  }
+
+  function updateAnimationClip(animationId, clipId, patch = {}) {
+    const state = getState();
+    const animation = availableAnimations().find(
+      (candidate) => candidate.id === animationId,
+    );
+    if (!animation) throw new Error("Animation action is not installed.");
+    const clips = state.animation_clips[animationId] ?? [];
+    const clip = clips.find((candidate) => candidate.id === clipId);
+    if (!clip) throw new Error("Uploaded animation clip was not found.");
+
+    if (Object.prototype.hasOwnProperty.call(patch, "clip_name")) {
+      const clip_name = normalizeClipNameCandidate(patch.clip_name);
+      const taken = clips.some(
+        (candidate) =>
+          candidate.id !== clipId && candidate.clip_name === clip_name,
+      );
+      if (taken) {
+        throw new Error("An animation clip with this name already exists.");
+      }
+      clip.clip_name = clip_name;
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, "purpose")) {
+      clip.purpose = normalizeAnimationPurpose(patch.purpose);
+    }
+    writeState();
+    return getSnapshot();
+  }
+
+  function moveAnimationClip(fromAnimationId, clipId, toAnimationId) {
+    if (fromAnimationId === toAnimationId) {
+      return getSnapshot();
+    }
+    const state = getState();
+    const fromAnimation = availableAnimations().find(
+      (candidate) => candidate.id === fromAnimationId,
+    );
+    const toAnimation = availableAnimations().find(
+      (candidate) => candidate.id === toAnimationId,
+    );
+    if (!fromAnimation || !toAnimation) {
+      throw new Error("Animation action is not installed.");
+    }
+    const fromClips = state.animation_clips[fromAnimationId] ?? [];
+    const index = fromClips.findIndex((clip) => clip.id === clipId);
+    if (index === -1) throw new Error("Uploaded animation clip was not found.");
+
+    const [moved] = fromClips.splice(index, 1);
+    if (fromClips.length === 0) delete state.animation_clips[fromAnimationId];
+    else state.animation_clips[fromAnimationId] = fromClips;
+
+    const destination = state.animation_clips[toAnimationId] ?? [];
+    const existingNames = new Set(destination.map((clip) => clip.clip_name));
+    if (existingNames.has(moved.clip_name)) {
+      moved.clip_name = nextClipName(toAnimation.animation_name, existingNames);
+    }
+    destination.push(moved);
+    state.animation_clips[toAnimationId] = destination;
     writeState();
     return getSnapshot();
   }
@@ -459,10 +521,12 @@ function createCatalogMutations({
     deleteModel,
     importModel,
     importModelsFromPaths,
+    moveAnimationClip,
     resetPackagedAnimations,
     reorderAnimationClip,
     setDefaultModel,
     updateAnimation,
+    updateAnimationClip,
   };
 }
 

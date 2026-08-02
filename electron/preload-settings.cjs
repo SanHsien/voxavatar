@@ -38,6 +38,20 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
       animationId,
       metadata,
     ),
+  updateAnimationClip: (animationId, clipId, patch) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-update-animation-clip",
+      animationId,
+      clipId,
+      patch,
+    ),
+  moveAnimationClip: (fromAnimationId, clipId, toAnimationId) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-move-animation-clip",
+      fromAnimationId,
+      clipId,
+      toAnimationId,
+    ),
   deleteAnimation: (animationId) =>
     ipcRenderer.invoke("voxavatar:settings-delete-animation", animationId),
   deleteAnimationClip: (animationId, clipId) =>

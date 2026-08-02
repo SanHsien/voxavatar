@@ -308,6 +308,24 @@ function registerSettingsIpc({
       ),
   );
   handleTrustedSettingsIpc(
+    "voxavatar:settings-update-animation-clip",
+    (_event, animationId, clipId, patch) =>
+      publishSettings(
+        settingsStore.updateAnimationClip(animationId, clipId, patch),
+      ),
+  );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-move-animation-clip",
+    (_event, fromAnimationId, clipId, toAnimationId) =>
+      publishSettings(
+        settingsStore.moveAnimationClip(
+          fromAnimationId,
+          clipId,
+          toAnimationId,
+        ),
+      ),
+  );
+  handleTrustedSettingsIpc(
     "voxavatar:settings-delete-animation",
     (_event, animationId) =>
       publishSettings(settingsStore.deleteAnimation(animationId)),

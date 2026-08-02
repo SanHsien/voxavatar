@@ -134,7 +134,7 @@
 
 ## 9. Schema 版本政策
 
-- **Settings**（`settings-migration.cjs`）：目前 `schema_version`＝9。允許清單內舊版（1–8）讀取時遷移並寫回；不在清單者備份為 `settings.json.unmigratable-backup` 並回報 `unsupported_schema`。升版須加 migration 路徑與 fixture 測試。
+- **Settings**（`settings-migration.cjs`）：目前 `schema_version`＝10。允許清單內舊版（1–9）讀取時遷移並寫回；不在清單者備份為 `settings.json.unmigratable-backup` 並回報 `unsupported_schema`。升版須加 migration 路徑與 fixture 測試。schema 10 起使用者 clip 可選存 `source_basename`，並支援更新顯示名稱／用途與跨動作搬移。
 - **MCP tools／status**（`mcp-schemas.cjs`）：`tools_schema_version`／`status_schema_version` 隨工具契約變更遞增；成功與失敗皆回結構化 JSON。政策與相容說明見 [`INTEGRATIONS.md`](INTEGRATIONS.md)。
 - **Packaged library／catalog**（`library-catalog.cjs`）：`schema_version` 必須精確等於 `PACKAGED_LIBRARY_SCHEMA_VERSION`（目前為 1）。不支援就地 migration；不匹配直接拒絕載入，避免半套 catalog 污染執行期。升版時改常數並同步 `library.json`／example／測試。
 - **action-pack.json**：獨立 `schema_version`（見 `action-pack.cjs`）；匯入仍走 GLB／路徑／catalog gate，失敗項不覆寫既有動作；`purpose` 寫入對應 clip。
@@ -151,4 +151,11 @@
 
 - 必要項目未完成時，於各設定分頁上方顯示「設定進度」清單（含捷徑與複製診斷）。
 - **必要項目完成後隱藏整塊面板**，避免「首次」常駐造成已就緒卻仍像未設定的誤解；診斷摘要改由 MCP 分頁提供複製入口。
+
+## 12. 動作片段（VRMA）人工管理
+
+- 使用者可在動作卡片上：加入／目錄匯入、預覽播放、重新命名顯示名稱、設定 `purpose`、排序、刪除、移至其他動作。
+- 磁碟檔名維持 app-controlled UUID（`.vrma`）；「改名」只改 catalog 顯示名（`clip_name`），可另保留匯入時的 `source_basename` 供辨識。
+- 不提供任意路徑寫回或覆寫使用者原始檔；語意分槽仍以 action-pack／手動指定／檔名白名單確認為準。
+
 

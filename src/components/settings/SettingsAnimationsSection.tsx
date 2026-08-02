@@ -1,4 +1,10 @@
-import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import {
   ACTION_PRESETS,
   resolveActionPreset,
@@ -7,6 +13,7 @@ import {
 import { SettingsQualityGatePanel } from './SettingsQualityGatePanel';
 
 type SettingsBridge = NonNullable<Window['voxavatarSettings']>;
+type ClipPurpose = VoxAvatarAnimationClipSettings['purpose'];
 
 type SettingsTranslate = (
   key: string,
@@ -38,6 +45,11 @@ export interface SettingsAnimationsSectionProps {
   editingAnimationMetadata: CustomAnimationMetadata;
   highlightedAnimationId: string | null;
   locale: 'zh-TW' | 'en';
+  moveAnimationClip: (
+    from: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+    toAnimationId: string,
+  ) => Promise<boolean>;
   playAnimationClip: (
     animation: VoxAvatarAnimationSettings,
     clip: VoxAvatarAnimationClipSettings,
@@ -64,6 +76,11 @@ export interface SettingsAnimationsSectionProps {
   ) => Promise<void>;
   settings: VoxAvatarSettingsSnapshot;
   t: SettingsTranslate;
+  updateAnimationClip: (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+    patch: { clip_name?: string; purpose?: ClipPurpose },
+  ) => Promise<boolean>;
 }
 
 function ClipAddButtons({
@@ -127,6 +144,7 @@ export function SettingsAnimationsSection({
   editingAnimationMetadata,
   highlightedAnimationId,
   locale,
+  moveAnimationClip,
   playAnimationClip,
   previewClipId,
   reorderAnimationClip,
@@ -141,8 +159,54 @@ export function SettingsAnimationsSection({
   setVrmaQualityScoreThresholds,
   settings,
   t,
+  updateAnimationClip,
 }: SettingsAnimationsSectionProps) {
   const highlightedCardRef = useRef<HTMLElement | null>(null);
+  const [editingClipId, setEditingClipId] = useState<string | null>(null);
+  const [clipDraftName, setClipDraftName] = useState('');
+  const [clipDraftPurpose, setClipDraftPurpose] =
+    useState<ClipPurpose>('loop');
+  const [clipMoveTargetId, setClipMoveTargetId] = useState('');
+
+  const beginEditingClip = (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+  ) => {
+    setEditingClipId(clip.id);
+    setClipDraftName(clip.animation_name);
+    setClipDraftPurpose(clip.purpose);
+    setClipMoveTargetId(animation.id);
+  };
+
+  const cancelEditingClip = () => {
+    setEditingClipId(null);
+    setClipDraftName('');
+    setClipMoveTargetId('');
+  };
+
+  const saveEditingClip = async (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+  ) => {
+    const nameChanged = clipDraftName.trim() !== clip.animation_name;
+    const purposeChanged = clipDraftPurpose !== clip.purpose;
+    if (nameChanged || purposeChanged) {
+      const updated = await updateAnimationClip(animation, clip, {
+        ...(nameChanged ? { clip_name: clipDraftName.trim() } : {}),
+        ...(purposeChanged ? { purpose: clipDraftPurpose } : {}),
+      });
+      if (!updated) return;
+    }
+    if (clipMoveTargetId && clipMoveTargetId !== animation.id) {
+      const moved = await moveAnimationClip(
+        animation,
+        clip,
+        clipMoveTargetId,
+      );
+      if (!moved) return;
+    }
+    cancelEditingClip();
+  };
 
   useEffect(() => {
     if (!highlightedAnimationId) return;
@@ -544,115 +608,251 @@ export function SettingsAnimationsSection({
                     </div>
                   ) : (
                     <div className="clip-list">
-                      {animation.clips.map((clip, clipIndex) => (
-                        <div
-                          aria-label={t('actions.previewClip', {
-                            name: clip.animation_name,
-                          })}
-                          className={`clip-chip ${
-                            previewClipId === clip.id ? 'playing' : ''
-                          }`}
-                          key={clip.id}
-                          onClick={(event) => {
-                            if (
-                              (event.target as Element).closest('button')
-                            ) {
-                              return;
-                            }
-                            playAnimationClip(animation, clip);
-                          }}
-                          onKeyDown={(event) => {
-                            if (
-                              event.target !== event.currentTarget ||
-                              (event.key !== 'Enter' && event.key !== ' ')
-                            ) {
-                              return;
-                            }
-                            event.preventDefault();
-                            playAnimationClip(animation, clip);
-                          }}
-                          tabIndex={0}
-                          title={t('actions.previewClip', {
-                            name: clip.animation_name,
-                          })}
-                        >
-                          <span className="clip-file-icon">VRMA</span>
-                          <strong>{clip.animation_name}</strong>
-                          <small>
-                            {clip.origin === 'packaged'
-                              ? t('common.packaged')
-                              : t('common.uploaded')}
-                          </small>
-                          {clip.removable && (
-                            <div className="clip-controls">
-                              <button
-                                aria-label={t('actions.moveClipUp', {
-                                  name: clip.animation_name,
-                                })}
-                                className="clip-reorder"
-                                disabled={
-                                  busy ||
-                                  !bridge?.reorderAnimationClip ||
-                                  clipIndex === 0
+                      <p className="desktop-note">{t('actions.clipsManageHint')}</p>
+                      {animation.clips.map((clip, clipIndex) => {
+                        const isEditingClip = editingClipId === clip.id;
+                        return (
+                          <div className="clip-row" key={clip.id}>
+                            <div
+                              aria-label={t('actions.previewClip', {
+                                name: clip.animation_name,
+                              })}
+                              className={`clip-chip ${
+                                previewClipId === clip.id ? 'playing' : ''
+                              }`}
+                              onClick={(event) => {
+                                if (
+                                  (event.target as Element).closest('button, select, input, label, form')
+                                ) {
+                                  return;
                                 }
-                                onClick={() =>
-                                  void reorderAnimationClip(
-                                    animation,
-                                    clip,
-                                    'up',
-                                  )
+                                playAnimationClip(animation, clip);
+                              }}
+                              onKeyDown={(event) => {
+                                if (
+                                  event.target !== event.currentTarget ||
+                                  (event.key !== 'Enter' && event.key !== ' ')
+                                ) {
+                                  return;
                                 }
-                                title={t('actions.moveClipUp', {
-                                  name: clip.animation_name,
-                                })}
-                                type="button"
-                              >
-                                ↑
-                              </button>
-                              <button
-                                aria-label={t('actions.moveClipDown', {
-                                  name: clip.animation_name,
-                                })}
-                                className="clip-reorder"
-                                disabled={
-                                  busy ||
-                                  !bridge?.reorderAnimationClip ||
-                                  clipIndex === animation.clips.length - 1
-                                }
-                                onClick={() =>
-                                  void reorderAnimationClip(
-                                    animation,
-                                    clip,
-                                    'down',
-                                  )
-                                }
-                                title={t('actions.moveClipDown', {
-                                  name: clip.animation_name,
-                                })}
-                                type="button"
-                              >
-                                ↓
-                              </button>
-                              <button
-                                aria-label={t('actions.deleteClip', {
-                                  name: clip.animation_name,
-                                })}
-                                className="clip-delete"
-                                disabled={busy || !bridge}
-                                onClick={() =>
-                                  void deleteAnimationClip(animation, clip)
-                                }
-                                title={t('actions.deleteClip', {
-                                  name: clip.animation_name,
-                                })}
-                                type="button"
-                              >
-                                ×
-                              </button>
+                                event.preventDefault();
+                                playAnimationClip(animation, clip);
+                              }}
+                              tabIndex={0}
+                              title={t('actions.previewClip', {
+                                name: clip.animation_name,
+                              })}
+                            >
+                              <span className="clip-file-icon">VRMA</span>
+                              <div className="clip-chip-copy">
+                                <strong>{clip.animation_name}</strong>
+                                <small>
+                                  {clip.origin === 'packaged'
+                                    ? t('common.packaged')
+                                    : t('common.uploaded')}
+                                  {' · '}
+                                  {t(`actions.purpose.${clip.purpose}`)}
+                                  {clip.source_basename
+                                    ? ` · ${clip.source_basename}`
+                                    : ''}
+                                </small>
+                              </div>
+                              <div className="clip-controls">
+                                <button
+                                  aria-label={t('actions.previewClip', {
+                                    name: clip.animation_name,
+                                  })}
+                                  className="clip-preview"
+                                  disabled={busy}
+                                  onClick={() =>
+                                    playAnimationClip(animation, clip)
+                                  }
+                                  title={t('actions.previewButton')}
+                                  type="button"
+                                >
+                                  {t('actions.previewButton')}
+                                </button>
+                                {clip.removable && (
+                                  <>
+                                    <button
+                                      aria-label={t('actions.editClip', {
+                                        name: clip.animation_name,
+                                      })}
+                                      className="clip-edit"
+                                      disabled={busy || !bridge?.updateAnimationClip}
+                                      onClick={() =>
+                                        beginEditingClip(animation, clip)
+                                      }
+                                      title={t('actions.editClip', {
+                                        name: clip.animation_name,
+                                      })}
+                                      type="button"
+                                    >
+                                      {t('common.edit')}
+                                    </button>
+                                    <button
+                                      aria-label={t('actions.moveClipUp', {
+                                        name: clip.animation_name,
+                                      })}
+                                      className="clip-reorder"
+                                      disabled={
+                                        busy ||
+                                        !bridge?.reorderAnimationClip ||
+                                        clipIndex === 0
+                                      }
+                                      onClick={() =>
+                                        void reorderAnimationClip(
+                                          animation,
+                                          clip,
+                                          'up',
+                                        )
+                                      }
+                                      title={t('actions.moveClipUp', {
+                                        name: clip.animation_name,
+                                      })}
+                                      type="button"
+                                    >
+                                      ↑
+                                    </button>
+                                    <button
+                                      aria-label={t('actions.moveClipDown', {
+                                        name: clip.animation_name,
+                                      })}
+                                      className="clip-reorder"
+                                      disabled={
+                                        busy ||
+                                        !bridge?.reorderAnimationClip ||
+                                        clipIndex ===
+                                          animation.clips.length - 1
+                                      }
+                                      onClick={() =>
+                                        void reorderAnimationClip(
+                                          animation,
+                                          clip,
+                                          'down',
+                                        )
+                                      }
+                                      title={t('actions.moveClipDown', {
+                                        name: clip.animation_name,
+                                      })}
+                                      type="button"
+                                    >
+                                      ↓
+                                    </button>
+                                    <button
+                                      aria-label={t('actions.deleteClip', {
+                                        name: clip.animation_name,
+                                      })}
+                                      className="clip-delete"
+                                      disabled={busy || !bridge}
+                                      onClick={() =>
+                                        void deleteAnimationClip(
+                                          animation,
+                                          clip,
+                                        )
+                                      }
+                                      title={t('actions.deleteClip', {
+                                        name: clip.animation_name,
+                                      })}
+                                      type="button"
+                                    >
+                                      ×
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            {isEditingClip && clip.removable ? (
+                              <form
+                                className="clip-edit-form"
+                                onSubmit={(event) => {
+                                  event.preventDefault();
+                                  void saveEditingClip(animation, clip);
+                                }}
+                              >
+                                <label>
+                                  {t('actions.clipNameLabel')}
+                                  <input
+                                    maxLength={64}
+                                    onChange={(event) =>
+                                      setClipDraftName(event.target.value)
+                                    }
+                                    value={clipDraftName}
+                                  />
+                                </label>
+                                <label>
+                                  {t('actions.clipPurposeLabel')}
+                                  <select
+                                    onChange={(event) =>
+                                      setClipDraftPurpose(
+                                        event.target.value as ClipPurpose,
+                                      )
+                                    }
+                                    value={clipDraftPurpose}
+                                  >
+                                    <option value="loop">
+                                      {t('actions.purpose.loop')}
+                                    </option>
+                                    <option value="one-shot">
+                                      {t('actions.purpose.one-shot')}
+                                    </option>
+                                    <option value="pose">
+                                      {t('actions.purpose.pose')}
+                                    </option>
+                                  </select>
+                                </label>
+                                <label>
+                                  {t('actions.moveClipTo')}
+                                  <select
+                                    onChange={(event) =>
+                                      setClipMoveTargetId(event.target.value)
+                                    }
+                                    value={clipMoveTargetId}
+                                  >
+                                    {settings.animations.map((target) => (
+                                      <option
+                                        key={target.id}
+                                        value={target.id}
+                                      >
+                                        {target.system
+                                          ? target.animation_type === 'IDLE'
+                                            ? t('actions.idle')
+                                            : t('actions.speaking')
+                                          : target.animation_name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                                <div className="clip-edit-actions">
+                                  <button
+                                    className="primary-button"
+                                    disabled={
+                                      busy ||
+                                      !clipDraftName.trim() ||
+                                      (!bridge?.updateAnimationClip &&
+                                        !bridge?.moveAnimationClip)
+                                    }
+                                    type="submit"
+                                  >
+                                    {t('actions.saveClip')}
+                                  </button>
+                                  <button
+                                    className="secondary-button"
+                                    disabled={busy}
+                                    onClick={cancelEditingClip}
+                                    type="button"
+                                  >
+                                    {t('common.cancel')}
+                                  </button>
+                                </div>
+                                <p className="desktop-note">
+                                  {t('actions.clipEditHint')}
+                                </p>
+                              </form>
+                            ) : null}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

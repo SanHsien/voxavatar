@@ -100,6 +100,7 @@ interface VoxAvatarAnimationClipSettings {
   origin: 'packaged' | 'user';
   removable: boolean;
   purpose: 'loop' | 'one-shot' | 'pose';
+  source_basename?: string | null;
   asset_url: string;
 }
 
@@ -293,6 +294,19 @@ interface Window {
     updateAnimation(
       animationId: string,
       metadata: CustomAnimationMetadata,
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    updateAnimationClip?(
+      animationId: string,
+      clipId: string,
+      patch: {
+        clip_name?: string;
+        purpose?: 'loop' | 'one-shot' | 'pose';
+      },
+    ): Promise<VoxAvatarSettingsSnapshot>;
+    moveAnimationClip?(
+      fromAnimationId: string,
+      clipId: string,
+      toAnimationId: string,
     ): Promise<VoxAvatarSettingsSnapshot>;
     deleteAnimation(animationId: string): Promise<VoxAvatarSettingsSnapshot>;
     deleteAnimationClip(

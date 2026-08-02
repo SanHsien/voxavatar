@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.7 - 2026-08-02
+
+- Settings 動作片段管理：明確「預覽」按鈕；可重新命名顯示名稱、設定用途（loop／one-shot／pose）、移至其他動作；保留匯入時原始檔名供辨識（settings schema 10）。
+- 改動作 metadata 時不再覆寫已自訂的 clip 顯示名稱。
+- 同步 CHARACTER_BEHAVIOR／DECISIONS §9／§12。
+
 ## 0.16.6 - 2026-08-02
 
 - Settings「設定進度」：必要項目完成後整塊隱藏，不再各分頁常駐；標題去掉「首次」以免誤解。診斷摘要改在 MCP 分頁也可複製。

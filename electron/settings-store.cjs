@@ -144,6 +144,7 @@ function createSettingsStore({
       origin: "user",
       removable: true,
       purpose: normalizeAnimationPurpose(clip.purpose ?? defaultPurpose),
+      source_basename: clip.source_basename ?? null,
       asset_url: userAssetUrl("animation", clip),
     }));
     return [...packagedClips, ...uploadedClips];
@@ -255,10 +256,12 @@ function createSettingsStore({
     deleteModel,
     importModel,
     importModelsFromPaths,
+    moveAnimationClip,
     resetPackagedAnimations,
     reorderAnimationClip,
     setDefaultModel,
     updateAnimation,
+    updateAnimationClip,
   } = createCatalogMutations({
     getState: () => state,
     writeState,
@@ -491,6 +494,7 @@ function createSettingsStore({
     getSnapshot,
     importModel,
     importModelsFromPaths,
+    moveAnimationClip,
     resetPackagedAnimations,
     resolveAssetRequest,
     setCharacterSize,
@@ -508,6 +512,7 @@ function createSettingsStore({
     resetModelLighting,
     reorderAnimationClip,
     updateAnimation,
+    updateAnimationClip,
   };
 }
 

@@ -1721,20 +1721,24 @@ button {
 /* --- Clip chips ---------------------------------------------------------- */
 
 .clip-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 12px;
 }
 
+.clip-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
 .clip-chip {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    "icon name delete"
-    "icon origin delete";
+  display: flex;
   align-items: center;
-  column-gap: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
   min-width: 0;
   padding: 8px 8px 8px 9px;
   border: 1px solid var(--border);
@@ -1759,7 +1763,7 @@ button {
 }
 
 .clip-file-icon {
-  grid-area: icon;
+  flex: 0 0 auto;
   width: 32px;
   height: 30px;
   border-radius: var(--r-sm);
@@ -1773,8 +1777,15 @@ button {
   background: var(--accent-soft-hover);
 }
 
-.clip-chip strong {
-  grid-area: name;
+.clip-chip-copy {
+  display: flex;
+  flex: 1 1 10rem;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clip-chip-copy strong {
   overflow: hidden;
   color: var(--text-primary);
   font-size: var(--fs-sm);
@@ -1783,8 +1794,8 @@ button {
   white-space: nowrap;
 }
 
+.clip-chip-copy small,
 .clip-chip small {
-  grid-area: origin;
   overflow: hidden;
   color: var(--text-tertiary);
   font-size: var(--fs-xs);
@@ -1793,10 +1804,50 @@ button {
 }
 
 .clip-controls {
-  grid-area: delete;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.clip-preview,
+.clip-edit {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
+}
+
+.clip-preview:hover,
+.clip-edit:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.clip-edit-form {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+}
+
+.clip-edit-form label {
+  display: grid;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.clip-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .clip-reorder,
@@ -2960,8 +3011,7 @@ button {
     margin-left: 22px;
   }
 
-  .asset-grid,
-  .clip-list {
+  .asset-grid {
     grid-template-columns: 1fr;
   }
 

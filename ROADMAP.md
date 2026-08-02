@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`0.16.1`（`main`；GitHub Latest Release tag 仍為 `v0.16.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.2`（`main`；GitHub Latest Release tag 仍為 `v0.16.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,13 +11,14 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.1`／`main`；GitHub Latest Release：`v0.16.0`
+覆核基準：`0.16.2`／`main`；GitHub Latest Release：`v0.16.0`
 
-沒有已知未解 P0／P1。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。**本輪不規劃新功能**；關閉既有缺口。`main` tip `0.16.1`：品牌圖示與上游 Credit 完成，GitHub repo 已解除 fork network，fork 後歷史 squash 為單一 commit。
+沒有已知未解 P0／P1。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。**本輪不規劃新功能**；關閉既有缺口。`main` tip `0.16.2`：狀態槽預設綁定與 Settings 內 action-pack 說明／範例。
 
 - Latest Release：`v0.16.0`（GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `9287ea3`；目前無 open PR；#16／已關閉 issue #13 為 macOS（不合併），issue #11 首次取得角色文件已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
+- 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例。
 
 本輪驗證：`npm run check` 全綠；Release／Latest／資產依 [`docs/RELEASING.md`](docs/RELEASING.md) 核對。
 
@@ -63,6 +64,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.15.0–v0.15.3 | head bone 投影、jsdom、docs 對齊、手動狀態、typed exit 碼 |
 | v0.16.0 | Speaking 第二層反應；tray 選單可測；Usage=2 native 斷言 |
 | v0.16.1 | 原創品牌圖示；上游 Credit；fork network 解除；standalone／metadata 與 squash 驗證 |
+| v0.16.2 | 狀態槽預設綁定；Settings 內 action-pack 說明與範例 |
 
 ## 既有缺口收斂
 

@@ -1,4 +1,6 @@
+import { useMemo, useState } from 'react';
 import type { CharacterState } from '../../character-state';
+import { applyDefaultStateSlotBindings } from '../../state-slot-defaults';
 
 type SettingsBridge = NonNullable<Window['voxavatarSettings']>;
 
@@ -16,6 +18,34 @@ const STATE_SLOT_KEYS: CharacterState[] = [
   'success',
   'failed',
 ];
+
+/** Settings 內嵌的最小範例（與 docs/examples/action-pack.example.json 對齊精簡版）。 */
+export const ACTION_PACK_MINI_EXAMPLE = `{
+  "schema_version": 1,
+  "name": "my-action-pack",
+  "description": "與同資料夾的 .vrma 一併匯入",
+  "actions": [
+    {
+      "animation_name": "idle-breathe",
+      "purpose": "loop",
+      "state_slot": "idle",
+      "files": ["idle-breathe.vrma"]
+    },
+    {
+      "animation_name": "talk-soft",
+      "purpose": "loop",
+      "state_slot": "speaking",
+      "files": ["talk-soft.vrma"]
+    },
+    {
+      "animation_name": "work-nod",
+      "purpose": "one-shot",
+      "state_slot": "working",
+      "files": ["work-nod.vrma"]
+    }
+  ]
+}
+`;
 
 export interface SettingsStateSlotsSectionProps {
   bridge: SettingsBridge | undefined;
@@ -37,10 +67,31 @@ export function SettingsStateSlotsSection({
   settings,
   t,
 }: SettingsStateSlotsSectionProps) {
+  const [copied, setCopied] = useState(false);
   const playable = settings.animations.filter(
     (animation) => animation.asset_urls.length > 0,
   );
-  const bindings = settings.state_slot_bindings ?? {};
+  const bindings = useMemo(
+    () =>
+      applyDefaultStateSlotBindings(
+        settings.state_slot_bindings ?? {},
+        playable.map((animation) => ({
+          animation_name: animation.animation_name,
+          animation_type: animation.animation_type,
+        })),
+      ),
+    [playable, settings.state_slot_bindings],
+  );
+
+  async function copyExample() {
+    try {
+      await navigator.clipboard.writeText(ACTION_PACK_MINI_EXAMPLE);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }
 
   return (
     <section className="settings-panel">
@@ -60,6 +111,30 @@ export function SettingsStateSlotsSection({
           </button>
         </div>
       </div>
+
+      <details className="state-slot-pack-help">
+        <summary>{t('stateSlots.packHelpSummary')}</summary>
+        <ol className="state-slot-pack-steps">
+          <li>{t('stateSlots.packHelpStep1')}</li>
+          <li>{t('stateSlots.packHelpStep2')}</li>
+          <li>{t('stateSlots.packHelpStep3')}</li>
+          <li>{t('stateSlots.packHelpStep4')}</li>
+        </ol>
+        <p className="state-slot-pack-note">{t('stateSlots.packHelpNote')}</p>
+        <div className="state-slot-pack-example-header">
+          <strong>{t('stateSlots.packExampleTitle')}</strong>
+          <button
+            className="secondary-button"
+            onClick={() => void copyExample()}
+            type="button"
+          >
+            {copied
+              ? t('stateSlots.packExampleCopied')
+              : t('stateSlots.packExampleCopy')}
+          </button>
+        </div>
+        <pre className="state-slot-pack-example">{ACTION_PACK_MINI_EXAMPLE}</pre>
+      </details>
 
       <div className="state-slot-grid">
         {STATE_SLOT_KEYS.map((state) => (

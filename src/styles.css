@@ -1294,6 +1294,56 @@ button {
   margin-top: 8px;
 }
 
+.state-slot-pack-help {
+  margin: 12px 0 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--fill-sunken);
+}
+
+.state-slot-pack-help > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.state-slot-pack-steps {
+  margin: 10px 0 8px 1.2em;
+  padding: 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+
+.state-slot-pack-note {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.state-slot-pack-example-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.state-slot-pack-example {
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  max-height: 220px;
+  border-radius: var(--r-sm);
+  background: var(--bg-elevated, var(--fill-raised));
+  color: var(--text-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre;
+}
+
 .action-preset-block {
   display: flex;
   flex-direction: column;

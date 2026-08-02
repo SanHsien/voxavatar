@@ -51,7 +51,7 @@
 7. `listening`
 8. `idle`
 
-相同狀態同時到達時，以最新的有效事件取代舊事件。外部狀態有 bounded TTL：`ttl_ms` 省略或 `0` 時使用狀態預設 TTL（`idle` 預設 0＝直到被取代）；正值限制存活時間。`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／HTTP integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁（MCP `set_character_state`；HTTP `POST /events` 的 `type: "character-state"`）；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
+相同狀態同時到達時，以最新的有效事件取代舊事件。外部狀態有 bounded TTL：`ttl_ms` 省略或 `0` 時使用狀態預設 TTL（`idle` 預設 0＝直到被取代）；正值限制存活時間。`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／HTTP integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁（MCP `set_character_state`；HTTP `POST /events` 的 `type: "character-state"`）；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名；**有可播放的 Idle／Speaking（或同名）片段時會自動預選**，明確選「未綁定」則保留空並退回類型預設。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
 
 ### 動作用途
 
@@ -67,8 +67,17 @@ VRMA 品質分析先區分用途，再套用規則：
 
 薄的動作包描述檔，只承載**名稱、用途、狀態槽與相對檔名**。它不是安裝格式，也不能繞過 Settings 匯入、GLB 驗證、授權 gate 或 `voxavatar-asset:` 路徑控制。
 
+**給使用者的最短流程**
+
+1. 把 `.vrma` 與 `action-pack.json` 放在同一資料夾（`files` 只寫檔名，不可含子目錄）。
+2. 開啟設定 → 動作 →「系統狀態動作槽」→「匯入 action-pack…」。
+3. 匯入成功後，動作列表會出現對應名稱，並依 `state_slot` 合併綁定（仍受 GLB／路徑／catalog gate；失敗／略過會顯示 notice）。
+
+Settings 面板內有可展開說明與「複製範例」；完整範例：
+
+- 使用者範例：[`docs/examples/action-pack.example.json`](examples/action-pack.example.json)
+- 測試 fixture：[`electron/fixtures/action-pack/example.action-pack.json`](../electron/fixtures/action-pack/example.action-pack.json)
 - 機讀驗證：[`electron/action-pack.cjs`](../electron/action-pack.cjs)
-- 範例：[`electron/fixtures/action-pack/example.action-pack.json`](../electron/fixtures/action-pack/example.action-pack.json)
 
 #### Schema（version 1）
 

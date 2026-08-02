@@ -39,6 +39,9 @@ const {
 } = require("./settings-sanitize.cjs");
 const { validateGlbFile } = require("./settings-asset-validation.cjs");
 const { createCatalogMutations } = require("./settings-store-catalog.cjs");
+const {
+  applyDefaultStateSlotBindings,
+} = require("./state-slot-defaults.cjs");
 const DEFAULT_PACKAGED_LIBRARY_PATH = path.join(
   __dirname,
   "..",
@@ -230,8 +233,13 @@ function createSettingsStore({
       vrma_report_dir: normalizeReportDir(state.vrma_report_dir),
       idle_rest_ms: normalizeIdleRestMs(state.idle_rest_ms),
       mcp_show_message_enabled: state.mcp_show_message_enabled === true,
-      state_slot_bindings: sanitizeStateSlotBindings(
-        state.state_slot_bindings,
+      state_slot_bindings: applyDefaultStateSlotBindings(
+        sanitizeStateSlotBindings(state.state_slot_bindings),
+        availableAnimations().filter(
+          (animation) =>
+            Array.isArray(animation.asset_urls) &&
+            animation.asset_urls.length > 0,
+        ),
       ),
     };
   }

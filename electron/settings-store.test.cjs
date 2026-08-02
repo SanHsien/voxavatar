@@ -1027,3 +1027,35 @@ test("persists state_slot_bindings and migrates schema 8 with empty bindings", (
   assert.equal(migrated.schema_version, 9);
   assert.deepEqual(migrated.state_slot_bindings, {});
 });
+
+test("suggests default idle/speaking bindings when system clips become playable", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.getSnapshot();
+  assert.deepEqual(snapshot.state_slot_bindings, {});
+
+  const idle = snapshot.animations.find(
+    (animation) => animation.animation_name === "idle",
+  );
+  const speaking = snapshot.animations.find(
+    (animation) => animation.animation_name === "speaking",
+  );
+  assert.ok(idle);
+  assert.ok(speaking);
+
+  const idleSource = path.join(root, "idle.vrma");
+  const speakingSource = path.join(root, "speaking.vrma");
+  writeGlb(idleSource);
+  writeGlb(speakingSource);
+  store.addAnimationClips(idle.id, [idleSource]);
+  snapshot = store.addAnimationClips(speaking.id, [speakingSource]);
+
+  assert.equal(snapshot.state_slot_bindings.idle, "idle");
+  assert.equal(snapshot.state_slot_bindings.listening, "idle");
+  assert.equal(snapshot.state_slot_bindings.speaking, "speaking");
+
+  snapshot = store.setStateSlotBinding("idle", null);
+  assert.equal(snapshot.state_slot_bindings.idle, null);
+  assert.equal(snapshot.state_slot_bindings.listening, "idle");
+  assert.equal(snapshot.state_slot_bindings.speaking, "speaking");
+});

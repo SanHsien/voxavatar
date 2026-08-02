@@ -57,6 +57,8 @@ describe('SettingsStateSlotsSection', () => {
       />,
     );
     expect(html).toContain(t('stateSlots.title'));
+    expect(html).toContain(t('stateSlots.packHelpSummary'));
+    expect(html).toContain(t('stateSlots.packExampleCopy'));
     for (const state of [
       'idle',
       'listening',
@@ -70,6 +72,47 @@ describe('SettingsStateSlotsSection', () => {
     }
     expect(html).toContain('work-loop');
     expect(html).toContain('value="work-loop"');
+  });
+
+  it('preselects idle/speaking when system clips are playable and unbound', () => {
+    const t = (key: string, vars?: Record<string, string | number>) =>
+      settingsT('zh-TW', key, vars);
+    const animations = SETTINGS_FALLBACK.animations.map((animation) =>
+      animation.animation_name === 'idle' ||
+      animation.animation_name === 'speaking'
+        ? {
+            ...animation,
+            clips: [
+              {
+                id: `${animation.id}-clip`,
+                animation_name: `${animation.animation_name}1`,
+                origin: 'user' as const,
+                removable: true,
+                purpose: 'loop' as const,
+                asset_url: `voxavatar-asset://animation/${animation.id}.vrma`,
+              },
+            ],
+            asset_urls: [
+              `voxavatar-asset://animation/${animation.id}.vrma`,
+            ],
+          }
+        : animation,
+    );
+    const html = renderToStaticMarkup(
+      <SettingsStateSlotsSection
+        bridge={undefined}
+        busy={false}
+        importActionPack={vi.fn()}
+        setStateSlotBinding={vi.fn()}
+        settings={baseSettings({
+          animations,
+          state_slot_bindings: {},
+        })}
+        t={t}
+      />,
+    );
+    expect(html).toMatch(/value="idle"/);
+    expect(html).toMatch(/value="speaking"/);
   });
 
   it('disables import when bridge lacks importActionPack', () => {

@@ -285,10 +285,24 @@ const ZH_TW: MessageDictionary = {
 
   'stateSlots.title': '系統狀態動作槽',
   'stateSlots.desc':
-    '為 idle／listening／speaking／working／reviewing／success／failed 綁定可播放動作。MCP set_character_state 與語音仲裁會依此選動作；空白則退回 Idle／Speaking 預設。也可匯入 action-pack.json（仍走既有 GLB／路徑 gate）。',
+    '為 idle／listening／speaking／working／reviewing／success／failed 綁定可播放動作。有 Idle／Speaking（或同名）片段時會自動預選；你可改選或清成「未綁定」（會退回 Idle／Speaking 類型預設）。也可匯入 action-pack.json。',
   'stateSlots.importPack': '匯入 action-pack…',
   'stateSlots.none': '（未綁定）',
   'stateSlots.noPlayable': '尚無可播放動作。請先為動作加入 VRMA 片段。',
+  'stateSlots.packHelpSummary': '什麼是 action-pack.json？如何使用',
+  'stateSlots.packHelpStep1':
+    '在資料夾放好要匯入的 .vrma（檔名與 JSON 裡 files 一致，僅檔名、不可含子目錄）。',
+  'stateSlots.packHelpStep2':
+    '建立 action-pack.json：列出 animation_name、可選 purpose／state_slot，以及 files 檔名。',
+  'stateSlots.packHelpStep3':
+    '按「匯入 action-pack…」選該 JSON；程式會建立／更新動作並合併狀態槽（仍走 GLB／路徑／catalog gate）。',
+  'stateSlots.packHelpStep4':
+    '完整契約與較長範例見 repo 的 docs/CHARACTER_BEHAVIOR.md 與 docs/examples/action-pack.example.json。',
+  'stateSlots.packHelpNote':
+    'action-pack 不是安裝包、不內嵌媒體，也不能繞過授權或路徑檢查。',
+  'stateSlots.packExampleTitle': '最小範例',
+  'stateSlots.packExampleCopy': '複製範例',
+  'stateSlots.packExampleCopied': '已複製',
   'stateSlots.state.idle': 'idle 待機',
   'stateSlots.state.listening': 'listening 聆聽',
   'stateSlots.state.speaking': 'speaking 說話',
@@ -751,11 +765,25 @@ const EN: MessageDictionary = {
 
   'stateSlots.title': 'System state motion slots',
   'stateSlots.desc':
-    'Bind playable actions to idle / listening / speaking / working / reviewing / success / failed. MCP set_character_state and voice arbitration use these slots; leave empty to fall back to Idle/Speaking defaults. You can also import action-pack.json (still through existing GLB/path gates).',
+    'Bind playable actions to idle / listening / speaking / working / reviewing / success / failed. Idle/Speaking (or same-named) clips are preselected when available; you can change or clear to “(unbound)” (falls back to Idle/Speaking types). You can also import action-pack.json.',
   'stateSlots.importPack': 'Import action-pack…',
   'stateSlots.none': '(unbound)',
   'stateSlots.noPlayable':
     'No playable actions yet. Add VRMA clips to an action first.',
+  'stateSlots.packHelpSummary': 'What is action-pack.json? How to use it',
+  'stateSlots.packHelpStep1':
+    'Put the .vrma files in a folder (basenames must match the JSON files entries; no subfolders).',
+  'stateSlots.packHelpStep2':
+    'Create action-pack.json listing animation_name, optional purpose/state_slot, and file basenames.',
+  'stateSlots.packHelpStep3':
+    'Click “Import action-pack…” and choose the JSON; VoxAvatar creates/updates actions and merges state slots (still through GLB/path/catalog gates).',
+  'stateSlots.packHelpStep4':
+    'Full contract and a longer example: docs/CHARACTER_BEHAVIOR.md and docs/examples/action-pack.example.json in the repo.',
+  'stateSlots.packHelpNote':
+    'An action-pack is metadata only—not an installer, not embedded media, and it cannot bypass license or path checks.',
+  'stateSlots.packExampleTitle': 'Minimal example',
+  'stateSlots.packExampleCopy': 'Copy example',
+  'stateSlots.packExampleCopied': 'Copied',
   'stateSlots.state.idle': 'idle',
   'stateSlots.state.listening': 'listening',
   'stateSlots.state.speaking': 'speaking',

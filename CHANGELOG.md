@@ -2,6 +2,11 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.2 - 2026-08-02
+
+- 系統狀態動作槽：有可播放 Idle／Speaking（或同名）片段時自動預選 idle／listening／speaking；明確選「未綁定」保留空、不覆寫。
+- Settings 內補 action-pack 可展開說明、複製最小範例；新增使用者範例 [`docs/examples/action-pack.example.json`](docs/examples/action-pack.example.json)，並更新 CHARACTER_BEHAVIOR 最短流程。
+
 ## 0.16.1 - 2026-08-02
 
 - 全新原創品牌圖示取代上游風格頭像，透明背景與粗輪廓兼顧 GitHub、README、程式、安裝檔、工作列及 20 px 系統匣。

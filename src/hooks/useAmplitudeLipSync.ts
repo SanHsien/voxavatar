@@ -1,19 +1,38 @@
 import { useCallback, useRef } from 'react';
 import type { VRM } from '@pixiv/three-vrm';
+import { computeLipSyncOpen } from '../lip-sync-gain';
 
 const VISEMES = ['aa', 'ee', 'ih', 'oh', 'ou'] as const;
 
-export function useAmplitudeLipSync(vrm: VRM | null) {
+export interface AmplitudeLipSyncOptions {
+  /** 頭部螢幕近似高度（px）；未知時可傳 characterSize 推估值。 */
+  headHeightPx?: number | null;
+  intensity?: number;
+  minOpen?: number;
+}
+
+export function useAmplitudeLipSync(
+  vrm: VRM | null,
+  options: AmplitudeLipSyncOptions = {},
+) {
   const smoothed = useRef(0);
   const phase = useRef(0);
+  const headHeightPx = options.headHeightPx ?? null;
+  const intensity = options.intensity;
+  const minOpen = options.minOpen;
 
   return useCallback(
     (delta: number, level: number, speaking: boolean) => {
       if (!vrm?.expressionManager) return;
       const audible = speaking && level > 0.008;
-      const normalized = audible ? Math.min(1, Math.max(0, level) * 2.8) : 0;
-      const smoothing = 1 - Math.exp(-delta / (normalized > smoothed.current ? 0.055 : 0.1));
-      smoothed.current += (normalized - smoothed.current) * smoothing;
+      const { open } = computeLipSyncOpen({
+        level: audible ? level : 0,
+        headHeightPx,
+        intensity,
+        minOpen,
+      });
+      const smoothing = 1 - Math.exp(-delta / (open > smoothed.current ? 0.055 : 0.1));
+      smoothed.current += (open - smoothed.current) * smoothing;
       phase.current += delta * (8 + smoothed.current * 9);
       const active = Math.floor(phase.current) % VISEMES.length;
 
@@ -22,10 +41,10 @@ export function useAmplitudeLipSync(vrm: VRM | null) {
         const flutter = 0.74 + Math.sin(phase.current * 5.7 + index) * 0.18;
         vrm.expressionManager.setValue(
           VISEMES[index],
-          Math.min(0.62, smoothed.current * shape * flutter),
+          Math.min(1, smoothed.current * shape * flutter),
         );
       }
     },
-    [vrm],
+    [vrm, headHeightPx, intensity, minOpen],
   );
 }

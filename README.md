@@ -122,7 +122,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-GitHub Latest Release 為 **`v0.5.0`**；`main` 已累積至 **`0.9.0`**（動作用途／狀態仲裁／氣泡與口型純邏輯起步），尚未批次 tag／Release。其餘 v0.9 項（DOM 氣泡、MCP `show_message`、Windows 實機／簽署）有桌面或密鑰再開。
+GitHub Latest Release 為 **`v0.5.0`**；`main` 已累積至 **`0.10.0`**（氣泡／`show_message`／口型增益接線），尚未批次 tag／Release。
 
 版本順序與完成條件見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與驗證缺口見 [`REVIEW.md`](REVIEW.md)。
 

@@ -226,6 +226,7 @@ function createSettingsStore({
       vrma_quality_gate: normalizeQualityGate(state.vrma_quality_gate),
       vrma_report_dir: normalizeReportDir(state.vrma_report_dir),
       idle_rest_ms: normalizeIdleRestMs(state.idle_rest_ms),
+      mcp_show_message_enabled: state.mcp_show_message_enabled === true,
     };
   }
 
@@ -660,6 +661,12 @@ function createSettingsStore({
     return getSnapshot();
   }
 
+  function setMcpShowMessageEnabled(value) {
+    state.mcp_show_message_enabled = value === true;
+    writeState();
+    return getSnapshot();
+  }
+
   function setVoiceSource(value) {
     state.voice_source = sanitizeVoiceSource(value);
     writeState();
@@ -802,6 +809,7 @@ function createSettingsStore({
     resolveAssetRequest,
     setCharacterSize,
     setIdleRestMs,
+    setMcpShowMessageEnabled,
     setUiLocale,
     setVoiceSource,
     setVrmaQualityGate,

@@ -125,6 +125,8 @@ const ZH_TW: MessageDictionary = {
   'notice.packagedRestored': '內建動作已還原。',
   'notice.characterSizeSet': '預設角色大小已設為 {percent}%。',
   'notice.idleRestSet': '待機動作間隔已設為 {seconds} 秒。',
+  'notice.mcpShowMessageEnabled': '已允許 AI 顯示訊息氣泡。',
+  'notice.mcpShowMessageDisabled': '已關閉 AI 訊息氣泡。',
   'notice.uiLocaleZh': '介面語系已設為繁體中文。',
   'notice.uiLocaleEn': '介面語系已設為 English。',
   'notice.lightingUpdated': '光照已更新。',
@@ -395,14 +397,23 @@ const ZH_TW: MessageDictionary = {
   'mcp.usageList': '「列出目前可播放動作，以及適合使用的情境。」',
   'mcp.usagePlay': '「播放 wave-hello。」（請改成實際列出的動作名稱）',
   'mcp.usageWindow': '「顯示、隱藏或切換 VoxAvatar 視窗。」',
+  'mcp.usageMessage':
+    '啟用後可請 AI：「在角色旁顯示：完成！」；預設關閉，且本機 MCP 無身分驗證。',
   'mcp.usageGuide': '查看完整 MCP 使用方式、schema 與錯誤處理。',
+  'mcp.agentMessagesTitle': 'AI 訊息氣泡',
+  'mcp.agentMessagesDesc':
+    '允許已連線的本機 AI 透過 MCP show_message 在角色旁顯示短句。',
+  'mcp.agentMessagesToggle': '允許已連接 AI 顯示訊息',
+  'mcp.agentMessagesWarning':
+    '本機 MCP 沒有登入驗證；同帳號的任何行程都可能連線。啟用前請確認你信任本機上的 AI 客戶端。訊息只在記憶體顯示，不保存歷史。',
   'mcp.toolsTitle': '可用工具',
   'mcp.toolsDesc': '工具不提供檔案系統、轉錄或原始音訊存取。',
   'mcp.toolsCount': '{count} 個工具',
   'mcp.tools.play_animation': '播放任一已設定且至少有一個動畫片段的動作。',
   'mcp.tools.list_animations': '讀取最新可播放動作及其使用說明。',
   'mcp.tools.control_window': '顯示、隱藏或切換 VoxAvatar 角色視窗。',
-  'mcp.tools.get_status': '讀取視窗、模型、語音與監聽器就緒狀態。',
+  'mcp.tools.get_status': '讀取視窗、模型、語音、監聽器與訊息氣泡開關狀態。',
+  'mcp.tools.show_message': '在角色旁顯示短句、Emoji 或顏文字（需先啟用）。',
   'mcp.tools.fallback': 'VoxAvatar MCP 工具',
   'mcp.actionsTitle': '可播放動作',
   'mcp.actionsDesc': '動作在至少有一個 VRMA 片段後會出現在 MCP 動畫工具中。',
@@ -544,6 +555,8 @@ const EN: MessageDictionary = {
   'notice.packagedRestored': 'Packaged animation actions restored.',
   'notice.characterSizeSet': 'Default character size set to {percent}%.',
   'notice.idleRestSet': 'Idle motion gap set to {seconds}s.',
+  'notice.mcpShowMessageEnabled': 'AI message bubbles enabled.',
+  'notice.mcpShowMessageDisabled': 'AI message bubbles disabled.',
   'notice.uiLocaleZh': 'Menu language set to Traditional Chinese.',
   'notice.uiLocaleEn': 'Menu language set to English.',
   'notice.lightingUpdated': 'Lighting updated.',
@@ -818,7 +831,15 @@ const EN: MessageDictionary = {
   'mcp.usageList': '“List playable actions and when each one fits.”',
   'mcp.usagePlay': '“Play wave-hello.” (Use a name returned by the action list.)',
   'mcp.usageWindow': '“Show, hide, or toggle the VoxAvatar window.”',
+  'mcp.usageMessage':
+    'After enabling: “Show beside the avatar: Done!” Default off; local MCP has no authentication.',
   'mcp.usageGuide': 'Read the full MCP usage, schemas, and error handling guide.',
+  'mcp.agentMessagesTitle': 'AI message bubble',
+  'mcp.agentMessagesDesc':
+    'Allow a connected local AI to show short captions via MCP show_message.',
+  'mcp.agentMessagesToggle': 'Allow connected AI to show messages',
+  'mcp.agentMessagesWarning':
+    'Local MCP has no login. Any process on this account may connect. Enable only if you trust local AI clients. Messages stay in memory and are not stored.',
   'mcp.toolsTitle': 'Available tools',
   'mcp.toolsDesc':
     'Tools are exposed without filesystem, transcript, or raw audio access.',
@@ -830,7 +851,9 @@ const EN: MessageDictionary = {
   'mcp.tools.control_window':
     'Show, hide, or toggle the VoxAvatar character window.',
   'mcp.tools.get_status':
-    'Read window, model, voice, and listener readiness.',
+    'Read window, model, voice, listener readiness, and message-bubble flags.',
+  'mcp.tools.show_message':
+    'Show a short caption, emoji, or kaomoji beside the avatar (opt-in).',
   'mcp.tools.fallback': 'VoxAvatar MCP tool',
   'mcp.actionsTitle': 'Playable actions',
   'mcp.actionsDesc':
@@ -864,6 +887,7 @@ const MCP_TOOL_KEYS = [
   'list_animations',
   'control_window',
   'get_status',
+  'show_message',
 ] as const;
 
 export function mcpToolDescriptionKeys(): readonly string[] {

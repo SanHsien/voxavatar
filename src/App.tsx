@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { Scene } from './components/Scene';
 import { SceneErrorBoundary } from './components/SceneErrorBoundary';
+import { CharacterBubble } from './components/CharacterBubble';
 import {
   ambientIdleMotionUrls,
   animationUrlsForType,
@@ -17,6 +18,11 @@ import {
   resolveBodyAnimation,
   type BodyAnimationOverride,
 } from './animation-priority';
+import {
+  enqueueCharacterMessage,
+  isMessageVisible,
+  type CharacterMessage,
+} from './character-message';
 import {
   immediateAnimationFromResolved,
   resolveCharacterState,
@@ -46,6 +52,8 @@ export function App() {
   const [idleCycle, setIdleCycle] = useState(0);
   const [settings, setSettings] =
     useState<VoxAvatarSettingsSnapshot>(SETTINGS_FALLBACK);
+  const [messageQueue, setMessageQueue] = useState<CharacterMessage[]>([]);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const idleRestTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -70,6 +78,24 @@ export function App() {
         } else if (event.animation !== 'CUSTOM') {
           setVoiceAnimation(event.animation);
         }
+      } else if (event.type === 'message') {
+        setMessageQueue((queue) =>
+          enqueueCharacterMessage(queue, {
+            id: event.id,
+            text: event.text,
+            durationMs: event.durationMs,
+            mood: event.mood,
+            sourceId: event.sourceId ?? null,
+            atMs: event.atMs,
+          }),
+        );
+        setNowMs(event.atMs);
+      } else if (event.type === 'message-clear') {
+        setMessageQueue((queue) =>
+          event.sourceId
+            ? queue.filter((item) => item.sourceId !== event.sourceId)
+            : [],
+        );
       }
     });
   }, []);
@@ -114,6 +140,26 @@ export function App() {
     return () => window.clearTimeout(timer);
   }, [voice]);
 
+  const activeMessage = useMemo(() => {
+    const visible = messageQueue.filter((item) => isMessageVisible(item, nowMs));
+    return visible.length > 0 ? visible[visible.length - 1]! : null;
+  }, [messageQueue, nowMs]);
+
+  useEffect(() => {
+    if (!activeMessage) return;
+    const remaining = Math.max(
+      0,
+      activeMessage.atMs + activeMessage.durationMs - Date.now(),
+    );
+    const timer = window.setTimeout(() => {
+      setNowMs(Date.now());
+      setMessageQueue((queue) =>
+        queue.filter((item) => isMessageVisible(item, Date.now())),
+      );
+    }, remaining + 16);
+    return () => window.clearTimeout(timer);
+  }, [activeMessage]);
+
   const animation = resolveBodyAnimation(voiceAnimation, bodyOverride);
   const defaultModel =
     settings.default_model_id == null
@@ -129,12 +175,10 @@ export function App() {
     () => animationUrlsForType(settings.animations, animation),
     [animation, settings.animations],
   );
-  // 待機：從 Idle＋其他非說話動作池隨機抽；說話：只用 TALK 池。
   const configuredAnimationUrls =
     !bodyOverride && animation === 'IDLE' ? ambientUrls : roleUrls;
   const animationUrls =
     bodyOverride?.animationUrls ?? configuredAnimationUrls;
-  // 有素材就 once 播完，休息後再隨機重抽，絕不固定順序 loop 同一支。
   const cycleRandomMotions =
     !bodyOverride && animation === 'IDLE' && animationUrls.length > 0;
   const animationRequest = bodyOverride?.requestId ?? idleCycle;
@@ -181,6 +225,7 @@ export function App() {
           playback={bodyOverride || cycleRandomMotions ? 'once' : 'loop'}
           speaking={speaking}
         />
+        <CharacterBubble message={activeMessage} />
       </main>
     </SceneErrorBoundary>
   ) : (

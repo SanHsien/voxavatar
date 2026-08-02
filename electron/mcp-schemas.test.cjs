@@ -10,6 +10,7 @@ const {
   formatGetStatus,
   formatListAnimations,
   formatPlayAnimation,
+  formatShowMessage,
   serializeToolResult,
 } = require("./mcp-schemas.cjs");
 
@@ -20,8 +21,8 @@ const sampleAnimation = {
 };
 
 test("MCP schema helpers expose stable version constants", () => {
-  assert.equal(STATUS_SCHEMA_VERSION, 1);
-  assert.equal(TOOLS_SCHEMA_VERSION, 1);
+  assert.equal(STATUS_SCHEMA_VERSION, 2);
+  assert.equal(TOOLS_SCHEMA_VERSION, 2);
 });
 
 test("formatListAnimations returns structured catalog output", () => {
@@ -93,6 +94,22 @@ test("formatControlWindow returns action and visibility fields", () => {
   assert.equal(payload.action, "show");
   assert.equal(payload.visible, true);
   assert.match(payload.message, /now visible/);
+});
+
+test("formatShowMessage covers success and opt-in errors", () => {
+  const ok = formatShowMessage({
+    displayed: true,
+    messageId: "m1",
+    expiresAt: "2026-08-02T00:00:00.000Z",
+  });
+  assert.equal(ok.displayed, true);
+  assert.equal(ok.message_id, "m1");
+  const disabled = formatShowMessage({
+    displayed: false,
+    error: "agent_messages_disabled",
+  });
+  assert.equal(disabled.error, "agent_messages_disabled");
+  assert.match(disabled.message, /disabled/i);
 });
 
 test("serializeToolResult emits JSON text content", () => {

@@ -138,6 +138,7 @@ type VoxAvatarSettingsSnapshot = {
   vrma_quality_gate: 'report' | 'strict' | 'off';
   vrma_report_dir: string | null;
   idle_rest_ms: number;
+  mcp_show_message_enabled: boolean;
 };
 
 type VoxAvatarDirectoryImportKind = 'model' | 'animation';
@@ -200,6 +201,16 @@ type AvatarBridgeEvent =
       source?: 'command';
       requestId?: number;
     }
+  | {
+      type: 'message';
+      id: string;
+      text: string;
+      durationMs: number;
+      mood: 'neutral' | 'cheerful' | 'thinking' | 'warning';
+      sourceId?: string | null;
+      atMs: number;
+    }
+  | { type: 'message-clear'; sourceId?: string | null; atMs: number }
   | { type: 'listener-status'; status: AudioListenerStatus }
   | { type: 'bridge-status'; connected: boolean };
 
@@ -265,6 +276,9 @@ interface Window {
     setDefaultModel(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
     setCharacterSize(size: number): Promise<VoxAvatarSettingsSnapshot>;
     setIdleRestMs?(ms: number): Promise<VoxAvatarSettingsSnapshot>;
+    setMcpShowMessageEnabled?(
+      enabled: boolean,
+    ): Promise<VoxAvatarSettingsSnapshot>;
     setUiLocale?(locale: 'zh-TW' | 'en'): Promise<VoxAvatarSettingsSnapshot>;
     setVoiceSource(
       voiceSource: VoxAvatarVoiceSourceSettings,

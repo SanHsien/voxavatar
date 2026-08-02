@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.10.0 - 2026-08-02
+
+- MCP 新增 `show_message`（Settings 預設關閉）；輸入清理、session／全域速率限制、斷線清除；`get_status` 只回報開關與是否可見。
+- Settings schema 8：`mcp_show_message_enabled`；MCP 頁新增 opt-in 開關與隱私警告。
+- Avatar overlay 漫畫式 `CharacterBubble` DOM；口型改走 `lip-sync-gain`（依 characterSize 推估頭部增益）。
+- `tools_schema_version`／`status_schema_version` 升為 2；整合與安全文件同步。
+
 ## 0.9.0 - 2026-08-01
 
 - VRMA 品質分析支援動作用途 `loop`／`one-shot`／`pose`：一次性動作不再因循環接縫被淘汰；pose 不套用 dead-motion。

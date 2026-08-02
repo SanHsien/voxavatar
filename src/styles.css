@@ -300,6 +300,62 @@ button {
   background: transparent !important;
 }
 
+.character-bubble {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  z-index: 3;
+  max-width: min(72vw, 280px);
+  padding: 0.55rem 0.85rem;
+  border: 2px solid #1a1c22;
+  border-radius: 1.1rem;
+  background: #fff8ef;
+  color: #1a1c22;
+  box-shadow: 4px 4px 0 #1a1c22;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: character-bubble-in 160ms ease-out;
+}
+
+.character-bubble-text {
+  display: block;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: center;
+}
+
+.character-bubble.mood-cheerful {
+  background: #fff3c4;
+}
+
+.character-bubble.mood-thinking {
+  background: #e8f0ff;
+}
+
+.character-bubble.mood-warning {
+  background: #ffe0d6;
+}
+
+@keyframes character-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .character-bubble {
+    animation: none;
+  }
+}
+
 /* 4. Settings shell ======================================================= */
 
 .settings-app {

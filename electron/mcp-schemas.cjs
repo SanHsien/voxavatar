@@ -1,7 +1,7 @@
 "use strict";
 
-const STATUS_SCHEMA_VERSION = 1;
-const TOOLS_SCHEMA_VERSION = 1;
+const STATUS_SCHEMA_VERSION = 2;
+const TOOLS_SCHEMA_VERSION = 2;
 
 function serializeToolResult(object) {
   return {
@@ -79,6 +79,37 @@ function formatControlWindow({ action, visible }) {
   };
 }
 
+function formatShowMessage({
+  displayed,
+  messageId = null,
+  expiresAt = null,
+  error = null,
+}) {
+  let message;
+  if (displayed) {
+    message = "Message displayed beside the avatar.";
+  } else if (error === "agent_messages_disabled") {
+    message =
+      "Agent messages are disabled in Settings. Enable “Allow connected AI to show messages” first.";
+  } else if (error === "invalid_message") {
+    message = "Message text was empty, too long, or contained unsupported characters.";
+  } else if (error === "rate_limited") {
+    message = "Message rate limit reached. Wait briefly and try again.";
+  } else if (error === "avatar_unavailable") {
+    message = "VoxAvatar cannot display a message until a model is configured.";
+  } else {
+    message = "Unable to display the message.";
+  }
+  return {
+    schema_version: TOOLS_SCHEMA_VERSION,
+    message,
+    displayed: Boolean(displayed),
+    ...(messageId ? { message_id: messageId } : {}),
+    ...(expiresAt ? { expires_at: expiresAt } : {}),
+    ...(error ? { error } : {}),
+  };
+}
+
 module.exports = {
   STATUS_SCHEMA_VERSION,
   TOOLS_SCHEMA_VERSION,
@@ -88,4 +119,5 @@ module.exports = {
   formatGetStatus,
   formatPlayAnimation,
   formatControlWindow,
+  formatShowMessage,
 };

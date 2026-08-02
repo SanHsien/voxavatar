@@ -12,6 +12,7 @@ interface AvatarProps {
   animationRequest: number;
   animationUrls?: readonly string[];
   audioLevel: number;
+  characterSize?: number;
   modelUrl: string;
   onAnimationComplete: () => void;
   playback: 'loop' | 'once';
@@ -24,6 +25,7 @@ function AvatarModel({
   animationRequest,
   animationUrls = [],
   audioLevel,
+  characterSize = 1,
   modelUrl,
   onAnimationComplete,
   playback,
@@ -32,7 +34,12 @@ function AvatarModel({
 }: AvatarProps) {
   const vrm = useVrmLoader(modelUrl);
   const { play, update: updateAnimation } = useVrmAnimation(vrm);
-  const updateLipSync = useAmplitudeLipSync(vrm);
+  const updateLipSync = useAmplitudeLipSync(vrm, {
+    // 尚無精確 head 投影時，以角色縮放推估螢幕頭部高度。
+    headHeightPx: Math.max(40, characterSize * 140),
+    intensity: 1,
+    minOpen: 0.08,
+  });
   const updateBlink = useBlink(vrm);
 
   useEffect(() => {

@@ -64,6 +64,11 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
     ipcRenderer.invoke("voxavatar:settings-set-character-size", size),
   setIdleRestMs: (ms) =>
     ipcRenderer.invoke("voxavatar:settings-set-idle-rest-ms", ms),
+  setMcpShowMessageEnabled: (enabled) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-set-mcp-show-message-enabled",
+      enabled,
+    ),
   setUiLocale: (locale) =>
     ipcRenderer.invoke("voxavatar:settings-set-ui-locale", locale),
   setVoiceSource: (voiceSource) =>

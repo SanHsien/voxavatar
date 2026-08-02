@@ -347,6 +347,11 @@ function registerSettingsIpc({
   handleTrustedSettingsIpc("voxavatar:settings-set-idle-rest-ms", (_event, ms) =>
     publishSettings(settingsStore.setIdleRestMs(ms)),
   );
+  handleTrustedSettingsIpc(
+    "voxavatar:settings-set-mcp-show-message-enabled",
+    (_event, enabled) =>
+      publishSettings(settingsStore.setMcpShowMessageEnabled(enabled)),
+  );
   handleTrustedSettingsIpc("voxavatar:settings-set-ui-locale", (_event, locale) =>
     publishSettings(settingsStore.setUiLocale(locale)),
   );

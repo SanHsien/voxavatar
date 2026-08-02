@@ -11,6 +11,7 @@ const MCP_TOOL_NAMES = Object.freeze([
   "list_animations",
   "control_window",
   "get_status",
+  "show_message",
 ]);
 const MCP_TRANSPORT = "Streamable HTTP";
 

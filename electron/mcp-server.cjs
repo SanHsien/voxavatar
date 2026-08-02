@@ -19,16 +19,18 @@ const {
   formatGetStatus,
   formatListAnimations,
   formatPlayAnimation,
+  formatShowMessage,
   serializeToolResult,
 } = require("./mcp-schemas.cjs");
 
 const MCP_PATH = "/mcp";
 const WINDOW_ACTIONS = ["show", "hide", "toggle"];
+const MESSAGE_MOODS = ["neutral", "cheerful", "thinking", "warning"];
 const MAX_MCP_SESSIONS = 32;
 const MCP_SESSION_IDLE_TTL_MS = 30 * 60 * 1000;
 const MCP_SESSION_SWEEP_MS = 60_000;
 const SERVER_INSTRUCTIONS =
-  "VoxAvatar controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle VoxAvatar. VoxAvatar never speaks or plays audio. get_status and list_animations are read-only.";
+  "VoxAvatar controls the installed local desktop character. Use play_animation when the user asks for a visual reaction or it clearly supports their request. Call list_animations when you need the current action catalog. Use control_window to show, hide, or toggle VoxAvatar. Use show_message only for short user-facing captions when Settings allows agent messages. VoxAvatar never speaks or plays audio. get_status and list_animations are read-only.";
 
 function animationToolDescription(animations) {
   return [
@@ -53,8 +55,10 @@ function animationInputSchema(animations) {
 function createVoxAvatarMcpServer({
   onAnimation,
   onWindowAction,
+  onShowMessage = null,
   getStatus,
   getAnimations = () => [],
+  getSessionId = () => null,
 }) {
   const animations = getAnimations();
   const server = new McpServer(
@@ -161,7 +165,7 @@ function createVoxAvatarMcpServer({
     {
       title: "Get VoxAvatar status",
       description:
-        "Read VoxAvatar's window visibility, voice state, and local listener status.",
+        "Read VoxAvatar's window visibility, voice state, listener status, and whether agent messages are enabled or currently visible. Never returns message text or history.",
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -172,6 +176,52 @@ function createVoxAvatarMcpServer({
     async () =>
       serializeToolResult(formatGetStatus(await getStatus())),
   );
+
+  if (typeof onShowMessage === "function") {
+    server.registerTool(
+      "show_message",
+      {
+        title: "Show VoxAvatar message bubble",
+        description:
+          "Display a short caption, emoji, or kaomoji beside the avatar. Only use when the user asked for a brief status note. Do not send long text, secrets, Markdown, links, images, or token streams. Requires Settings opt-in.",
+        inputSchema: {
+          text: z
+            .string()
+            .min(1)
+            .max(240)
+            .describe("Short plain-text caption (max 80 graphemes after sanitize)."),
+          duration_ms: z
+            .number()
+            .int()
+            .min(1000)
+            .max(15_000)
+            .optional()
+            .describe("Optional display duration in milliseconds (1000–15000)."),
+          mood: z
+            .enum(MESSAGE_MOODS)
+            .optional()
+            .describe("Optional presentation mood mapped to a fixed style."),
+        },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
+      },
+      async ({ text, duration_ms, mood }) => {
+        const result = await onShowMessage(
+          { text, duration_ms, mood },
+          { sessionId: getSessionId() },
+        );
+        const payload = formatShowMessage(result ?? { displayed: false });
+        if (!result?.displayed) {
+          return { ...serializeToolResult(payload), isError: true };
+        }
+        return serializeToolResult(payload);
+      },
+    );
+  }
 
   server.refreshAnimationCatalog = () => {
     const currentAnimations = getAnimations();
@@ -202,6 +252,7 @@ function createVoxAvatarMcpHandler(
     const session = sessions.get(sessionId);
     if (!session) return;
     sessions.delete(sessionId);
+    controller.onSessionClosed?.(sessionId);
     try {
       await session.server.close();
     } catch {
@@ -263,11 +314,16 @@ function createVoxAvatarMcpHandler(
       ) {
         await enforceSessionCap();
         let transport;
-        const server = createVoxAvatarMcpServer(controller);
+        const sessionRef = { id: null };
+        const server = createVoxAvatarMcpServer({
+          ...controller,
+          getSessionId: () => sessionRef.id,
+        });
         transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: randomUUID,
           enableJsonResponse: true,
           onsessioninitialized: (initializedSessionId) => {
+            sessionRef.id = initializedSessionId;
             session = {
               server,
               transport,
@@ -278,7 +334,10 @@ function createVoxAvatarMcpHandler(
         });
         transport.onclose = () => {
           const closedSessionId = transport.sessionId;
-          if (closedSessionId) sessions.delete(closedSessionId);
+          if (closedSessionId) {
+            sessions.delete(closedSessionId);
+            controller.onSessionClosed?.(closedSessionId);
+          }
         };
         await server.connect(transport);
         await transport.handleRequest(request, response, parsedBody);

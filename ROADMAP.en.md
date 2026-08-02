@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-01
-Planning baseline: `v0.9.0` accumulated on `main`; Latest Release: `v0.5.0`
+Planning baseline: `v0.10.0` accumulated on `main`; Latest Release: `v0.5.0`
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current health.
 
@@ -38,9 +38,9 @@ The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVI
 
 - [x] Classify VRMA as `loop`, `one-shot`, or `pose` and apply purpose-aware quality rules instead of rejecting one-shot actions for loop seams.
 - [x] Add `idle`, `listening`, `speaking`, `working`, `reviewing`, `success`, and `failed` states with fixed priority, TTL, source clearing, and safe fallback (pure logic + App voice path; system-slot UI / MCP state events still open).
-- [x] Improve small-avatar lip-sync readability: tunable intensity, minimum opening, head-on-screen gain (pure helpers; renderer wiring and DPI evidence still open).
-- Add comic-style speech bubbles beside the avatar: short text, emoji, kaomoji, edge flipping, TTL, reduced motion, and a bounded queue (sanitize/queue logic landed; DOM overlay and MCP still open).
-- Let a connected local AI show short messages through MCP `show_message`; default off, with session source labeling, rate limits, and input sanitization, and without storing message history.
+- [x] Improve small-avatar lip-sync readability: tunable intensity, minimum opening, size-based head gain (precise head projection and DPI evidence still open).
+- [x] Add comic-style speech bubbles beside the avatar: short text, emoji, kaomoji, TTL, reduced motion, and a bounded queue (DOM overlay + sanitize/queue; precise edge flipping can still improve).
+- [x] Let a connected local AI show short messages through MCP `show_message`; default off, with rate limits and input sanitization, and without storing message history.
 - Evaluate a thin `action-pack.json` that only describes motion purpose and state mapping without bypassing import, path, or license gates.
 
 ### Unfinished work moved from v0.6–v0.8
@@ -84,5 +84,5 @@ The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVI
 ## Next three actions
 
 1. [x] Implement purpose-aware motion profiles for `loop`, `one-shot`, and `pose`.
-2. [x] Implement state arbitration and fallback pure logic (voice path wired); continue with bubble DOM / MCP `show_message`.
-3. When a Windows desktop and signing credentials are available, complete release evidence, native, and installer validation.
+2. [x] Implement character-state arbitration, bubble DOM, and MCP `show_message` opt-in.
+3. Continue overlay/store convergence and `action-pack.json`; complete real-machine/signing evidence when a Windows desktop and secrets are available (does not block automated work).

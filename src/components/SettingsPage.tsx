@@ -996,6 +996,21 @@ export function SettingsPage() {
     );
   };
 
+  const toggleMcpShowMessage = (enabled: boolean) => {
+    const setter = bridge?.setMcpShowMessageEnabled;
+    if (!setter) return;
+    setSettings((current) => ({
+      ...current,
+      mcp_show_message_enabled: enabled,
+    }));
+    void run(
+      () => setter(enabled),
+      enabled
+        ? t('notice.mcpShowMessageEnabled')
+        : t('notice.mcpShowMessageDisabled'),
+    );
+  };
+
   const showAbout = () => {
     void bridge?.showAbout?.();
   };
@@ -1435,12 +1450,15 @@ export function SettingsPage() {
 
           {section === 'mcp' && (
             <SettingsMcpSection
+              busy={busy}
               copyText={copyText}
               mcpHealth={mcpHealth}
               mcpLoading={mcpLoading}
               mcpServerUrl={mcpServerUrl}
               mcpSetupCommand={mcpSetupCommand}
+              mcpShowMessageEnabled={settings.mcp_show_message_enabled === true}
               mcpStatus={mcpStatus}
+              onToggleMcpShowMessage={toggleMcpShowMessage}
               refreshMcpStatus={refreshMcpStatus}
               t={t}
             />

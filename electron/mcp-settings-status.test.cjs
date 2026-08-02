@@ -21,8 +21,15 @@ test("MCP settings status describes the live local endpoint", () => {
   });
 
   assert.equal(status.health, "online");
-  assert.equal(status.status_schema_version, 1);
-  assert.equal(status.tools_schema_version, 1);
+  assert.equal(status.status_schema_version, 2);
+  assert.equal(status.tools_schema_version, 2);
+  assert.deepEqual(status.tools, [
+    "play_animation",
+    "list_animations",
+    "control_window",
+    "get_status",
+    "show_message",
+  ]);
   assert.equal(status.server_url, "http://127.0.0.1:49152/mcp");
   assert.equal(status.health_url, "http://127.0.0.1:49152/health");
   assert.equal(

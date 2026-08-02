@@ -17,7 +17,8 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 | `list_animations` | 無 | 列出目前可播放動作、描述與觸發情境 |
 | `play_animation` | `animation`: 動作名稱 | 顯示角色並隨機播放該動作的一個片段 |
 | `control_window` | `action`: `show`／`hide`／`toggle` | 控制角色視窗；hide 不會結束程式 |
-| `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）與版本化 `readiness`（設定頁同一語彙） |
+| `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）、版本化 `readiness`，以及 `mcp_show_message_enabled`／`message_visible`（不含訊息文字） |
+| `show_message` | `text`；可選 `duration_ms`／`mood` | 在角色旁顯示短句氣泡（Settings 預設關閉；需 opt-in） |
 
 ### Agent 應如何使用
 
@@ -27,17 +28,16 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 2. 要做角色反應時先呼叫 `list_animations`，不要猜動作名稱。
 3. 依 `animation_trigger_scenario` 選最符合情境的動作，再呼叫 `play_animation`；同一回覆不要高頻重播。
 4. 只有使用者要求或角色被隱藏時才用 `control_window`；不要用反覆 toggle 代替讀取狀態。
-5. 工具失敗時讀結構化 `error`，提供可操作的修復方式，不宣稱已播放。
+5. 短訊息先確認 Settings 已啟用 AI 訊息，再呼叫 `show_message`；以回傳 `displayed` 判定是否呈現。
+6. 工具失敗時讀結構化 `error`，提供可操作的修復方式，不宣稱已播放或已顯示。
 
-使用者可直接說：「檢查 VoxAvatar 是否就緒」、「列出適合打招呼的動作」、「播放 `wave-hello`」或「隱藏角色」。`play_animation` 只控制身體動作；口型由播放音量驅動，MCP 不會合成語音。
+使用者可直接說：「檢查 VoxAvatar 是否就緒」、「列出適合打招呼的動作」、「播放 `wave-hello`」、「隱藏角色」或（啟用後）「在角色旁顯示：完成！」。`play_animation` 只控制身體動作；口型由播放音量驅動，MCP 不會合成語音。
 
-### v0.9 規劃：AI 短訊息與浮動氣泡
+### AI 短訊息與浮動氣泡
 
-> 本節是待實作契約；目前版本仍只有上表 4 個工具，不得呼叫或宣稱 `show_message` 已可用。
+`show_message` 讓已連線的本機 AI 把短句、Emoji 或顏文字顯示在角色旁。工具 description 要求：只用於使用者要求的短訊息或重要階段回饋，不傳長文、秘密、Markdown、連結或逐 token 串流。
 
-預計新增 `show_message`，讓已連線的本機 AI 把短句、Emoji 或顏文字顯示在角色旁。工具 description 應明確要求：只用於使用者要求的短訊息或重要階段回饋，不傳長文、秘密、Markdown、連結或逐 token 串流。
-
-預計輸入：
+輸入範例：
 
 ```json
 {
@@ -47,13 +47,13 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 }
 ```
 
-- `text`：必填純文字，最多 80 個 Unicode grapheme。
-- `duration_ms`：選填，1000–15000；省略時由應用程式決定。
-- `mood`：選填，`neutral`／`cheerful`／`thinking`／`warning`；只選既定樣式，不接受 CSS 或任意狀態名。
+- `text`：必填純文字，最多 80 個 Unicode grapheme（清理後）。
+- `duration_ms`：選填，1000–15000；省略時預設約 4 秒。
+- `mood`：選填，`neutral`／`cheerful`／`thinking`／`warning`；只選既定樣式。
 
-預計成功結果包含 `schema_version`、`displayed`、`message_id`、`expires_at` 與未驗證的來源標示。錯誤碼至少包含 `agent_messages_disabled`、`invalid_message`、`rate_limited`、`avatar_unavailable`。Agent 必須以 `displayed` 判定是否呈現，不可只看人類可讀 `message`。
+成功結果含 `schema_version`、`displayed`、`message_id`、`expires_at`。錯誤碼：`agent_messages_disabled`、`invalid_message`、`rate_limited`、`avatar_unavailable`。
 
-安全與生命週期：Settings 的 agent message capability 預設關閉；同時限制單一 session 與全域速率／佇列；`clientInfo` 只能顯示為未驗證名稱或 generic「本機 AI」；斷線清除該來源待顯示訊息；訊息不進設定、歷史、診斷或 debug log。完整 UI／狀態仲裁規則見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。實作時須同步 MCP tool description／tests、Settings、README 與 SECURITY；只有 envelope 語意不相容時才 bump `tools_schema_version` major。
+安全與生命週期：Settings「允許已連接 AI 顯示訊息」預設關閉；每 session 與全域有速率限制；斷線清除該來源；訊息不進設定、歷史、診斷或完整 debug 內容 log。UI／狀態規則見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 
 ### Status／工具輸出 schema
 

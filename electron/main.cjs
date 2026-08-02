@@ -39,6 +39,13 @@ const {
 const {
   createAnimationCommandQueue,
 } = require("./animation-command-queue.cjs");
+const {
+  normalizeCharacterMessage,
+} = require("./character-message.cjs");
+const {
+  createMessageRateLimiter,
+} = require("./message-rate-limit.cjs");
+const { randomUUID } = require("node:crypto");
 const { parseProtocolUrl, voiceState } = require("./protocol-actions.cjs");
 const {
   createSettingsWindowPresentationGate,
@@ -97,7 +104,11 @@ let mcpServerPort = Number(
   process.env.VOXAVATAR_BRIDGE_PORT || DEFAULT_PORT,
 );
 let mcpAnimationCatalogSignature = null;
+let messageVisible = false;
+let activeMessageExpiresAt = 0;
+let activeMessageClearTimer = null;
 const pendingRendererEvents = new Map();
+const messageRateLimiter = createMessageRateLimiter();
 
 const {
   createSettingsWindow,
@@ -624,6 +635,90 @@ function playConfiguredAnimation(animationName) {
   return animationCommandQueue.enqueue(installedAnimation.animation_name);
 }
 
+function clearActiveMessageTimer() {
+  if (activeMessageClearTimer == null) return;
+  clearTimeout(activeMessageClearTimer);
+  activeMessageClearTimer = null;
+}
+
+function emitMessageToRenderer(event) {
+  if (!avatarWindow || avatarWindow.isDestroyed()) return;
+  if (avatarWindow.webContents.isLoading()) {
+    // 不覆寫 pending Map 的固定 type key；載入完成後仍直接送最新一則。
+    pendingRendererEvents.set(`message:${event.id}`, event);
+    ensureRendererLoadHook();
+    return;
+  }
+  avatarWindow.webContents.send("voxavatar:event", event);
+}
+
+function clearMessageForSource(sourceId) {
+  if (!sourceId) return;
+  messageRateLimiter.clearSource(sourceId);
+  if (!messageVisible) return;
+  messageVisible = false;
+  activeMessageExpiresAt = 0;
+  clearActiveMessageTimer();
+  emitMessageToRenderer({
+    type: "message-clear",
+    sourceId,
+    atMs: Date.now(),
+  });
+}
+
+function showCharacterMessage(input, { sessionId = null } = {}) {
+  if (!settingsStore?.getSnapshot()?.mcp_show_message_enabled) {
+    return { displayed: false, error: "agent_messages_disabled" };
+  }
+  if (!hasConfiguredModel()) {
+    return { displayed: false, error: "avatar_unavailable" };
+  }
+  const normalized = normalizeCharacterMessage(input);
+  if (!normalized.ok) {
+    return { displayed: false, error: "invalid_message" };
+  }
+  const rate = messageRateLimiter.allow(sessionId);
+  if (!rate.ok) {
+    return { displayed: false, error: "rate_limited" };
+  }
+
+  const atMs = Date.now();
+  const messageId = randomUUID();
+  const expiresAt = new Date(atMs + normalized.message.durationMs).toISOString();
+  messageVisible = true;
+  activeMessageExpiresAt = atMs + normalized.message.durationMs;
+  clearActiveMessageTimer();
+  activeMessageClearTimer = setTimeout(() => {
+    activeMessageClearTimer = null;
+    if (Date.now() >= activeMessageExpiresAt) {
+      messageVisible = false;
+    }
+  }, normalized.message.durationMs);
+  activeMessageClearTimer.unref?.();
+
+  showOverlay();
+  emitMessageToRenderer({
+    type: "message",
+    id: messageId,
+    text: normalized.message.text,
+    durationMs: normalized.message.durationMs,
+    mood: normalized.message.mood,
+    sourceId: sessionId,
+    atMs,
+  });
+  debugLog("message", {
+    id: messageId,
+    mood: normalized.message.mood,
+    durationMs: normalized.message.durationMs,
+    sourceId: sessionId,
+  });
+  return {
+    displayed: true,
+    messageId,
+    expiresAt,
+  };
+}
+
 async function withAvatarAlwaysOnTopPaused(operation) {
   const avatarOnTop =
     avatarWindow &&
@@ -793,6 +888,9 @@ function getMcpStatus() {
     voiceState: latestVoiceState,
     listener: latestListenerStatus,
     readiness,
+    mcp_show_message_enabled:
+      settingsStore?.getSnapshot()?.mcp_show_message_enabled === true,
+    message_visible: messageVisible,
   };
 }
 
@@ -974,6 +1072,8 @@ if (!app.requestSingleInstanceLock()) {
     mcpHandler = createVoxAvatarMcpHandler({
       onAnimation: playConfiguredAnimation,
       onWindowAction: handleMcpWindowAction,
+      onShowMessage: showCharacterMessage,
+      onSessionClosed: clearMessageForSource,
       getStatus: getMcpStatus,
       getAnimations: () =>
         settingsStore

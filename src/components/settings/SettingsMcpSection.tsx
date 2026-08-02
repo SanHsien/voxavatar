@@ -6,23 +6,29 @@ type SettingsTranslate = (
 ) => string;
 
 export interface SettingsMcpSectionProps {
+  busy?: boolean;
   copyText: (value: string, label: string) => Promise<void>;
   mcpHealth: 'online' | 'starting' | 'unavailable';
   mcpLoading: boolean;
   mcpServerUrl: string;
   mcpSetupCommand: string;
+  mcpShowMessageEnabled: boolean;
   mcpStatus: VoxAvatarMcpStatus | null;
+  onToggleMcpShowMessage: (enabled: boolean) => void;
   refreshMcpStatus: () => Promise<void>;
   t: SettingsTranslate;
 }
 
 export function SettingsMcpSection({
+  busy = false,
   copyText,
   mcpHealth,
   mcpLoading,
   mcpServerUrl,
   mcpSetupCommand,
+  mcpShowMessageEnabled,
   mcpStatus,
+  onToggleMcpShowMessage,
   refreshMcpStatus,
   t,
 }: SettingsMcpSectionProps) {
@@ -144,6 +150,31 @@ export function SettingsMcpSection({
       <section className="settings-panel">
         <div className="panel-heading">
           <div>
+            <h2>{t('mcp.agentMessagesTitle')}</h2>
+            <p>{t('mcp.agentMessagesDesc')}</p>
+          </div>
+        </div>
+        <div className="lighting-toggle-row">
+          <span>{t('mcp.agentMessagesToggle')}</span>
+          <button
+            aria-checked={mcpShowMessageEnabled}
+            className={`toggle-switch${mcpShowMessageEnabled ? ' active' : ''}`}
+            disabled={busy}
+            onClick={() => onToggleMcpShowMessage(!mcpShowMessageEnabled)}
+            role="switch"
+            type="button"
+          >
+            <i aria-hidden="true" />
+          </button>
+        </div>
+        <p className="desktop-note" role="note">
+          {t('mcp.agentMessagesWarning')}
+        </p>
+      </section>
+
+      <section className="settings-panel">
+        <div className="panel-heading">
+          <div>
             <h2>{t('mcp.usageTitle')}</h2>
             <p>{t('mcp.usageDesc')}</p>
           </div>
@@ -153,6 +184,7 @@ export function SettingsMcpSection({
           <li>{t('mcp.usageList')}</li>
           <li>{t('mcp.usagePlay')}</li>
           <li>{t('mcp.usageWindow')}</li>
+          <li>{t('mcp.usageMessage')}</li>
         </ol>
         <p className="desktop-note">
           <a
@@ -173,7 +205,7 @@ export function SettingsMcpSection({
           </div>
           <span className="file-pill">
             {t('mcp.toolsCount', {
-              count: mcpStatus?.tools.length ?? 4,
+              count: mcpStatus?.tools.length ?? 5,
             })}
           </span>
         </div>

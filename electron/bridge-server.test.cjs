@@ -129,20 +129,22 @@ test("bridge rejects a non-loopback Host header", async (context) => {
   assert.equal(response.status, 403);
 });
 
-test("bridge accepts a valid native adapter state event", async (context) => {
+test("bridge accepts character-state events over HTTP", async (context) => {
   const events = [];
-  const bridge = createBridgeServer({ port: 0, onEvent: (event) => events.push(event) });
+  const bridge = createBridgeServer({
+    port: 0,
+    onEvent: (event) => {
+      events.push(event);
+      return true;
+    },
+  });
   const address = await bridge.listen();
   context.after(() => bridge.close());
 
   const body = JSON.stringify({
-    type: "state",
-    state: {
-      activity: "listening",
-      microphoneMuted: false,
-      outputMuted: false,
-      phase: "active",
-    },
+    type: "character-state",
+    state: "working",
+    ttl_ms: 4000,
   });
   const response = await requestServer(address, {
     path: "/events",
@@ -156,7 +158,33 @@ test("bridge accepts a valid native adapter state event", async (context) => {
 
   assert.equal(response.status, 202);
   assert.equal(events.length, 1);
-  assert.equal(events[0].state.phase, "active");
+  assert.equal(events[0].type, "character-state");
+  assert.equal(events[0].state, "working");
+  assert.equal(events[0].ttl_ms, 4000);
+});
+
+test("bridge rejects invalid character-state payloads", async (context) => {
+  const events = [];
+  const bridge = createBridgeServer({
+    port: 0,
+    onEvent: (event) => events.push(event),
+  });
+  const address = await bridge.listen();
+  context.after(() => bridge.close());
+
+  const body = JSON.stringify({
+    type: "character-state",
+    state: "",
+  });
+  const response = await requestServer(address, {
+    path: "/events",
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body,
+  });
+
+  assert.equal(response.status, 422);
+  assert.deepEqual(events, []);
 });
 
 test("bridge rejects non-JSON event bodies", async (context) => {

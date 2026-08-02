@@ -651,3 +651,85 @@ test("set_character_state applies presentation state and reports errors", async 
     await bridge.close().catch(() => {});
   }
 });
+
+test("show_message reports displayed, disabled, and invalid results", async () => {
+  const requests = [];
+  const mcpHandler = createVoxAvatarMcpHandler({
+    onAnimation: () => {},
+    onWindowAction: () => true,
+    getStatus: () => ({
+      windowVisible: true,
+      voiceState: {
+        activity: "idle",
+        microphoneMuted: false,
+        outputMuted: false,
+        phase: "inactive",
+      },
+      listener: {
+        available: true,
+        capturing: false,
+        monitoring: false,
+        source: null,
+      },
+    }),
+    getAnimations: () => [],
+    onShowMessage: (input, meta) => {
+      requests.push({ input, meta });
+      if (input.text === "blocked") {
+        return { displayed: false, error: "agent_messages_disabled" };
+      }
+      if (input.text === "bad") {
+        return { displayed: false, error: "invalid_message" };
+      }
+      return {
+        displayed: true,
+        mood: input.mood ?? "neutral",
+        duration_ms: input.duration_ms ?? 4000,
+      };
+    },
+  });
+  const bridge = createBridgeServer({
+    port: 0,
+    onEvent: () => {},
+    mcpHandler,
+  });
+  const address = await bridge.listen();
+  const client = new Client({ name: "voxavatar-message-test", version: "1.0.0" });
+  const transport = new StreamableHTTPClientTransport(
+    new URL(`http://127.0.0.1:${address.port}/mcp`),
+  );
+  try {
+    await client.connect(transport);
+    const tools = await client.listTools();
+    assert.ok(tools.tools.some((tool) => tool.name === "show_message"));
+
+    const ok = parseToolPayload(
+      await client.callTool({
+        name: "show_message",
+        arguments: { text: "完成！", duration_ms: 3000, mood: "cheerful" },
+      }),
+    );
+    assert.equal(ok.schema_version, TOOLS_SCHEMA_VERSION);
+    assert.equal(ok.displayed, true);
+    assert.equal(requests[0].input.text, "完成！");
+    assert.ok(requests[0].meta.sessionId);
+
+    const disabled = await client.callTool({
+      name: "show_message",
+      arguments: { text: "blocked" },
+    });
+    assert.equal(disabled.isError, true);
+    assert.equal(parseToolPayload(disabled).error, "agent_messages_disabled");
+
+    const invalid = await client.callTool({
+      name: "show_message",
+      arguments: { text: "bad" },
+    });
+    assert.equal(invalid.isError, true);
+    assert.equal(parseToolPayload(invalid).error, "invalid_message");
+  } finally {
+    await client.close().catch(() => {});
+    await mcpHandler.close().catch(() => {});
+    await bridge.close().catch(() => {});
+  }
+});

@@ -77,4 +77,26 @@ describe('SettingsMcpSection', () => {
     button.click();
     expect(copyDiagnosticSummary).toHaveBeenCalledTimes(1);
   });
+
+  it('toggles agent show_message opt-in', async () => {
+    const onToggleMcpShowMessage = vi.fn();
+    render(
+      <SettingsMcpSection
+        copyText={vi.fn(async () => undefined)}
+        mcpHealth="online"
+        mcpLoading={false}
+        mcpServerUrl="http://127.0.0.1:47831/mcp"
+        mcpSetupCommand="codex mcp add voxavatar --url http://127.0.0.1:47831/mcp"
+        mcpShowMessageEnabled={false}
+        mcpStatus={null}
+        onToggleMcpShowMessage={onToggleMcpShowMessage}
+        refreshMcpStatus={vi.fn(async () => undefined)}
+        t={(key, vars) => settingsT('zh-TW', key, vars)}
+      />,
+    );
+
+    const toggle = screen.getByRole('switch');
+    toggle.click();
+    expect(onToggleMcpShowMessage).toHaveBeenCalledWith(true);
+  });
 });

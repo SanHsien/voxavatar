@@ -2,11 +2,19 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.13 - 2026-08-02
+
+- 鎖定 `assign-vrma-by-filename`／`import-action-pack` IPC 回傳形狀（cancel／skip／confirm／assign）。
+- MCP `show_message` callTool 契約；HTTP `POST /events` character-state 接受／拒絕。
+- Appearance 語系／主題、確認對話 Escape／backdrop／忙碌、Voice application 模式、MCP agent 訊息開關互動測。
+- `secureRendererWindow` 外開拒絕與導航阻擋；avatar preload 訂閱／視窗 API 契約。
+
 ## 0.16.12 - 2026-08-02
 
 - 補齊可自動驗證的 review／路線圖契約：schema 10→11 migration fixture；未分類池改名／刪除／移回池 store 測；settings IPC handler 轉發；native typed exit／NDJSON code 10–13 矩陣。
 - 抽出系統匣頂層選單與 Speaking 第二層 bone 套用為可測純邏輯；設定進度顯示條件、動作頁／模型匯入／action-pack 複製範例補 jsdom 互動測。
 - 同步 DEVELOPMENT／CHARACTER_BEHAVIOR／ROADMAP；診斷摘要 complete 路徑斷言。
+- 批次發布 GitHub Release `v0.16.12`（installer＋SHA256）；刪除舊 `v0.16.8`。
 
 ## 0.16.11 - 2026-08-02
 

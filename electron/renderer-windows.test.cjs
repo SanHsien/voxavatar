@@ -73,3 +73,52 @@ test("settingsWindowBackground resolves known themes", () => {
   assert.equal(settingsWindowBackground("light"), "#e6e8ec");
   assert.equal(settingsWindowBackground("unknown"), "#0d0e12");
 });
+
+test("secureRendererWindow denies window.open and blocks foreign navigation", () => {
+  const opened = [];
+  const { secureRendererWindow, rendererUrl } = createTestRendererWindows({
+    shell: {
+      openExternal: (url) => {
+        opened.push(url);
+      },
+    },
+    isAllowedRendererNavigation: (target, allowed) => target === allowed,
+  });
+  const handlers = {
+    open: null,
+    navigate: null,
+  };
+  const fakeWindow = {
+    webContents: {
+      setWindowOpenHandler: (handler) => {
+        handlers.open = handler;
+      },
+      on: (eventName, handler) => {
+        if (eventName === "will-navigate") handlers.navigate = handler;
+      },
+    },
+  };
+  const allowed = rendererUrl();
+  secureRendererWindow(fakeWindow, allowed);
+
+  assert.deepEqual(handlers.open({ url: "https://example.com/docs" }), {
+    action: "deny",
+  });
+  assert.deepEqual(opened, ["https://example.com/docs"]);
+
+  let prevented = false;
+  handlers.navigate(
+    {
+      preventDefault: () => {
+        prevented = true;
+      },
+    },
+    "https://evil.example/path",
+  );
+  assert.equal(prevented, true);
+  assert.ok(opened.includes("https://evil.example/path"));
+
+  prevented = false;
+  handlers.navigate({ preventDefault: () => { prevented = true; } }, allowed);
+  assert.equal(prevented, false);
+});

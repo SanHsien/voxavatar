@@ -60,4 +60,51 @@ describe('SettingsVoiceSection interaction', () => {
     rerender(<SettingsVoiceSection {...baseProps} voiceMode="external" />);
     expect(screen.queryByTestId('voice-output-privacy')).toBeNull();
   });
+
+  it('selects application voice mode from the segmented control', async () => {
+    const user = userEvent.setup();
+    const setVoiceMode = vi.fn();
+    render(
+      <SettingsVoiceSection
+        bridge={
+          { get: vi.fn() } as unknown as NonNullable<
+            Window['voxavatarSettings']
+          >
+        }
+        busy={false}
+        chooseApplicationSource={vi.fn()}
+        chooseVoiceMode={vi.fn()}
+        copyText={vi.fn()}
+        listenerStateKey="helper.state.idle"
+        listenerStatus={null}
+        refreshVoiceSources={vi.fn()}
+        saveCustomVoiceSource={vi.fn()}
+        selectedVoiceSourceAvailable={false}
+        setVoiceMode={setVoiceMode}
+        setVoicePattern={vi.fn()}
+        setVoiceSourceSearch={vi.fn()}
+        settings={{
+          ...SETTINGS_FALLBACK,
+          voice_source: {
+            mode: 'output',
+            process_pattern: null,
+            source_id: null,
+            source_name: null,
+          },
+        }}
+        t={(key, vars) => settingsT('zh-TW', key, vars)}
+        visibleVoiceSources={[]}
+        voiceCatalog={null}
+        voiceHeading="語音"
+        voiceMode="output"
+        voicePattern=""
+        voiceSourceDirty={false}
+        voiceSourceSearch=""
+        voiceSourcesLoading={false}
+      />,
+    );
+
+    await user.click(screen.getByTestId('voice-mode-application'));
+    expect(setVoiceMode).toHaveBeenCalledWith('application');
+  });
 });

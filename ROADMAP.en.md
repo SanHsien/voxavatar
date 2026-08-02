@@ -3,20 +3,20 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `v0.13.4` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `v0.13.5` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
 ## Current health
 
-Review baseline: `v0.13.4` / `main`; GitHub Latest Release: `v0.13.0`
+Review baseline: `v0.13.5` / `main`; GitHub Latest Release: `v0.13.0`
 
-No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). Roadmap focus is **v0.14**. `main` tip `0.13.4` includes settings action UX and agent-entry clarification (no extra tag).
+No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). Roadmap focus is **v0.14**. `main` tip `0.13.5` includes the voice output privacy-warning display fix (no extra tag).
 
 - Latest Release: `v0.13.0`; `main` tip is `0.13.x`.
 - Upstream: commit watermark `cf27d12`; open PR #16 / issue #13 are macOS (skip); issue #11 first-run avatar docs already covered.
 - MCP tools: 5 (including opt-in `show_message`); state-event normalize ready, state tools not wired yet.
-- Settings: after creating a custom action, add any number of VRMA clips on its card; Edit opens an in-card form for details.
+- Settings: custom actions support multi-clip VRMA on cards; output-device privacy warning follows the current UI selection immediately.
 
 Still open: system state-slot UI; MCP state tools; action-pack import pipeline; App/Settings jsdom integration; precise head projection, DPI/30%/Idle long-run on real hardware; installer signing and Windows GUI smoke (unverified without keys/desktop).
 

@@ -140,8 +140,7 @@ export function SettingsVoiceSection({
                 </div>
               </section>
 
-              {(voiceMode === 'output' ||
-                settings.voice_source.mode === 'output') && (
+              {voiceMode === 'output' && (
                 <section
                   className="settings-panel voice-privacy-panel"
                   data-testid="voice-output-privacy"

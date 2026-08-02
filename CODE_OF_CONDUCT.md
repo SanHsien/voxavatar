@@ -1,101 +1,26 @@
-# Persona Community Code of Conduct
+# 行為準則
 
-## Our commitment
+> English: [`CODE_OF_CONDUCT.en.md`](CODE_OF_CONDUCT.en.md)
 
-Persona's community should be welcoming, constructive, and safe for everyone.
-Maintainers and contributors commit to treating people fairly regardless of
-identity, background, experience, ability, appearance, beliefs, or personal
-circumstances.
+VoxAvatar 希望 issue、pull request 與其他專案互動保持友善、專業且可合作。
 
-Participation should strengthen a thoughtful, collaborative community where
-people can ask questions, offer ideas, make mistakes, and improve their work
-without harassment or humiliation.
+## 期待行為
 
-## Expected conduct
+- 尊重不同背景、經驗、語言與觀點。
+- 對事不對人，提供可重現證據與具體建議。
+- 接受善意修正，清楚揭露限制與不確定性。
+- 保護他人的個資、帳號資訊與未公開漏洞。
+- 尊重角色、模型、動作及其他創作的授權與署名。
 
-Community members are expected to:
+## 不可接受行為
 
-- communicate with empathy, patience, and respect;
-- discuss ideas and code without attacking the person presenting them;
-- give specific, actionable feedback and receive it in good faith;
-- acknowledge mistakes, repair harm where possible, and learn from feedback;
-- respect privacy, consent, attribution, and intellectual-property rights; and
-- prioritize the health of the project and community over winning an argument.
+- 騷擾、歧視、威脅、人身攻擊或持續挑釁。
+- 公開他人個資、憑證、私人對話或未修補漏洞。
+- 提交或要求散布侵權、未授權或來源不明的 VRM／VRMA。
+- 冒充他人、誤導驗證結果，或蓄意破壞專案服務。
 
-Unacceptable conduct includes:
+## 執行
 
-- harassment, intimidation, threats, stalking, or sustained disruption;
-- discriminatory, sexualized, insulting, or demeaning language or imagery;
-- personal attacks, deliberate misgendering, or unwelcome attention;
-- publishing another person's private information without permission;
-- encouraging others to engage in prohibited conduct; and
-- retaliation against someone who raises a concern or participates in a
-  review.
+維護者可編輯、隱藏或移除違規內容，並視情況警告、暫停或永久限制參與。敏感事件可透過 [GitHub 私人回報](https://github.com/SanHsien/voxavatar/security/advisories/new) 聯絡維護者；緊急人身安全事件請使用所在地的正式支援管道。
 
-Good-faith technical disagreement is welcome. Repeated hostility, bad-faith
-argument, and conduct intended to drive someone away are not.
-
-## Scope
-
-This code applies to issues, pull requests, reviews, discussions, release
-channels, and other spaces managed by the Persona project. It also applies
-when someone is publicly representing Persona or acting with project-granted
-authority.
-
-Behavior outside project spaces may be considered when it directly threatens
-the safety of participants or the integrity of the community.
-
-## Reporting
-
-Report conduct concerns privately through
-[Persona's private reporting form](https://github.com/xikhar/persona/security/advisories/new).
-Begin the report title with `Code of Conduct` and include:
-
-- what happened and where;
-- links, screenshots, or other relevant context;
-- whether the behavior is continuing; and
-- any immediate safety or privacy concern.
-
-Although GitHub presents this channel as a security-advisory form, Persona uses
-it for conduct reports so sensitive details are not placed in a public issue.
-Conduct reports will not be published as security advisories.
-
-Do not post sensitive conduct reports publicly. If a report concerns the
-repository owner, or requires action against GitHub-hosted content or an
-account, use [GitHub's private abuse-reporting
-channel](https://support.github.com/contact/report-abuse) instead.
-
-Reports will be reviewed as promptly and impartially as practical. Information
-will be shared only with people needed to investigate and respond. Reporters,
-witnesses, and subjects of a report will be treated with appropriate privacy
-and care.
-
-## Enforcement
-
-Project maintainers are responsible for clarifying and enforcing these
-standards. They may edit or remove contributions, comments, commits, issues,
-or other material that violates this code, and may restrict participation when
-necessary.
-
-Responses will consider context, severity, impact, history, and willingness to
-repair harm. Possible outcomes include:
-
-1. **Correction:** Private guidance for a minor or apparently accidental
-   problem, with a request to correct the behavior.
-2. **Warning:** A documented warning and conditions for continued
-   participation after a clear or repeated violation.
-3. **Temporary restriction:** A time-limited pause from project interaction
-   after serious conduct or continued violations.
-4. **Permanent restriction:** Removal from project spaces after severe abuse,
-   retaliation, or an established pattern of harmful behavior.
-
-Retaliation, evading a restriction, or contacting affected people against
-enforcement instructions may result in a stronger response.
-
-## Attribution
-
-This code is adapted from the
-[Contributor Covenant, version 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html).
-Its enforcement structure is informed by the Contributor Covenant's community
-impact guidelines.
-
+本準則適用於所有 VoxAvatar 專案空間，以及代表本專案公開互動的場合。

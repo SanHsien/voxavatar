@@ -34,7 +34,7 @@ describe('commanded body animation priority', () => {
     const override: BodyAnimationOverride = {
       animation: 'CUSTOM',
       animationName: 'wave-hello',
-      animationUrls: ['persona-asset://animation/wave-hello.vrma'],
+      animationUrls: ['voxavatar-asset://animation/wave-hello.vrma'],
       requestId: 3,
     };
 

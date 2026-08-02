@@ -40,6 +40,22 @@ function normalizeEvent(value) {
       animationName: value.animation_name,
     };
   }
+  if (
+    value?.type === "character-state" &&
+    typeof value.state === "string" &&
+    value.state.trim()
+  ) {
+    const ttlRaw = value.ttl_ms ?? value.ttlMs;
+    const sourceRaw = value.source_id ?? value.sourceId;
+    return {
+      type: "character-state",
+      state: value.state.trim(),
+      ...(ttlRaw != null ? { ttl_ms: ttlRaw } : {}),
+      ...(typeof sourceRaw === "string" && sourceRaw.trim()
+        ? { source_id: sourceRaw.trim().slice(0, 64) }
+        : {}),
+    };
+  }
   return null;
 }
 
@@ -60,6 +76,15 @@ function hostAllowed(hostHeader) {
   } catch {
     return false;
   }
+}
+
+function hasJsonContentType(request) {
+  const contentType = request.headers["content-type"];
+  const value = Array.isArray(contentType) ? contentType[0] : contentType;
+  return (
+    typeof value === "string" &&
+    value.split(";", 1)[0].trim().toLowerCase() === "application/json"
+  );
 }
 
 function jsonRpcError(response, status, code, message) {
@@ -140,6 +165,10 @@ function createBridgeServer({
         response.end();
         return;
       }
+      if (request.method === "POST" && !hasJsonContentType(request)) {
+        jsonRpcError(response, 415, -32600, "Content-Type must be application/json");
+        return;
+      }
       const body =
         request.method === "POST"
           ? readJsonBody(request)
@@ -172,6 +201,12 @@ function createBridgeServer({
 
     if (request.method !== "POST" || request.url !== "/events" || !originAllowed(origin)) {
       response.writeHead(404);
+      response.end();
+      return;
+    }
+
+    if (!hasJsonContentType(request)) {
+      response.writeHead(415);
       response.end();
       return;
     }
@@ -224,6 +259,7 @@ function createBridgeServer({
 module.exports = {
   DEFAULT_PORT,
   createBridgeServer,
+  hasJsonContentType,
   hostAllowed,
   isVoiceState,
   normalizeEvent,

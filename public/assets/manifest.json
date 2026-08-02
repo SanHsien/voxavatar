@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "distributionAllowed": false,
-  "notice": "Character media is intentionally not committed. Add redistributable files and complete all license metadata before publishing Persona.",
+  "distributionAllowed": true,
+  "notice": "No packaged VRM models or Idle VRMA clips. Users import their own .vrm / .vrma. Official VRoid BOOTH motions are local-import only (see ASSET_LICENSES.md).",
   "assets": []
 }

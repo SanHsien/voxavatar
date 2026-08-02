@@ -33,7 +33,7 @@ test("NDJSON parser buffers partial messages and rejects malformed lines", () =>
   assert.deepEqual(invalid, ["not-json"]);
 });
 
-test("resolves development and packaged helper locations on both native platforms", () => {
+test("resolves development and packaged Windows helper locations", () => {
   assert.equal(
     resolveNativeHelperPath({
       platform: "win32",
@@ -41,7 +41,7 @@ test("resolves development and packaged helper locations on both native platform
       isPackaged: true,
       resourcesPath: "C:\\resources",
     }),
-    "C:\\resources\\native\\win32\\persona-audio-listener.exe",
+    "C:\\resources\\native\\win32\\voxavatar-audio-listener.exe",
   );
   assert.equal(
     resolveNativeHelperPath({
@@ -49,16 +49,9 @@ test("resolves development and packaged helper locations on both native platform
       projectRoot: "C:\\project",
       isPackaged: false,
     }),
-    "C:\\project\\native\\bin\\win32\\persona-audio-listener.exe",
+    "C:\\project\\native\\bin\\win32\\voxavatar-audio-listener.exe",
   );
-  assert.equal(
-    resolveNativeHelperPath({
-      platform: "darwin",
-      projectRoot: "/project",
-      isPackaged: false,
-    }),
-    "/project/native/bin/darwin/persona-audio-listener",
-  );
+  assert.equal(resolveNativeHelperPath({ platform: "darwin" }), null);
 });
 
 test("native listener activates on audio, smooths speech, and never hides the window", async () => {
@@ -67,7 +60,7 @@ test("native listener activates on audio, smooths speech, and never hides the wi
   const statuses = [];
   const child = fakeChild();
   const listener = new NativeProcessAudioListener({
-    platform: "darwin",
+    platform: "win32",
     helperPath: __filename,
     processDiscovery: async () => ({ pids: [10, 11], rootPids: [10] }),
     spawnProcess: () => child,
@@ -97,7 +90,7 @@ test("native listener cannot attach after it is stopped during discovery", async
   let finishDiscovery;
   let spawnCount = 0;
   const listener = new NativeProcessAudioListener({
-    platform: "darwin",
+    platform: "win32",
     helperPath: __filename,
     processDiscovery: () =>
       new Promise((resolve) => {
@@ -115,4 +108,104 @@ test("native listener cannot attach after it is stopped during discovery", async
   await starting;
 
   assert.equal(spawnCount, 0);
+});
+
+test("native listener skips full discovery on sticky alive PID", async () => {
+  let discoveryCount = 0;
+  const child = fakeChild();
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    minPollIntervalMs: 20,
+    maxPollIntervalMs: 40,
+    fullDiscoveryMaxAgeMs: 10_000,
+    processDiscovery: async () => {
+      discoveryCount += 1;
+      return { pids: [10], rootPids: [10] };
+    },
+    pidAlive: () => true,
+    spawnProcess: () => child,
+  });
+
+  await listener.start();
+  assert.equal(discoveryCount, 1);
+  await listener.poll();
+  assert.equal(discoveryCount, 1);
+  listener.stop();
+});
+
+test("native listener prefers a sticky root when multiple roots appear", async () => {
+  const spawned = [];
+  const first = fakeChild();
+  const second = fakeChild();
+  let round = 0;
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    fullDiscoveryMaxAgeMs: 0,
+    processDiscovery: async () => {
+      round += 1;
+      return round === 1
+        ? { pids: [20, 10], rootPids: [20, 10] }
+        : { pids: [10, 20], rootPids: [10, 20] };
+    },
+    pidAlive: () => false,
+    spawnProcess: () => {
+      const child = spawned.length === 0 ? first : second;
+      spawned.push(child);
+      return child;
+    },
+  });
+
+  await listener.start();
+  assert.equal(listener.captureKey, "10");
+  await listener.poll();
+  assert.equal(listener.captureKey, "10");
+  assert.equal(spawned.length, 1);
+  listener.stop();
+});
+
+test("native listener maps typed exit codes to helper_error", async () => {
+  const statuses = [];
+  const child = fakeChild();
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    processDiscovery: async () => ({ pids: [10], rootPids: [10] }),
+    spawnProcess: () => child,
+    onStatus: (status) => statuses.push(status),
+  });
+
+  await listener.start();
+  child.emit("exit", 10, null);
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  const last = statuses.at(-1);
+  assert.equal(last.helper_error, "native_helper_com_error");
+  assert.equal(last.state, "launch_failed");
+  listener.stop();
+});
+
+test("native listener maps NDJSON error code to device helper_error", async () => {
+  const statuses = [];
+  const child = fakeChild();
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    processDiscovery: async () => ({ pids: [10], rootPids: [10] }),
+    spawnProcess: () => child,
+    onStatus: (status) => statuses.push(status),
+  });
+
+  await listener.start();
+  child.stdout.emit(
+    "data",
+    '{"type":"error","code":12,"message":"No playback device"}\n',
+  );
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  const last = statuses.at(-1);
+  assert.equal(last.helper_error, "native_helper_device_error");
+  assert.equal(last.state, "no_output");
+  listener.stop();
 });

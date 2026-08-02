@@ -1,161 +1,119 @@
-# Developing Persona
+# 開發 VoxAvatar
 
-## Architecture
+## 技術基線
 
-Persona has four intentionally narrow layers:
+- Windows 10 build 20348+／Windows 11 x64
+- Node.js 24+ 與 npm
+- Electron、Vite、React、TypeScript、Three.js、`@pixiv/three-vrm`
 
-1. Native listeners discover a supported voice process and calculate a
-   normalized output level.
-2. The Electron main process owns lifecycle, window behavior, tray commands,
-   URL handling, the local adapter, and Persona's MCP controls.
-3. The sandboxed preload exposes only normalized Persona events and narrow
-   settings operations.
-4. React and Three.js render the model, blend VRMA motion, and drive VRM
-   expressions.
+Visual Studio Build Tools 與「使用 C++ 的桌面開發」工作負載只用於編譯 WASAPI helper 與本機安裝包。一般 UI、設定、MCP、文件與 JavaScript／TypeScript 工作不需要安裝；正式 native／installer gate 由 GitHub Windows runner 執行。
 
-No renderer code has filesystem, process, or raw-audio access.
+## 架構
 
-## Settings and local media
-
-`public/assets/library.json` declares the immutable library shipped with the
-application. It contains packaged models plus animation action names,
-descriptions, trigger scenarios, runtime types, and media paths. The release asset validator
-derives its expected media from this catalog instead of a second hard-coded
-list.
-
-The active catalog contains the permanent Idle and Speaking action slots but
-declares no character media during first-run development.
-`library.json.example` and `manifest.json.example` are complete, directly
-copyable examples for the ignored local test media. Packaged models live under
-`public/assets/models/` and animations under `public/assets/animations/`. When
-a non-empty catalog omits an explicit default, its first model becomes active.
-
-`electron/settings-store.cjs` owns the mutable per-user library and merges it
-with the packaged catalog. Animation actions and their VRMA clips are separate
-records: an action owns MCP metadata and can contain multiple numbered clips.
-The renderer sends metadata through the sandboxed preload, the main process
-opens the native multi-file picker, validates every selected glTF 2 binary, and
-copies it under Electron's per-user application-data directory.
-
-User media is exposed to renderers through the locked `persona-asset:`
-protocol. Requests resolve only IDs already present in the settings store; a
-renderer cannot turn the protocol into an arbitrary local-file reader.
-
-Packaged files are never mutated. Editing packaged action metadata creates a
-copy-on-write override, and removing one creates a user-level visibility
-tombstone. Resetting packaged actions clears only those overrides and
-tombstones; user-created actions and uploaded clips remain unchanged. Idle and
-Speaking cannot be edited or removed, but users can add or remove their local
-clips.
-
-The store returns one active snapshot containing the default model, character
-size, merged model records, merged action records with clip collections, and the
-configured voice source. Only actions with at least one playable clip appear in
-the MCP tool description and animation listing. Catalog changes refresh
-connected MCP sessions immediately, while every animation request is validated
-against the current store snapshot. Keep the catalog, store, MCP, and
-asset-contract tests in sync when adding fields or changing validation.
-
-An empty packaged catalog is a supported first-run state. The application opens
-Settings and does not create the avatar window or start the audio listener until
-the merged snapshot has a valid `default_model_id`. Importing the first user
-model selects it automatically. Empty Idle or Speaking actions use an empty
-animation URL list, which leaves the VRM in its normal pose.
-
-## MCP contract
-
-`electron/mcp-server.cjs` owns the Codex-facing tool schemas and translates
-validated tool calls into narrow main-process callbacks. It does not receive
-the Electron application object, renderer access, arbitrary animation paths, or
-shell execution.
-
-The loopback server creates a stateful Streamable HTTP transport when a client
-initializes an MCP session, then routes subsequent `POST`, `GET`, and `DELETE`
-requests by session ID. Active sessions receive tool-list change notifications
-when the playable action catalog changes. New sessions always discover the
-latest catalog, and `play_animation` checks the live store again when invoked.
-MCP shares the existing local integration port rather than opening another
-listener.
-
-When extending the server:
-
-- prefer a small product action over exposing an internal Electron primitive;
-- validate every argument with a bounded schema and, where applicable, the
-  current settings catalog;
-- mark read-only and side-effecting tools accurately;
-- keep the server instructions self-contained; and
-- add a protocol-level client test for discovery, valid calls, and rejected
-  input.
-
-## Listener contract
-
-All operating systems implement:
-
-- `onSession(active)` for coarse lifecycle;
-- `onActivity("listening" | "speaking")`;
-- `onLevel(0..1)` for lip movement; and
-- `onStatus(...)` for diagnostics.
-
-`AudioActivityGate` owns the shared short-silence behavior. Lips follow every
-level immediately. The body remains in its talking motion for 900 ms of silence
-before returning to listening, preventing sentence gaps from causing abrupt
-animation changes.
-
-Target process matching is shared through `electron/voice-source.cjs`. Settings
-stores a default ChatGPT/Codex mode or a custom regex; `PERSONA_TARGET_PROCESS_PATTERN`
-overrides that value when set. Linux PipeWire identity matching and
-macOS/Windows process discovery both consume the resolved pattern so a Voice
-source change behaves the same on every platform. Changing the setting recreates
-the active listener immediately.
-
-Linux implements the contract directly with PipeWire commands. macOS and
-Windows helpers write newline-delimited JSON to stdout:
-
-```json
-{"type":"ready","source":"Windows process audio"}
-{"type":"level","level":0.21}
+```text
+Windows 應用程式播放輸出
+        │ WASAPI process loopback（只取音量）
+        ▼
+voxavatar-audio-listener.exe
+        │ NDJSON
+        ▼
+Electron main ── 設定／系統匣／MCP／HTTP／protocol
+        │ sandboxed、context-isolated preload bridge
+        ▼
+React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 ```
 
-## Commands
+安全界線：main process 處理檔案、process discovery 與網路 listener；renderer 保持 sandbox、context isolation、無 Node integration。使用者媒體只透過登記 ID 的 `voxavatar-asset:` protocol 進入 renderer。avatar 與 settings 使用不同 preload（`preload-avatar.cjs`／`preload-settings.cjs`）；設定寫入 IPC 另驗 settings 視窗 webContents。
 
-```bash
-npm run lint
-npm test
-npm run assets:check
-npm run build
+## 目錄
+
+| 路徑 | 用途 |
+| --- | --- |
+| `electron/` | main、preload-avatar／preload-settings、設定、MCP／HTTP、語音來源與 Node tests |
+| `src/` | React／Three.js renderer、動作邏輯與 Vitest |
+| `native/windows/` | WASAPI process-loopback C++ helper |
+| `scripts/` | 原生 build、自測、資產／文件／版本／checksum 驗證 |
+| `public/assets/` | UI 圖示、打包 catalog 與授權 manifest；預設不含 VRM／VRMA |
+| `docs/` | 架構、整合、動作、決策與發行文件 |
+| `.github/` | CI、CodeQL、Dependabot、Release 與貢獻模板 |
+
+## 本機開發
+
+```powershell
+npm ci
+npm run dev
+```
+
+`npm run dev` 同時啟動 Vite 與 Electron。未編譯 `native/bin/win32/voxavatar-audio-listener.exe` 時，UI、設定、素材與 MCP 仍可開發，但 application-loopback 語音 listener 會顯示不可用。`npm run demo` 先建立 production renderer 再啟動桌面程式。使用本機 catalog 範例時，複製 `public/assets/library.json.example` 與 `manifest.json.example`，但不要提交測試媒體。
+
+需要完整語音路徑或本機 installer 時：
+
+```powershell
 npm run native:build
 npm run native:test
+npm run dist:windows
 ```
 
-`npm run check` runs the platform-neutral checks together.
+## 驗證矩陣
 
-The native build command:
+| 指令 | 內容 |
+| --- | --- |
+| `npm run lint` | ESLint |
+| `npm run docs:check` | Markdown 本機連結、控制字元、檔尾與舊 MCP 名稱 |
+| `npm test` | Electron／scripts Node tests + renderer Vitest |
+| `npm run assets:check` | 開發用 catalog／manifest 契約 |
+| `npm run assets:release` | 發行資產授權 fail-closed gate |
+| `npm run audit:production` | production dependency audit |
+| `npm run build` | TypeScript + Vite production build |
+| `npm run native:build` | 編譯 Windows helper |
+| `npm run native:test` | helper self-test 與 Usage=2 typed exit 斷言 |
+| `npm run baseline:bundle` | 產生／對照 renderer bundle 基準（可選） |
+| `npm run baseline:startup` | 量測 main process 關鍵模組 require 耗時（可選） |
+| `npm run check` | 非原生的完整日常 gate |
+| `npm run dist:windows` | 原生 build／test + NSIS 安裝包 |
 
-- does nothing on Linux because the runtime uses installed PipeWire commands;
-- compiles Objective-C++ against Core Audio on macOS; and
-- locates Visual Studio Build Tools and compiles C++ against WASAPI on Windows.
+## 效能基準（本地）
 
-Linux packaging detects NixOS and runs `fpm` from `nixpkgs#fpm`, avoiding the
-upstream bundled FPM wrapper's `/bin/bash` assumption. Other distributions use
-electron-builder's bundled packaging tool.
+以下腳本輸出至 gitignore 的 `release/`，供回歸對照；不等同於已填寫的 Windows 實機證據。
 
-## Test coverage
+### Bundle 基準
 
-The Node suite covers settings persistence and imported-media boundaries, MCP
-discovery and tool calls, the bridge boundary, URL protocol, Hyprland rules,
-PipeWire selection and PCM normalization, process discovery on macOS and
-Windows, native NDJSON parsing, shared pause smoothing, listener lifecycle,
-asset safety, and release checksums.
+```powershell
+npm run baseline:bundle
+```
 
-Vitest covers animation priority and configured animation selection. GitHub
-Actions then compiles and self-tests the native helper on its real operating
-system and builds the renderer on all three platforms.
+產生 `release/bundle-baseline.json`（main chunk、SettingsPage chunk、JS/CSS 總量）。若要與前次結果比較：
 
-Headless CI cannot create a real Codex voice call or approve operating-system
-audio permissions. Before a release, manually run the checklist in
-[RELEASING.md](RELEASING.md) on each platform.
+1. 將目前的 `release/bundle-baseline.json` 複製為 `release/bundle-baseline.prev.json`
+2. 修改程式或設定後再執行一次 `npm run baseline:bundle`
 
-## Native API references
+腳本會自動讀取 `release/bundle-baseline.prev.json`（或 `--compare <path>`），在 JSON 的 `comparison` 與 `guidance` 欄位輸出位元組增減與門檻建議（例如 main chunk 成長 >10% 且 SettingsPage 未相應縮小時提示 review）。
 
-- Apple: [Capturing system audio with Core Audio taps](https://developer.apple.com/documentation/coreaudio/capturing-system-audio-with-core-audio-taps)
-- Microsoft: [Application loopback audio capture](https://learn.microsoft.com/en-us/samples/microsoft/windows-classic-samples/applicationloopbackaudio-sample/)
+### 啟動基準（Node 軟體層）
+
+```powershell
+npm run baseline:startup
+```
+
+產生 `release/startup-baseline.json`，量測 main process 關鍵模組的 `require()` 耗時（settings-store、mcp-schemas、directory-import、app-readiness）。預設不包含 `npm run build`；需要時加 `--include-build`。
+
+**注意：** 此腳本不含 Electron GUI 冷啟動、Idle 長駐或記憶體量測；真機 cold-start／Idle／memory 基準屬 [`ROADMAP.md`](../ROADMAP.md) v0.14 Windows 驗收項。
+
+## 設定與環境變數
+
+| 變數 | 用途 |
+| --- | --- |
+| `VOXAVATAR_BRIDGE_PORT` | 覆寫 loopback MCP／HTTP port，預設 `47831` |
+| `VOXAVATAR_TARGET_PROCESS_PATTERN` | 覆寫自動／設定頁的目標播放行程比對 |
+| `VOXAVATAR_DEBUG=1` | 顯示 main process 診斷訊息；不得輸出音訊或敏感內容 |
+
+## 依賴維護
+
+Dependabot 每週檢查 npm 與 GitHub Actions。`scripts/dependabot-policy.cjs` 只允許 CI 直接覆蓋的開發工具與 workflow-only Actions minor／patch 自動合併；runtime、Electron／打包、React／Three.js／VRM、major 或範圍不明更新一律人工審查。
+
+## 修改原則
+
+- 行為變更先補回歸測試，再做最小實作。
+- 交易、MCP session、Electron IPC 與原生 process 生命週期不得用未驗證的並行捷徑。
+- 使用者可見變更同步更新 README、相關 docs 與 CHANGELOG。
+- 原生或安裝行為不能只靠 mock；至少完成 Windows build/self-test，Release 再做安裝版 smoke。

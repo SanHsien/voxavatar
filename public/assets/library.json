@@ -6,16 +6,16 @@
     {
       "id": "system-idle",
       "animation_name": "idle",
-      "animation_description": "A calm resting motion for the character.",
-      "animation_trigger_scenario": "Used automatically while Persona is waiting and not speaking.",
+      "animation_description": "待機動作槽。請自行匯入官方／BOOTH 等 .vrma；未匯入時角色維持預設姿勢。",
+      "animation_trigger_scenario": "角色等待且未說話時自動使用；有多段素材會隨機抽播。",
       "animation_type": "IDLE",
       "asset_paths": []
     },
     {
       "id": "system-speaking",
       "animation_name": "speaking",
-      "animation_description": "Natural conversational body movement while the character speaks.",
-      "animation_trigger_scenario": "Used automatically while supported voice output is active.",
+      "animation_description": "說話時的自然肢體動作。",
+      "animation_trigger_scenario": "偵測到支援的語音輸出時自動使用。",
       "animation_type": "TALK",
       "asset_paths": []
     }

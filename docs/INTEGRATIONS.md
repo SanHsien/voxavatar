@@ -1,192 +1,198 @@
-# Persona integrations
+# VoxAvatar 整合
 
-Persona accepts small state and level messages from local voice experiences.
-The character renderer never needs raw audio, transcripts, prompts, credentials,
-or host-application internals.
+所有整合預設只監聽 `127.0.0.1:47831`。不要以 port forwarding、reverse proxy 或防火牆規則把端點暴露到其他電腦。
 
-The bundled Codex and ChatGPT integration uses native process-scoped output
-listeners because those applications do not currently expose a supported
-cross-process realtime voice event stream. If an official event stream becomes
-available, it can map to the same contract without changing Persona's window or
-animation system.
+## MCP：目前已提供
 
-## Codex MCP server
+保持 VoxAvatar 桌面程式開啟，再註冊相容 MCP 用戶端。Codex：
 
-Persona serves a Streamable HTTP MCP endpoint while the app is running. Add it
-to Codex once:
-
-```bash
-codex mcp add persona --url http://127.0.0.1:47831/mcp
+```powershell
+codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 ```
 
-Start a new Codex session after registering the server. You can inspect the
-saved connection with:
+重新啟動用戶端或建立新 session 後可用：
 
-```bash
-codex mcp get persona
-```
-
-Persona exposes these tools:
-
-| Tool | Input | Effect |
+| 工具 | 輸入 | 行為 |
 | --- | --- | --- |
-| `play_animation` | `animation`: a playable configured action name | Shows Persona and plays one randomly selected clip from that action |
-| `list_animations` | None | Reads the latest playable action names, descriptions, and trigger scenarios |
-| `control_window` | `action`: `show`, `hide`, or `toggle` | Controls the Persona window without quitting the app |
-| `get_status` | None | Reads model readiness, window visibility, voice state, and listener status |
+| `list_animations` | 無 | 列出目前可播放動作、描述與觸發情境 |
+| `play_animation` | `animation`: 動作名稱 | 顯示角色並隨機播放該動作的一個片段 |
+| `control_window` | `action`: `show`／`hide`／`toggle` | 控制角色視窗；hide 不會結束程式 |
+| `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）、版本化 `readiness`，以及 `mcp_show_message_enabled`／`message_visible`（不含訊息文字） |
+| `show_message` | `text`；可選 `duration_ms`／`mood` | 在角色旁顯示短句氣泡（Settings 預設關閉；需 opt-in） |
+| `set_character_state` | `state`；可選 `ttl_ms` | 設定呈現狀態（idle／listening／speaking／working／reviewing／success／failed）；經 `normalizeExternalStateEvent`；`ttl_ms` 省略或 `0` 用狀態預設 TTL；session 斷線清除；依 Settings 狀態槽播動作 |
 
-The animation descriptions are generated from Persona's playable actions.
-Empty actions are omitted until a VRMA clip is added. User uploads, user edits
-to packaged metadata, removals, and packaged-action resets are reflected
-immediately through an MCP tool-list change notification. The
-`play_animation` input remains open to valid action names and checks the live
-library when invoked, so a client that does not refresh tool descriptions can
-still run an action added during the current session. No media paths or
-filesystem access are exposed.
+### Agent 應如何使用
 
-With no configured model, window and animation commands remain inactive.
-Persona can still report status while its Settings window is used for initial
-setup.
+MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情境；使用者不需要手動指定工具名稱。建議 agent 流程：
 
-An MCP-triggered action randomly selects one of its clips and temporarily takes
-priority over voice-driven body motion. Lip sync continues while the clip
-plays. A newer MCP action replaces the current one; when the one-shot clip
-finishes, Persona returns to the current idle, listening, or speaking state.
+1. 初次連線或失敗後先呼叫 `get_status`，依 `readiness.next_step` 說明缺少模型、語音來源或可選動作。
+2. 要做角色反應時先呼叫 `list_animations`，不要猜動作名稱。
+3. 依 `animation_trigger_scenario` 選最符合情境的動作，再呼叫 `play_animation`；同一回覆不要高頻重播。
+4. 長任務可用 `set_character_state`（例如 `working`／`success`／`failed`），不要從聊天內容臆測情緒。
+5. 只有使用者要求或角色被隱藏時才用 `control_window`；不要用反覆 toggle 代替讀取狀態。
+6. 短訊息先確認 Settings 已啟用 AI 訊息，再呼叫 `show_message`；以回傳 `displayed` 判定是否呈現。
+7. 工具失敗時讀結構化 `error`，提供可操作的修復方式，不宣稱已播放或已顯示。
 
-The MCP endpoint uses the same port as the local HTTP API. If
-`PERSONA_BRIDGE_PORT` changes it, update the URL registered with Codex to match.
+使用者可直接說：「檢查 VoxAvatar 是否就緒」、「列出適合打招呼的動作」、「播放 `wave-hello`」、「隱藏角色」或（啟用後）「在角色旁顯示：完成！」。`play_animation` 只控制身體動作；口型由播放音量驅動，MCP 不會合成語音。
 
-## Automatic listeners
+### AI 短訊息與浮動氣泡
 
-Listeners attach to the configured voice source (ChatGPT/Codex by default, or a
-custom process pattern from Settings / `PERSONA_TARGET_PROCESS_PATTERN`).
+`show_message` 讓已連線的本機 AI 把短句、Emoji 或顏文字顯示在角色旁。工具 description 要求：只用於使用者要求的短訊息或重要階段回饋，不傳長文、秘密、Markdown、連結或逐 token 串流。
 
-### Linux
+輸入範例：
 
-Persona polls the PipeWire graph for a playback node that matches the configured
-voice-source pattern. It attaches `pw-record` to that one stream, calculates RMS
-amplitude in memory, and discards every sample after calculation. The stream
-remains connected to its normal output device.
-
-### Windows
-
-The native helper uses WASAPI application loopback with
-`PROCESS_LOOPBACK_MODE_INCLUDE_TARGET_PROCESS_TREE`. Audio from other
-applications is excluded. Persona supports Windows 10 build 20348 and newer.
-
-### macOS
-
-The native helper creates a private, unmuted Core Audio process tap and private
-aggregate device for the selected voice process. Persona supports macOS 14.2
-and newer and declares why it requests System Audio Recording permission.
-
-Set `PERSONA_TARGET_PROCESS_PATTERN` to a case-insensitive regular expression
-to target another desktop voice application. This environment variable overrides
-the Voice source chosen in Settings:
-
-```bash
-PERSONA_TARGET_PROCESS_PATTERN='my-voice-app' persona
+```json
+{
+  "text": "完成！ (๑•̀ㅂ•́)و✧",
+  "duration_ms": 5000,
+  "mood": "cheerful"
+}
 ```
 
-## Voice source settings
+- `text`：必填純文字，最多 80 個 Unicode grapheme（清理後）。
+- `duration_ms`：選填，1000–15000；省略時預設約 4 秒。
+- `mood`：選填，`neutral`／`cheerful`／`thinking`／`warning`；只選既定樣式。
 
-Open **Settings → Voice** to choose which application Persona watches for
-automatic lip sync:
+成功結果含 `schema_version`、`displayed`、`message_id`、`expires_at`。錯誤碼：`agent_messages_disabled`、`invalid_message`、`rate_limited`、`avatar_unavailable`。
 
-- **ChatGPT / Codex** keeps the built-in matcher used by default.
-- **Custom pattern** accepts a case-insensitive regular expression matched
-  against process names and command lines on macOS and Windows, and against
-  PipeWire application identity (plus process ancestry) on Linux.
+安全與生命週期：Settings「允許已連接 AI 顯示訊息」預設關閉；每 session 與全域有速率限制；斷線清除該來源；訊息不進設定、歷史、診斷或完整 debug 內容 log。UI／狀態規則見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 
-Persona still calculates only an in-memory output level. It does not capture the
-microphone, run language models, transcribe speech, or send audio over the
-network.
+### Status／工具輸出 schema
 
-## Local models and voice pipelines
+所有 MCP 工具結果皆以 **JSON 文字** 回傳（`content[0].text` 為 `JSON.stringify` 結果）。請解析結構化欄位，並保留 `message` 供人類閱讀。
 
-Persona is a visual companion for voice experiences. Local models such as Qwen
-or GPT-OSS run in your own agent or inference stack; Persona animates beside
-them. Three supported shapes:
+| 常數 | 目前值 | 用途 |
+| --- | --- | --- |
+| `status_schema_version` | `2` | `get_status` 與設定頁 MCP 狀態區塊的外層 envelope |
+| `tools_schema_version` | `3` | 工具結果 envelope（含 `set_character_state`／`show_message`） |
+| `readiness.schema_version` | `1` | `get_status.readiness` 內嵌步驟語彙（`electron/app-readiness.cjs`） |
 
-1. **Process listen.** Point Settings → Voice at the desktop app that plays
-   assistant audio (for example a local TTS player or voice UI). Persona
-   attaches to that process the same way it attaches to ChatGPT or Codex.
-2. **Loopback events.** Have your pipeline POST normalized state and levels to
-   `http://127.0.0.1:47831/events`, or open `persona://speaking?level=…` URLs,
-   when speech starts and ends.
-3. **MCP actions.** Register any compatible MCP client against
-   `http://127.0.0.1:47831/mcp` so the agent can trigger configured animations
-   and window controls while audio still comes from (1) or (2).
+#### `get_status` 主要欄位
+
+- `status_schema_version`、`message`
+- `modelConfigured`、`windowVisible`、`voiceState`、`listener`
+- `readiness`：`complete`、`steps`、`next_step`、`listener_state`、`playable_actions` 等
+
+#### 其他工具主要欄位
+
+| 工具 | 結構化欄位 |
+| --- | --- |
+| `list_animations` | `schema_version`、`message`、`count`、`animations[]`（`animation_name`、`animation_description`、`animation_trigger_scenario`） |
+| `play_animation` | `schema_version`、`message`、`animation`、`played`；失敗時另有 `error`（`animation_not_playable` 或 `model_or_clips_missing`） |
+| `control_window` | `schema_version`、`message`、`action`、`visible` |
+| `show_message` | `schema_version`、`message`、`displayed`；可選 `message_id`／`expires_at`；失敗時 `error` |
+| `set_character_state` | `schema_version`、`message`、`applied`；可選 `state`／`expires_at`；失敗時 `error`（`invalid_state`／`invalid_ttl`／`avatar_unavailable`） |
+
+#### SemVer 相容政策
+
+- **同 MAJOR**（例如 `status_schema_version` 仍為 `2`、`tools_schema_version` 仍為 `3`）：可新增 optional 欄位；Agent 應忽略未知欄位。
+- **升 MAJOR**：移除欄位、改名或改變語意時必須 bump `status_schema_version` 或 `tools_schema_version`，並在 CHANGELOG 說明。
+- `readiness.schema_version` 獨立演進；變更時一併檢查 `get_status` 文件與整合測試。
+- Agent 應優先讀 `readiness.steps`、`listener.state`／`readiness.listener_state` 與工具 JSON 欄位，不要只解析 `message` 字串。
+
+`list_animations`／`play_animation` 以目前設定 catalog 為準；設定變更後既有 MCP session 會收到 `tools/list_changed` 並更新 `play_animation` 描述。高頻 `play_animation` 經有界佇列合併同名請求，避免 renderer 被淹沒。
+
+建議先呼叫 `list_animations`，再把回傳的小寫連字號名稱傳給 `play_animation`。
+
+### Streamable HTTP 用戶端 sketch
+
+VoxAvatar bridge 使用 MCP **Streamable HTTP**（非 stdio）。端點：`POST http://127.0.0.1:<port>/mcp`，初始化後後續請求需帶 `Mcp-Session-Id` header。
+
+Node.js（`@modelcontextprotocol/sdk`）最小流程：
+
+```javascript
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+const client = new Client({ name: "my-agent", version: "1.0.0" });
+const transport = new StreamableHTTPClientTransport(
+  new URL("http://127.0.0.1:47831/mcp"),
+);
+await client.connect(transport);
+
+const listed = await client.callTool({ name: "list_animations", arguments: {} });
+const catalog = JSON.parse(listed.content[0].text);
+
+const status = await client.callTool({ name: "get_status", arguments: {} });
+const snapshot = JSON.parse(status.content[0].text);
+```
+
+設定頁「整合 → MCP」會顯示 `server_url`、`setup_command` 與 `status_schema_version`／`tools_schema_version`。
+
+### 多個 MCP 用戶端
+
+- 同一 bridge 可同時承載多個 MCP session（預設上限 32）；各 session 獨立，共用同一 catalog 與 app 狀態。
+- 設定變更觸發 `notifyToolsChanged` 時，**所有** active session 都會收到工具列表更新。
+- Session 閒置超過 30 分鐘會被回收；超過上限時最舊 session 會被關閉。
+- VoxAvatar 結束或 MCP handler 關閉後，舊 `Mcp-Session-Id` 無效；請建立新 session，勿重複使用舊 ID。
+
+### 重新註冊與重連
+
+| 情境 | 建議做法 |
+| --- | --- |
+| VoxAvatar 重啟 | 重新 `codex mcp add` 或更新用戶端 URL；舊 session 必須重新 `initialize` |
+| 變更 `VOXAVATAR_BRIDGE_PORT` | 以新 port 更新環境變數、重啟 VoxAvatar，並用設定頁顯示的 `server_url` **重新註冊** MCP |
+| `get_status` 回 `mcp_unavailable` | 確認桌面程式已啟動；查 `/health` 與設定頁 MCP 狀態 |
+| `play_animation` 回 `model_or_clips_missing` | 匯入 VRM 並至少設定一個可播放 clip |
+| `play_animation` 回 `animation_not_playable` | 先 `list_animations` 取得最新 catalog |
+| 404 `MCP session not found` | Session 已過期或被關閉；重新 connect／initialize |
+| 工具 JSON 解析失敗 | 確認 VoxAvatar 版本與 `tools_schema_version`／`status_schema_version`（目前 MAJOR 為 `3`／`2`） |
+
+MCP 只控制視覺狀態，不會合成或播放語音。
+
+## 健康狀態
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:47831/health
+```
+
+成功時回傳 JSON，其中 `ok` 為 `true`。這只能證明 bridge 可連線，不代表已匯入模型、動作或選好語音來源；完整狀態請用 MCP `get_status`。
+
+## HTTP 事件 API
+
+`POST http://127.0.0.1:47831/events` 接受 VoxAvatar 定義的狀態、音量、動畫或角色狀態事件。請使用 `Content-Type: application/json`；bridge 會拒絕非 loopback Host、未允許來源、過大 body 與不合法 schema。
+
+支援的 `type`：
+
+| `type` | 主要欄位 | 行為 |
+| --- | --- | --- |
+| `state` | `state`（voice phase／activity） | 語音活動狀態 |
+| `audio-level` | `level`（0–1） | 外部口型音量 |
+| `animation` | `animation_name` | 播放已設定動作 |
+| `character-state` | `state`；可選 `ttl_ms`／`source_id` | 經 `normalizeExternalStateEvent`（`sourceKind: integration`）進入狀態仲裁 |
+
+若是一般 agent 整合，優先使用 MCP；HTTP API 適合已在本機產生明確狀態事件的 adapter，不是任意命令端點。
 
 ## URL protocol
 
-Installed packages register `persona://`.
+支援：
 
-| URL | Effect |
-| --- | --- |
-| `persona://show` | Show and focus Persona |
-| `persona://hide` | Hide Persona without quitting |
-| `persona://toggle` | Toggle visibility |
-| `persona://listening` | Begin a listening state |
-| `persona://thinking` | Settle the character while a response is prepared |
-| `persona://speaking?level=0.3` | Begin speaking and optionally set a level |
-| `persona://inactive` | End the voice state without hiding Persona |
-| `persona://animation?name=<animation-name>` | Play an active configured animation once |
-
-Open these URLs with `xdg-open` on Linux, `open` on macOS, or `start` on
-Windows.
-
-## Loopback HTTP API
-
-Persona listens on `127.0.0.1:47831` by default. Override the port with
-`PERSONA_BRIDGE_PORT`. Native clients may omit `Origin`; browser clients are
-restricted to trusted local and supported app origins. Requests with a
-non-loopback `Host` are rejected.
-
-Voice state:
-
-```json
-{
-  "type": "state",
-  "state": {
-    "phase": "active",
-    "activity": "speaking",
-    "microphoneMuted": false,
-    "outputMuted": false
-  }
-}
+```text
+voxavatar://show
+voxavatar://hide
+voxavatar://toggle
+voxavatar://listening
+voxavatar://thinking
+voxavatar://speaking?level=0.8
+voxavatar://inactive
+voxavatar://animation?name=wave-hello
 ```
 
-Allowed phases are `inactive`, `starting`, `active`, and `stopping`. Allowed
-activities are `idle`, `listening`, and `speaking`.
+PowerShell／Windows：
 
-Normalized level:
-
-```json
-{
-  "type": "audio-level",
-  "level": 0.31
-}
+```powershell
+Start-Process 'voxavatar://show'
 ```
 
-Configured animation action:
+`animation` 名稱必須已在本機設定且符合小寫字母、數字與單一連字號格式。
 
-```json
-{
-  "type": "animation",
-  "animation_name": "example-animation"
-}
-```
+## 自動語音輸出監聽
 
-The name must match a playable action in Persona's merged library.
+Windows helper 使用 WASAPI application loopback，只計算目標應用程式播放輸出的正規化音量。設定方式：
 
-Send events:
+1. VoxAvatar「設定 → 語音」選擇自動、特定應用程式、外部或進階 pattern。
+2. 或在啟動前設定 `VOXAVATAR_TARGET_PROCESS_PATTERN`；環境變數會覆寫介面選擇的**應用程式／自動／進階**目標（改走 pattern 比對，忽略已選 `source_id`）。`output`／`external` 模式不受此 pattern 覆寫。
+3. 不同 port 可用 `VOXAVATAR_BRIDGE_PORT` 覆寫，之後要用畫面顯示的新 URL 重新註冊 MCP。
+4. External 模式不啟動 WASAPI helper；`get_status.listener.state` 為 `external`，由 HTTP／MCP 餵入音量與狀態。
 
-```bash
-curl -H 'Content-Type: application/json' \
-  --data '{"type":"state","state":{"phase":"active","activity":"speaking","microphoneMuted":false,"outputMuted":false}}' \
-  http://127.0.0.1:47831/events
-```
-
-`GET /health` reports whether Persona is running and returns the last state. It
-does not expose user content.
+VoxAvatar 不監聽麥克風，不保存或傳送音訊樣本。

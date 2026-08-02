@@ -11,18 +11,18 @@ interface PackagedLibraryDocument {
     animation_name: string;
     animation_description: string;
     animation_trigger_scenario: string;
-    animation_type: PersonaAnimationType | null;
+    animation_type: VoxAvatarAnimationType | null;
     asset_paths: string[];
   }>;
 }
 
-const SYSTEM_ACTIONS: PersonaAnimationSettings[] = [
+const SYSTEM_ACTIONS: VoxAvatarAnimationSettings[] = [
   {
     id: 'system-idle',
     animation_name: 'idle',
     animation_description: 'A calm resting motion for the character.',
     animation_trigger_scenario:
-      'Used automatically while Persona is waiting and not speaking.',
+      'Used automatically while VoxAvatar is waiting and not speaking.',
     animation_type: 'IDLE',
     origin: 'packaged',
     system: true,
@@ -50,7 +50,7 @@ const SYSTEM_ACTIONS: PersonaAnimationSettings[] = [
   },
 ];
 
-export const DEFAULT_LIGHTING: PersonaLightingSettings = {
+export const DEFAULT_LIGHTING: VoxAvatarLightingSettings = {
   tone_mapping: 'none',
   exposure: 1,
   environment_enabled: true,
@@ -60,8 +60,8 @@ export const DEFAULT_LIGHTING: PersonaLightingSettings = {
 };
 
 export function resolveLightingSettings(
-  lighting?: Partial<PersonaLightingSettings> | null,
-): PersonaLightingSettings {
+  lighting?: Partial<VoxAvatarLightingSettings> | null,
+): VoxAvatarLightingSettings {
   return {
     tone_mapping:
       lighting?.tone_mapping ?? DEFAULT_LIGHTING.tone_mapping,
@@ -81,10 +81,11 @@ export function resolveLightingSettings(
   };
 }
 
-export const SETTINGS_FALLBACK: PersonaSettingsSnapshot = {
-  schema_version: 4,
+export const SETTINGS_FALLBACK: VoxAvatarSettingsSnapshot = {
+  schema_version: 9,
   default_model_id: null,
   character_size: 1,
+  ui_locale: 'zh-TW',
   packaged_animation_change_count: 0,
   models: [],
   animations: SYSTEM_ACTIONS,
@@ -92,7 +93,16 @@ export const SETTINGS_FALLBACK: PersonaSettingsSnapshot = {
   voice_source: {
     mode: 'default',
     process_pattern: null,
+    source_id: null,
+    source_name: null,
   },
+  vrma_quality_gate: 'strict',
+  vrma_quality_reject_below: 60,
+  vrma_quality_keep_at_least: 75,
+  vrma_report_dir: null,
+  idle_rest_ms: 8000,
+  mcp_show_message_enabled: false,
+  state_slot_bindings: {},
 };
 
 function packagedAssetUrl(relativePath: string): string {
@@ -102,7 +112,7 @@ function packagedAssetUrl(relativePath: string): string {
     .join('/')}`;
 }
 
-export async function loadPackagedSettingsFallback(): Promise<PersonaSettingsSnapshot> {
+export async function loadPackagedSettingsFallback(): Promise<VoxAvatarSettingsSnapshot> {
   const response = await fetch('./assets/library.json');
   if (!response.ok) throw new Error('Unable to load the packaged library.');
   const library = (await response.json()) as PackagedLibraryDocument;
@@ -130,6 +140,11 @@ export async function loadPackagedSettingsFallback(): Promise<PersonaSettingsSna
       animation_name: `${animation.animation_name}${index + 1}`,
       origin: 'packaged' as const,
       removable: false,
+      purpose:
+        animation.animation_type === 'IDLE' ||
+        animation.animation_type === 'TALK'
+          ? ('loop' as const)
+          : ('one-shot' as const),
       asset_url: packagedAssetUrl(assetPath),
     })),
     asset_urls: animation.asset_paths.map(packagedAssetUrl),

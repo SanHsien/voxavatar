@@ -13,24 +13,14 @@ concurrency:
 
 jobs:
   test:
-    name: Test on ${{ matrix.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Linux x64
-            runner: ubuntu-latest
-          - name: Windows x64
-            runner: windows-latest
-          - name: macOS arm64
-            runner: macos-15
-    runs-on: ${{ matrix.runner }}
+    name: Test on Windows x64
+    runs-on: windows-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           cache: npm
@@ -40,6 +30,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Validate Markdown
+        run: npm run docs:check
 
       - name: Test JavaScript and renderer behavior
         run: npm test

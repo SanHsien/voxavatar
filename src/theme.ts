@@ -9,13 +9,24 @@ export const THEME_OPTIONS: Array<{ id: ThemePreference; label: string }> = [
 
 export const LIGHT_QUERY = '(prefers-color-scheme: light)';
 
-const STORAGE_KEY = 'persona.settings.theme';
+const STORAGE_KEY = 'voxavatar.settings.theme';
+/** 舊版 localStorage key；讀取後遷移到 STORAGE_KEY。 */
+const LEGACY_STORAGE_KEY = 'persona.settings.theme';
+
+function isThemePreference(value: string | null): value is ThemePreference {
+  return value === 'system' || value === 'light' || value === 'dark';
+}
 
 export function readStoredTheme(): ThemePreference {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === 'system' || stored === 'light' || stored === 'dark') {
-      return stored;
+    if (isThemePreference(stored)) return stored;
+
+    const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (isThemePreference(legacy)) {
+      window.localStorage.setItem(STORAGE_KEY, legacy);
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return legacy;
     }
   } catch {
     // Storage can be unavailable; fall back to following the desktop.
@@ -26,6 +37,7 @@ export function readStoredTheme(): ThemePreference {
 export function storeTheme(preference: ThemePreference): void {
   try {
     window.localStorage.setItem(STORAGE_KEY, preference);
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
     // Preference stays for this session only.
   }
@@ -56,5 +68,5 @@ export function applyTheme(resolved: ResolvedTheme): void {
 
   // Keeps the native window background in step, so a resize never exposes
   // bands of the opposite theme. Absent outside the desktop app.
-  window.personaSettings?.setWindowTheme?.(resolved);
+  window.voxavatarSettings?.setWindowTheme?.(resolved);
 }

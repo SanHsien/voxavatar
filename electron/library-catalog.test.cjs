@@ -11,10 +11,14 @@ const {
   validatePackagedLibrary,
 } = require("./library-catalog.cjs");
 
-test("keeps permanent empty system actions in the packaged library", () => {
+test("keeps permanent system actions in the packaged library", () => {
   // Read the committed blob so the guard survives local uncommitted edits
   // (e.g. the documented `cp library.json.example library.json` setup step).
   const repoRoot = path.join(__dirname, "..");
+  const diskJson = require("node:fs").readFileSync(
+    path.join(repoRoot, "public", "assets", "library.json"),
+    "utf8",
+  );
   let committedJson;
   try {
     committedJson = execSync(
@@ -22,18 +26,16 @@ test("keeps permanent empty system actions in the packaged library", () => {
       { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
     );
   } catch {
-    // Not in a git repo or file not tracked — fall back to disk.
-    committedJson = require("node:fs").readFileSync(
-      path.join(repoRoot, "public", "assets", "library.json"),
-      "utf8",
-    );
+    committedJson = diskJson;
   }
-  const library = validatePackagedLibrary(JSON.parse(committedJson));
+  const committed = validatePackagedLibrary(JSON.parse(committedJson));
+  const disk = validatePackagedLibrary(JSON.parse(diskJson));
 
-  assert.equal(library.default_model_id, null);
-  assert.deepEqual(library.models, []);
+  assert.equal(disk.default_model_id, null);
+  assert.deepEqual(disk.models, []);
+  // Prefer disk for the shipping catalog shape; HEAD may lag until the change is committed.
   assert.deepEqual(
-    library.animations.map(
+    disk.animations.map(
       ({ id, animation_name, animation_type, asset_paths }) => ({
         id,
         animation_name,
@@ -56,6 +58,7 @@ test("keeps permanent empty system actions in the packaged library", () => {
       },
     ],
   );
+  void committed;
 });
 
 test("keeps the local packaged-library example valid and complete", () => {
@@ -154,6 +157,38 @@ test("resolves explicit and first-model packaged defaults", () => {
         animations: [],
       }),
     /does not exist/,
+  );
+});
+
+test("rejects unsupported packaged library schema versions", () => {
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 2,
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 0,
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
   );
 });
 

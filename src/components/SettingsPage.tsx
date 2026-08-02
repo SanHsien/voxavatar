@@ -6,7 +6,10 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { Scene } from './Scene';
+import {
+  type ActionPresetDefinition,
+  resolveActionPreset,
+} from '../action-presets';
 import {
   animationUrlsForType,
   type PlayableAnimationType,
@@ -17,20 +20,34 @@ import {
   resolveLightingSettings,
 } from '../settings-defaults';
 import {
+  normalizeUiLocale,
+  settingsT,
+} from '../settings-i18n';
+import {
+  directoryImportExtraParts,
+  formatActionPackImportNotice,
+} from '../import-feedback';
+import {
   applyTheme,
   LIGHT_QUERY,
   readStoredTheme,
   storeTheme,
-  THEME_OPTIONS,
   type ThemePreference,
 } from '../theme';
+import { SettingsModelsSection } from './settings/SettingsModelsSection';
+import { SettingsAnimationsSection } from './settings/SettingsAnimationsSection';
+import { SettingsStateSlotsSection } from './settings/SettingsStateSlotsSection';
+import { SettingsVoiceSection } from './settings/SettingsVoiceSection';
+import {
+  SettingsAppearanceSection,
+  type LightingNumberField,
+} from './settings/SettingsAppearanceSection';
+import { SettingsMcpSection } from './settings/SettingsMcpSection';
+import { SettingsPreviewPanel } from './settings/SettingsPreviewPanel';
+import { SettingsConfirmationDialog } from './settings/SettingsConfirmationDialog';
+import type { CharacterState } from '../character-state';
 
 type SettingsSection = 'models' | 'animations' | 'appearance' | 'voice' | 'mcp';
-type LightingNumberField =
-  | 'exposure'
-  | 'environment_intensity'
-  | 'key_light_intensity'
-  | 'ambient_intensity';
 
 const LIGHTING_NUMBER_RANGES: Record<
   LightingNumberField,
@@ -48,18 +65,6 @@ interface ConfirmationRequest {
   onConfirm: () => Promise<void>;
   title: string;
 }
-
-const SECTIONS: Array<{
-  id: SettingsSection;
-  label: string;
-  description: string;
-}> = [
-  { id: 'models', label: 'Models', description: 'Character library' },
-  { id: 'animations', label: 'Actions', description: 'Motion library' },
-  { id: 'appearance', label: 'Appearance', description: 'Default framing' },
-  { id: 'voice', label: 'Voice', description: 'Audio source' },
-  { id: 'mcp', label: 'MCP', description: 'Agent connection' },
-];
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -138,30 +143,23 @@ function useThemePreference() {
   return { chooseTheme, preference, resolved };
 }
 
-const MCP_TOOL_DESCRIPTIONS: Record<string, string> = {
-  play_animation: 'Play any configured action with at least one animation clip.',
-  list_animations: 'Read the latest playable actions and their usage details.',
-  control_window: 'Show, hide, or toggle the Persona character window.',
-  get_status: 'Read window, model, voice, and listener readiness.',
-};
-
 function errorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
   return message.replace(/^Error invoking remote method '[^']+': Error: /, '');
 }
 
 export function SettingsPage() {
-  const bridge = window.personaSettings;
+  const bridge = window.voxavatarSettings;
   const { chooseTheme, preference: themePreference } = useThemePreference();
   const [previewCollapsed, setPreviewCollapsed] = useState(false);
   const [settings, setSettings] =
-    useState<PersonaSettingsSnapshot>(SETTINGS_FALLBACK);
+    useState<VoxAvatarSettingsSnapshot>(SETTINGS_FALLBACK);
   const [section, setSection] = useState<SettingsSection>('models');
   const [selectedModelId, setSelectedModelId] = useState(
     SETTINGS_FALLBACK.default_model_id,
   );
   const [previewAnimation, setPreviewAnimation] =
-    useState<PersonaAnimationSettings | null>(null);
+    useState<VoxAvatarAnimationSettings | null>(null);
   const [previewClipId, setPreviewClipId] = useState<string | null>(null);
   const [previewRequest, setPreviewRequest] = useState(0);
   const [modelName, setModelName] = useState('');
@@ -171,9 +169,15 @@ export function SettingsPage() {
       animation_description: '',
       animation_trigger_scenario: '',
     });
+  const [selectedActionPresetId, setSelectedActionPresetId] = useState<
+    string | null
+  >(null);
   const [editingAnimationId, setEditingAnimationId] = useState<string | null>(
     null,
   );
+  const [highlightedAnimationId, setHighlightedAnimationId] = useState<
+    string | null
+  >(null);
   const [editingAnimationMetadata, setEditingAnimationMetadata] =
     useState<CustomAnimationMetadata>({
       animation_name: '',
@@ -182,14 +186,23 @@ export function SettingsPage() {
     });
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [mcpStatus, setMcpStatus] = useState<PersonaMcpStatus | null>(null);
+  const [reportRevealPath, setReportRevealPath] = useState<string | null>(null);
+  const [mcpStatus, setMcpStatus] = useState<VoxAvatarMcpStatus | null>(null);
   const [mcpLoading, setMcpLoading] = useState(false);
-  const [voiceMode, setVoiceMode] = useState<'default' | 'custom'>(
-    SETTINGS_FALLBACK.voice_source.mode,
+  const [readiness, setReadiness] = useState<VoxAvatarAppReadiness | null>(
+    null,
   );
+  const [voiceMode, setVoiceMode] = useState<
+    VoxAvatarVoiceSourceSettings['mode']
+  >(SETTINGS_FALLBACK.voice_source.mode);
   const [voicePattern, setVoicePattern] = useState(
     SETTINGS_FALLBACK.voice_source.process_pattern ?? '',
   );
+  const [voiceCatalog, setVoiceCatalog] =
+    useState<VoxAvatarVoiceSourceCatalog | null>(null);
+  const [voiceSourcesLoading, setVoiceSourcesLoading] = useState(false);
+  const [voiceSourceSearch, setVoiceSourceSearch] = useState('');
+  const [appVersion, setAppVersion] = useState<string | null>(null);
   const [confirmation, setConfirmation] =
     useState<ConfirmationRequest | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -199,8 +212,32 @@ export function SettingsPage() {
   const settingsContentRef = useRef<HTMLElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
+  const locale = normalizeUiLocale(settings.ui_locale);
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>) =>
+      settingsT(locale, key, vars),
+    [locale],
+  );
+  const sections = useMemo(
+    () =>
+      (
+        [
+          'models',
+          'animations',
+          'appearance',
+          'voice',
+          'mcp',
+        ] as const
+      ).map((id) => ({
+        id,
+        label: t(`sections.${id}.label`),
+        description: t(`sections.${id}.description`),
+      })),
+    [t],
+  );
+
   useEffect(() => {
-    document.title = 'Persona Settings';
+    document.title = t('app.documentTitle');
     if (!bridge) {
       void loadPackagedSettingsFallback()
         .then((snapshot) => {
@@ -210,6 +247,9 @@ export function SettingsPage() {
         .catch((error: unknown) => setNotice(errorMessage(error)));
       return;
     }
+    void bridge.getAppInfo?.().then((info) => {
+      if (info?.version) setAppVersion(info.version);
+    });
     void bridge
       .get()
       .then((snapshot) => {
@@ -218,7 +258,7 @@ export function SettingsPage() {
       })
       .catch((error: unknown) => setNotice(errorMessage(error)));
     return bridge.subscribe(setSettings);
-  }, [bridge]);
+  }, [bridge, t]);
 
   useEffect(() => {
     setVoiceMode(settings.voice_source.mode);
@@ -245,7 +285,10 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 4000);
+    const timer = window.setTimeout(() => {
+      setNotice(null);
+      setReportRevealPath(null);
+    }, 9000);
     return () => window.clearTimeout(timer);
   }, [notice]);
 
@@ -278,21 +321,22 @@ export function SettingsPage() {
 
   const previewTitle = useMemo(() => {
     if (previewClip) return previewClip.animation_name;
-    return 'Character preview';
-  }, [previewClip]);
+    return t('preview.character');
+  }, [previewClip, t]);
 
-  const updateSnapshot = useCallback((snapshot: PersonaSettingsSnapshot) => {
+  const updateSnapshot = useCallback((snapshot: VoxAvatarSettingsSnapshot) => {
     setSettings(snapshot);
     return snapshot;
   }, []);
 
   const run = useCallback(
     async (
-      operation: () => Promise<PersonaSettingsSnapshot | null>,
+      operation: () => Promise<VoxAvatarSettingsSnapshot | null>,
       success: string,
     ) => {
       setBusy(true);
       setNotice(null);
+      setReportRevealPath(null);
       try {
         const snapshot = await operation();
         if (snapshot) {
@@ -310,25 +354,90 @@ export function SettingsPage() {
     [updateSnapshot],
   );
 
-  const saveVoiceSource = async () => {
-    if (!bridge) return;
-    await run(
-      () =>
-        bridge.setVoiceSource({
-          mode: voiceMode,
-          process_pattern: voiceMode === 'custom' ? voicePattern : null,
-        }),
-      voiceMode === 'custom'
-        ? 'Custom voice source saved. Persona will listen for matching playback.'
-        : 'Voice source reset to ChatGPT and Codex.',
+  const refreshVoiceSources = useCallback(async () => {
+    setVoiceSourcesLoading(true);
+    try {
+      if (!bridge) {
+        setVoiceCatalog(null);
+        return;
+      }
+      setVoiceCatalog(await bridge.listVoiceSources());
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setVoiceSourcesLoading(false);
+    }
+  }, [bridge]);
+
+  const copyText = useCallback(
+    async (value: string, label: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        setNotice(t('notice.copied', { label }));
+      } catch {
+        setNotice(t('notice.copyFailed', { label: label.toLowerCase() }));
+      }
+    },
+    [t],
+  );
+
+  const saveVoiceSource = async (
+    source: VoxAvatarVoiceSourceSettings,
+    success: string,
+  ) => {
+    if (!bridge) return null;
+    const snapshot = await run(() => bridge.setVoiceSource(source), success);
+    if (!snapshot) {
+      setVoiceMode(settings.voice_source.mode);
+      return null;
+    }
+    setVoiceMode(snapshot.voice_source.mode);
+    void refreshVoiceSources();
+    return snapshot;
+  };
+
+  const chooseVoiceMode = (mode: VoxAvatarVoiceSourceSettings['mode']) => {
+    setVoiceMode(mode);
+    if (mode === 'default' || mode === 'external' || mode === 'output') {
+      void saveVoiceSource(
+        {
+          mode,
+          process_pattern: null,
+          source_id: null,
+          source_name: null,
+        },
+        mode === 'default'
+          ? t('notice.voiceDefault')
+          : mode === 'output'
+            ? t('notice.voiceOutput')
+            : t('notice.voiceExternal'),
+      );
+    }
+  };
+
+  const chooseApplicationSource = (source: VoxAvatarVoiceSourceCatalogEntry) => {
+    void saveVoiceSource(
+      {
+        mode: 'application',
+        process_pattern: null,
+        source_id: source.id,
+        source_name: source.name,
+      },
+      t('notice.voiceApplication', { name: source.name }),
     );
   };
 
-  const voiceSourceDirty =
-    voiceMode !== settings.voice_source.mode ||
-    (voiceMode === 'custom'
-      ? voicePattern.trim() !== (settings.voice_source.process_pattern ?? '')
-      : false);
+  const saveCustomVoiceSource = () => {
+    void saveVoiceSource(
+      {
+        mode: 'custom',
+        process_pattern: voicePattern,
+        source_id: null,
+        source_name: null,
+      },
+      t('notice.voicePatternSaved'),
+    );
+  };
 
   const refreshMcpStatus = useCallback(async () => {
     setMcpLoading(true);
@@ -345,19 +454,69 @@ export function SettingsPage() {
     }
   }, [bridge]);
 
+  const refreshReadiness = useCallback(async () => {
+    if (!bridge?.getReadiness) {
+      setReadiness(null);
+      return;
+    }
+    try {
+      setReadiness(await bridge.getReadiness());
+    } catch (error) {
+      setNotice(errorMessage(error));
+    }
+  }, [bridge]);
+
+  const copyDiagnosticSummary = useCallback(async () => {
+    if (!bridge?.getDiagnosticSummary) {
+      setNotice(t('notice.copyFailed', { label: t('diagnostic.label') }));
+      return;
+    }
+    try {
+      const { text } = await bridge.getDiagnosticSummary();
+      await copyText(text, t('diagnostic.label'));
+      setNotice(t('notice.diagnosticCopied'));
+    } catch (error) {
+      setNotice(errorMessage(error));
+    }
+  }, [bridge, copyText, t]);
+
+  const goToSetupAction = useCallback(
+    (nextAction: string | null | undefined) => {
+      if (nextAction === 'import_model') setSection('models');
+      else if (nextAction === 'add_animation_clips') setSection('animations');
+      else if (
+        nextAction === 'configure_voice_source' ||
+        nextAction === 'check_voice_source' ||
+        nextAction === 'start_voice_app' ||
+        nextAction === 'install_or_build_helper'
+      ) {
+        setSection('voice');
+      } else if (nextAction === 'wait_or_restart_mcp') setSection('mcp');
+    },
+    [],
+  );
+
   useEffect(() => {
     if (section !== 'mcp') return;
     void refreshMcpStatus();
   }, [refreshMcpStatus, section, settings.animations]);
 
-  const copyText = useCallback(async (value: string, label: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setNotice(`${label} copied.`);
-    } catch {
-      setNotice(`Unable to copy ${label.toLowerCase()}.`);
-    }
-  }, []);
+  useEffect(() => {
+    void refreshReadiness();
+  }, [
+    refreshReadiness,
+    settings.default_model_id,
+    settings.models,
+    settings.animations,
+    settings.voice_source,
+    mcpStatus?.health,
+    voiceCatalog?.listener,
+  ]);
+
+  useEffect(() => {
+    if (section !== 'voice') return;
+    void refreshVoiceSources();
+  }, [refreshVoiceSources, section]);
 
   const openConfirmation = useCallback((request: ConfirmationRequest) => {
     previousFocusRef.current =
@@ -405,8 +564,8 @@ export function SettingsPage() {
     if (!bridge) return;
     const existingModelIds = new Set(settings.models.map((model) => model.id));
     const snapshot = await run(
-      () => bridge.importModel({ model_name: modelName }),
-      'Model added to your library.',
+      () => bridge.importModel({ model_name: modelName.trim() }),
+      t('notice.modelAdded'),
     );
     if (!snapshot) return;
     const imported = snapshot.models.find(
@@ -416,27 +575,54 @@ export function SettingsPage() {
     setModelName('');
   };
 
-  const createAnimation = async () => {
-    if (!bridge) return;
-    const snapshot = await run(
-      () => bridge.createAnimation(animationMetadata),
-      'Animation action created. Add one or more VRMA clips to make it playable.',
-    );
-    if (!snapshot) return;
-    setAnimationMetadata({
-      animation_name: '',
-      animation_description: '',
-      animation_trigger_scenario: '',
-    });
+  const importModelsFromDirectory = async () => {
+    if (!bridge?.importModelsFromDirectory) return;
+    setBusy(true);
+    setNotice(null);
+    setReportRevealPath(null);
+    try {
+      const result = await bridge.importModelsFromDirectory({
+        model_name: modelName.trim(),
+      });
+      if (!result) return;
+      updateSnapshot(result.snapshot);
+      const parts = [
+        result.summary.quality
+          ? t('notice.modelsImported', {
+              imported: result.summary.imported,
+              scanned: result.summary.scanned,
+              keep: result.summary.quality.keep,
+              review: result.summary.quality.review,
+              reject: result.summary.quality.reject,
+            })
+          : t('notice.modelsImportedOff', {
+              imported: result.summary.imported,
+              scanned: result.summary.scanned,
+            }),
+        ...directoryImportExtraParts(result.summary, t),
+      ];
+      if (result.summary.report_path) {
+        setReportRevealPath(result.summary.report_path);
+      }
+      setNotice(parts.join(' '));
+      setModelName('');
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const addAnimationClips = async (animation: PersonaAnimationSettings) => {
+  const addAnimationClips = async (animation: VoxAvatarAnimationSettings) => {
     if (!bridge) return;
     const snapshot = await run(
       () => bridge.addAnimationClips(animation.id),
-      `VRMA clips added to ${animation.animation_name}.`,
+      t('notice.clipsAdded', { name: animation.animation_name }),
     );
     if (!snapshot) return;
+    if (highlightedAnimationId === animation.id) {
+      setHighlightedAnimationId(null);
+    }
     const updated = snapshot.animations.find(
       (candidate) => candidate.id === animation.id,
     );
@@ -445,25 +631,182 @@ export function SettingsPage() {
     }
   };
 
+  const addAnimationClipsFromDirectory = async (
+    animation: VoxAvatarAnimationSettings,
+  ) => {
+    if (!bridge?.addAnimationClipsFromDirectory) return;
+    setBusy(true);
+    setNotice(null);
+    setReportRevealPath(null);
+    try {
+      const result = await bridge.addAnimationClipsFromDirectory(animation.id);
+      if (!result) return;
+      updateSnapshot(result.snapshot);
+      const updated = result.snapshot.animations.find(
+        (candidate) => candidate.id === animation.id,
+      );
+      if (previewAnimation?.id === animation.id) {
+        setPreviewAnimation(updated ?? null);
+      }
+      if (
+        highlightedAnimationId === animation.id &&
+        result.summary.imported > 0
+      ) {
+        setHighlightedAnimationId(null);
+      }
+      const parts = [
+        result.summary.quality
+          ? t('notice.clipsImported', {
+              name: animation.animation_name,
+              imported: result.summary.imported,
+              scanned: result.summary.scanned,
+              keep: result.summary.quality.keep,
+              review: result.summary.quality.review,
+              reject: result.summary.quality.reject,
+            })
+          : t('notice.clipsImportedOff', {
+              name: animation.animation_name,
+              imported: result.summary.imported,
+              scanned: result.summary.scanned,
+            }),
+        ...directoryImportExtraParts(result.summary, t),
+      ];
+      if (result.summary.report_path) {
+        setReportRevealPath(result.summary.report_path);
+      }
+      setNotice(parts.join(' '));
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const setVrmaQualityGate = async (
+    value: VoxAvatarSettingsSnapshot['vrma_quality_gate'],
+  ) => {
+    const setGate = bridge?.setVrmaQualityGate;
+    if (!setGate) return;
+    await run(() => setGate(value), t('notice.qualityGateUpdated'));
+  };
+
+  const setVrmaQualityScoreThresholds = async (
+    rejectBelow: number,
+    keepAtLeast: number,
+  ) => {
+    const setThresholds = bridge?.setVrmaQualityScoreThresholds;
+    if (!setThresholds) return;
+    await run(
+      () =>
+        setThresholds({
+          reject_below: rejectBelow,
+          keep_at_least: keepAtLeast,
+        }),
+      t('notice.qualityScoreUpdated'),
+    );
+  };
+
+  const chooseVrmaReportDir = async () => {
+    const chooseDir = bridge?.chooseVrmaReportDir;
+    if (!chooseDir) return;
+    await run(() => chooseDir(), t('notice.reportDirUpdated'));
+  };
+
+  const clearVrmaReportDir = async () => {
+    const clearDir = bridge?.clearVrmaReportDir;
+    if (!clearDir) return;
+    await run(() => clearDir(), t('notice.reportDirCleared'));
+  };
+
+  const createAnimation = async () => {
+    if (!bridge) return;
+    const createdName = animationMetadata.animation_name.trim();
+    const snapshot = await run(
+      () => bridge.createAnimation(animationMetadata),
+      t('notice.animationCreated'),
+    );
+    if (!snapshot) return;
+    setAnimationMetadata({
+      animation_name: '',
+      animation_description: '',
+      animation_trigger_scenario: '',
+    });
+    setSelectedActionPresetId(null);
+    const created = snapshot.animations.find(
+      (animation) => animation.animation_name === createdName,
+    );
+    if (created) setHighlightedAnimationId(created.id);
+  };
+
+  const applyActionPreset = (preset: ActionPresetDefinition) => {
+    const resolved = resolveActionPreset(preset, locale);
+    setSelectedActionPresetId(preset.id);
+    setAnimationMetadata({
+      animation_name: resolved.animation_name,
+      animation_description: resolved.animation_description,
+      animation_trigger_scenario: resolved.animation_trigger_scenario,
+    });
+  };
+
+  const applyAndCreateActionPreset = async (preset: ActionPresetDefinition) => {
+    if (!bridge) return;
+    if (
+      settings.animations.some(
+        (animation) => animation.animation_name === preset.animation_name,
+      )
+    ) {
+      setNotice(t('notice.actionPresetExists', { name: preset.animation_name }));
+      applyActionPreset(preset);
+      return;
+    }
+    const resolved = resolveActionPreset(preset, locale);
+    setSelectedActionPresetId(preset.id);
+    setAnimationMetadata({
+      animation_name: resolved.animation_name,
+      animation_description: resolved.animation_description,
+      animation_trigger_scenario: resolved.animation_trigger_scenario,
+    });
+    const snapshot = await run(
+      () =>
+        bridge.createAnimation({
+          animation_name: resolved.animation_name,
+          animation_description: resolved.animation_description,
+          animation_trigger_scenario: resolved.animation_trigger_scenario,
+        }),
+      t('notice.animationCreated'),
+    );
+    if (!snapshot) return;
+    setAnimationMetadata({
+      animation_name: '',
+      animation_description: '',
+      animation_trigger_scenario: '',
+    });
+    setSelectedActionPresetId(null);
+    const created = snapshot.animations.find(
+      (animation) => animation.animation_name === resolved.animation_name,
+    );
+    if (created) setHighlightedAnimationId(created.id);
+  };
+
   const setDefaultModel = async (modelId: string) => {
     if (!bridge) return;
     const snapshot = await run(
       () => bridge.setDefaultModel(modelId),
-      'Default model updated.',
+      t('notice.defaultModelUpdated'),
     );
     if (snapshot) setSelectedModelId(modelId);
   };
 
-  const deleteModel = (model: PersonaModelSettings) => {
+  const deleteModel = (model: VoxAvatarModelSettings) => {
     if (!bridge || !model.removable) return;
     openConfirmation({
-      confirmLabel: 'Delete',
-      title: `Delete “${model.model_name}”?`,
-      detail: 'The model and its locally stored VRM file will be removed.',
+      confirmLabel: t('common.delete'),
+      title: t('confirm.deleteModel.title', { name: model.model_name }),
+      detail: t('confirm.deleteModel.detail'),
       onConfirm: async () => {
         const snapshot = await run(
           () => bridge.deleteModel(model.id),
-          'Model deleted from your library.',
+          t('notice.modelDeleted'),
         );
         if (snapshot && selectedModelId === model.id) {
           setSelectedModelId(snapshot.default_model_id);
@@ -472,8 +815,57 @@ export function SettingsPage() {
     });
   };
 
-  const beginEditingAnimation = (animation: PersonaAnimationSettings) => {
+  const deleteAllUserModels = () => {
+    if (!bridge?.deleteAllUserModels || customModelCount === 0) return;
+    const count = customModelCount;
+    openConfirmation({
+      confirmLabel: t('common.delete'),
+      title: t('confirm.deleteAllModels.title'),
+      detail: t('confirm.deleteAllModels.detail', { count }),
+      onConfirm: async () => {
+        const snapshot = await run(
+          () => bridge.deleteAllUserModels!(),
+          t('notice.modelsDeletedAll', { count }),
+        );
+        if (snapshot) setSelectedModelId(snapshot.default_model_id);
+      },
+    });
+  };
+
+  const deleteAllUserAnimationClips = () => {
+    if (!bridge?.deleteAllUserAnimationClips) return;
+    const count = settings.animations.reduce(
+      (total, animation) =>
+        total +
+        animation.clips.filter((clip) => clip.removable || clip.origin === 'user')
+          .length,
+      0,
+    );
+    if (count === 0) return;
+    openConfirmation({
+      confirmLabel: t('common.delete'),
+      title: t('confirm.deleteAllClips.title'),
+      detail: t('confirm.deleteAllClips.detail', { count }),
+      onConfirm: async () => {
+        const snapshot = await run(
+          () => bridge.deleteAllUserAnimationClips!(),
+          t('notice.clipsDeletedAll', { count }),
+        );
+        if (!snapshot) return;
+        if (previewAnimation) {
+          const updated = snapshot.animations.find(
+            (candidate) => candidate.id === previewAnimation.id,
+          );
+          setPreviewAnimation(updated ?? null);
+          setPreviewClipId(null);
+        }
+      },
+    });
+  };
+
+  const beginEditingAnimation = (animation: VoxAvatarAnimationSettings) => {
     if (!animation.editable) return;
+    setHighlightedAnimationId(null);
     setEditingAnimationId(animation.id);
     setEditingAnimationMetadata({
       animation_name: animation.animation_name,
@@ -490,7 +882,7 @@ export function SettingsPage() {
           editingAnimationId,
           editingAnimationMetadata,
         ),
-      'Animation details updated.',
+      t('notice.animationUpdated'),
     );
     if (!snapshot) return;
     const updated = snapshot.animations.find(
@@ -502,19 +894,53 @@ export function SettingsPage() {
     setEditingAnimationId(null);
   };
 
-  const deleteAnimation = (animation: PersonaAnimationSettings) => {
+  const setStateSlotBinding = async (
+    state: CharacterState,
+    animationName: string | null,
+  ) => {
+    if (!bridge?.setStateSlotBinding) return;
+    await run(
+      () => bridge.setStateSlotBinding!(state, animationName),
+      t('notice.stateSlotUpdated'),
+    );
+  };
+
+  const importActionPack = async () => {
+    if (!bridge?.importActionPack) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const result = await bridge.importActionPack();
+      if (!result) {
+        setNotice(t('notice.actionPackCancelled'));
+        return;
+      }
+      updateSnapshot(result.snapshot);
+      setNotice(
+        formatActionPackImportNotice(result.pack_name, result.results, t),
+      );
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteAnimation = (animation: VoxAvatarAnimationSettings) => {
     if (!bridge || !animation.removable) return;
     openConfirmation({
-      confirmLabel: 'Delete',
-      title: `Delete “${animation.animation_name}”?`,
+      confirmLabel: t('common.delete'),
+      title: t('confirm.deleteAnimation.title', {
+        name: animation.animation_name,
+      }),
       detail:
         animation.origin === 'packaged'
-          ? 'The action will be removed from your active library. Reset packaged actions can restore it.'
-          : 'The action and all of its locally stored VRMA clips will be removed.',
+          ? t('confirm.deleteAnimation.detailPackaged')
+          : t('confirm.deleteAnimation.detailCustom'),
       onConfirm: async () => {
         const snapshot = await run(
           () => bridge.deleteAnimation(animation.id),
-          'Animation action removed from your active library.',
+          t('notice.animationDeleted'),
         );
         if (!snapshot) return;
         if (previewAnimation?.id === animation.id) {
@@ -529,18 +955,18 @@ export function SettingsPage() {
   };
 
   const deleteAnimationClip = (
-    animation: PersonaAnimationSettings,
-    clip: PersonaAnimationClipSettings,
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
   ) => {
     if (!bridge || !clip.removable) return;
     openConfirmation({
-      confirmLabel: 'Delete',
-      title: `Delete “${clip.animation_name}”?`,
-      detail: 'The locally stored VRMA clip will be removed.',
+      confirmLabel: t('common.delete'),
+      title: t('confirm.deleteClip.title', { name: clip.animation_name }),
+      detail: t('confirm.deleteClip.detail'),
       onConfirm: async () => {
         const snapshot = await run(
           () => bridge.deleteAnimationClip(animation.id, clip.id),
-          `${clip.animation_name} removed.`,
+          t('notice.clipDeleted', { name: clip.animation_name }),
         );
         if (!snapshot) return;
         const updated = snapshot.animations.find(
@@ -556,6 +982,37 @@ export function SettingsPage() {
     });
   };
 
+  const reorderAnimationClip = async (
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
+    direction: 'up' | 'down',
+  ) => {
+    const reorder = bridge?.reorderAnimationClip;
+    if (!reorder || !clip.removable) return;
+    const snapshot = await run(
+      () => reorder(animation.id, clip.id, direction),
+      t('notice.clipReordered', { name: clip.animation_name }),
+    );
+    if (!snapshot) return;
+    const updated = snapshot.animations.find(
+      (candidate) => candidate.id === animation.id,
+    );
+    if (previewAnimation?.id === animation.id) {
+      setPreviewAnimation(updated ?? null);
+    }
+  };
+
+  const revealReportPath = async () => {
+    const reveal = bridge?.revealPath;
+    if (!reveal || !reportRevealPath) return;
+    try {
+      await reveal(reportRevealPath);
+    } catch (error) {
+      setNotice(errorMessage(error));
+      setReportRevealPath(null);
+    }
+  };
+
   const resetPackagedAnimations = () => {
     if (
       !bridge ||
@@ -564,14 +1021,13 @@ export function SettingsPage() {
       return;
     }
     openConfirmation({
-      confirmLabel: 'Reset',
-      title: 'Reset packaged actions?',
-      detail:
-        'Packaged names, descriptions, triggers, and visibility will be restored. User-created actions and uploaded clips will not change.',
+      confirmLabel: t('common.reset'),
+      title: t('confirm.resetPackaged.title'),
+      detail: t('confirm.resetPackaged.detail'),
       onConfirm: async () => {
         const snapshot = await run(
           () => bridge.resetPackagedAnimations(),
-          'Packaged animation actions restored.',
+          t('notice.packagedRestored'),
         );
         if (!snapshot) return;
         setEditingAnimationId(null);
@@ -589,21 +1045,65 @@ export function SettingsPage() {
     if (!bridge) return;
     await run(
       () => bridge.setCharacterSize(size),
-      `Default character size set to ${Math.round(size * 100)}%.`,
+      t('notice.characterSizeSet', { percent: Math.round(size * 100) }),
     );
   };
 
-  const previewLighting: PersonaLightingSettings = useMemo(() => {
+  const previewIdleRestMs = (ms: number) => {
+    setSettings((current) => ({ ...current, idle_rest_ms: ms }));
+  };
+
+  const saveIdleRestMs = async (ms: number) => {
+    const setIdleRestMs = bridge?.setIdleRestMs;
+    if (!setIdleRestMs) return;
+    await run(
+      () => setIdleRestMs(ms),
+      t('notice.idleRestSet', {
+        seconds: Math.round(ms / 1000),
+      }),
+    );
+  };
+
+  const toggleMcpShowMessage = (enabled: boolean) => {
+    const setter = bridge?.setMcpShowMessageEnabled;
+    if (!setter) return;
+    setSettings((current) => ({
+      ...current,
+      mcp_show_message_enabled: enabled,
+    }));
+    void run(
+      () => setter(enabled),
+      enabled
+        ? t('notice.mcpShowMessageEnabled')
+        : t('notice.mcpShowMessageDisabled'),
+    );
+  };
+
+  const showAbout = () => {
+    void bridge?.showAbout?.();
+  };
+
+  const saveUiLocale = async (locale: 'zh-TW' | 'en') => {
+    const setUiLocale = bridge?.setUiLocale;
+    if (!setUiLocale) return;
+    setSettings((current) => ({ ...current, ui_locale: locale }));
+    await run(
+      () => setUiLocale(locale),
+      locale === 'zh-TW' ? t('notice.uiLocaleZh') : t('notice.uiLocaleEn'),
+    );
+  };
+
+  const previewLighting: VoxAvatarLightingSettings = useMemo(() => {
     return resolveLightingSettings(
       selectedModel ? settings.model_lighting[selectedModel.id] : null,
     );
   }, [selectedModel, settings.model_lighting]);
 
   const previewLightingField = <
-    Field extends keyof PersonaLightingSettings,
+    Field extends keyof VoxAvatarLightingSettings,
   >(
     field: Field,
-    value: PersonaLightingSettings[Field],
+    value: VoxAvatarLightingSettings[Field],
   ) => {
     if (!selectedModel) return;
     setSettings((current) => ({
@@ -619,10 +1119,10 @@ export function SettingsPage() {
   };
 
   const saveLightingField = async <
-    Field extends keyof PersonaLightingSettings,
+    Field extends keyof VoxAvatarLightingSettings,
   >(
     field: Field,
-    value: PersonaLightingSettings[Field],
+    value: VoxAvatarLightingSettings[Field],
   ) => {
     if (!bridge || !selectedModel) return;
     const snapshot = await run(
@@ -631,7 +1131,7 @@ export function SettingsPage() {
           ...previewLighting,
           [field]: value,
         }),
-      'Lighting updated.',
+      t('notice.lightingUpdated'),
     );
     if (snapshot) return;
     try {
@@ -676,35 +1176,83 @@ export function SettingsPage() {
     if (!bridge || !selectedModel) return;
     await run(
       () => bridge.resetModelLighting(selectedModel.id),
-      'Lighting reset to Persona defaults.',
+      t('notice.lightingReset'),
     );
   };
 
   const playAnimationClip = (
-    animation: PersonaAnimationSettings,
-    clip: PersonaAnimationClipSettings,
+    animation: VoxAvatarAnimationSettings,
+    clip: VoxAvatarAnimationClipSettings,
   ) => {
     setPreviewAnimation(animation);
     setPreviewClipId(clip.id);
     setPreviewRequest((request) => request + 1);
   };
 
+  const normalizedVoiceSearch = voiceSourceSearch.trim().toLowerCase();
+  const visibleVoiceSources = (voiceCatalog?.sources ?? []).filter(
+    (source) =>
+      !normalizedVoiceSearch ||
+      `${source.name} ${source.detail}`
+        .toLowerCase()
+        .includes(normalizedVoiceSearch),
+  );
+  const selectedVoiceSourceAvailable = (voiceCatalog?.sources ?? []).some(
+    (source) => source.id === settings.voice_source.source_id,
+  );
+  const listenerStatus = voiceCatalog?.listener;
+  const listenerStateKey =
+    settings.voice_source.mode === 'external'
+      ? 'helper.state.external'
+      : listenerStatus?.state
+        ? `helper.state.${listenerStatus.state}`
+        : listenerStatus?.capturing
+          ? 'helper.state.listening'
+          : listenerStatus?.monitoring
+            ? 'helper.state.no_output'
+            : 'helper.state.inactive';
+  const voiceSourceDirty =
+    voiceMode !== settings.voice_source.mode ||
+    (voiceMode === 'custom' &&
+      voicePattern.trim() !==
+        (settings.voice_source.process_pattern ?? ''));
+  const voiceHeading =
+    settings.voice_source.mode === 'application'
+      ? (settings.voice_source.source_name ?? t('voice.heading.application'))
+      : settings.voice_source.mode === 'custom'
+        ? t('voice.heading.custom')
+        : settings.voice_source.mode === 'external'
+          ? t('voice.heading.external')
+          : settings.voice_source.mode === 'output'
+            ? t('voice.heading.output')
+            : t('voice.heading.default');
+
   const headingSummary =
     section === 'mcp'
       ? mcpStatus
-        ? `${mcpStatus.tools.length} tools · ${mcpStatus.playable_actions.length} playable actions`
-        : 'Local agent connection'
+        ? t('summary.mcpTools', {
+            tools: mcpStatus.tools.length,
+            actions: mcpStatus.playable_actions.length,
+          })
+        : t('summary.mcpConnection')
       : section === 'voice'
         ? settings.voice_source.mode === 'custom'
-          ? 'Custom process pattern'
-          : 'ChatGPT / Codex'
-        : `${customModelCount} custom models · ${customAnimationCount} custom actions`;
+          ? t('summary.voiceCustom')
+          : settings.voice_source.mode === 'output'
+            ? t('summary.voiceOutput')
+            : settings.voice_source.mode === 'external'
+              ? t('summary.voiceExternal')
+              : t('summary.voiceDefault')
+        : t('summary.customLibrary', {
+            models: customModelCount,
+            actions: customAnimationCount,
+          });
   const mcpHealth = mcpStatus?.health ?? (mcpLoading ? 'starting' : 'unavailable');
   const mcpServerUrl =
     mcpStatus?.server_url ?? 'http://127.0.0.1:47831/mcp';
   const mcpSetupCommand =
     mcpStatus?.setup_command ??
-    `codex mcp add persona --url ${mcpServerUrl}`;
+    `codex mcp add voxavatar --url ${mcpServerUrl}`;
 
   return (
     <main
@@ -716,13 +1264,18 @@ export function SettingsPage() {
         <div className="settings-brand">
           <img src="./assets/avatar.png" alt="" />
           <div className="settings-brand-copy">
-            <strong>Persona</strong>
-            <span>Settings</span>
+            <strong>VoxAvatar</strong>
+            <span>{t('app.brandSubtitle')}</span>
+            <small className="settings-app-version">
+              {appVersion
+                ? t('app.aboutVersion', { version: appVersion })
+                : t('app.versionUnknown')}
+            </small>
           </div>
         </div>
 
-        <nav aria-label="Settings sections">
-          {SECTIONS.map((item) => (
+        <nav aria-label={t('nav.ariaLabel')}>
+          {sections.map((item) => (
             <button
               className={section === item.id ? 'active' : ''}
               data-testid={`section-${item.id}`}
@@ -744,7 +1297,15 @@ export function SettingsPage() {
 
         <div className="settings-sidebar-status">
           <span className="status-dot" />
-          <span className="settings-status-copy">Changes save automatically</span>
+          <span className="settings-status-copy">{t('app.sidebarStatus')}</span>
+          <button
+            className="settings-about-button"
+            disabled={!bridge?.showAbout}
+            onClick={showAbout}
+            type="button"
+          >
+            {t('app.about')}
+          </button>
         </div>
       </aside>
 
@@ -757,12 +1318,12 @@ export function SettingsPage() {
           <div>
             <span className="eyebrow">
               {section === 'mcp'
-                ? 'Local integration'
+                ? t('eyebrow.localIntegration')
                 : section === 'voice'
-                  ? 'Voice output listener'
-                  : 'Character configuration'}
+                  ? t('eyebrow.voiceListener')
+                  : t('eyebrow.characterConfig')}
             </span>
-            <h1>{SECTIONS.find((item) => item.id === section)?.label}</h1>
+            <h1>{sections.find((item) => item.id === section)?.label}</h1>
           </div>
           <span className="library-count">{headingSummary}</span>
         </header>
@@ -770,1260 +1331,256 @@ export function SettingsPage() {
         {notice && (
           <div className="settings-notice" role="status">
             <span>{notice}</span>
-            <button
-              aria-label="Dismiss notification"
-              onClick={() => setNotice(null)}
-              type="button"
-            >
-              ×
-            </button>
+            <div className="settings-notice-actions">
+              {reportRevealPath && bridge?.revealPath ? (
+                <button
+                  className="settings-notice-action"
+                  onClick={() => void revealReportPath()}
+                  type="button"
+                >
+                  {t('notice.revealReport')}
+                </button>
+              ) : null}
+              <button
+                aria-label={t('app.dismissNotice')}
+                onClick={() => {
+                  setNotice(null);
+                  setReportRevealPath(null);
+                }}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
           </div>
         )}
 
         <div className="settings-scroll">
-          {section === 'models' && (
-            <>
-              <section className="settings-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Model library</h2>
-                    <p>Select a model to inspect it in the preview.</p>
-                  </div>
+          {readiness && (
+            <section className="settings-panel setup-checklist-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>{t('setup.checklistTitle')}</h2>
+                  <p>{t('setup.checklistDesc')}</p>
                 </div>
-                <div className="asset-grid">
-                  {settings.models.length === 0 && (
-                    <div className="empty-library">
-                      <strong>No model configured</strong>
-                      <p>
-                        Add a VRM file below. Persona stays inactive until a
-                        model is available and selected as the default.
-                      </p>
-                    </div>
-                  )}
-                  {settings.models.map((model) => {
-                    const selected = model.id === selectedModel?.id;
-                    const isDefault = model.id === settings.default_model_id;
-                    return (
-                      <article
-                        className={`asset-card ${selected ? 'selected' : ''}`}
-                        key={model.id}
-                      >
-                        <button
-                          className="asset-card-main"
-                          onClick={() => setSelectedModelId(model.id)}
-                          type="button"
-                        >
-                          <span className="asset-icon">VRM</span>
-                          <span>
-                            <strong>{model.model_name}</strong>
-                            <small>
-                              {model.origin === 'packaged'
-                                ? 'Packaged model'
-                                : 'User model'}
-                            </small>
-                          </span>
-                        </button>
-                        <div className="asset-card-footer">
-                          {isDefault ? (
-                            <span className="default-badge">Default</span>
-                          ) : (
-                            <button
-                              disabled={busy || !bridge}
-                              onClick={() => void setDefaultModel(model.id)}
-                              type="button"
-                            >
-                              Make default
-                            </button>
-                          )}
-                          <div className="asset-card-actions">
-                            <button
-                              onClick={() => setSelectedModelId(model.id)}
-                              type="button"
-                            >
-                              Preview
-                            </button>
-                            {model.removable && (
-                              <button
-                                className="danger-text-button"
-                                disabled={busy || !bridge}
-                                onClick={() => void deleteModel(model)}
-                                type="button"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-
-              <section className="settings-panel import-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Add a custom model</h2>
-                    <p>Persona copies the selected VRM into your local library.</p>
-                  </div>
-                  <span className="file-pill">.vrm</span>
-                </div>
-                <label>
-                  Model name <code>model_name</code>
-                  <input
-                    maxLength={80}
-                    onChange={(event) => setModelName(event.target.value)}
-                    placeholder="e.g. Studio Assistant"
-                    value={modelName}
-                  />
-                </label>
                 <button
-                  className="primary-button"
-                  disabled={busy || !bridge || !modelName.trim()}
-                  onClick={() => void importModel()}
+                  className="secondary-button"
+                  disabled={!bridge?.getDiagnosticSummary}
+                  onClick={() => void copyDiagnosticSummary()}
                   type="button"
                 >
-                  Choose VRM file
+                  {t('setup.copyDiagnostic')}
                 </button>
-                {!bridge && (
-                  <p className="desktop-note">
-                    File import is available in the Persona desktop app.
-                  </p>
-                )}
-              </section>
-            </>
+              </div>
+              <p className="desktop-note">
+                {readiness.complete
+                  ? t('setup.complete')
+                  : t('setup.incomplete')}
+              </p>
+              <ul className="setup-checklist">
+                {readiness.steps.map((step) => (
+                  <li
+                    className={
+                      step.ready
+                        ? 'setup-step ready'
+                        : step.optional
+                          ? 'setup-step optional'
+                          : 'setup-step pending'
+                    }
+                    key={step.id}
+                  >
+                    <div>
+                      <strong>{t(`setup.step.${step.id}`)}</strong>
+                      <small>{step.code}</small>
+                    </div>
+                    {step.next_action && (
+                      <button
+                        className="secondary-button"
+                        onClick={() => goToSetupAction(step.next_action)}
+                        type="button"
+                      >
+                        {t(`setup.action.${step.next_action}`)}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {section === 'models' && (
+            <SettingsModelsSection
+              bridge={bridge}
+              busy={busy}
+              chooseVrmaReportDir={chooseVrmaReportDir}
+              clearVrmaReportDir={clearVrmaReportDir}
+              customModelCount={customModelCount}
+              deleteAllUserModels={deleteAllUserModels}
+              deleteModel={deleteModel}
+              importModel={importModel}
+              importModelsFromDirectory={importModelsFromDirectory}
+              modelName={modelName}
+              selectedModel={selectedModel}
+              setDefaultModel={setDefaultModel}
+              setModelName={setModelName}
+              setSelectedModelId={setSelectedModelId}
+              setVrmaQualityGate={setVrmaQualityGate}
+              setVrmaQualityScoreThresholds={setVrmaQualityScoreThresholds}
+              settings={settings}
+              t={t}
+            />
           )}
 
           {section === 'animations' && (
             <>
-              <section className="settings-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Animation actions</h2>
-                    <p>
-                      Click a VRMA clip to preview that exact animation. Persona
-                      chooses randomly between them when the action runs.
-                    </p>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    disabled={
-                      busy ||
-                      !bridge ||
-                      settings.packaged_animation_change_count === 0
-                    }
-                    onClick={() => void resetPackagedAnimations()}
-                    type="button"
-                  >
-                    Reset packaged actions
-                  </button>
-                </div>
-                <div className="animation-list">
-                  {settings.animations.map((animation) => (
-                    <article
-                      className={`animation-card ${
-                        animation.system ? 'system-action-card' : ''
-                      }`}
-                      key={animation.id}
-                    >
-                      <div className="animation-card-header">
-                        <div className="animation-card-copy">
-                          <div>
-                            <strong>
-                              {animation.system
-                                ? animation.animation_type === 'IDLE'
-                                  ? 'Idle'
-                                  : 'Speaking'
-                                : animation.animation_name}
-                            </strong>
-                            <span>
-                              {animation.system
-                                ? 'System action'
-                                : animation.origin === 'packaged'
-                                  ? animation.modified
-                                    ? 'Packaged · modified'
-                                    : 'Packaged'
-                                  : 'Custom action'}
-                            </span>
-                          </div>
-                          <p>{animation.animation_description}</p>
-                          <small>
-                            <b>Trigger:</b>{' '}
-                            {animation.animation_trigger_scenario}
-                          </small>
-                        </div>
-                        <div className="animation-card-actions">
-                          {animation.editable && (
-                            <button
-                              disabled={busy || !bridge}
-                              onClick={() => beginEditingAnimation(animation)}
-                              type="button"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {animation.removable && (
-                            <button
-                              className="danger-text-button"
-                              disabled={busy || !bridge}
-                              onClick={() => void deleteAnimation(animation)}
-                              type="button"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="animation-clips">
-                        <div className="animation-clips-heading">
-                          <div>
-                            <strong>VRMA clips</strong>
-                            <span>
-                              {animation.clips.length === 0
-                                ? 'No clips added'
-                                : `${animation.clips.length} ${
-                                    animation.clips.length === 1
-                                      ? 'clip'
-                                      : 'clips'
-                                  }`}
-                            </span>
-                          </div>
-                          <button
-                            className="secondary-button add-clips-button"
-                            disabled={busy || !bridge}
-                            onClick={() => void addAnimationClips(animation)}
-                            type="button"
-                          >
-                            + Add VRMA files
-                          </button>
-                        </div>
-                        {animation.clips.length === 0 ? (
-                          <p className="empty-clips">
-                            {animation.system
-                              ? `Upload one or more clips for the ${
-                                  animation.animation_type === 'IDLE'
-                                    ? 'idle'
-                                    : 'speaking'
-                                } state. Persona uses the model pose until then.`
-                              : 'Upload one or more clips to make this action available to MCP.'}
-                          </p>
-                        ) : (
-                          <div className="clip-list">
-                            {animation.clips.map((clip) => (
-                              <div
-                                aria-label={`Preview ${clip.animation_name}`}
-                                className={`clip-chip ${
-                                  previewClipId === clip.id ? 'playing' : ''
-                                }`}
-                                key={clip.id}
-                                onClick={(event) => {
-                                  if (
-                                    (event.target as Element).closest('button')
-                                  ) {
-                                    return;
-                                  }
-                                  playAnimationClip(animation, clip);
-                                }}
-                                onKeyDown={(event) => {
-                                  if (
-                                    event.target !== event.currentTarget ||
-                                    (event.key !== 'Enter' && event.key !== ' ')
-                                  ) {
-                                    return;
-                                  }
-                                  event.preventDefault();
-                                  playAnimationClip(animation, clip);
-                                }}
-                                tabIndex={0}
-                                title={`Preview ${clip.animation_name}`}
-                              >
-                                <span className="clip-file-icon">VRMA</span>
-                                <strong>{clip.animation_name}</strong>
-                                <small>
-                                  {clip.origin === 'packaged'
-                                    ? 'Packaged'
-                                    : 'Uploaded'}
-                                </small>
-                                {clip.removable && (
-                                  <button
-                                    aria-label={`Delete ${clip.animation_name}`}
-                                    className="clip-delete"
-                                    disabled={busy || !bridge}
-                                    onClick={() =>
-                                      void deleteAnimationClip(animation, clip)
-                                    }
-                                    title={`Delete ${clip.animation_name}`}
-                                    type="button"
-                                  >
-                                    ×
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              {editingAnimationId && (
-                <section className="settings-panel import-panel edit-panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>Edit action details</h2>
-                      <p>
-                        These details describe the action to the Persona MCP
-                        tool. Clips remain grouped under the action if its name
-                        changes.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="form-stack">
-                    <label>
-                      Action name <code>animation_name</code>
-                      <input
-                        maxLength={48}
-                        onChange={(event) =>
-                          setEditingAnimationMetadata((current) => ({
-                            ...current,
-                            animation_name: event.target.value,
-                          }))
-                        }
-                        value={editingAnimationMetadata.animation_name}
-                      />
-                    </label>
-                    <label>
-                      Description <code>animation_description</code>
-                      <textarea
-                        maxLength={240}
-                        onChange={(event) =>
-                          setEditingAnimationMetadata((current) => ({
-                            ...current,
-                            animation_description: event.target.value,
-                          }))
-                        }
-                        rows={3}
-                        value={
-                          editingAnimationMetadata.animation_description
-                        }
-                      />
-                    </label>
-                    <label>
-                      Trigger scenario{' '}
-                      <code>animation_trigger_scenario</code>
-                      <textarea
-                        maxLength={240}
-                        onChange={(event) =>
-                          setEditingAnimationMetadata((current) => ({
-                            ...current,
-                            animation_trigger_scenario: event.target.value,
-                          }))
-                        }
-                        rows={3}
-                        value={
-                          editingAnimationMetadata.animation_trigger_scenario
-                        }
-                      />
-                    </label>
-                  </div>
-                  <div className="form-actions">
-                    <button
-                      className="primary-button"
-                      disabled={
-                        busy ||
-                        !editingAnimationMetadata.animation_name.trim() ||
-                        !editingAnimationMetadata.animation_description.trim() ||
-                        !editingAnimationMetadata.animation_trigger_scenario.trim()
-                      }
-                      onClick={() => void saveAnimation()}
-                      type="button"
-                    >
-                      Save changes
-                    </button>
-                    <button
-                      className="secondary-button"
-                      disabled={busy}
-                      onClick={() => setEditingAnimationId(null)}
-                      type="button"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </section>
-              )}
-
-              <section className="settings-panel import-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Create a custom action</h2>
-                    <p>
-                      Create the MCP-visible action first, then add any number
-                      of VRMA clips from its card above.
-                    </p>
-                  </div>
-                  <span className="file-pill">Action</span>
-                </div>
-                <div className="form-stack">
-                  <label>
-                    Action name <code>animation_name</code>
-                    <input
-                      maxLength={48}
-                      onChange={(event) =>
-                        setAnimationMetadata((current) => ({
-                          ...current,
-                          animation_name: event.target.value,
-                        }))
-                      }
-                      placeholder="e.g. wave-hello"
-                      value={animationMetadata.animation_name}
-                    />
-                    <small>
-                      Lowercase letters, numbers, and hyphens. Clips added to
-                      this action are named automatically, such as wave-hello1
-                      and wave-hello2.
-                    </small>
-                  </label>
-                  <label>
-                    Description <code>animation_description</code>
-                    <textarea
-                      maxLength={240}
-                      onChange={(event) =>
-                        setAnimationMetadata((current) => ({
-                          ...current,
-                          animation_description: event.target.value,
-                        }))
-                      }
-                      placeholder="Describe what the movement looks and feels like."
-                      rows={3}
-                      value={animationMetadata.animation_description}
-                    />
-                  </label>
-                  <label>
-                    Trigger scenario <code>animation_trigger_scenario</code>
-                    <textarea
-                      maxLength={240}
-                      onChange={(event) =>
-                        setAnimationMetadata((current) => ({
-                          ...current,
-                          animation_trigger_scenario: event.target.value,
-                        }))
-                      }
-                      placeholder="Explain when an agent should choose this action."
-                      rows={3}
-                      value={animationMetadata.animation_trigger_scenario}
-                    />
-                  </label>
-                </div>
-                <button
-                  className="primary-button"
-                  disabled={
-                    busy ||
-                    !bridge ||
-                    !animationMetadata.animation_name.trim() ||
-                    !animationMetadata.animation_description.trim() ||
-                    !animationMetadata.animation_trigger_scenario.trim()
-                  }
-                  onClick={() => void createAnimation()}
-                  type="button"
-                >
-                  Create action
-                </button>
-              </section>
+              <SettingsStateSlotsSection
+                bridge={bridge}
+                busy={busy}
+                importActionPack={importActionPack}
+                setStateSlotBinding={setStateSlotBinding}
+                settings={settings}
+                t={t}
+              />
+              <SettingsAnimationsSection
+              addAnimationClips={addAnimationClips}
+              addAnimationClipsFromDirectory={addAnimationClipsFromDirectory}
+              animationMetadata={animationMetadata}
+              applyActionPreset={applyActionPreset}
+              applyAndCreateActionPreset={applyAndCreateActionPreset}
+              beginEditingAnimation={beginEditingAnimation}
+              bridge={bridge}
+              busy={busy}
+              chooseVrmaReportDir={chooseVrmaReportDir}
+              clearVrmaReportDir={clearVrmaReportDir}
+              createAnimation={createAnimation}
+              deleteAllUserAnimationClips={deleteAllUserAnimationClips}
+              deleteAnimation={deleteAnimation}
+              deleteAnimationClip={deleteAnimationClip}
+              editingAnimationId={editingAnimationId}
+              editingAnimationMetadata={editingAnimationMetadata}
+              highlightedAnimationId={highlightedAnimationId}
+              locale={locale}
+              playAnimationClip={playAnimationClip}
+              previewClipId={previewClipId}
+              reorderAnimationClip={reorderAnimationClip}
+              resetPackagedAnimations={resetPackagedAnimations}
+              saveAnimation={saveAnimation}
+              selectedActionPresetId={selectedActionPresetId}
+              setAnimationMetadata={setAnimationMetadata}
+              setEditingAnimationId={setEditingAnimationId}
+              setEditingAnimationMetadata={setEditingAnimationMetadata}
+              setSelectedActionPresetId={setSelectedActionPresetId}
+              setVrmaQualityGate={setVrmaQualityGate}
+              setVrmaQualityScoreThresholds={setVrmaQualityScoreThresholds}
+              settings={settings}
+              t={t}
+            />
             </>
           )}
 
           {section === 'appearance' && (
-            <>
-              <section className="settings-panel theme-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Theme</h2>
-                    <p>
-                      Sets how this settings window looks. The character overlay
-                      stays transparent in every theme.
-                    </p>
-                  </div>
-                </div>
-                <div
-                  aria-label="Theme"
-                  className="theme-segmented"
-                  role="group"
-                >
-                  {THEME_OPTIONS.map((option) => (
-                    <button
-                      aria-pressed={themePreference === option.id}
-                      data-testid={`theme-${option.id}`}
-                      key={option.id}
-                      onClick={() => chooseTheme(option.id)}
-                      type="button"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="theme-swatch"
-                        data-theme-preview={option.id}
-                      />
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="theme-note">
-                  System follows your desktop appearance and updates when it
-                  changes.
-                </p>
-              </section>
-
-              <section className="settings-panel appearance-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Default character size</h2>
-                    <p>
-                      Set how large Persona appears when a model is first framed.
-                      You can still zoom and pan the live avatar manually.
-                    </p>
-                  </div>
-                  <strong className="size-value">
-                    {Math.round(settings.character_size * 100)}%
-                  </strong>
-                </div>
-                <input
-                  aria-label="Default character size"
-                  className="size-slider"
-                  max="1.6"
-                  min="0.7"
-                  onBlur={(event) =>
-                    void saveCharacterSize(Number(event.currentTarget.value))
-                  }
-                  onChange={(event) =>
-                    previewCharacterSize(Number(event.currentTarget.value))
-                  }
-                  onKeyUp={(event) => {
-                    if (event.key.startsWith('Arrow')) {
-                      void saveCharacterSize(
-                        Number(event.currentTarget.value),
-                      );
-                    }
-                  }}
-                  onPointerUp={(event) =>
-                    void saveCharacterSize(Number(event.currentTarget.value))
-                  }
-                  step="0.05"
-                  type="range"
-                  value={settings.character_size}
-                />
-                <div className="slider-labels">
-                  <span>70%</span>
-                  <span>Default</span>
-                  <span>160%</span>
-                </div>
-              </section>
-
-              <section className="settings-panel lighting-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Lighting</h2>
-                    <p>
-                      Adjust environment and key light for VRM models that look
-                      overexposed or too dark.
-                    </p>
-                  </div>
-                  <button
-                    className="lighting-reset-button"
-                    disabled={busy || !bridge || !selectedModel}
-                    onClick={() => void resetLighting()}
-                    type="button"
-                  >
-                    Reset lighting
-                  </button>
-                </div>
-
-                <div className="lighting-select-row">
-                  <span>Tone mapping</span>
-                  <select
-                    disabled={busy || !bridge || !selectedModel}
-                    onChange={(e) => {
-                      const value = e.currentTarget.value as
-                        | 'none'
-                        | 'aces';
-                      previewLightingField('tone_mapping', value);
-                      void saveLightingField('tone_mapping', value);
-                    }}
-                    value={previewLighting.tone_mapping}
-                  >
-                    <option value="none">None</option>
-                    <option value="aces">ACES Filmic</option>
-                  </select>
-                </div>
-
-                <div className="lighting-toggle-row">
-                  <span>HDR environment</span>
-                  <button
-                    aria-checked={previewLighting.environment_enabled}
-                    className={`toggle-switch${previewLighting.environment_enabled ? ' active' : ''}`}
-                    disabled={busy || !bridge || !selectedModel}
-                    onClick={() => {
-                      const next = !previewLighting.environment_enabled;
-                      previewLightingField('environment_enabled', next);
-                      void saveLightingField('environment_enabled', next);
-                    }}
-                    role="switch"
-                    type="button"
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>Environment intensity</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="2"
-                      min="0"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'environment_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'environment_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'environment_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.environment_intensity}
-                    />
-                    <div className="slider-labels">
-                      <span>0.00</span>
-                      <span>1.00</span>
-                      <span>2.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="2"
-                    min="0"
-                    onBlur={(event) =>
-                      saveLightingNumber(
-                        'environment_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber(
-                        'environment_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.environment_intensity}
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>Key light intensity</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="4"
-                      min="0"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'key_light_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'key_light_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'key_light_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.key_light_intensity}
-                    />
-                    <div className="slider-labels">
-                      <span>0.00</span>
-                      <span>{Math.PI.toFixed(2)}</span>
-                      <span>4.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="4"
-                    min="0"
-                    onBlur={(event) =>
-                      saveLightingNumber(
-                        'key_light_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber(
-                        'key_light_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.key_light_intensity}
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>Ambient / fill intensity</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="4"
-                      min="0"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'ambient_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'ambient_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'ambient_intensity',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.ambient_intensity}
-                    />
-                    <div className="slider-labels">
-                      <span>0.00</span>
-                      <span>{Math.PI.toFixed(2)}</span>
-                      <span>4.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="4"
-                    min="0"
-                    onBlur={(event) =>
-                      saveLightingNumber(
-                        'ambient_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber(
-                        'ambient_intensity',
-                        event.currentTarget,
-                      )
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.ambient_intensity}
-                  />
-                </div>
-
-                <div className="lighting-row">
-                  <label>
-                    <span>Exposure</span>
-                    <input
-                      disabled={busy || !bridge || !selectedModel}
-                      max="3"
-                      min="0.1"
-                      onChange={(event) =>
-                        previewLightingNumber(
-                          'exposure',
-                          event.currentTarget,
-                        )
-                      }
-                      onKeyUp={(event) =>
-                        saveLightingNumber(
-                          'exposure',
-                          event.currentTarget,
-                        )
-                      }
-                      onPointerUp={(event) =>
-                        saveLightingNumber(
-                          'exposure',
-                          event.currentTarget,
-                        )
-                      }
-                      step="0.01"
-                      type="range"
-                      value={previewLighting.exposure}
-                    />
-                    <div className="slider-labels">
-                      <span>0.10</span>
-                      <span>1.00</span>
-                      <span>3.00</span>
-                    </div>
-                  </label>
-                  <input
-                    className="lighting-value"
-                    disabled={busy || !bridge || !selectedModel}
-                    max="3"
-                    min="0.1"
-                    onBlur={(event) =>
-                      saveLightingNumber('exposure', event.currentTarget)
-                    }
-                    onChange={(event) =>
-                      previewLightingNumber('exposure', event.currentTarget)
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                    }}
-                    step="0.01"
-                    type="number"
-                    value={previewLighting.exposure}
-                  />
-                </div>
-              </section>
-            </>
+            <SettingsAppearanceSection
+              bridge={bridge}
+              busy={busy}
+              chooseTheme={chooseTheme}
+              previewCharacterSize={previewCharacterSize}
+              previewIdleRestMs={previewIdleRestMs}
+              previewLighting={previewLighting}
+              previewLightingField={previewLightingField}
+              previewLightingNumber={previewLightingNumber}
+              resetLighting={resetLighting}
+              saveCharacterSize={saveCharacterSize}
+              saveIdleRestMs={saveIdleRestMs}
+              saveLightingField={saveLightingField}
+              saveLightingNumber={saveLightingNumber}
+              saveUiLocale={saveUiLocale}
+              selectedModel={selectedModel}
+              settings={settings}
+              t={t}
+              themePreference={themePreference}
+            />
           )}
 
           {section === 'voice' && (
-            <>
-              <section className="settings-panel voice-source-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Automatic audio source</h2>
-                    <p>
-                      Persona listens only to playback from the selected
-                      application and turns its volume into lip sync. It does not
-                      capture the microphone, run models, or send audio anywhere.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  aria-label="Voice source"
-                  className="theme-segmented"
-                  role="group"
-                >
-                  <button
-                    aria-pressed={voiceMode === 'default'}
-                    data-testid="voice-mode-default"
-                    disabled={busy || !bridge}
-                    onClick={() => setVoiceMode('default')}
-                    type="button"
-                  >
-                    ChatGPT / Codex
-                  </button>
-                  <button
-                    aria-pressed={voiceMode === 'custom'}
-                    data-testid="voice-mode-custom"
-                    disabled={busy || !bridge}
-                    onClick={() => setVoiceMode('custom')}
-                    type="button"
-                  >
-                    Custom pattern
-                  </button>
-                </div>
-
-                {voiceMode === 'custom' && (
-                  <label className="voice-pattern-field">
-                    <span>Process pattern</span>
-                    <input
-                      aria-label="Custom voice process pattern"
-                      data-testid="voice-process-pattern"
-                      disabled={busy || !bridge}
-                      onChange={(event) =>
-                        setVoicePattern(event.currentTarget.value)
-                      }
-                      placeholder="my-voice-app|local-tts"
-                      spellCheck={false}
-                      type="text"
-                      value={voicePattern}
-                    />
-                  </label>
-                )}
-
-                <p className="theme-note">
-                  Use a case-insensitive regular expression that matches the
-                  desktop app playing assistant audio. For fully custom local
-                  pipelines you can also drive Persona through its loopback HTTP
-                  API or <code>persona://</code> URLs. Setting{' '}
-                  <code>PERSONA_TARGET_PROCESS_PATTERN</code> overrides this
-                  setting.
-                </p>
-
-                <div className="panel-actions">
-                  <button
-                    className="primary-button"
-                    data-testid="voice-source-save"
-                    disabled={
-                      busy ||
-                      !bridge ||
-                      !voiceSourceDirty ||
-                      (voiceMode === 'custom' && !voicePattern.trim())
-                    }
-                    onClick={() => void saveVoiceSource()}
-                    type="button"
-                  >
-                    Save voice source
-                  </button>
-                </div>
-              </section>
-            </>
+            <SettingsVoiceSection
+              bridge={bridge}
+              busy={busy}
+              chooseApplicationSource={chooseApplicationSource}
+              chooseVoiceMode={chooseVoiceMode}
+              copyText={copyText}
+              listenerStateKey={listenerStateKey}
+              listenerStatus={listenerStatus}
+              refreshVoiceSources={refreshVoiceSources}
+              saveCustomVoiceSource={saveCustomVoiceSource}
+              selectedVoiceSourceAvailable={selectedVoiceSourceAvailable}
+              setVoiceMode={setVoiceMode}
+              setVoicePattern={setVoicePattern}
+              setVoiceSourceSearch={setVoiceSourceSearch}
+              settings={settings}
+              t={t}
+              visibleVoiceSources={visibleVoiceSources}
+              voiceCatalog={voiceCatalog}
+              voiceHeading={voiceHeading}
+              voiceMode={voiceMode}
+              voicePattern={voicePattern}
+              voiceSourceDirty={voiceSourceDirty}
+              voiceSourceSearch={voiceSourceSearch}
+              voiceSourcesLoading={voiceSourcesLoading}
+            />
           )}
 
           {section === 'mcp' && (
-            <>
-              <section className="settings-panel mcp-overview-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Local MCP server</h2>
-                    <p>
-                      Connect compatible agents to Persona&apos;s character
-                      controls and configured animation actions.
-                    </p>
-                  </div>
-                  <span className={`mcp-health-badge ${mcpHealth}`}>
-                    <i aria-hidden="true" />
-                    {mcpHealth === 'online'
-                      ? 'Online'
-                      : mcpHealth === 'starting'
-                        ? 'Starting'
-                        : 'Unavailable'}
-                  </span>
-                </div>
-
-                <div className="mcp-status-grid">
-                  <article>
-                    <span>Health</span>
-                    <strong>
-                      {mcpHealth === 'online'
-                        ? 'Ready'
-                        : mcpHealth === 'starting'
-                          ? 'Starting'
-                          : 'Not running'}
-                    </strong>
-                    <small>
-                      {mcpStatus?.checked_at
-                        ? `Checked ${new Date(
-                            mcpStatus.checked_at,
-                          ).toLocaleTimeString()}`
-                        : 'Waiting for the desktop bridge'}
-                    </small>
-                  </article>
-                  <article>
-                    <span>Transport</span>
-                    <strong>{mcpStatus?.transport ?? 'Streamable HTTP'}</strong>
-                    <small>Model Context Protocol</small>
-                  </article>
-                  <article>
-                    <span>Access</span>
-                    <strong>
-                      {mcpStatus?.local_only === false
-                        ? 'Network'
-                        : 'Local only'}
-                    </strong>
-                    <small>Bound to 127.0.0.1</small>
-                  </article>
-                  <article>
-                    <span>Persona</span>
-                    <strong>v{mcpStatus?.version ?? '—'}</strong>
-                    <small>Server version</small>
-                  </article>
-                </div>
-
-                {mcpStatus?.error && (
-                  <p className="mcp-error-message" role="alert">
-                    {mcpStatus.error}
-                  </p>
-                )}
-              </section>
-
-              <section className="settings-panel mcp-endpoint-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Server endpoint</h2>
-                    <p>
-                      Persona serves this endpoint while the desktop app is
-                      open.
-                    </p>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    disabled={mcpLoading}
-                    onClick={() => void refreshMcpStatus()}
-                    type="button"
-                  >
-                    {mcpLoading ? 'Checking…' : 'Check health'}
-                  </button>
-                </div>
-
-                <div className="mcp-copy-field">
-                  <div>
-                    <span>Server URL</span>
-                    <code>{mcpServerUrl}</code>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    onClick={() => void copyText(mcpServerUrl, 'Server URL')}
-                    type="button"
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                <div className="mcp-copy-field">
-                  <div>
-                    <span>Codex setup command</span>
-                    <code>{mcpSetupCommand}</code>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    onClick={() =>
-                      void copyText(mcpSetupCommand, 'Setup command')
-                    }
-                    type="button"
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                <p className="desktop-note">
-                  To use a different port, set{' '}
-                  <code>PERSONA_BRIDGE_PORT</code> before launching Persona and
-                  register the displayed URL.
-                </p>
-              </section>
-
-              <section className="settings-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Available tools</h2>
-                    <p>
-                      Tools are exposed without filesystem, transcript, or raw
-                      audio access.
-                    </p>
-                  </div>
-                  <span className="file-pill">
-                    {mcpStatus?.tools.length ?? 4} tools
-                  </span>
-                </div>
-                <div className="mcp-tool-list">
-                  {(mcpStatus?.tools ?? Object.keys(MCP_TOOL_DESCRIPTIONS)).map(
-                    (tool) => (
-                      <article key={tool}>
-                        <code>{tool}</code>
-                        <p>
-                          {MCP_TOOL_DESCRIPTIONS[tool] ??
-                            'Persona MCP tool'}
-                        </p>
-                      </article>
-                    ),
-                  )}
-                </div>
-              </section>
-
-              <section className="settings-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Playable actions</h2>
-                    <p>
-                      Actions appear in the MCP animation tool after they have
-                      at least one VRMA clip.
-                    </p>
-                  </div>
-                  <span className="file-pill">
-                    {mcpStatus?.playable_actions.length ?? 0} active
-                  </span>
-                </div>
-                {mcpStatus && mcpStatus.playable_actions.length > 0 ? (
-                  <div className="mcp-action-list">
-                    {mcpStatus.playable_actions.map((action) => (
-                      <code key={action}>{action}</code>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="empty-library">
-                    <strong>No playable actions detected</strong>
-                    <p>
-                      Add a VRMA clip to an action, then check the server again.
-                    </p>
-                  </div>
-                )}
-                <p className="mcp-session-note">
-                  Start a new Codex session after registering Persona. Changes
-                  to installed actions are published to connected sessions
-                  automatically.
-                </p>
-              </section>
-            </>
+            <SettingsMcpSection
+              busy={busy}
+              copyText={copyText}
+              mcpHealth={mcpHealth}
+              mcpLoading={mcpLoading}
+              mcpServerUrl={mcpServerUrl}
+              mcpSetupCommand={mcpSetupCommand}
+              mcpShowMessageEnabled={settings.mcp_show_message_enabled === true}
+              mcpStatus={mcpStatus}
+              onToggleMcpShowMessage={toggleMcpShowMessage}
+              refreshMcpStatus={refreshMcpStatus}
+              t={t}
+            />
           )}
         </div>
       </section>
 
-      <aside className="settings-preview">
-        <button
-          aria-expanded={!previewCollapsed}
-          aria-label={
-            previewCollapsed ? 'Expand preview pane' : 'Collapse preview pane'
-          }
-          className="settings-preview-toggle"
-          onClick={() => setPreviewCollapsed((collapsed) => !collapsed)}
-          title={previewCollapsed ? 'Expand preview' : 'Collapse preview'}
-          type="button"
-        >
-          <span aria-hidden="true">{previewCollapsed ? '‹' : '›'}</span>
-        </button>
-
-        {!previewCollapsed && (
-          <>
-            <div className="preview-header">
-              <div>
-                <span className="eyebrow">Live preview</span>
-                <strong>{selectedModel?.model_name ?? 'Persona'}</strong>
-              </div>
-              <span className="preview-live">
-                <i />
-                Live
-              </span>
-            </div>
-            <div className="preview-stage" data-testid="settings-preview">
-              {selectedModel && (
-                <Scene
-                  animation={previewType}
-                  animationRequest={previewRequest}
-                  animationUrls={previewAnimationUrls}
-                  audioLevel={0}
-                  characterSize={settings.character_size}
-                  lighting={previewLighting}
-                  enablePan={false}
-                  framingMargin={1.22}
-                  groundShadow
-                  modelUrl={selectedModel.asset_url}
-                  onAnimationComplete={() => {
-                    setPreviewAnimation(null);
-                    setPreviewClipId(null);
-                  }}
-                  playback={previewClip ? 'once' : 'loop'}
-                  speaking={false}
-                />
-              )}
-              <div className="preview-hint">
-                Drag to rotate · Scroll to zoom
-              </div>
-            </div>
-            <div className="preview-now-playing">
-              <span>Now previewing</span>
-              <strong>{previewTitle}</strong>
-              {previewAnimation && (
-                <small>{previewAnimation.animation_description}</small>
-              )}
-            </div>
-          </>
-        )}
-      </aside>
+      <SettingsPreviewPanel
+        characterSize={settings.character_size}
+        modelId={selectedModel?.id}
+        modelName={selectedModel?.model_name ?? 'VoxAvatar'}
+        modelUrl={selectedModel?.asset_url}
+        onAnimationComplete={() => {
+          setPreviewAnimation(null);
+          setPreviewClipId(null);
+        }}
+        onToggleCollapsed={() =>
+          setPreviewCollapsed((collapsed) => !collapsed)
+        }
+        playback={previewClip ? 'once' : 'loop'}
+        previewAnimationUrls={previewAnimationUrls}
+        previewCollapsed={previewCollapsed}
+        previewDescription={previewAnimation?.animation_description ?? null}
+        previewLighting={previewLighting}
+        previewRequest={previewRequest}
+        previewTitle={previewTitle}
+        previewType={previewType}
+        t={t}
+      />
 
       {confirmation && (
-        <div
-          className="settings-dialog-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !confirming) {
-              closeConfirmation();
-            }
-          }}
-        >
-          <div
-            aria-busy={confirming}
-            aria-describedby="settings-confirmation-detail"
-            aria-labelledby="settings-confirmation-title"
-            aria-modal="true"
-            className="settings-dialog"
-            onKeyDown={(event) => {
-              if (event.key === 'Escape' && !confirming) {
-                event.preventDefault();
-                closeConfirmation();
-                return;
-              }
-              if (event.key !== 'Tab') return;
-              const first = confirmationCancelRef.current;
-              const last = confirmationConfirmRef.current;
-              if (!first || !last) return;
-              if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-              } else if (
-                !event.shiftKey &&
-                document.activeElement === last
-              ) {
-                event.preventDefault();
-                first.focus();
-              }
-            }}
-            ref={confirmationDialogRef}
-            role="dialog"
-          >
-            <div className="settings-dialog-icon" aria-hidden="true">
-              !
-            </div>
-            <div className="settings-dialog-copy">
-              <span className="eyebrow">Confirm change</span>
-              <h2 id="settings-confirmation-title">
-                {confirmation.title}
-              </h2>
-              <p id="settings-confirmation-detail">
-                {confirmation.detail}
-              </p>
-            </div>
-            <div className="settings-dialog-actions">
-              <button
-                className="secondary-button"
-                disabled={confirming}
-                onClick={closeConfirmation}
-                ref={confirmationCancelRef}
-                type="button"
-              >
-                Cancel
-              </button>
-              <button
-                className="settings-dialog-confirm"
-                disabled={confirming}
-                onClick={() => void confirmPendingAction()}
-                ref={confirmationConfirmRef}
-                type="button"
-              >
-                {confirming ? 'Working…' : confirmation.confirmLabel}
-              </button>
-            </div>
-          </div>
-        </div>
+        <SettingsConfirmationDialog
+          cancelRef={confirmationCancelRef}
+          confirmation={confirmation}
+          confirming={confirming}
+          confirmRef={confirmationConfirmRef}
+          dialogRef={confirmationDialogRef}
+          onClose={closeConfirmation}
+          onConfirm={() => void confirmPendingAction()}
+          t={t}
+        />
       )}
     </main>
   );

@@ -32,7 +32,7 @@ npm run dev
 - 不加入 Linux／macOS 監聽或發行目標。
 - 不提交未確認再散布權的 VRM／VRMA。
 - 保留上游 MIT 授權與 `xikhar` attribution。
-- 評估上游 commit／issue／PR 時依 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) 接續水位，只挑選符合本 fork 邊界的變更。
+- 評估上游 commit／issue／PR 時依 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 接續水位，只挑選符合本 fork 邊界的變更。
 
 ## 提交前驗證
 
@@ -56,7 +56,7 @@ npm run native:test
 - `CHANGELOG.md`（使用者可觀察變更）
 - `ROADMAP.md`／`ROADMAP.en.md`（完成項、基準版本、下一步）
 - `README.md`／`README.en.md`（能力與指引是否仍正確）
-- 若邊界改變：`SECURITY*`、`REVIEW.md`、`docs/DECISIONS.md`
+- 若邊界改變：`SECURITY*`、`docs/DECISIONS.md`；健康狀態寫在 `ROADMAP*`「目前健康」
 
 雙語公開文件請成對修改。細節見 [`AGENTS.md`](AGENTS.md)。
 

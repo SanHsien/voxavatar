@@ -21,7 +21,7 @@
 [![Local-first](https://img.shields.io/badge/Architecture-Local--first-2E7D32.svg)](#隱私與安全邊界)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> VoxAvatar 衍生自 [`xikhar/persona`](https://github.com/xikhar/persona)，由 [`SanHsien/voxavatar`](https://github.com/SanHsien/voxavatar) 獨立維護。本 fork 僅支援 Windows；來源與署名見 [`NOTICE.md`](NOTICE.md)。
+> VoxAvatar 衍生自 [`xikhar/persona`](https://github.com/xikhar/persona)，由 [`SanHsien/voxavatar`](https://github.com/SanHsien/voxavatar) 獨立維護。本 fork 僅支援 Windows；來源與署名見下方「來源與授權」與 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 ## 這是什麼
 
@@ -124,9 +124,9 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.13.2`**（文件／上游評估紀錄）。上游評估見 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)。
+目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.13.3`**（文件合併整理）。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
-版本順序與接下來工作見 [`ROADMAP.md`](ROADMAP.md)；最新健康狀態與驗證缺口見 [`REVIEW.md`](REVIEW.md)。
+版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 
 ## 從原始碼執行
 
@@ -166,12 +166,12 @@ docs/            開發、整合、角色表現、決策與發行文件
 
 | 文件 | 內容 |
 | --- | --- |
-| [`ROADMAP.md`](ROADMAP.md)／[`REVIEW.md`](REVIEW.md)／[`CHANGELOG.md`](CHANGELOG.md) | 未來、目前健康與已完成歷史 |
+| [`ROADMAP.md`](ROADMAP.md)／[`CHANGELOG.md`](CHANGELOG.md) | 未來、目前健康與已完成歷史 |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)／[`CONTRIBUTING.md`](CONTRIBUTING.md) | 架構、工具鏈、驗證與貢獻流程 |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP、HTTP 事件 API 與 URL protocol |
-| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)／[`docs/ACTION_PACK.md`](docs/ACTION_PACK.md)／[`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | 動作匯入、角色表現、action-pack 契約與素材相容性 |
-| [`docs/RELEASING.md`](docs/RELEASING.md)／[`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | 發布流程與 Windows 實機證據 |
-| [`SECURITY.md`](SECURITY.md)／[`ASSET_LICENSES.md`](ASSET_LICENSES.md)／[`docs/DECISIONS.md`](docs/DECISIONS.md)／[`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) | 安全、媒體授權、現行取捨與上游評估 |
+| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)／[`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | 動作匯入、角色表現、action-pack 契約與素材相容性 |
+| [`docs/RELEASING.md`](docs/RELEASING.md) | 發布流程與 Windows 實機驗收 |
+| [`SECURITY.md`](SECURITY.md)／[`ASSET_LICENSES.md`](ASSET_LICENSES.md)／[`docs/DECISIONS.md`](docs/DECISIONS.md) | 安全、媒體授權、現行取捨與上游評估 |
 
 ## 支援與貢獻
 
@@ -181,4 +181,4 @@ docs/            開發、整合、角色表現、決策與發行文件
 
 ## 來源與授權
 
-程式碼採 [MIT License](LICENSE)，並保留上游 `xikhar/persona` 的著作權與署名。第三方 VRM、VRMA、圖片與環境資產不會因匯入或打包而自動採 MIT；完整範圍見 [`NOTICE.md`](NOTICE.md) 與 [`ASSET_LICENSES.md`](ASSET_LICENSES.md)。
+程式碼採 [MIT License](LICENSE)，並保留上游 `xikhar/persona` 的著作權與署名。第三方 VRM、VRMA、圖片與環境資產不會因匯入或打包而自動採 MIT；完整範圍見 [`ASSET_LICENSES.md`](ASSET_LICENSES.md) 與 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1（來源／授權／remotes）。

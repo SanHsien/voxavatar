@@ -63,10 +63,10 @@
 
 1. 各 exporter／版本的代表性 `.vrm`／`.vrma` 樣本（僅引用來源與授權，二進位不入庫）。
 2. Three.js 載入、骨架對位、表情與 VRMA 播放的實機結果欄位。
-3. 與 [`docs/WINDOWS_VALIDATION.md`](WINDOWS_VALIDATION.md) 匯入 smoke 的交叉引用。
+3. 與 [`docs/RELEASING.md`](RELEASING.md)「Windows 發行驗收」匯入 smoke 的交叉引用。
 
 ## 相關文件
 
-- 英文版：[`VRM_VRMA_COMPATIBILITY.en.md`](VRM_VRMA_COMPATIBILITY.en.md)
 - Fixture 說明：[`electron/fixtures/vrm-vrma/README.md`](../electron/fixtures/vrm-vrma/README.md)
 - 品質實作：[`electron/vrm-quality.cjs`](../electron/vrm-quality.cjs)、[`electron/vrma-quality.cjs`](../electron/vrma-quality.cjs)
+- 維護文件僅繁中；不另建英文平行檔。

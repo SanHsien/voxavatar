@@ -32,7 +32,7 @@ Without a local C++ toolchain, the application-loopback listener is unavailable,
 - Do not add Linux or macOS listeners or distribution targets.
 - Do not commit VRM or VRMA media without verified redistribution rights.
 - Preserve the upstream MIT license and `xikhar` attribution.
-- When evaluating upstream commits, issues, or PRs, continue from the watermark in [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) and only pick changes that fit this fork’s boundaries.
+- When evaluating upstream commits, issues, or PRs, continue from the watermark in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 and only pick changes that fit this fork’s boundaries.
 
 ## Validation before submission
 
@@ -56,7 +56,7 @@ Before sending a change, review and update as needed:
 - `CHANGELOG.md` (user-visible changes)
 - `ROADMAP.md` / `ROADMAP.en.md` (completed items, planning baseline, next actions)
 - `README.md` / `README.en.md` (capabilities and guidance still accurate)
-- Boundary changes: `SECURITY*`, `REVIEW.md`, `docs/DECISIONS.md`
+- Boundary changes: `SECURITY*`, `docs/DECISIONS.md`; current health lives under `ROADMAP*` “Current health”
 
 Keep bilingual public docs in pairs. See [`AGENTS.md`](AGENTS.md).
 

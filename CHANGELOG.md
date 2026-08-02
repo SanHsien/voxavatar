@@ -2,14 +2,25 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.13.3 - 2026-08-02
+
+- 合併冗餘 Markdown，減少維護檔數量並更新全部引用：
+  - `SKILL.md` → [`CLAUDE.md`](CLAUDE.md)
+  - `NOTICE.md`、`docs/UPSTREAM_EVAL.md` → [`docs/DECISIONS.md`](docs/DECISIONS.md) §1
+  - `REVIEW.md` → [`ROADMAP.md`](ROADMAP.md)／[`ROADMAP.en.md`](ROADMAP.en.md)「目前健康」
+  - `docs/ACTION_PACK.md` → [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)
+  - `docs/WINDOWS_VALIDATION.md` → [`docs/RELEASING.md`](docs/RELEASING.md)「Windows 發行驗收」
+  - 刪除僅英文平行檔 `docs/VRM_VRMA_COMPATIBILITY.en.md`（維護文件只留繁中）
+- `evidence:manifest` 的 `validationDoc` 改指 `docs/RELEASING.md`；`AGENTS`／README／CONTRIBUTING 同步。
+
 ## 0.13.2 - 2026-08-02
 
-- 新增 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)：記錄上游 open PR／issue 評估（#16／#13 範圍外、#11 已涵蓋）與既有 commit 結論；`DECISIONS`／`NOTICE`／`REVIEW` 改指向該檔。
+- 新增上游 open PR／issue 評估紀錄（#16／#13 範圍外、#11 已涵蓋）與既有 commit 結論（現併於 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
 
 ## 0.13.1 - 2026-08-02
 
 - 更新路線圖：v0.9–v0.12 收斂為已完成摘要，現行焦點改為 v0.14（狀態槽／jsdom／Windows 驗收）；重寫「接下來三件事」。
-- 同步 README／CHARACTER_BEHAVIOR／DEVELOPMENT／REVIEW：發行版 `v0.13.0`、五個 MCP 工具、已落地氣泡／口型敘述。
+- 同步 README／CHARACTER_BEHAVIOR／DEVELOPMENT：發行版 `v0.13.0`、五個 MCP 工具、已落地氣泡／口型敘述。
 
 ## 0.13.0 - 2026-08-02
 
@@ -28,7 +39,7 @@
 
 ## 0.11.0 - 2026-08-02
 
-- 新增薄 `action-pack.json` 契約與驗證（`electron/action-pack.cjs`、範例與 [`docs/ACTION_PACK.md`](docs/ACTION_PACK.md)）；不繞過匯入／授權／路徑 gate。
+- 新增薄 `action-pack.json` 契約與驗證（`electron/action-pack.cjs`、範例與 [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)）；不繞過匯入／授權／路徑 gate。
 - 抽出 avatar overlay lifecycle（`electron/overlay-lifecycle.cjs`）；`main.cjs` 以懶回呼接線，避免與 renderer windows 循環初始化。
 - 新增狀態槽解析（`character-state-slots`）與氣泡邊緣避讓（`bubble-layout`）；`CharacterBubble` 依視窗與角色尺寸估算錨點換邊。
 

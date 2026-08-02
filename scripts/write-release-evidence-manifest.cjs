@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const DEFAULT_OUTPUT_DIR = path.join("docs", "release-evidence");
-const WINDOWS_VALIDATION_DOC = "docs/WINDOWS_VALIDATION.md";
+const WINDOWS_VALIDATION_DOC = "docs/RELEASING.md";
 
 /**
  * Build a release-evidence manifest template. Does not claim smoke was executed.

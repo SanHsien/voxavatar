@@ -27,13 +27,12 @@
 | 檔案 | 檢討重點 |
 | --- | --- |
 | `CHANGELOG.md` | 使用者可觀察變更是否已寫入對應版本 |
-| `ROADMAP.md`／`ROADMAP.en.md` | 完成項勾選、規劃基準、接下來三件事、SemVer 節奏是否仍正確 |
+| `ROADMAP.md`／`ROADMAP.en.md` | 完成項勾選、規劃基準、「目前健康」、接下來三件事、SemVer 節奏是否仍正確 |
 | `README.md`／`README.en.md` | 產品敘述、能力、安全邊界、安裝／開發指引是否與現況一致 |
 | `SECURITY.md`／`SECURITY.en.md` | 隱私／IPC／MCP／語音模式邊界是否跟上 |
-| `REVIEW.md` | 最新健康狀態；已修項目勿留在「尚未關閉」 |
-| `docs/DECISIONS.md` | 新取捨是否需決策條目 |
-| `CONTRIBUTING*`／`docs/DEVELOPMENT.md`／`docs/RELEASING.md` | 流程或指令是否漂移 |
-| `AGENTS.md`／`.cursorrules` | agent 行為規則是否需同步 |
+| `docs/DECISIONS.md` | 新取捨、上游評估水位是否需更新 |
+| `CONTRIBUTING*`／`docs/DEVELOPMENT.md`／`docs/RELEASING.md` | 流程或指令是否漂移（含 Windows 實機驗收專節） |
+| `AGENTS.md`／`.cursorrules`／`CLAUDE.md` | agent 行為規則是否需同步 |
 
 雙語公開文件成對修改。無使用者可見變更時可在 CHANGELOG 略過，但仍須在 commit 說明或工作紀錄確認「已檢討、無需改」。
 
@@ -64,8 +63,8 @@ VoxAvatar 是 Windows-only Electron VRM 桌面角色陪伴：監聽指定應用�
 ## 文件與驗證
 
 - 公開文件：`README`、`ROADMAP`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁中為預設，附 `*.en.md`。
-- `REVIEW.md` 只保留最新覆核；`ROADMAP` 管未來、`CHANGELOG` 管已完成，不另建平行計畫檔。
-- 其餘維護文件使用繁中；規則、review 與路線圖都可隨專案現況修正，但硬性產品邊界的變更必須寫入 `docs/DECISIONS.md`。
+- `ROADMAP` 管未來與「目前健康」、`CHANGELOG` 管已完成；不另建平行計畫檔或獨立覆核檔。
+- 其餘維護文件使用繁中；規則與路線圖都可隨專案現況修正，但硬性產品邊界的變更必須寫入 `docs/DECISIONS.md`。
 - 所有修改至少跑 `npm run check`；原生相關再跑 `npm run native:build` 與 `npm run native:test`。一般 UI、MCP、文件與 TypeScript 開發不要求本機安裝 Visual Studio Build Tools。
 - 資產或發行相關另跑 `npm run assets:release`；安裝相關跑 `npm run dist:windows`。
 - 若本機沒有 C++ toolchain，以 GitHub Windows runner 的 native build／self-test／installer 為正式 gate。Windows GUI smoke 與簽署驗收在可取得桌面／密鑰時補做，不阻塞其他可自動驗證的路線圖工作。

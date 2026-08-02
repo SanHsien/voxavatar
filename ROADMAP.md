@@ -3,9 +3,24 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`v0.13.2`（`main` tip；正式 Release tag `v0.13.0`；上游評估見 [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md)）
+規劃基準：`v0.13.3`（`main` tip；正式 Release tag `v0.13.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
-VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)，目前健康狀態見 [`REVIEW.md`](REVIEW.md)。
+VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+## 目前健康
+
+覆核基準：`v0.13.3`／`main`；GitHub Latest Release：`v0.13.0`
+
+沒有已知未解 P0／P1。`v0.13.0` 為 Latest。上游 open PR／issue 已評估（無須合併，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。路線圖焦點為 **v0.14**。`main` tip `0.13.3` 為文件合併整理（未另 tag）。
+
+- Latest Release：`v0.13.0`；`main` tip 文件為 `0.13.x`。
+- 上游：commit 水位 `cf27d12`；open PR #16／issue #13 為 macOS（不合併）；issue #11 首次取得角色文件已涵蓋。
+- MCP 工具：5 個（含 opt-in `show_message`）；狀態事件正規化已備、狀態工具尚未掛上。
+- Settings schema 8；catalog CRUD／overlay lifecycle 已抽離；Idle once 有 clip 快取與完成逾時後備。
+
+仍開放：系統狀態動作槽 UI；MCP 狀態工具；action-pack 匯入管線；App／Settings jsdom 整合；精確 head 投影、DPI／30%／Idle 長跑實機；Installer 簽署與 Windows GUI smoke（無密鑰／桌面時標未驗）。
+
+本輪驗證：`npm run check` 全綠；Release／Latest／資產依 [`docs/RELEASING.md`](docs/RELEASING.md) 核對。
 
 ## 原則
 

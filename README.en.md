@@ -21,7 +21,7 @@
 [![Local-first](https://img.shields.io/badge/Architecture-Local--first-2E7D32.svg)](#privacy-and-security-boundaries)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> VoxAvatar is derived from [`xikhar/persona`](https://github.com/xikhar/persona) and independently maintained at [`SanHsien/voxavatar`](https://github.com/SanHsien/voxavatar). This fork supports Windows only. See [`NOTICE.md`](NOTICE.md) for provenance and attribution.
+> VoxAvatar is derived from [`xikhar/persona`](https://github.com/xikhar/persona) and independently maintained at [`SanHsien/voxavatar`](https://github.com/SanHsien/voxavatar). This fork supports Windows only. See “Provenance and license” below and [`docs/DECISIONS.md`](docs/DECISIONS.md) §1.
 
 ## What it is
 
@@ -118,9 +118,9 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The published release is **`v0.13.0`**; `main` tip is **`0.13.2`** (docs / upstream eval log). See [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) (Traditional Chinese).
+The published release is **`v0.13.0`**; `main` tip is **`0.13.3`** (documentation consolidation). Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
-See [`ROADMAP.en.md`](ROADMAP.en.md) for version order and next work, and [`REVIEW.md`](REVIEW.md) for current health and validation gaps (Traditional Chinese).
+See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 
 ## Run from source
 
@@ -160,12 +160,12 @@ docs/            Development, integration, character behavior, decisions, and re
 
 | Document | Purpose |
 | --- | --- |
-| [`ROADMAP.en.md`](ROADMAP.en.md) / [`REVIEW.md`](REVIEW.md) / [`CHANGELOG.md`](CHANGELOG.md) | Future work, current health, and completed history |
+| [`ROADMAP.en.md`](ROADMAP.en.md) / [`CHANGELOG.md`](CHANGELOG.md) | Future work, current health, and completed history |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) / [`CONTRIBUTING.en.md`](CONTRIBUTING.en.md) | Architecture, toolchain, validation, and contribution workflow |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP, HTTP event API, and URL protocol |
-| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) / [`docs/ACTION_PACK.md`](docs/ACTION_PACK.md) / [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | Motion import, character behavior, action-pack contract, and media compatibility (Traditional Chinese where noted) |
-| [`docs/RELEASING.md`](docs/RELEASING.md) / [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Release workflow and Windows evidence (Traditional Chinese) |
-| [`SECURITY.en.md`](SECURITY.en.md) / [`ASSET_LICENSES.md`](ASSET_LICENSES.md) / [`docs/DECISIONS.md`](docs/DECISIONS.md) / [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) | Security, media licensing, decisions, and upstream evaluation (Traditional Chinese where noted) |
+| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) / [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | Motion import, character behavior, action-pack contract, and media compatibility (Traditional Chinese) |
+| [`docs/RELEASING.md`](docs/RELEASING.md) | Release workflow and Windows validation (Traditional Chinese) |
+| [`SECURITY.en.md`](SECURITY.en.md) / [`ASSET_LICENSES.md`](ASSET_LICENSES.md) / [`docs/DECISIONS.md`](docs/DECISIONS.md) | Security, media licensing, decisions, and upstream evaluation |
 
 ## Support and contributing
 
@@ -175,4 +175,4 @@ docs/            Development, integration, character behavior, decisions, and re
 
 ## Provenance and license
 
-Source code is available under the [MIT License](LICENSE), retaining copyright and attribution from `xikhar/persona`. Third-party VRM, VRMA, image, and environment assets do not automatically become MIT-licensed when imported or packaged. See [`NOTICE.md`](NOTICE.md) and [`ASSET_LICENSES.md`](ASSET_LICENSES.md) for the complete scope.
+Source code is available under the [MIT License](LICENSE), retaining copyright and attribution from `xikhar/persona`. Third-party VRM, VRMA, image, and environment assets do not automatically become MIT-licensed when imported or packaged. See [`ASSET_LICENSES.md`](ASSET_LICENSES.md) and [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 for provenance, remotes, and licensing scope.

@@ -285,7 +285,7 @@ const ZH_TW: MessageDictionary = {
 
   'stateSlots.title': '系統狀態動作槽',
   'stateSlots.desc':
-    '為 idle／listening／speaking／working／reviewing／success／failed 綁定可播放動作。有 Idle／Speaking（或同名）片段時會自動預選；你可改選或清成「未綁定」（會退回 Idle／Speaking 類型預設）。也可匯入 action-pack.json。',
+    '為七個角色狀態綁定可播放動作。沒有獨立的 listening 系統動作：有可播放 Idle 時，idle／listening 槽會預選 idle；有 Speaking 時 speaking 槽預選 speaking。可改選或清成「未綁定」（退回 Idle／Speaking 類型預設）。也可匯入 action-pack.json。',
   'stateSlots.importPack': '匯入 action-pack…',
   'stateSlots.none': '（未綁定）',
   'stateSlots.noPlayable': '尚無可播放動作。請先為動作加入 VRMA 片段。',
@@ -304,7 +304,7 @@ const ZH_TW: MessageDictionary = {
   'stateSlots.packExampleCopy': '複製範例',
   'stateSlots.packExampleCopied': '已複製',
   'stateSlots.state.idle': 'idle 待機',
-  'stateSlots.state.listening': 'listening 聆聽',
+  'stateSlots.state.listening': 'listening 聆聽（預設用 idle）',
   'stateSlots.state.speaking': 'speaking 說話',
   'stateSlots.state.working': 'working 工作中',
   'stateSlots.state.reviewing': 'reviewing 檢視中',
@@ -765,7 +765,7 @@ const EN: MessageDictionary = {
 
   'stateSlots.title': 'System state motion slots',
   'stateSlots.desc':
-    'Bind playable actions to idle / listening / speaking / working / reviewing / success / failed. Idle/Speaking (or same-named) clips are preselected when available; you can change or clear to “(unbound)” (falls back to Idle/Speaking types). You can also import action-pack.json.',
+    'Bind playable actions to the seven character states. There is no separate listening system action: when Idle is playable, idle/listening slots preselect idle; when Speaking is playable, speaking preselects speaking. You can change or clear to “(unbound)” (Idle/Speaking type fallback). You can also import action-pack.json.',
   'stateSlots.importPack': 'Import action-pack…',
   'stateSlots.none': '(unbound)',
   'stateSlots.noPlayable':
@@ -785,7 +785,7 @@ const EN: MessageDictionary = {
   'stateSlots.packExampleCopy': 'Copy example',
   'stateSlots.packExampleCopied': 'Copied',
   'stateSlots.state.idle': 'idle',
-  'stateSlots.state.listening': 'listening',
+  'stateSlots.state.listening': 'listening (defaults to idle)',
   'stateSlots.state.speaking': 'speaking',
   'stateSlots.state.working': 'working',
   'stateSlots.state.reviewing': 'reviewing',

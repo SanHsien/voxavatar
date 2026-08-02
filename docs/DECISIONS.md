@@ -108,7 +108,7 @@
 - `ROADMAP` 管未來與「目前健康」、`CHANGELOG` 管已完成；不另建平行計畫檔或獨立 `REVIEW.md`。
 - 來源／授權摘要與上游評估水位寫在本檔 §1；不另建 `NOTICE.md`／`UPSTREAM_EVAL.md`。
 - action-pack 契約寫在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)；Windows 實機驗收寫在 [`RELEASING.md`](RELEASING.md)。
-- Settings「系統狀態動作槽」：有可播放 Idle／Speaking（或同名）時對尚未設定的鍵自動預選；使用者明確選「未綁定」（存成 `null`）不覆寫。使用者面向的 action-pack 說明與範例在 Settings 面板與 [`docs/examples/action-pack.example.json`](examples/action-pack.example.json)。
+- Settings「系統狀態動作槽」：有可播放 Idle／Speaking（或同名）時對尚未設定的鍵自動預選——**listening 槽預選綁到 idle**（無獨立 listening 系統動作）；使用者明確選「未綁定」（存成 `null`）不覆寫。使用者面向的 action-pack 說明與範例在 Settings 面板與 [`docs/examples/action-pack.example.json`](examples/action-pack.example.json)。
 - 一般 Node／Electron／文件開發不要求 Visual Studio Build Tools。C++ helper 或本機 installer 才需 C++ toolchain；GitHub Windows runner 是正式 native 與 package gate。
 
 ## 6. 依賴與合併自動化

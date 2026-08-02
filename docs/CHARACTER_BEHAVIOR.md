@@ -51,7 +51,7 @@
 7. `listening`
 8. `idle`
 
-相同狀態同時到達時，以最新的有效事件取代舊事件。外部狀態有 bounded TTL：`ttl_ms` 省略或 `0` 時使用狀態預設 TTL（`idle` 預設 0＝直到被取代）；正值限制存活時間。`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／HTTP integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁（MCP `set_character_state`；HTTP `POST /events` 的 `type: "character-state"`）；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名；**有可播放的 Idle／Speaking（或同名）片段時會自動預選**，明確選「未綁定」則保留空並退回類型預設。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
+相同狀態同時到達時，以最新的有效事件取代舊事件。外部狀態有 bounded TTL：`ttl_ms` 省略或 `0` 時使用狀態預設 TTL（`idle` 預設 0＝直到被取代）；正值限制存活時間。`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／HTTP integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁（MCP `set_character_state`；HTTP `POST /events` 的 `type: "character-state"`）；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名。**沒有獨立的 listening 系統動作**；有可播放 Idle 時 idle／listening 槽預選 `idle`，有 Speaking 時 speaking 槽預選 `speaking`。明確選「未綁定」則保留空並退回類型預設。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
 
 ### 動作用途
 

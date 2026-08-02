@@ -68,12 +68,32 @@ test("formatGetStatus redacts absolute paths in listener.error", () => {
       state: "missing",
       helper_error: "native_helper_missing",
       error: "ENOENT C:\\Users\\SanHsien\\AppData\\voxavatar-audio-listener.exe",
+      source: "C:\\Users\\SanHsien\\AppData\\Local\\ChatGPT\\app.exe",
     },
   });
   assert.equal(payload.listener.helper_error, "native_helper_missing");
   assert.equal(payload.listener.state, "missing");
   assert.doesNotMatch(payload.listener.error, /SanHsien|AppData/i);
-  assert.match(payload.listener.error, /<home>|<path>|<user>/);
+  assert.match(payload.listener.error, /<home>|<path>|<user>|<asset>/);
+  assert.doesNotMatch(payload.listener.source, /SanHsien|ChatGPT/i);
+  assert.match(payload.listener.source, /<home>|<path>|<user>|<asset>/);
+});
+
+test("sanitizeVoiceSourcesCatalog redacts catalog error and listener", () => {
+  const { sanitizeVoiceSourcesCatalog } = require("./mcp-schemas.cjs");
+  const catalog = sanitizeVoiceSourcesCatalog({
+    platform: "win32",
+    sources: [],
+    error: "fail C:\\Users\\SanHsien\\helper.exe",
+    listener: {
+      state: "launch_failed",
+      error: "C:\\Users\\SanHsien\\x.exe",
+      source: "D:\\Apps\\foo.exe",
+    },
+  });
+  assert.doesNotMatch(catalog.error, /SanHsien/i);
+  assert.doesNotMatch(catalog.listener.error, /SanHsien/i);
+  assert.doesNotMatch(catalog.listener.source, /Apps|foo/i);
 });
 
 test("formatPlayAnimation covers success and error shapes", () => {

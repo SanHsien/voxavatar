@@ -70,10 +70,16 @@ describe('listener-status-copy', () => {
     }
   });
 
-  it('returns launch_failed hint when state is launch_failed', () => {
+  it('returns state hints for target_missing / no_output / inactive', () => {
     const t = (key: string) => settingsT('zh-TW', key);
-    expect(resolveHelperNextHint({ state: 'launch_failed' }, t)).toBe(
-      settingsT('zh-TW', 'helper.hint.launch_failed'),
+    expect(resolveHelperNextHint({ state: 'target_missing' }, t)).toBe(
+      settingsT('zh-TW', 'helper.hint.target_missing'),
+    );
+    expect(resolveHelperNextHint({ state: 'no_output' }, t)).toBe(
+      settingsT('zh-TW', 'helper.hint.no_output'),
+    );
+    expect(resolveHelperNextHint({ state: 'inactive' }, t)).toBe(
+      settingsT('zh-TW', 'helper.hint.inactive'),
     );
   });
 });

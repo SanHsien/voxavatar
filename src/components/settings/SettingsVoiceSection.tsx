@@ -1,4 +1,5 @@
 import {
+  redactDisplayText,
   resolveHelperNextHint,
   resolveListenerStatusDetail,
 } from '../../listener-status-copy';
@@ -245,7 +246,7 @@ export function SettingsVoiceSection({
 
                   {voiceCatalog?.error && (
                     <p className="mcp-error-message" role="alert">
-                      {voiceCatalog.error}
+                      {redactDisplayText(voiceCatalog.error)}
                     </p>
                   )}
 

@@ -158,5 +158,41 @@ test("settings preload exposes management APIs without avatar bridge", async () 
       (row) => row[0] === "voxavatar:settings-import-action-pack",
     ),
   );
+  await settings.getAppInfo();
+  await settings.showAbout();
+  await settings.listVoiceSources();
+  await settings.setVoiceSource({ mode: "external" });
+  await settings.setStateSlotBinding("idle", "idle");
+  await settings.setStateSlotBindings({ speaking: "speaking" });
+  await settings.setMcpShowMessageEnabled(true);
+  assert.ok(
+    invocations.some((row) => row[0] === "voxavatar:settings-get-app-info"),
+  );
+  assert.ok(
+    invocations.some((row) => row[0] === "voxavatar:settings-show-about"),
+  );
+  assert.ok(
+    invocations.some(
+      (row) => row[0] === "voxavatar:settings-list-voice-sources",
+    ),
+  );
+  assert.ok(
+    invocations.some((row) => row[0] === "voxavatar:settings-set-voice-source"),
+  );
+  assert.ok(
+    invocations.some(
+      (row) => row[0] === "voxavatar:settings-set-state-slot-binding",
+    ),
+  );
+  assert.ok(
+    invocations.some(
+      (row) => row[0] === "voxavatar:settings-set-state-slot-bindings",
+    ),
+  );
+  assert.ok(
+    invocations.some(
+      (row) => row[0] === "voxavatar:settings-set-mcp-show-message-enabled",
+    ),
+  );
   assert.deepEqual(sent, [["voxavatar:settings-set-window-theme", "light"]]);
 });

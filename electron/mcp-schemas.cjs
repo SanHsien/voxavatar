@@ -54,12 +54,30 @@ function formatGetStatus(status = {}) {
   };
 }
 
-/** MCP／HTTP 出口：遮罩 listener.error 路徑，保留 helper_error／state。 */
+/** MCP／Settings 出口：遮罩 listener.error／source 路徑，保留 helper_error／state。 */
 function sanitizeListenerForMcp(listener) {
   if (listener == null || typeof listener !== "object") return listener;
   const next = { ...listener };
   if (typeof next.error === "string" && next.error.length > 0) {
     next.error = redactSensitive(next.error);
+  }
+  if (typeof next.source === "string" && next.source.length > 0) {
+    next.source = redactSensitive(next.source);
+  }
+  return next;
+}
+
+/** Settings list-voice-sources：遮罩 catalog error 與 listener。 */
+function sanitizeVoiceSourcesCatalog(catalog) {
+  if (catalog == null || typeof catalog !== "object") return catalog;
+  const next = { ...catalog };
+  if (typeof next.error === "string" && next.error.length > 0) {
+    next.error = redactSensitive(next.error);
+  } else {
+    next.error = next.error ?? null;
+  }
+  if (next.listener != null) {
+    next.listener = sanitizeListenerForMcp(next.listener);
   }
   return next;
 }
@@ -166,4 +184,5 @@ module.exports = {
   formatShowMessage,
   formatSetCharacterState,
   sanitizeListenerForMcp,
+  sanitizeVoiceSourcesCatalog,
 };

@@ -34,8 +34,11 @@ function redactSensitive(text, { homeDir = os.homedir(), username } = {}) {
   out = out.replace(/[A-Za-z]:\\[^\s`"'<>]+/g, "<path>");
   out = out.replace(/\/(?:Users|home|root)\/[^\s`"'<>]+/g, "<path>");
 
-  // 素材檔名
-  out = out.replace(/[^\s`"'/\\]+\.(?:vrm|vrma)\b/gi, "<asset>");
+  // 素材／helper 檔名
+  out = out.replace(
+    /[^\s`"'/\\]+\.(?:vrm|vrma|glb|gltf|exe|dll)\b/gi,
+    "<asset>",
+  );
 
   return out;
 }

@@ -24,3 +24,23 @@ describe("formatAboutDetail", () => {
     assert.match(detail, /1\.2\.3/);
   });
 });
+
+describe("menuStrings locale parity", () => {
+  it("zh-TW and en expose the same keys", () => {
+    const { LOCALES } = require("./i18n.cjs");
+    assert.deepEqual(
+      Object.keys(LOCALES["zh-TW"]).sort(),
+      Object.keys(LOCALES.en).sort(),
+    );
+  });
+
+  it("keeps About signing placeholders and non-empty labels", () => {
+    for (const locale of ["zh-TW", "en"]) {
+      const strings = menuStrings(locale);
+      assert.match(strings.aboutDetail, /\{version\}/);
+      assert.match(strings.aboutDetail, /\{signingStatus\}/);
+      assert.ok(String(strings.signingNotSigned).length > 0);
+      assert.ok(String(strings.about).length > 0);
+    }
+  });
+});

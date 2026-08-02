@@ -72,7 +72,7 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 - `status_schema_version`、`message`
 - `modelConfigured`、`windowVisible`、`voiceState`、`listener`
 - `listener.state`：`inactive`／`external`／`missing`／`launch_failed`／`target_missing`／`no_output`／`listening`
-- `listener.helper_error`（可選）：與 Settings 共用的分類碼，例如 `native_helper_missing`、`native_helper_com_error`、`native_helper_wasapi_error`、`native_helper_device_error`。Agent 應優先讀此欄位，不要只解析可能含路徑的 `listener.error` 字串。
+- `listener.helper_error`（可選）：與 Settings 共用的分類碼，例如 `native_helper_missing`、`native_helper_com_error`、`native_helper_wasapi_error`、`native_helper_device_error`。Agent 應優先讀此欄位，不要只解析可能含路徑的 `listener.error`／`source` 字串；`get_status` 與 Settings `list-voice-sources` 會遮罩這些欄位。
 - `readiness`：`complete`、`steps`、`next_step`、`listener_state`、`playable_actions` 等
 
 #### 其他工具主要欄位
@@ -199,7 +199,7 @@ Windows helper 使用 WASAPI application loopback，只計算目標應用程式�
 
 ### `listener.helper_error` 分類碼
 
-Agent／設定頁應優先讀 `helper_error`（與 typed exit／NDJSON `code` 對齊），不要只解析可能含路徑的 `listener.error`。`get_status` 出口會遮罩 `listener.error` 中的路徑／使用者名。
+Agent／設定頁應優先讀 `helper_error`（與 typed exit／NDJSON `code` 對齊），不要只解析可能含路徑的 `listener.error`／`source`。`get_status` 與 Settings `list-voice-sources` 出口會遮罩 `listener.error`／`listener.source`（以及 catalog `error`）中的路徑／使用者名。
 
 | `helper_error` | 典型來源 | 建議處理 |
 | --- | --- | --- |

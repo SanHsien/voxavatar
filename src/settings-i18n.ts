@@ -128,6 +128,12 @@ const ZH_TW: MessageDictionary = {
     '請重試；仍失敗時複製診斷摘要（已遮罩路徑）回報。',
   'helper.hint.launch_failed':
     '原生 listener 啟動失敗：檢查語音來源與播放裝置後重試。',
+  'helper.hint.target_missing':
+    '請啟動目標應用程式並開始播放，或改選其他語音來源。',
+  'helper.hint.no_output':
+    '已附掛目標，但尚無播放輸出；請在該應用播放語音後再觀察口型。',
+  'helper.hint.inactive':
+    '語音 listener 未啟用：確認語音模式與來源，或切換到外部事件模式。',
   'setup.code.model_missing': '尚未匯入或選取模型',
   'setup.code.model_configured': '模型已就緒',
   'setup.code.animations_optional_empty': '尚無可播放動作（可選）',
@@ -701,6 +707,12 @@ const EN: MessageDictionary = {
     'Retry; if it fails again, copy the redacted diagnostic summary when reporting.',
   'helper.hint.launch_failed':
     'Native listener failed to start—check the voice source and playback device, then retry.',
+  'helper.hint.target_missing':
+    'Start the target app and play audio, or pick a different voice source.',
+  'helper.hint.no_output':
+    'Attached to the target, but no playback yet—play voice in that app to drive lip sync.',
+  'helper.hint.inactive':
+    'Voice listener is inactive—check the voice mode/source, or switch to External-events mode.',
   'setup.code.model_missing': 'No model imported or selected',
   'setup.code.model_configured': 'Model ready',
   'setup.code.animations_optional_empty': 'No playable actions yet (optional)',

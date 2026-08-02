@@ -46,6 +46,7 @@ import { SettingsMcpSection } from './settings/SettingsMcpSection';
 import { SettingsPreviewPanel } from './settings/SettingsPreviewPanel';
 import { SettingsConfirmationDialog } from './settings/SettingsConfirmationDialog';
 import { shouldShowSetupChecklist } from '../setup-checklist-visibility';
+import { resolveSetupCodeLabel } from '../setup-code-label';
 import type { CharacterState } from '../character-state';
 
 type SettingsSection = 'models' | 'animations' | 'appearance' | 'voice' | 'mcp';
@@ -1592,8 +1593,7 @@ export function SettingsPage() {
               <p className="desktop-note">{t('setup.incomplete')}</p>
               <ul className="setup-checklist">
                 {readiness.steps.map((step) => {
-                  const codeKey = `setup.code.${step.code}`;
-                  const codeLabel = t(codeKey);
+                  const codeLabel = resolveSetupCodeLabel(step.code, t);
                   return (
                   <li
                     className={
@@ -1607,7 +1607,7 @@ export function SettingsPage() {
                   >
                     <div>
                       <strong>{t(`setup.step.${step.id}`)}</strong>
-                      <small>{codeLabel === codeKey ? step.code : codeLabel}</small>
+                      <small>{codeLabel}</small>
                     </div>
                     {step.next_action && (
                       <button

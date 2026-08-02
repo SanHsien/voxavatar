@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.17 - 2026-08-02
+
+- Settings `list-voice-sources`／MCP listener 同步遮罩 `error`／`source`；語音 catalog 錯誤與 UI 顯示再遮罩。
+- helper 下一步擴至 `target_missing`／`no_output`／`inactive`；設定進度 `resolveSetupCodeLabel` 抽出可測。
+- 補 `settings-sanitize`／`settings-migration`／preload About／voice／state-slot／MCP toggle、tray `menuStrings` 語系對齊契約。
+- tip evidence `v0.16.17`；INTEGRATIONS／SECURITY／DECISIONS 上游掃描時間戳對齊。
+
 ## 0.16.16 - 2026-08-02
 
 - 精簡 ROADMAP「已完成摘要」為系列表；補齊設定進度 `voice_*` code 人話與 helper 下一步提示。

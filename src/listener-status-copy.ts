@@ -62,5 +62,17 @@ export function resolveHelperNextHint(
     const fallback = t('helper.hint.launch_failed');
     return fallback === 'helper.hint.launch_failed' ? null : fallback;
   }
+  if (status?.state === 'target_missing') {
+    const hint = t('helper.hint.target_missing');
+    return hint === 'helper.hint.target_missing' ? null : hint;
+  }
+  if (status?.state === 'no_output') {
+    const hint = t('helper.hint.no_output');
+    return hint === 'helper.hint.no_output' ? null : hint;
+  }
+  if (status?.state === 'inactive') {
+    const hint = t('helper.hint.inactive');
+    return hint === 'helper.hint.inactive' ? null : hint;
+  }
   return null;
 }

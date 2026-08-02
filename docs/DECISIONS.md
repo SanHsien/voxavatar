@@ -33,7 +33,7 @@
 | --- | --- |
 | `upstream/main` tip（commit 水位） | `9287ea3`（#16，2026-08-02；macOS Core Audio，**不合併**） |
 | 下次接續 | tip 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次 |
-| Open PR／issue 本輪掃描 | 2026-08-02（0.16.14 交付前再掃）；`9287ea3..upstream/main` 空；無 open PR，open issue 僅 #11（已涵蓋） |
+| Open PR／issue 本輪掃描 | 2026-08-02（0.16.17 交付前再掃）；`9287ea3..upstream/main` 空；無 open PR，open issue 僅 #11（已涵蓋） |
 
 #### 評估流程
 

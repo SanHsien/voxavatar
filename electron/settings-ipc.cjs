@@ -1,5 +1,7 @@
 "use strict";
 
+const { sanitizeVoiceSourcesCatalog } = require("./mcp-schemas.cjs");
+
 function registerSettingsIpc({
   app,
   path,
@@ -561,20 +563,20 @@ function registerSettingsIpc({
   });
   handleTrustedSettingsIpc("voxavatar:settings-list-voice-sources", async () => {
     try {
-      return {
+      return sanitizeVoiceSourcesCatalog({
         ...(await listVoiceSources()),
         error: null,
         events_url: `http://127.0.0.1:${mcpServerPort}/events`,
         listener: latestListenerStatus,
-      };
+      });
     } catch (error) {
-      return {
+      return sanitizeVoiceSourcesCatalog({
         platform: process.platform,
         sources: [],
         error: error instanceof Error ? error.message : String(error),
         events_url: `http://127.0.0.1:${mcpServerPort}/events`,
         listener: latestListenerStatus,
-      };
+      });
     }
   });
   handleTrustedSettingsIpc(

@@ -510,3 +510,41 @@ test("import-action-pack cancels, imports, and publishes", async () => {
   assert.equal(result, packResult);
   assert.deepEqual(calls, [["publish", packResult.snapshot]]);
 });
+
+test("get-app-info returns version and show-about invokes dialog", async () => {
+  let aboutCalls = 0;
+  const { registered } = createIpcHarness({
+    app: { getVersion: () => "0.16.17" },
+    showAboutDialog: () => {
+      aboutCalls += 1;
+    },
+  });
+  assert.deepEqual(
+    await registered.get("voxavatar:settings-get-app-info")({}),
+    { version: "0.16.17" },
+  );
+  await registered.get("voxavatar:settings-show-about")({});
+  assert.equal(aboutCalls, 1);
+});
+
+test("list-voice-sources redacts listener paths and catalog errors", async () => {
+  const { registered } = createIpcHarness({
+    listVoiceSources: async () => {
+      throw new Error("boom C:\\Users\\SanHsien\\helper.exe");
+    },
+    latestListenerStatus: {
+      state: "missing",
+      error: "C:\\Users\\SanHsien\\voxavatar-audio-listener.exe",
+      source: "C:\\Users\\SanHsien\\ChatGPT.exe",
+      helper_error: "native_helper_missing",
+    },
+  });
+  const catalog = await registered.get(
+    "voxavatar:settings-list-voice-sources",
+  )({});
+  assert.equal(catalog.helper_error, undefined);
+  assert.equal(catalog.listener.helper_error, "native_helper_missing");
+  assert.doesNotMatch(catalog.error, /SanHsien/i);
+  assert.doesNotMatch(catalog.listener.error, /SanHsien/i);
+  assert.doesNotMatch(catalog.listener.source, /SanHsien|ChatGPT/i);
+});

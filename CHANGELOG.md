@@ -2,6 +2,11 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.13.0 - 2026-08-02
+
+- 接續評估上游 `xikhar/persona`：`a72292f`（#14）、`cf27d12`（#15）不合併；水位推進至 `cf27d12`（見 `docs/DECISIONS.md`）。
+- 批次發行累積於 `main` 的 v0.6–v0.12.1 變更（含角色表現、action-pack、Idle 長跑停住修復等）；Latest 自 `v0.5.0` 推進。
+
 ## 0.12.1 - 2026-08-02
 
 - 修復長時間待機後角色停住：Idle `once` 輪播改為依 URL 重用 AnimationClip／Action，避免 mixer 堆積；並以 clip 時長逾時後備，即使 `finished` 漏發仍會排下一輪。

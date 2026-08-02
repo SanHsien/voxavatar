@@ -54,4 +54,27 @@ describe('SettingsMcpSection', () => {
     );
     expect(mcpToolDescriptionKeys()).toContain('set_character_state');
   });
+
+  it('shows diagnostic copy when handler is provided', () => {
+    const copyDiagnosticSummary = vi.fn();
+    render(
+      <SettingsMcpSection
+        copyDiagnosticSummary={copyDiagnosticSummary}
+        copyText={vi.fn(async () => undefined)}
+        mcpHealth="online"
+        mcpLoading={false}
+        mcpServerUrl="http://127.0.0.1:47831/mcp"
+        mcpSetupCommand="codex mcp add voxavatar --url http://127.0.0.1:47831/mcp"
+        mcpShowMessageEnabled={false}
+        mcpStatus={null}
+        onToggleMcpShowMessage={vi.fn()}
+        refreshMcpStatus={vi.fn(async () => undefined)}
+        t={(key, vars) => settingsT('zh-TW', key, vars)}
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: '複製診斷摘要' });
+    button.click();
+    expect(copyDiagnosticSummary).toHaveBeenCalledTimes(1);
+  });
 });

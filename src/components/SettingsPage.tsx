@@ -1388,7 +1388,7 @@ export function SettingsPage() {
         )}
 
         <div className="settings-scroll">
-          {readiness && (
+          {readiness && !readiness.complete && (
             <section className="settings-panel setup-checklist-panel">
               <div className="panel-heading">
                 <div>
@@ -1404,11 +1404,7 @@ export function SettingsPage() {
                   {t('setup.copyDiagnostic')}
                 </button>
               </div>
-              <p className="desktop-note">
-                {readiness.complete
-                  ? t('setup.complete')
-                  : t('setup.incomplete')}
-              </p>
+              <p className="desktop-note">{t('setup.incomplete')}</p>
               <ul className="setup-checklist">
                 {readiness.steps.map((step) => (
                   <li
@@ -1565,6 +1561,11 @@ export function SettingsPage() {
           {section === 'mcp' && (
             <SettingsMcpSection
               busy={busy}
+              copyDiagnosticSummary={
+                bridge?.getDiagnosticSummary
+                  ? () => void copyDiagnosticSummary()
+                  : undefined
+              }
               copyText={copyText}
               mcpHealth={mcpHealth}
               mcpLoading={mcpLoading}

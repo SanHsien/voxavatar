@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.5` (`main`; GitHub Latest Release tag remains `v0.16.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.6` (`main`; GitHub Latest Release tag remains `v0.16.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,14 +11,14 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.5` / `main`; GitHub Latest Release: `v0.16.0`
+Review baseline: `0.16.6` / `main`; GitHub Latest Release: `v0.16.0`
 
-No known open P0/P1. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new feature tracks this round**—close existing gaps and contract drift. `main` tip `0.16.5`: action-pack `purpose` written to clips; opt-in filename whitelist assignment.
+No known open P0/P1. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new feature tracks this round**—close existing gaps and contract drift. `main` tip `0.16.6`: hide setup progress when complete; DECISIONS clarifies no AI VRMA semantic slotting.
 
 - Latest Release: `v0.16.0` (GUI/signing/real exporters still unverified).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
-- System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”.
+- System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done.
 
 This round: `npm run check` green; Release/Latest/assets verified per [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -68,6 +68,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.16.3 | Animations page: create form next to list; guide collapsed, state slots below |
 | v0.16.4 | Clarify listening state slot defaults to idle (no separate listening system action) |
 | v0.16.5 | action-pack purpose written to clips; opt-in filename whitelist assignment (DECISIONS §10) |
+| v0.16.6 | Hide setup progress when complete; clarify no AI VRMA semantic slotting (DECISIONS §10/§11) |
 
 ## Closing existing gaps
 

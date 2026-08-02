@@ -68,9 +68,9 @@ const ZH_TW: MessageDictionary = {
   'notice.copied': '已複製 {label}。',
   'notice.copyFailed': '無法複製 {label}。',
   'notice.diagnosticCopied': '已複製診斷摘要（路徑與素材檔名已遮罩）。',
-  'setup.checklistTitle': '首次設定進度',
+  'setup.checklistTitle': '設定進度',
   'setup.checklistDesc':
-    '完成必要項目後即可穩定使用口型與 MCP。動作片段為可選。',
+    '尚有必要項目未完成。完成後即可穩定使用口型與 MCP；動作片段為可選。完成後此區塊會自動隱藏。',
   'setup.complete': '必要設定已完成',
   'setup.incomplete': '尚有未完成項目',
   'setup.step.model': '匯入並選取角色模型',
@@ -555,9 +555,9 @@ const EN: MessageDictionary = {
   'notice.copyFailed': 'Unable to copy {label}.',
   'notice.diagnosticCopied':
     'Diagnostic summary copied (paths and asset names redacted).',
-  'setup.checklistTitle': 'First-run progress',
+  'setup.checklistTitle': 'Setup progress',
   'setup.checklistDesc':
-    'Finish the required items for lip-sync and MCP. Animation clips are optional.',
+    'Required items are still open. Finish them for stable lip-sync and MCP; animation clips are optional. This panel hides when required setup is complete.',
   'setup.complete': 'Required setup is complete',
   'setup.incomplete': 'Setup still has open items',
   'setup.step.model': 'Import and select a character model',

@@ -2,6 +2,11 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.6 - 2026-08-02
+
+- Settings「設定進度」：必要項目完成後整塊隱藏，不再各分頁常駐；標題去掉「首次」以免誤解。診斷摘要改在 MCP 分頁也可複製。
+- `docs/DECISIONS.md`：釐清不以 VRMA 內容做語意分槽、不內建動作分類 AI；設定進度面板顯示條件寫入 §11。
+
 ## 0.16.5 - 2026-08-02
 
 - action-pack 匯入會把各動作的 `purpose` 寫入對應 VRMA clip（不再一律依動作類型預設）。

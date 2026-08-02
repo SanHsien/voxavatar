@@ -7,6 +7,7 @@ type SettingsTranslate = (
 
 export interface SettingsMcpSectionProps {
   busy?: boolean;
+  copyDiagnosticSummary?: () => void;
   copyText: (value: string, label: string) => Promise<void>;
   mcpHealth: 'online' | 'starting' | 'unavailable';
   mcpLoading: boolean;
@@ -21,6 +22,7 @@ export interface SettingsMcpSectionProps {
 
 export function SettingsMcpSection({
   busy = false,
+  copyDiagnosticSummary,
   copyText,
   mcpHealth,
   mcpLoading,
@@ -40,14 +42,25 @@ export function SettingsMcpSection({
             <h2>{t('mcp.serverTitle')}</h2>
             <p>{t('mcp.serverDesc')}</p>
           </div>
-          <span className={`mcp-health-badge ${mcpHealth}`}>
-            <i aria-hidden="true" />
-            {mcpHealth === 'online'
-              ? t('common.online')
-              : mcpHealth === 'starting'
-                ? t('common.starting')
-                : t('common.unavailable')}
-          </span>
+          <div className="panel-heading-actions">
+            {copyDiagnosticSummary ? (
+              <button
+                className="secondary-button"
+                onClick={copyDiagnosticSummary}
+                type="button"
+              >
+                {t('setup.copyDiagnostic')}
+              </button>
+            ) : null}
+            <span className={`mcp-health-badge ${mcpHealth}`}>
+              <i aria-hidden="true" />
+              {mcpHealth === 'online'
+                ? t('common.online')
+                : mcpHealth === 'starting'
+                  ? t('common.starting')
+                  : t('common.unavailable')}
+            </span>
+          </div>
         </div>
 
         <div className="mcp-status-grid">

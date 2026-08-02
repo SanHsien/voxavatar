@@ -58,6 +58,31 @@ function testNative(platform = process.platform) {
     );
   }
   console.log("usage exit code 2 passed.");
+
+  // --emit-error：契約測分型 exit／NDJSON（不觸發真實 COM／WASAPI）。
+  for (const code of [10, 11, 12, 13]) {
+    const emitted = runHelper(executable, ["--emit-error", String(code)]);
+    if (emitted.error) throw emitted.error;
+    if (emitted.status !== code) {
+      throw new Error(
+        `Expected --emit-error ${code} exit ${code}, got ${emitted.status}.`,
+      );
+    }
+    const payload = parseLastJsonLine(emitted.stdout);
+    if (payload.type !== "error" || payload.code !== code) {
+      throw new Error(
+        `Expected --emit-error NDJSON code ${code}, got ${JSON.stringify(payload)}`,
+      );
+    }
+  }
+  console.log("emit-error 10/11/12/13 passed.");
+
+  const missingPid = runHelper(executable, ["--pid"]);
+  if (missingPid.error) throw missingPid.error;
+  if (missingPid.status !== 2) {
+    throw new Error(`Expected --pid without value to exit 2, got ${missingPid.status}.`);
+  }
+  console.log("usage --pid without value passed.");
 }
 
 if (require.main === module) {

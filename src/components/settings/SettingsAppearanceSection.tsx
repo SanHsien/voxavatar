@@ -153,6 +153,7 @@ export function SettingsAppearanceSection({
           className="size-slider"
           max="1.6"
           min="0.3"
+          data-testid="character-size-slider"
           onBlur={(event) =>
             void saveCharacterSize(Number(event.currentTarget.value))
           }
@@ -195,6 +196,7 @@ export function SettingsAppearanceSection({
           className="size-slider"
           max="60"
           min="2"
+          data-testid="idle-rest-slider"
           onBlur={(event) =>
             void saveIdleRestMs(Number(event.currentTarget.value) * 1000)
           }

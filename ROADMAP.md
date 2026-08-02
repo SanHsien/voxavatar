@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-02
-規劃基準：`0.16.18`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.19`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,12 +11,12 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.18`／`main`；GitHub Latest Release：`v0.16.14`
+覆核基準：`0.16.19`／`main`；GitHub Latest Release：`v0.16.14`
 
-沒有已知未解 P0／P1。上游仍為 `9287ea3`。`0.16.18` 收斂 Settings notice 遮罩、tip evidence 誠實 tag、雙軌 redact、確認對話／listener pattern／TTL 抽出與契約測。本輪不切 installer Release（自 `v0.16.14` 累積仍以契約／隱私／誠實性為主）。
+沒有已知未解 P0／P1。上游水位 `bb7ef24`（#17 **不合併**）。`0.16.19` 推進證據路徑（`evidence:verify`／PE NotSigned、`--emit-error`、Event 獨立碼、exporter 骨架、30% 契約）並重寫 ROADMAP「證據路徑進度」。本輪不切 installer Release（自 `v0.16.14` 累積仍無安裝包可見變更）。
 
 - Latest Release：`v0.16.14`（installer＋SHA256；GUI／簽署／真實 exporter 仍標未驗）。
-- 上游：commit 水位 `9287ea3`；無 open PR；#11 已涵蓋。
+- 上游：commit 水位 `bb7ef24`（#17 內建 AvatarSample／speaking VRMA，**不合併**）；無 open PR；#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
@@ -62,7 +62,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.1–v0.13 | Windows-only fork 基線；`REVIEW`→「目前健康」（細節見 CHANGELOG） |
 | v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
 | v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
-| v0.16.10–0.16.18 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩、CodeQL、i18n／sanitize／IPC 對齊 |
+| v0.16.10–0.16.19 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩、CodeQL、i18n／sanitize／IPC、證據路徑腳手架 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -75,12 +75,23 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [x] release-evidence（Latest SHA／NotSigned；`ci_gates` 綠）；README／SECURITY／About 未簽署標示；helper_error 人話與路徑遮罩。
 - [x] 設定進度語音碼人話；MCP／Settings 語音清單路徑遮罩；zh／en i18n 鍵對齊；helper 狀態下一步；sanitize／migration／preload 契約。
 - [x] Settings notice 遮罩；tip evidence 不虛構 tag；雙軌 redact fixture；確認對話／listener pattern／TTL 抽出；format／rate-limit／IPC 頻道窮舉契約。
+- [x] `evidence:verify`／PE NotSigned；`--emit-error`；Event 獨立碼；smoke 子項；exporter schema；30%／idle／theme 契約。
 
-### 仍待／未驗
+### 仍待／未驗（實機、密鑰或授權樣本阻塞）
 
-- [~] Native COM／WASAPI／Device／Event 真實失敗路徑。
-- [~] Idle／DPI／30%／GUI smoke／Installer 簽署（見驗證缺口表）。
-- [~] 真實 exporter 人工結果。
+- [~] Native COM／WASAPI／Device／Event **真實**失敗路徑（HRESULT／裝置環境）。
+- [~] Idle／DPI／30% 實機可讀性／GUI smoke／Installer 簽署與 SmartScreen（見驗證缺口表）。
+- [~] 真實 exporter 人工結果（授權清楚之二進位樣本）。
+
+### 證據路徑進度（可自動／可在 Linux 推進；≠ 實機完成）
+
+- [x] Usage=2＋JS typed-exit 分類；`--emit-error` 10／11／12／13 契約（真實 COM／WASAPI 仍未驗）。
+- [x] Event exit **13** 獨立為 `native_helper_event_error`（不再併入 wasapi 語彙）。
+- [x] `evidence:verify`：GitHub digest／SHA256SUMS／NotSigned 標示對照（≠ SmartScreen）。
+- [x] PE Certificate Table 空＝機器可證 `NotSigned`（`evidence:pe`；≠ publisher 驗收）。
+- [x] smoke checklist 拆成可分段填寫子項；tip evidence 可標 `ci_gates=pass` 並寫 tip SHA。
+- [x] exporter 證據 JSON schema／空結果表（`docs/release-evidence/_templates/`；無真實結果）。
+- [x] 角色尺寸 30%／idle 設定契約互動測（多 DPI 實機可讀性未驗）。
 
 ## 正式發行完整驗收
 
@@ -109,8 +120,8 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 接下來三件事
 
-1. 有 Windows／密鑰時補 smoke、簽署與 30%／DPI／Idle 實機證據。
-2. 取得授權清楚的真實 exporter 樣本結果。
-3. Native COM／WASAPI／Device／Event 真實失敗路徑（有環境時補測）。
+1. 有 Windows／密鑰時：依分段 smoke 子項填 `docs/release-evidence/`，並用 `evidence:verify`／`evidence:pe` 對照 NotSigned 標示（SmartScreen 仍需人）。
+2. 取得授權清楚的真實 exporter 樣本，填 `_templates/exporter-results.json`。
+3. 有音訊／COM 環境時補真實失敗路徑（`--emit-error` 僅契約，不取代）。
 
 動作↔VRMA 自動對應政策已定（pack／同名預選／白名單確認；不做語意猜分），見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §10；不再另開語意分槽路線。

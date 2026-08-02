@@ -133,6 +133,7 @@ test("settings preload exposes management APIs without avatar bridge", async () 
   await settings.setModelLighting("m1", { exposure: 1 });
   await settings.resetModelLighting("m1");
   await settings.moveAnimationClip("a1", "c1", "a2");
+  await settings.updateAnimationClip("a1", "c1", { purpose: "loop" });
   await settings.createAnimation({ animation_name: "idle" });
   await settings.addAnimationClips("a1");
   await settings.addAnimationClipsFromDirectory("a1");
@@ -173,6 +174,7 @@ test("settings preload exposes management APIs without avatar bridge", async () 
     "voxavatar:settings-set-model-lighting",
     "voxavatar:settings-reset-model-lighting",
     "voxavatar:settings-move-animation-clip",
+    "voxavatar:settings-update-animation-clip",
     "voxavatar:settings-create-animation",
     "voxavatar:settings-add-animation-clips",
     "voxavatar:settings-add-animation-clips-from-directory",

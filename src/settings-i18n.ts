@@ -100,6 +100,8 @@ const ZH_TW: MessageDictionary = {
     'COM 初始化失敗。請確認以一般桌面工作階段執行，並重試。',
   'helper.error.native_helper_wasapi_error':
     'WASAPI／音訊端點失敗。請檢查預設播放裝置後重試。',
+  'helper.error.native_helper_event_error':
+    '音訊事件回呼建立失敗。請重試或改用其他語音來源。',
   'helper.error.native_helper_device_error':
     '找不到可用的播放裝置。請連接或啟用輸出裝置。',
   'helper.error.native_helper_usage': '原生 listener 參數無效（Usage）。',
@@ -116,6 +118,8 @@ const ZH_TW: MessageDictionary = {
     '請關閉後以一般桌面工作階段重新開啟 VoxAvatar，勿在不支援 COM 的服務工作階段執行。',
   'helper.hint.native_helper_wasapi_error':
     '請檢查預設播放裝置是否啟用，並關閉佔用獨佔模式的其他音訊工具後重試。',
+  'helper.hint.native_helper_event_error':
+    '請重試語音來源；若持續失敗，改用外部事件模式並回報診斷摘要。',
   'helper.hint.native_helper_device_error':
     '請連接或啟用輸出裝置，再於設定重新整理語音來源。',
   'helper.hint.native_helper_usage':
@@ -678,6 +682,8 @@ const EN: MessageDictionary = {
     'COM initialization failed. Run in a normal desktop session and retry.',
   'helper.error.native_helper_wasapi_error':
     'WASAPI / audio endpoint failed. Check the default playback device and retry.',
+  'helper.error.native_helper_event_error':
+    'Audio event callback setup failed. Retry or switch voice source.',
   'helper.error.native_helper_device_error':
     'No usable playback device. Connect or enable an output device.',
   'helper.error.native_helper_usage': 'Native listener arguments were invalid (Usage).',
@@ -694,6 +700,8 @@ const EN: MessageDictionary = {
     'Quit and reopen VoxAvatar in a normal desktop session; COM is unavailable in some service contexts.',
   'helper.hint.native_helper_wasapi_error':
     'Check the default playback device and close apps holding exclusive audio mode, then retry.',
+  'helper.hint.native_helper_event_error':
+    'Retry the voice source; if it keeps failing, switch to External-events mode and share a redacted diagnostic summary.',
   'helper.hint.native_helper_device_error':
     'Connect or enable an output device, then refresh voice sources in Settings.',
   'helper.hint.native_helper_usage':

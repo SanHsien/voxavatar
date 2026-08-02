@@ -63,7 +63,7 @@
 
 1. 各 exporter／版本的代表性 `.vrm`／`.vrma` 樣本（僅引用來源與授權，二進位不入庫）。
 2. Three.js 載入、骨架對位、表情與 VRMA 播放的實機結果欄位。
-3. 與 [`docs/RELEASING.md`](RELEASING.md)「Windows 發行驗收」匯入 smoke 的交叉引用。
+3. 與 [`docs/RELEASING.md`](RELEASING.md)「Windows 發行驗收」匯入 smoke 的交叉引用；機讀骨架見 [`release-evidence/_templates/exporter-results.json`](release-evidence/_templates/exporter-results.json) 與 [`exporter-sample.schema.json`](release-evidence/_templates/exporter-sample.schema.json)。
 
 ### 真實樣本證據列（尚未填寫結果）
 

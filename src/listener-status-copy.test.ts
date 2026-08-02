@@ -12,6 +12,7 @@ const NATIVE_HELPER_CODES = [
   'native_helper_spawn_failed',
   'native_helper_com_error',
   'native_helper_wasapi_error',
+  'native_helper_event_error',
   'native_helper_device_error',
   'native_helper_usage',
   'native_helper_permission',

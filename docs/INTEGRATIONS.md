@@ -207,12 +207,13 @@ Agent／設定頁應優先讀 `helper_error`（與 typed exit／NDJSON `code` �
 | `native_helper_spawn_failed` | spawn／權限 | 檢查安裝完整性與桌面工作階段 |
 | `native_helper_usage` | exit **2** | 參數異常；多為安裝損壞 |
 | `native_helper_com_error` | exit **10** | 一般桌面工作階段重試（真實 COM 失敗仍標未驗） |
-| `native_helper_wasapi_error` | exit **11**／**13**（Event） | 檢查播放裝置；真實 WASAPI 失敗仍標未驗 |
+| `native_helper_wasapi_error` | exit **11** | 檢查播放裝置；真實 WASAPI 失敗仍標未驗 |
+| `native_helper_event_error` | exit **13**（Event） | 重試或改 external；真實 Event 失敗仍標未驗 |
 | `native_helper_device_error` | exit **12** | 連接／啟用輸出裝置 |
 | `native_helper_permission` | EACCES 等 | 檢查防毒／受控資料夾存取 |
 | `native_helper_exit_nonzero` | 其他非 0 exit | 重試或改 external 模式 |
 | `native_helper_unknown` | 無法分類 | 複製診斷摘要回報 |
 
-真實 COM／WASAPI／Device／Event 失敗路徑需 Windows 桌面環境；CI 僅保證 Usage=2 與分類邏輯可測。
+真實 COM／WASAPI／Device／Event 失敗路徑需 Windows 桌面環境；CI 保證 Usage=2、`--emit-error` 10／11／12／13 契約與 JS 分類邏輯可測（≠ 真實 HRESULT／裝置失敗）。
 
 VoxAvatar 不監聽麥克風，不保存或傳送音訊樣本。

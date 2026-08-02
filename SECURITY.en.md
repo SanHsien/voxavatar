@@ -25,6 +25,7 @@ Use [GitHub Private Vulnerability Reporting](https://github.com/SanHsien/voxavat
 
 - Every GitHub Release includes `SHA256SUMS.txt`; verify the installer hash after download.
 - Until `WIN_CSC_*` signing secrets are available, public installers are labeled **NotSigned**. The About dialog and Release notes say the same. SmartScreen may warn about an unknown publisher—that is not a completed Windows desktop acceptance.
+- Use `npm run evidence:verify -- --manifest docs/release-evidence/v{ver}/manifest.json [--online]` to cross-check GitHub digests / SHA256SUMS / NotSigned labels, and `npm run evidence:pe -- path\\to\\setup.exe` to read the PE Certificate Table (empty ⇒ machine-provable absence of an Authenticode blob). Neither replaces SmartScreen / publisher human acceptance.
 - Without signing secrets, do **not** claim Authenticode signing or SmartScreen clearance. Desktop smoke / signing evidence lives under [`docs/release-evidence/`](docs/release-evidence/) and [`docs/RELEASING.md`](docs/RELEASING.md).
 
 Security-boundary changes require tests and a threat explanation. Use the issue template, not the vulnerability channel, for ordinary bugs.

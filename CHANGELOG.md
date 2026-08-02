@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.19 - 2026-08-02
+
+- ROADMAP 拆「實機仍待」與「證據路徑進度」；新增 `evidence:verify`／`evidence:pe`（PE Certificate Table → NotSigned 機器證據，≠ SmartScreen）。
+- Native `--emit-error` 10／11／12／13 契約；Event exit 13 獨立為 `native_helper_event_error`；smoke checklist 分段子項。
+- exporter 證據 schema／空結果表；30%／idle 設定契約測；theme／tray／preload clip 契約；README↔package 版號 docs gate。
+- tip evidence `v0.16.19`（`tag=null`、tip SHA、`ci_gates=pass`）；本輪不切 installer Release。
+
 ## 0.16.18 - 2026-08-02
 
 - Settings notice 統一經 `settingsErrorMessage` 遮罩路徑；UI／MCP 雙軌 redact 對齊（含 `user Name`、`/root`、共用 fixture）。

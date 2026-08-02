@@ -23,5 +23,15 @@
     "id": "mixed-assets",
     "input": "bad C:/Users/SanHsien/a.vrm and /home/SanHsien/b.glb",
     "mustNotContain": ["SanHsien", "a.vrm", "b.glb"]
+  },
+  {
+    "id": "onedrive-path",
+    "input": "err C:\\Users\\SanHsien\\OneDrive\\人物\\clip.VRMA",
+    "mustNotContain": ["SanHsien", "clip.VRMA", "OneDrive"]
+  },
+  {
+    "id": "username-label",
+    "input": "username Alice could not open model.GLB",
+    "mustNotContain": ["Alice", "model.GLB"]
   }
 ]

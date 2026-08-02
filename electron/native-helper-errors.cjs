@@ -16,6 +16,7 @@ const NATIVE_HELPER_ERROR = Object.freeze({
   DEVICE_ERROR: "native_helper_device_error",
   COM_ERROR: "native_helper_com_error",
   WASAPI_ERROR: "native_helper_wasapi_error",
+  EVENT_ERROR: "native_helper_event_error",
   PERMISSION: "native_helper_permission",
 });
 
@@ -50,9 +51,14 @@ function classifyByTypedExitCode(exitCode) {
         detail: `exit:${exitCode}`,
       };
     case NATIVE_HELPER_EXIT_CODE.WASAPI:
-    case NATIVE_HELPER_EXIT_CODE.EVENT:
       return {
         code: NATIVE_HELPER_ERROR.WASAPI_ERROR,
+        listenerState: LISTENER_STATE.LAUNCH_FAILED,
+        detail: `exit:${exitCode}`,
+      };
+    case NATIVE_HELPER_EXIT_CODE.EVENT:
+      return {
+        code: NATIVE_HELPER_ERROR.EVENT_ERROR,
         listenerState: LISTENER_STATE.LAUNCH_FAILED,
         detail: `exit:${exitCode}`,
       };

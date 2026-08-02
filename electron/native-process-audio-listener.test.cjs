@@ -170,7 +170,7 @@ test("native listener maps typed exit codes to helper_error", async () => {
     { exit: 10, helper: "native_helper_com_error", state: "launch_failed" },
     { exit: 11, helper: "native_helper_wasapi_error", state: "launch_failed" },
     { exit: 12, helper: "native_helper_device_error", state: "no_output" },
-    { exit: 13, helper: "native_helper_wasapi_error", state: "launch_failed" },
+    { exit: 13, helper: "native_helper_event_error", state: "launch_failed" },
   ];
   for (const entry of cases) {
     const statuses = [];
@@ -199,7 +199,7 @@ test("native listener maps NDJSON typed error codes to helper_error", async () =
     { code: 10, helper: "native_helper_com_error" },
     { code: 11, helper: "native_helper_wasapi_error" },
     { code: 12, helper: "native_helper_device_error" },
-    { code: 13, helper: "native_helper_wasapi_error" },
+    { code: 13, helper: "native_helper_event_error" },
   ];
   for (const entry of cases) {
     const statuses = [];

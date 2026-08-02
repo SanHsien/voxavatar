@@ -26,6 +26,7 @@
 
 - 每個 GitHub Release 附 `SHA256SUMS.txt`；下載後請核對 installer 雜湊。
 - 在提供 `WIN_CSC_*` 簽署密鑰前，公開安裝包標示為 **NotSigned**；About 對話框與 Release notes 也會寫明。SmartScreen 可能提示未知發行者——這不代表通過完整 Windows 桌面驗收。
+- 可用 `npm run evidence:verify -- --manifest docs/release-evidence/v{ver}/manifest.json [--online]` 對照 GitHub digest／SHA256SUMS／NotSigned 標示；`npm run evidence:pe` 可對 installer 讀 PE Certificate Table（空＝機器可證無 Authenticode 區塊）。兩者皆**不能**取代 SmartScreen／publisher 人工驗收。
 - 缺少簽署密鑰時**不得**宣稱已 Authenticode 簽署或已通過 SmartScreen。實機 smoke／簽署狀態證據見 [`docs/release-evidence/`](docs/release-evidence/) 與 [`docs/RELEASING.md`](docs/RELEASING.md)。
 
 安全邊界的變更必須附測試與威脅說明。一般錯誤請用 issue template，不要透過漏洞管道回報。

@@ -31,9 +31,9 @@
 
 | 項目 | 值 |
 | --- | --- |
-| `upstream/main` tip（commit 水位） | `9287ea3`（#16，2026-08-02；macOS Core Audio，**不合併**） |
+| `upstream/main` tip（commit 水位） | `bb7ef24`（#17，2026-08-02；預設 AvatarSample_A＋speaking chunks，**不合併**） |
 | 下次接續 | tip 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次 |
-| Open PR／issue 本輪掃描 | 2026-08-02（0.16.17 交付前再掃）；`9287ea3..upstream/main` 空；無 open PR，open issue 僅 #11（已涵蓋） |
+| Open PR／issue 本輪掃描 | 2026-08-02（0.16.19）；`9287ea3..upstream/main`＝`bb7ef24`；無 open PR，open issue 僅 #11（已涵蓋） |
 
 #### 評估流程
 
@@ -61,6 +61,7 @@
 | #14 → `a72292f` | **不合併** | 維持根目錄 `ASSET_LICENSES.md`；不引入 `demo.jpg`；不搬到 `public/assets/LICENSES.md` |
 | #15 → `cf27d12` | **不合併** | 僅調整上游 `demo.jpg` 顯示 |
 | #16 → `9287ea3` | **不合併**（範圍外） | macOS Core Audio worker churn 修正；共用 JS 也只服務 darwin capture key，Windows sticky-root listener 不適用 |
+| #17 → `bb7ef24` | **不合併** | 內建 `AvatarSample_A.vrm` 與多個 speaking VRMA，並把授權敘述放進 `public/assets/LICENSES.md`；違反「預設安裝包不內建未確認再散布權媒體」與根目錄 `ASSET_LICENSES.md` 政策。模組化 speaking 排序可日後當概念參考，**不**整包合入媒體與 Developer gated 設定。 |
 | #10、`5bd380e` 等語音／lighting 基線 | **已在 fork** | 語音來源、per-model lighting 等已落地為 VoxAvatar 行為 |
 | #1–#7、#9 等早期 PR | **不重併** | 對應殘留分支政策：已 squash 進上游 `main` 者不再整包合併 |
 
@@ -76,8 +77,8 @@
 
 #### 本輪結論
 
-- **無須從上游 PR／issue 引進程式合併。**
-- Commit 水位推進至 `9287ea3`；目前無 open PR，#11 文件需求已由 VoxAvatar 涵蓋。下次從此水位後的新 commit 接續評估。
+- **無須從上游 PR／issue 引進程式合併。** #17 因內建媒體／授權路徑政策不合併。
+- Commit 水位推進至 `bb7ef24`；目前無 open PR，#11 文件需求已由 VoxAvatar 涵蓋。下次從此水位後的新 commit 接續評估。
 
 ## 2. 音訊與本機整合
 
@@ -159,4 +160,11 @@
 - **未分類片段池**（schema 11 `unassigned_clips`）：可先匯入 VRMA 到池中，再拖曳或指定到動作；池內與已指定片段皆可批次設定 `purpose`。
 - 磁碟檔名為 app-controlled 可讀 `{clip_name}--{id8}.vrma`（舊版 `{uuid}.vrma` 仍合法）；catalog／URL 資產 ID 永遠是 UUID。「改名」同步磁碟檔名與 `source_basename`（`{clip_name}.vrma`），不覆寫使用者原始匯入路徑。
 - 不提供任意路徑寫回或覆寫使用者原始檔；語意分槽仍以 action-pack／手動指定／檔名白名單確認為準。
+
+## 13. Native helper Event（exit 13）語意
+
+- C++ `HelperExit::Event = 13`（音訊 event callback 建立失敗）與 WASAPI／Device／COM 分開。
+- JS／Settings／MCP 使用獨立碼 `native_helper_event_error`；**不再**把 exit 13 摺進 `native_helper_wasapi_error`。
+- `--emit-error 10|11|12|13` 僅供契約／self-test，**不**等同真實 HRESULT 或裝置失敗已驗。
+- 真實 COM／WASAPI／Device／Event 失敗仍須有環境證據；見 ROADMAP「仍待／未驗」。
 

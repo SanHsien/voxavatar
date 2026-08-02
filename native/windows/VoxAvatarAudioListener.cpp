@@ -189,20 +189,54 @@ double packetSquareSum(
 int wmain(int argc, wchar_t* argv[]) {
   DWORD processId = 0;
   bool useOutputDevice = false;
+  bool sawPidFlag = false;
   for (int index = 1; index < argc; ++index) {
     if (wcscmp(argv[index], L"--self-test") == 0) {
       emitReady("Windows self-test");
       return 0;
     }
+    if (wcscmp(argv[index], L"--emit-error") == 0) {
+      if (index + 1 >= argc) {
+        return fail("A valid --emit-error code is required.", HelperExit::Usage);
+      }
+      const unsigned long emitted = wcstoul(argv[++index], nullptr, 10);
+      switch (emitted) {
+        case 2:
+          return fail("Emitted usage error (self-test).", HelperExit::Usage);
+        case 10:
+          return fail("Emitted COM error (self-test).", HelperExit::Com);
+        case 11:
+          return fail("Emitted WASAPI error (self-test).", HelperExit::Wasapi);
+        case 12:
+          return fail("Emitted device error (self-test).", HelperExit::Device);
+        case 13:
+          return fail("Emitted event error (self-test).", HelperExit::Event);
+        default:
+          return fail("Unknown --emit-error code.", HelperExit::Usage);
+      }
+    }
     if (wcscmp(argv[index], L"--output") == 0) {
       useOutputDevice = true;
+      continue;
     }
-    if (wcscmp(argv[index], L"--pid") == 0 && index + 1 < argc) {
+    if (wcscmp(argv[index], L"--pid") == 0) {
+      sawPidFlag = true;
+      if (index + 1 >= argc) {
+        return fail("A valid --pid value is required.", HelperExit::Usage);
+      }
       processId = wcstoul(argv[++index], nullptr, 10);
+      if (processId == 0) {
+        return fail("A valid --pid value is required.", HelperExit::Usage);
+      }
+      continue;
     }
   }
   if (!useOutputDevice && processId == 0) {
-    return fail("A valid --pid or --output is required.", HelperExit::Usage);
+    return fail(
+        sawPidFlag
+            ? "A valid --pid value is required."
+            : "A valid --pid or --output is required.",
+        HelperExit::Usage);
   }
 
   SetConsoleOutputCP(CP_UTF8);

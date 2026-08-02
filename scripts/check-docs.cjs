@@ -61,8 +61,26 @@ function localLinkTarget(rawTarget) {
   }
 }
 
-function checkMarkdownTree(root) {
+function checkPackageVersionMention(root) {
+  const packagePath = path.join(root, "package.json");
+  if (!fs.existsSync(packagePath)) return [];
   const errors = [];
+  const version = JSON.parse(fs.readFileSync(packagePath, "utf8")).version;
+  for (const relativePath of ["README.md", "README.en.md"]) {
+    const readmePath = path.join(root, relativePath);
+    if (!fs.existsSync(readmePath)) continue;
+    const content = fs.readFileSync(readmePath, "utf8");
+    if (!content.includes(`**\`${version}\`**`) && !content.includes(`\`${version}\``)) {
+      errors.push(
+        `${relativePath}: should mention current package.json version ${version}`,
+      );
+    }
+  }
+  return errors;
+}
+
+function checkMarkdownTree(root) {
+  const errors = [...checkPackageVersionMention(root)];
   for (const pair of REQUIRED_BILINGUAL_PAIRS) {
     const existing = pair.filter((relativePath) =>
       fs.existsSync(path.join(root, relativePath)),
@@ -108,4 +126,9 @@ if (require.main === module) {
   }
 }
 
-module.exports = { checkMarkdownTree, findMarkdownFiles, localLinkTarget };
+module.exports = {
+  checkMarkdownTree,
+  checkPackageVersionMention,
+  findMarkdownFiles,
+  localLinkTarget,
+};

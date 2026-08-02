@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsAppearanceSection } from './SettingsAppearanceSection';
 import {
@@ -56,5 +56,35 @@ describe('SettingsAppearanceSection', () => {
 
     await user.click(screen.getByTestId('theme-dark'));
     expect(chooseTheme).toHaveBeenCalledWith('dark');
+  });
+
+  it('exposes 30% character size and idle rest sliders', () => {
+    const saveCharacterSize = vi.fn(async () => undefined);
+    const saveIdleRestMs = vi.fn(async () => undefined);
+    const previewCharacterSize = vi.fn();
+    const previewIdleRestMs = vi.fn();
+    renderAppearance({
+      saveCharacterSize,
+      saveIdleRestMs,
+      previewCharacterSize,
+      previewIdleRestMs,
+      settings: { ...SETTINGS_FALLBACK, character_size: 1, idle_rest_ms: 8000 },
+    });
+
+    const size = screen.getByTestId('character-size-slider');
+    expect(size).toHaveProperty('min', '0.3');
+    expect(size).toHaveProperty('max', '1.6');
+    fireEvent.change(size, { target: { value: '0.3' } });
+    fireEvent.pointerUp(size, { target: { value: '0.3' } });
+    expect(previewCharacterSize).toHaveBeenCalledWith(0.3);
+    expect(saveCharacterSize).toHaveBeenCalledWith(0.3);
+
+    const idle = screen.getByTestId('idle-rest-slider');
+    expect(idle).toHaveProperty('min', '2');
+    expect(idle).toHaveProperty('max', '60');
+    fireEvent.change(idle, { target: { value: '2' } });
+    fireEvent.pointerUp(idle, { target: { value: '2' } });
+    expect(previewIdleRestMs).toHaveBeenCalledWith(2000);
+    expect(saveIdleRestMs).toHaveBeenCalledWith(2000);
   });
 });

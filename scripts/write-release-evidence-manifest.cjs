@@ -14,16 +14,40 @@ const DEFAULT_SMOKE_ITEMS = Object.freeze([
     note: "以 GitHub Actions CI／Release 綠燈為準；本證據不重跑。",
   },
   {
-    id: "install_lifecycle",
-    section: "安裝與生命週期",
+    id: "install",
+    section: "安裝",
     result: "未驗",
-    note: "無 Windows 桌面；未執行安裝／升級／移除。",
+    note: "無 Windows 桌面；未執行全新安裝。",
   },
   {
-    id: "desktop_core",
-    section: "核心桌面流程",
+    id: "upgrade",
+    section: "升級",
     result: "未驗",
-    note: "無 Windows 桌面；系統匣／DPI／30%／透明視窗未實測。",
+    note: "無 Windows 桌面；未執行舊版→新版升級。",
+  },
+  {
+    id: "uninstall",
+    section: "移除",
+    result: "未驗",
+    note: "無 Windows 桌面；未執行移除。",
+  },
+  {
+    id: "tray",
+    section: "系統匣",
+    result: "未驗",
+    note: "無 Windows 桌面；系統匣左右鍵未實測。",
+  },
+  {
+    id: "dpi_scaling",
+    section: "DPI／縮放",
+    result: "未驗",
+    note: "無 Windows 桌面；100%／150%／225% 未實測。",
+  },
+  {
+    id: "size_30",
+    section: "角色尺寸 30%",
+    result: "未驗",
+    note: "設定契約可自動測；多 DPI 實機可讀性未驗。",
   },
   {
     id: "voice_mcp",
@@ -32,10 +56,16 @@ const DEFAULT_SMOKE_ITEMS = Object.freeze([
     note: "無 Windows 桌面；真實 WASAPI／系統匣 MCP 未實測。",
   },
   {
-    id: "signing",
-    section: "簽署／SmartScreen",
+    id: "signing_label",
+    section: "簽署標示（NotSigned）",
     result: "未驗",
-    note: "無 WIN_CSC_* 密鑰；Authenticode 狀態為 NotSigned。",
+    note: "可用 PE Certificate Table／evidence:verify 對照標示；≠ SmartScreen。",
+  },
+  {
+    id: "smartscreen",
+    section: "SmartScreen／publisher",
+    result: "未驗",
+    note: "無 WIN_CSC_* 密鑰；需人工桌面觀察。",
   },
 ]);
 
@@ -53,10 +83,12 @@ function buildReleaseEvidenceManifest({
   installerSizeBytes = null,
   unsigned = true,
   authenticodeStatus = "NotSigned",
+  authenticodeEvidence = null,
   smokeExecuted = false,
   notes = null,
   hasInstaller = null,
   inventTagFromVersion = true,
+  markCiGatesPass = false,
 } = {}) {
   const installerPresent =
     hasInstaller == null
@@ -73,6 +105,16 @@ function buildReleaseEvidenceManifest({
     // tip／無 installer：不虛構尚未存在的 GitHub tag
     resolvedTag = null;
   }
+  const items = DEFAULT_SMOKE_ITEMS.map((item) => {
+    if (markCiGatesPass && item.id === "ci_gates") {
+      return {
+        ...item,
+        result: "pass",
+        note: "GitHub Actions CI 綠燈（僅自動化 gate；不含 GUI smoke）。",
+      };
+    }
+    return { ...item };
+  });
   return {
     schemaVersion: 1,
     purpose:
@@ -95,6 +137,7 @@ function buildReleaseEvidenceManifest({
       unsigned: Boolean(unsigned),
       authenticodeStatus:
         authenticodeStatus ?? (unsigned ? "NotSigned" : "Unknown"),
+      authenticodeEvidence,
     },
     environment: {
       windowsEdition: null,
@@ -108,12 +151,17 @@ function buildReleaseEvidenceManifest({
       validationDoc: WINDOWS_VALIDATION_DOC,
       sections: [
         "自動化前置 gate",
-        "安裝與生命週期",
-        "核心桌面流程",
+        "安裝",
+        "升級",
+        "移除",
+        "系統匣",
+        "DPI／縮放",
+        "角色尺寸 30%",
         "語音與 MCP",
-        "簽署／SmartScreen",
+        "簽署標示（NotSigned）",
+        "SmartScreen／publisher",
       ],
-      items: DEFAULT_SMOKE_ITEMS.map((item) => ({ ...item })),
+      items,
       notes:
         notes ??
         "Populate per-item pass/fail/未驗 after a real Windows smoke; do not pre-check.",
@@ -226,6 +274,8 @@ if (require.main === module) {
   --notes <text>
   --smoke-md                   also write windows-smoke.md
   --no-installer               force hasInstaller=false; do not invent tag unless --tag is set
+  --ci-pass                    mark smokeChecklist ci_gates as pass (CI only; not GUI smoke)
+  --authenticode-evidence <s>  e.g. pe-certificate-table-empty
   --signed                     mark Authenticode Signed (default NotSigned)
   --dir <path>                 evidence root (default docs/release-evidence)
   --out <path>                 explicit manifest path`);
@@ -251,6 +301,8 @@ if (require.main === module) {
           sizeRaw == null || sizeRaw === "" ? null : Number(sizeRaw),
         unsigned: !hasFlag("--signed"),
         authenticodeStatus: hasFlag("--signed") ? "Signed" : "NotSigned",
+        authenticodeEvidence: readFlag("--authenticode-evidence"),
+        markCiGatesPass: hasFlag("--ci-pass"),
         hasInstaller: noInstaller ? false : null,
         notes: readFlag("--notes"),
         outputDir: readFlag("--dir") ?? DEFAULT_OUTPUT_DIR,

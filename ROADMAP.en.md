@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.18` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.19` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,12 +11,12 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.18` / `main`; GitHub Latest Release: `v0.16.14`
+Review baseline: `0.16.19` / `main`; GitHub Latest Release: `v0.16.14`
 
-No known open P0/P1. Upstream remains `9287ea3`. `0.16.18` closes Settings notice redaction, honest tip evidence tags, dual-track redact parity, confirm-dialog / listener-pattern / TTL extraction, and contract tests. No installer Release this round (still mostly contracts / privacy / honesty since `v0.16.14`).
+No known open P0/P1. Upstream watermark `bb7ef24` (#17 **not merged**). `0.16.19` advances the evidence path (`evidence:verify` / PE NotSigned, `--emit-error`, separate Event code, exporter skeleton, 30% contracts) and rewrites ROADMAP “Evidence-path progress”. No installer Release this round (still no installer-visible change since `v0.16.14`).
 
 - Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified).
-- Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
+- Upstream: commit watermark `bb7ef24` (#17 bundles AvatarSample / speaking VRMA — **do not merge**); no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
 
@@ -62,7 +62,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.1–v0.13 | Windows-only fork baseline; `REVIEW` → Current health (details in CHANGELOG) |
 | v0.14–v0.15 | State slots / MCP / HTTP / head projection / manual state / typed exit |
 | v0.16.0–0.16.9 | Speaking secondary, tray, slot defaults, action-pack, clip pool/preview, UI spacing |
-| v0.16.10–0.16.18 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction, CodeQL, i18n/sanitize/IPC parity |
+| v0.16.10–0.16.19 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction, CodeQL, i18n/sanitize/IPC, evidence-path scaffolding |
 
 Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 
@@ -75,12 +75,23 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 - [x] release-evidence (Latest SHA / NotSigned; `ci_gates` green); README / SECURITY / About unsigned labeling; helper_error copy and path redaction.
 - [x] Setup voice-code i18n; MCP/Settings voice-catalog path redaction; zh/en i18n key parity; helper state next-step hints; sanitize/migration/preload contracts.
 - [x] Settings notice redaction; tip evidence does not invent tags; dual-track redact fixtures; confirm-dialog / listener-pattern / TTL extraction; format / rate-limit / IPC channel contracts.
+- [x] `evidence:verify` / PE NotSigned; `--emit-error`; separate Event code; smoke sub-items; exporter schema; 30%/idle/theme contracts.
 
-### Still open / unverified
+### Still open / unverified (blocked on desktop, secrets, or licensed samples)
 
-- [~] Native COM/WASAPI/Device/Event real failure paths.
-- [~] Idle/DPI/30%/GUI smoke/installer signing (see verification table).
-- [~] Real exporter manual results.
+- [~] Native COM/WASAPI/Device/Event **real** failure paths (HRESULT / device environment).
+- [~] Idle/DPI/30% real-machine readability / GUI smoke / installer signing & SmartScreen (see verification table).
+- [~] Real exporter manual results (redistributable-clear samples).
+
+### Evidence-path progress (automatable / Linux-safe; ≠ desktop complete)
+
+- [x] Usage=2 + JS typed-exit classification; `--emit-error` 10/11/12/13 contracts (real COM/WASAPI still unverified).
+- [x] Event exit **13** is `native_helper_event_error` (no longer folded into wasapi wording).
+- [x] `evidence:verify`: GitHub digest / SHA256SUMS / NotSigned label checks (≠ SmartScreen).
+- [x] Empty PE Certificate Table ⇒ machine-provable `NotSigned` (`evidence:pe`; ≠ publisher acceptance).
+- [x] Smoke checklist split into fillable sub-items; tip evidence can mark `ci_gates=pass` with tip SHA.
+- [x] Exporter evidence JSON schema / empty results table (`docs/release-evidence/_templates/`; no real results).
+- [x] Character size 30% / idle settings interaction contracts (multi-DPI readability unverified).
 
 ## Full production-release assurance
 
@@ -109,8 +120,8 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 
 ## Next three actions
 
-1. When Windows/secrets are available, complete smoke, signing, and 30%/DPI/Idle real-machine evidence.
-2. Obtain clearly licensed real exporter sample results.
-3. Native COM/WASAPI/Device/Event real failure paths (when the environment exists).
+1. With Windows/secrets: fill segmented smoke sub-items under `docs/release-evidence/`, and cross-check NotSigned via `evidence:verify` / `evidence:pe` (SmartScreen still needs a human).
+2. Obtain clearly licensed real exporter samples and fill `_templates/exporter-results.json`.
+3. With audio/COM environments, add real failure-path coverage (`--emit-error` is contract-only).
 
 Action↔VRMA auto-assignment policy is settled (pack / name preselect / whitelist confirm; no semantic guessing); see [`docs/DECISIONS.md`](docs/DECISIONS.md) §10. Do not open a semantic slotting track.

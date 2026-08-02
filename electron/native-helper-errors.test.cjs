@@ -48,7 +48,7 @@ test("classifyNativeHelperFailure prefers typed helper exit codes", () => {
   );
   assert.equal(
     classifyNativeHelperFailure({ exitCode: 13 }).code,
-    NATIVE_HELPER_ERROR.WASAPI_ERROR,
+    NATIVE_HELPER_ERROR.EVENT_ERROR,
   );
   assert.equal(
     classifyNativeHelperFailure({ exitCode: 12 }).listenerState,

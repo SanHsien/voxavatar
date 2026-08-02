@@ -3,16 +3,14 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const { buildTrayMenuTemplate } = require("./tray-menu-template.cjs");
+const { menuStrings } = require("./i18n.cjs");
 
 const LABELS = Object.freeze({
-  setup: "首次設定",
+  ...menuStrings("zh-TW"),
   show: "顯示",
   hide: "隱藏",
   resetView: "重設視角",
   settings: "設定",
-  characterState: "角色狀態",
-  previewListening: "預覽聆聽",
-  previewSpeaking: "預覽說話",
   language: "語言",
   languageZh: "繁體中文",
   languageEn: "English",
@@ -28,7 +26,7 @@ test("buildTrayMenuTemplate shows setup when no model is ready", () => {
     onQuit: () => calls.push("quit"),
   });
   assert.equal(menu[0].action, "setup");
-  assert.equal(menu[0].label, "首次設定");
+  assert.equal(menu[0].label, menuStrings("zh-TW").setup);
   assert.ok(menu.some((item) => item.label === "語言"));
   assert.ok(menu.some((item) => item.label === "關於"));
   assert.equal(menu.at(-1).label, "結束");

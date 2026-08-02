@@ -225,7 +225,10 @@ export function App() {
           playback={bodyOverride || cycleRandomMotions ? 'once' : 'loop'}
           speaking={speaking}
         />
-        <CharacterBubble message={activeMessage} />
+        <CharacterBubble
+          characterSize={settings.character_size}
+          message={activeMessage}
+        />
       </main>
     </SceneErrorBoundary>
   ) : (

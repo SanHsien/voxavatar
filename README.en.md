@@ -162,7 +162,7 @@ docs/            Development, integration, character behavior, decisions, and re
 | [`ROADMAP.en.md`](ROADMAP.en.md) / [`REVIEW.md`](REVIEW.md) / [`CHANGELOG.md`](CHANGELOG.md) | Future work, current health, and completed history |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) / [`CONTRIBUTING.en.md`](CONTRIBUTING.en.md) | Architecture, toolchain, validation, and contribution workflow |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP, HTTP event API, and URL protocol |
-| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) / [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | Motion import, character behavior design, and media compatibility (Traditional Chinese where noted) |
+| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) / [`docs/ACTION_PACK.md`](docs/ACTION_PACK.md) / [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | Motion import, character behavior, action-pack contract, and media compatibility (Traditional Chinese where noted) |
 | [`docs/RELEASING.md`](docs/RELEASING.md) / [`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | Release workflow and Windows evidence (Traditional Chinese) |
 | [`SECURITY.en.md`](SECURITY.en.md) / [`ASSET_LICENSES.md`](ASSET_LICENSES.md) / [`docs/DECISIONS.md`](docs/DECISIONS.md) | Security, media licensing, and current decisions |
 

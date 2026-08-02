@@ -75,6 +75,7 @@ const {
 } = require("./directory-import.cjs");
 const { createRendererWindows } = require("./renderer-windows.cjs");
 const { registerSettingsIpc } = require("./settings-ipc.cjs");
+const { createOverlayLifecycle } = require("./overlay-lifecycle.cjs");
 
 const VOXAVATAR_ASSET_SCHEME = "voxavatar-asset";
 const startInBackground = process.argv.includes("--background");
@@ -110,50 +111,6 @@ let activeMessageClearTimer = null;
 const pendingRendererEvents = new Map();
 const messageRateLimiter = createMessageRateLimiter();
 
-const {
-  createSettingsWindow,
-  createWindow,
-  rendererUrl,
-  settingsWindowBackground,
-  trustedRendererUrls,
-} = createRendererWindows({
-  path,
-  pathToFileURL,
-  BrowserWindow,
-  shell,
-  nativeTheme,
-  isAllowedRendererNavigation,
-  createSettingsWindowPresentationGate,
-  electronDir: __dirname,
-  devServerUrl: process.env.VITE_DEV_SERVER_URL,
-  preloadAvatarPath: path.join(__dirname, "preload-avatar.cjs"),
-  preloadSettingsPath: path.join(__dirname, "preload-settings.cjs"),
-  getIsQuitting: () => isQuitting,
-  getAvatarMousePassthrough: () => avatarMousePassthrough,
-  setAvatarMousePassthroughFlag: (value) => {
-    avatarMousePassthrough = value;
-  },
-  onAvatarWindowClosed: () => {
-    rendererLoadHookAttached = false;
-  },
-  positionWindow,
-  setAvatarMousePassthrough,
-  hideOverlay,
-  focusSettingsWindow,
-  getAvatarWindow: () => avatarWindow,
-  setAvatarWindow: (window) => {
-    avatarWindow = window;
-  },
-  getSettingsWindow: () => settingsWindow,
-  setSettingsWindow: (window) => {
-    settingsWindow = window;
-  },
-  getSettingsWindowPresentationGate: () => settingsWindowPresentationGate,
-  setSettingsWindowPresentationGate: (gate) => {
-    settingsWindowPresentationGate = gate;
-  },
-});
-
 protocol.registerSchemesAsPrivileged([
   {
     scheme: VOXAVATAR_ASSET_SCHEME,
@@ -184,49 +141,6 @@ function positionWindow(window) {
 
 function hasConfiguredModel() {
   return modelConfigured;
-}
-
-function showOverlay({ focus = false } = {}) {
-  if (!hasConfiguredModel()) {
-    showSettings();
-    return;
-  }
-  const window = createWindow();
-  if (window.isMinimized()) window.restore();
-  if (focus) {
-    if (!window.isVisible()) window.show();
-    window.focus();
-  } else if (!window.isVisible()) {
-    window.showInactive();
-  }
-}
-
-async function hideOverlay() {
-  debugLog("hide overlay");
-  const targetWindow = avatarWindow;
-  if (!targetWindow || targetWindow.isDestroyed()) return;
-  targetWindow.hide();
-}
-
-function destroyOverlayForSetup() {
-  rendererLoadHookAttached = false;
-  pendingRendererEvents.clear();
-  if (avatarWindow && !avatarWindow.isDestroyed()) {
-    avatarWindow.destroy();
-  }
-  avatarWindow = null;
-}
-
-function toggleOverlay() {
-  if (!hasConfiguredModel()) {
-    showSettings();
-    return;
-  }
-  if (avatarWindow && !avatarWindow.isDestroyed() && avatarWindow.isVisible()) {
-    void hideOverlay();
-  } else {
-    showOverlay({ focus: true });
-  }
 }
 
 function setAvatarMousePassthrough(ignore) {
@@ -495,6 +409,72 @@ function showSettings() {
   }
   return window;
 }
+
+// Overlay lifecycle 先於 renderer windows：hideOverlay 需傳入 createRendererWindows；
+// createWindow／showSettings 以懶回呼綁定，避免循環初始化。
+const {
+  showOverlay,
+  hideOverlay,
+  destroyOverlayForSetup,
+  toggleOverlay,
+} = createOverlayLifecycle({
+  hasConfiguredModel,
+  createWindow: () => createWindow(),
+  getAvatarWindow: () => avatarWindow,
+  setAvatarWindow: (window) => {
+    avatarWindow = window;
+  },
+  showSettings: () => showSettings(),
+  debugLog,
+  onBeforeDestroy: () => {
+    rendererLoadHookAttached = false;
+    pendingRendererEvents.clear();
+  },
+});
+
+const {
+  createSettingsWindow,
+  createWindow,
+  rendererUrl,
+  settingsWindowBackground,
+  trustedRendererUrls,
+} = createRendererWindows({
+  path,
+  pathToFileURL,
+  BrowserWindow,
+  shell,
+  nativeTheme,
+  isAllowedRendererNavigation,
+  createSettingsWindowPresentationGate,
+  electronDir: __dirname,
+  devServerUrl: process.env.VITE_DEV_SERVER_URL,
+  preloadAvatarPath: path.join(__dirname, "preload-avatar.cjs"),
+  preloadSettingsPath: path.join(__dirname, "preload-settings.cjs"),
+  getIsQuitting: () => isQuitting,
+  getAvatarMousePassthrough: () => avatarMousePassthrough,
+  setAvatarMousePassthroughFlag: (value) => {
+    avatarMousePassthrough = value;
+  },
+  onAvatarWindowClosed: () => {
+    rendererLoadHookAttached = false;
+  },
+  positionWindow,
+  setAvatarMousePassthrough,
+  hideOverlay,
+  focusSettingsWindow,
+  getAvatarWindow: () => avatarWindow,
+  setAvatarWindow: (window) => {
+    avatarWindow = window;
+  },
+  getSettingsWindow: () => settingsWindow,
+  setSettingsWindow: (window) => {
+    settingsWindow = window;
+  },
+  getSettingsWindowPresentationGate: () => settingsWindowPresentationGate,
+  setSettingsWindowPresentationGate: (gate) => {
+    settingsWindowPresentationGate = gate;
+  },
+});
 
 function animationCatalogSignature(snapshot) {
   return JSON.stringify(

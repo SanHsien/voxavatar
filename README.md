@@ -167,7 +167,7 @@ docs/            開發、整合、角色表現、決策與發行文件
 | [`ROADMAP.md`](ROADMAP.md)／[`REVIEW.md`](REVIEW.md)／[`CHANGELOG.md`](CHANGELOG.md) | 未來、目前健康與已完成歷史 |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)／[`CONTRIBUTING.md`](CONTRIBUTING.md) | 架構、工具鏈、驗證與貢獻流程 |
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | MCP、HTTP 事件 API 與 URL protocol |
-| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)／[`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | 動作匯入、角色表現設計與素材相容性 |
+| [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)／[`docs/ACTION_PACK.md`](docs/ACTION_PACK.md)／[`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md) | 動作匯入、角色表現、action-pack 契約與素材相容性 |
 | [`docs/RELEASING.md`](docs/RELEASING.md)／[`docs/WINDOWS_VALIDATION.md`](docs/WINDOWS_VALIDATION.md) | 發布流程與 Windows 實機證據 |
 | [`SECURITY.md`](SECURITY.md)／[`ASSET_LICENSES.md`](ASSET_LICENSES.md)／[`docs/DECISIONS.md`](docs/DECISIONS.md) | 安全、媒體授權與現行取捨 |
 

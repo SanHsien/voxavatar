@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.11.0 - 2026-08-02
+
+- 新增薄 `action-pack.json` 契約與驗證（`electron/action-pack.cjs`、範例與 [`docs/ACTION_PACK.md`](docs/ACTION_PACK.md)）；不繞過匯入／授權／路徑 gate。
+- 抽出 avatar overlay lifecycle（`electron/overlay-lifecycle.cjs`）；`main.cjs` 以懶回呼接線，避免與 renderer windows 循環初始化。
+- 新增狀態槽解析（`character-state-slots`）與氣泡邊緣避讓（`bubble-layout`）；`CharacterBubble` 依視窗與角色尺寸估算錨點換邊。
+
 ## 0.10.0 - 2026-08-02
 
 - MCP 新增 `show_message`（Settings 預設關閉）；輸入清理、session／全域速率限制、斷線清除；`get_status` 只回報開關與是否可見。

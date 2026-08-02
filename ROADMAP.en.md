@@ -2,8 +2,8 @@
 
 [繁體中文](ROADMAP.md) · English
 
-Updated: 2026-08-01
-Planning baseline: `v0.10.0` accumulated on `main`; Latest Release: `v0.5.0`
+Updated: 2026-08-02
+Planning baseline: `v0.11.0` accumulated on `main`; Latest Release: `v0.5.0`
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work and [`REVIEW.md`](REVIEW.md) for current health.
 
@@ -37,15 +37,15 @@ Completed v0.6–v0.8 items are no longer repeated here. Every unfinished item f
 The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) (Traditional Chinese).
 
 - [x] Classify VRMA as `loop`, `one-shot`, or `pose` and apply purpose-aware quality rules instead of rejecting one-shot actions for loop seams.
-- [x] Add `idle`, `listening`, `speaking`, `working`, `reviewing`, `success`, and `failed` states with fixed priority, TTL, source clearing, and safe fallback (pure logic + App voice path; system-slot UI / MCP state events still open).
+- [x] Add `idle`, `listening`, `speaking`, `working`, `reviewing`, `success`, and `failed` states with fixed priority, TTL, source clearing, and safe fallback (pure logic + App voice path + state-slot name resolution; system-slot UI / MCP state events still open).
 - [x] Improve small-avatar lip-sync readability: tunable intensity, minimum opening, size-based head gain (precise head projection and DPI evidence still open).
-- [x] Add comic-style speech bubbles beside the avatar: short text, emoji, kaomoji, TTL, reduced motion, and a bounded queue (DOM overlay + sanitize/queue; precise edge flipping can still improve).
+- [x] Add comic-style speech bubbles beside the avatar: short text, emoji, kaomoji, TTL, reduced motion, and a bounded queue (DOM overlay + sanitize/queue; edge-aware layout wired into CharacterBubble; precise head projection can still improve).
 - [x] Let a connected local AI show short messages through MCP `show_message`; default off, with rate limits and input sanitization, and without storing message history.
-- Evaluate a thin `action-pack.json` that only describes motion purpose and state mapping without bypassing import, path, or license gates.
+- [x] Evaluate a thin `action-pack.json` that only describes motion purpose and state mapping without bypassing import, path, or license gates (contract + validation + example; import still uses existing Settings gates).
 
 ### Unfinished work moved from v0.6–v0.8
 
-- Extract the `main` overlay lifecycle and `settings-store` CRUD boundaries.
+- [x] Extract the `main` overlay lifecycle (`overlay-lifecycle.cjs`); `settings-store` CRUD boundaries still open.
 - Add App/Settings jsdom integration tests.
 - Establish repeatable Windows baselines for long-running Idle, model switching, and memory.
 - Add manual exporter results from clearly licensed VRoid, UniVRM, and Blender samples; do not commit the binaries.
@@ -85,4 +85,6 @@ The detailed contract is in [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVI
 
 1. [x] Implement purpose-aware motion profiles for `loop`, `one-shot`, and `pose`.
 2. [x] Implement character-state arbitration, bubble DOM, and MCP `show_message` opt-in.
-3. Continue overlay/store convergence and `action-pack.json`; complete real-machine/signing evidence when a Windows desktop and secrets are available (does not block automated work).
+3. [x] Land `action-pack.json` contract, overlay lifecycle, and bubble edge layout.
+
+Near-term focus: split `settings-store` CRUD and system state-slot UI / MCP state events; complete real-machine and signing evidence when Windows/secrets are available.

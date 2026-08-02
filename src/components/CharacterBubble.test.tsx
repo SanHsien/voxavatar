@@ -25,4 +25,24 @@ describe('CharacterBubble', () => {
     expect(html).toContain('完成！');
     expect(html).not.toContain('<script');
   });
+
+  it('applies edge-aware layout when provided', () => {
+    const html = renderToStaticMarkup(
+      <CharacterBubble
+        layout={{ side: 'left', left: 24, top: 40 }}
+        message={{
+          id: '2',
+          text: '靠左',
+          durationMs: 2000,
+          mood: 'neutral',
+          sourceId: 's',
+          atMs: 2,
+        }}
+      />,
+    );
+    expect(html).toContain('side-left');
+    expect(html).toContain('data-side="left"');
+    expect(html).toContain('left:24px');
+    expect(html).toContain('top:40px');
+  });
 });

@@ -57,7 +57,7 @@ VRMA 品質分析先區分用途，再套用規則：
 - `one-shot`：招手、跳舞、成功或失敗回饋，不因首尾不可銜接而扣分。
 - `pose`：短暫或靜態姿勢，重點是骨架、位移與穩定性。
 
-動作包可用薄的 `action-pack.json` 描述名稱、用途、狀態槽與檔案參照；它不能繞過既有匯入驗證、授權 gate 或 app-controlled 資產路徑。
+動作包可用薄的 [`action-pack.json`](ACTION_PACK.md) 描述名稱、用途、狀態槽與檔案參照；它不能繞過既有匯入驗證、授權 gate 或 app-controlled 資產路徑。狀態槽名稱解析見 `src/character-state-slots.ts`（系統槽 UI／MCP 狀態事件仍待）。
 
 ## 浮動對話氣泡
 
@@ -66,7 +66,7 @@ VRMA 品質分析先區分用途，再套用規則：
 - 優先在既有透明 avatar `BrowserWindow` 內用 DOM overlay 呈現，預留氣泡區域並沿角色頭部定位；不為純顯示新增第二個 privileged 視窗。
 - 純文字，支援 Unicode、Emoji 與顏文字；不解析 HTML、Markdown、圖片或連結。
 - 預設最多 80 個 Unicode grapheme，可設定 1–15 秒 TTL；到期淡出。
-- 氣泡跟隨角色，在螢幕邊緣自動換邊並保持可見；不可阻擋角色拖曳或點穿透明區。
+- 氣泡跟隨角色，以 `resolveBubbleLayout` 在視窗邊緣自動換邊並保持可見（頭部錨點目前為角色尺寸估算；精確 head 投影仍待）；不可阻擋角色拖曳或點穿透明區。
 - 同時只顯示一則；新訊息依來源優先序取代或排入小型有界佇列，重複內容可合併。
 - 內容只在記憶體與本機視窗呈現，不寫入歷史或 debug log、不讀取聊天紀錄、不上傳。
 - 字級、對比、動畫與 reduced-motion 行為必須可讀；空字串、控制字元與過長輸入要拒絕或正規化。

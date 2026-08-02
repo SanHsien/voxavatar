@@ -118,6 +118,20 @@ Settings 面板內有可展開說明與「複製範例」；完整範例：
 
 Settings 動作列表另提供人工管理：未分類片段池（先匯入再拖曳指定）、預覽、顯示名稱、用途、批次用途、排序、刪除、移至其他動作或回池（磁碟為可讀檔名＋短 ID，URL 仍用 UUID）。詳見 [`DECISIONS.md`](DECISIONS.md) §3／§10／§12。
 
+### 離線 VRMA 整理流程
+
+VoxAvatar 不在執行期用 AI 猜測動作語意。維護者或外部 agent 可以離線檢視 VRMA 骨架軌跡，再以人工審核的 action-pack 明示用途與狀態槽：
+
+1. 先把候選檔集中到不含子目錄的本機整理目錄，再執行 `npm run vrma:curate -- inspect <目錄> --output <報告.json>`。報告會列出 GLB／VRMA 有效性、時長、Humanoid 骨骼、身體區域運動量、髖位移、品質分數與解析錯誤；不輸出語意分類。品質欄位會標示本次假定的 `purpose`，混合用途仍須在 action-pack 逐項明示。
+2. 同時參考原始檔名、來源說明、授權與 Settings 預覽。骨架數值只能證明「動了哪些部位」，不能單獨證明 idle、speaking 或情緒。
+3. 建立 schema 1 改名計畫：`{"schema_version":1,"renames":[{"from":"原名.vrma","to":"idle-01.vrma"}]}`。名稱採小寫 kebab-case；只有高信心素材才使用 `idle`、`speaking`、`greeting`、`happy`、`finger-gun`、`dance` 等保留語意，未知素材使用 `motion-unknown-*`。
+4. 先執行 `npm run vrma:curate -- rename <目錄> <計畫.json>` dry-run；確認來源、目的名稱、重名與 Windows 路徑都通過後，再加 `--apply`。工具以兩階段 rename 避免交換名稱時覆寫，並逐檔比對改名前後 SHA-256。
+5. 重新執行 `inspect`，確認有效檔數、內容與目標名稱。非 GLB 的 `._*.vrma` 多為 macOS AppleDouble metadata，應改成非 `.vrma` 副檔名保留或移出匯入目錄，不可冒充動畫。
+6. 需要正式自動對應時，在同目錄建立 `action-pack.json`，以 `animation_name`、`purpose`、`state_slot`、`files[]` 明示關係。執行 `npm run vrma:curate -- verify-names <目錄> <action-pack.json> --output <對應報告.json>`，它會直接呼叫產品使用的 `suggestVrmaAssignment`，核對完全相同、`<動作名>-*` 前綴與六種狀態白名單，並列出未命中、錯誤動作、未列入 pack、缺檔及重複引用；任一項不為零便以非零結束碼失敗。
+7. 用 Settings 匯入 action-pack 並逐項預覽。完全相同／前綴規則只會尋找**已存在**的動作，不會依檔名新建動作；action-pack 會建立所列動作，之後 opt-in「依檔名建議分槽」才有完整目標。一般目錄匯入仍加入使用者先選定的動作。安裝後由 app 保存為可讀 `{clip_name}--{id8}.vrma`，資產 URL 使用 UUID。
+
+改名計畫與分析報告是本機整理證據，不應提交含絕對路徑、未授權媒體名稱或私人資料的產物。
+
 ## 浮動對話氣泡
 
 角色旁可顯示漫畫式短句，例如 `完成！`、`正在看…`、`(๑•̀ㅂ•́)و✧` 或單一 Emoji。已落地契約：

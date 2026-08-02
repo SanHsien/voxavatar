@@ -2,6 +2,14 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.10 - 2026-08-02
+
+- 新增離線 `vrma:curate` 維護工具：解包 VRMA／Humanoid 骨架與身體區域運動量，產生結構報告但不推斷動作語意。
+- 支援 schema 1 人工改名計畫的 dry-run／套用；限制單一目錄 basename 與 VRMA／metadata 副檔名，拒絕越界、Windows 非法名稱、缺檔、重名及既有目的檔。
+- 改名採兩階段暫存並逐檔驗 SHA-256；交換名稱、大小寫正規化與中途失敗復原均有 Node 測試。
+- `verify-names` 直接使用產品的檔名建議規則，核對 action-pack 目標、未命中、錯誤動作、缺檔與重複引用。
+- `CHARACTER_BEHAVIOR`／`DECISIONS §10` 記錄可重複流程，釐清檔名白名單只是 opt-in 建議，正式語意與狀態槽仍由 action-pack／使用者／外部 agent 明示。
+
 ## 0.16.9 - 2026-08-02
 
 - Settings 模型「新增自訂模型」：選擇 VRM／從目錄評估匯入改為與其他頁相同的 `form-actions` 橫列間距，不再黏在一起。

@@ -1,6 +1,6 @@
 {
   "name": "voxavatar",
-  "version": "0.16.9",
+  "version": "0.16.10",
   "description": "Windows desktop VRM avatar companion for voice experiences.",
   "author": {
     "name": "SanHsien",
@@ -43,6 +43,7 @@
     "assets:release": "node scripts/check-assets.cjs --release",
     "native:build": "node scripts/build-native.cjs",
     "native:test": "node scripts/test-native.cjs",
+    "vrma:curate": "node scripts/vrma-curation.cjs",
     "audit:production": "npm audit --omit=dev --audit-level=high",
     "sbom": "node scripts/generate-sbom.cjs",
     "baseline:bundle": "node scripts/bundle-baseline.cjs",

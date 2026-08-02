@@ -145,6 +145,7 @@
 - **B（已落地、opt-in）**：檔名白名單／動作名前綴建議（`suggestVrmaAssignment`）；Settings「依檔名建議分槽」選檔後列出對應並確認才寫入；無匹配則略過，不新建動作。
 - **C（明確不做）**：不以 VRMA 品質分數、骨架特徵、聊天畫面、情緒或音訊內容推斷應屬哪個動作。
 - **關於「分析 VRMA 內容來判斷動作」**：現有 `vrma-quality` 只做**技術適配**（時長、接縫、死動作等）供匯入把關，**不能**可靠分辨 idle／speaking／招手等語意。要從骨架軌跡猜用途，不是再多幾個啟發式就能穩定跨 exporter；若硬做語意分類，本質上接近訓練／呼叫模型，等同在 app 內或外掛生成式 AI。產品邊界是**不在 VoxAvatar 內執行 LLM**；語意標註交給使用者、action-pack 或外部 agent（經 MCP 明示），不內建動作分類 AI。
+- **離線整理允許，但不是產品分類器**：`scripts/vrma-curation.cjs` 只輸出 GLB／Humanoid 骨骼、運動量與品質等可驗證事實，並安全套用人工／外部 agent 審核過的改名 plan；它不產生語意標籤。正式對應仍須 action-pack 或 Settings 確認，流程見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)「離線 VRMA 整理流程」。
 - 播放層維持同動作多 clip 隨機（避重複）；自動對應只解決「檔案進哪個動作」，不改播放挑選語意。
 
 ## 11. Settings 設定進度面板
@@ -158,5 +159,4 @@
 - **未分類片段池**（schema 11 `unassigned_clips`）：可先匯入 VRMA 到池中，再拖曳或指定到動作；池內與已指定片段皆可批次設定 `purpose`。
 - 磁碟檔名為 app-controlled 可讀 `{clip_name}--{id8}.vrma`（舊版 `{uuid}.vrma` 仍合法）；catalog／URL 資產 ID 永遠是 UUID。「改名」同步磁碟檔名與 `source_basename`（`{clip_name}.vrma`），不覆寫使用者原始匯入路徑。
 - 不提供任意路徑寫回或覆寫使用者原始檔；語意分槽仍以 action-pack／手動指定／檔名白名單確認為準。
-
 

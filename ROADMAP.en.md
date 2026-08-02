@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.9` (`main`; GitHub Latest Release tag remains `v0.16.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.10` (`main`; GitHub Latest Release tag remains `v0.16.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,9 +11,9 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.9` / `main`; GitHub Latest Release: `v0.16.0`
+Review baseline: `0.16.10` / `main`; GitHub Latest Release: `v0.16.0`
 
-No known open P0/P1. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new feature tracks this round**—close existing gaps and contract drift. `main` tip `0.16.9`: model import buttons use shared form-actions spacing.
+No known open P0/P1. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new feature tracks this round**—close existing gaps and contract drift. `main` tip `0.16.10`: offline VRMA structure inspection, safe renaming, and a repeatable curation workflow.
 
 - Latest Release: `v0.16.0` (GUI/signing/real exporters still unverified).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
@@ -72,6 +72,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.16.7 | VRMA clip preview / display name / purpose / move-to-action (schema 10; DECISIONS §12) |
 | v0.16.8 | Unassigned clip pool, readable disk filenames, batch purpose (schema 11; DECISIONS §12) |
 | v0.16.9 | Model import buttons use shared form-actions spacing |
+| v0.16.10 | Offline VRMA structure inspection, safe renaming, and curation workflow (DECISIONS §10) |
 
 ## Closing existing gaps
 

@@ -101,7 +101,7 @@
 
 ## 5. 文件與開發環境
 
-- `AGENTS.md` 是 agent 單一真相源；`CLAUDE.md` 只作入口，不複製完整規則（原獨立 `SKILL.md` 已併入）。
+- `AGENTS.md` 是**所有** AI agent 的單一真相源（含工作流程與硬性邊界）。`CLAUDE.md` 與 `SKILL.md` 只作薄入口並指向 `AGENTS.md`，不複製完整規則；Cursor 技能載入器讀 `SKILL.md`，Claude 讀 `CLAUDE.md`，其餘 agent 直接讀 `AGENTS.md`。
 - `README`、`ROADMAP`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁中為預設並提供英文版；內部維護文件只保留繁中（不另建英文平行檔，例如已刪除 `VRM_VRMA_COMPATIBILITY.en.md`）。
 - `ROADMAP` 管未來與「目前健康」、`CHANGELOG` 管已完成；不另建平行計畫檔或獨立 `REVIEW.md`。
 - 來源／授權摘要與上游評估水位寫在本檔 §1；不另建 `NOTICE.md`／`UPSTREAM_EVAL.md`。

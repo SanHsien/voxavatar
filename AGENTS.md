@@ -1,6 +1,14 @@
 # AGENTS.md
 
-本檔是 AI coding agents 在 **SanHsien/voxavatar** 工作時的單一真相源。Claude 補充見 [`CLAUDE.md`](CLAUDE.md)；衝突時以本檔為準。
+本檔是 **所有** AI coding agents（Claude、Cursor、Codex、其他）在 **SanHsien/voxavatar** 工作時的單一真相源。薄入口 [`CLAUDE.md`](CLAUDE.md)、[`SKILL.md`](SKILL.md) 只指向本檔；衝突時以本檔為準。
+
+## 工作流程（所有 agent）
+
+1. 讀本檔、[`README.md`](README.md) 與本次工作相關文件。
+2. Fetch `origin/main` 與 tags，保留使用者既有修改。
+3. 完成需求，至少執行 `npm run check`；原生相關再跑 `native:build`／`native:test`，發行資產再跑 `assets:release`／`dist:windows`。
+4. 檢討 README、ROADMAP（含「目前健康」）、SECURITY、CHANGELOG 與受影響文件。
+5. 依本檔更新版號、提交並推送 `main`；tag／Release 依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次處理。
 
 ## 回覆與工作方式
 
@@ -32,7 +40,7 @@
 | `SECURITY.md`／`SECURITY.en.md` | 隱私／IPC／MCP／語音模式邊界是否跟上 |
 | `docs/DECISIONS.md` | 新取捨、上游評估水位是否需更新 |
 | `CONTRIBUTING*`／`docs/DEVELOPMENT.md`／`docs/RELEASING.md` | 流程或指令是否漂移（含 Windows 實機驗收專節） |
-| `AGENTS.md`／`.cursorrules`／`CLAUDE.md` | agent 行為規則是否需同步 |
+| `AGENTS.md`／`.cursorrules`／`CLAUDE.md`／`SKILL.md` | agent 行為規則與薄入口是否需同步 |
 
 雙語公開文件成對修改。無使用者可見變更時可在 CHANGELOG 略過，但仍須在 commit 說明或工作紀錄確認「已檢討、無需改」。
 

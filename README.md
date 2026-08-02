@@ -124,7 +124,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.13.3`**（文件合併整理）。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.13.4`**（設定動作 UX／agent 入口）。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

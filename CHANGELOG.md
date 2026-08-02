@@ -2,15 +2,22 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.13.4 - 2026-08-02
+
+- 設定 → 動作：建立區改到列表上方；文案改指「下方卡片」的「+ 加入 VRMA 檔案」。
+- 無片段時在卡片內以主按鈕顯示加入 VRMA；建立後反白並捲動到該動作。
+- 編輯改為卡片內聯表單，建立後可持續修改動作詳情與增刪片段。
+- Agent 入口修正：規則只在 [`AGENTS.md`](AGENTS.md)；恢復薄 [`SKILL.md`](SKILL.md)，[`CLAUDE.md`](CLAUDE.md) 只作指向，供各 AI／Cursor 技能載入器遵守同一真相源。
+
 ## 0.13.3 - 2026-08-02
 
 - 合併冗餘 Markdown，減少維護檔數量並更新全部引用：
-  - `SKILL.md` → [`CLAUDE.md`](CLAUDE.md)
-  - `NOTICE.md`、`docs/UPSTREAM_EVAL.md` → [`docs/DECISIONS.md`](docs/DECISIONS.md) §1
-  - `REVIEW.md` → [`ROADMAP.md`](ROADMAP.md)／[`ROADMAP.en.md`](ROADMAP.en.md)「目前健康」
-  - `docs/ACTION_PACK.md` → [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)
-  - `docs/WINDOWS_VALIDATION.md` → [`docs/RELEASING.md`](docs/RELEASING.md)「Windows 發行驗收」
+  - 來源／授權與上游評估 → [`docs/DECISIONS.md`](docs/DECISIONS.md) §1（原 `NOTICE`／`UPSTREAM_EVAL`）
+  - 專案健康 → [`ROADMAP.md`](ROADMAP.md)「目前健康」（原 `REVIEW`）
+  - action-pack → [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md)
+  - Windows 驗收 → [`docs/RELEASING.md`](docs/RELEASING.md)
   - 刪除僅英文平行檔 `docs/VRM_VRMA_COMPATIBILITY.en.md`（維護文件只留繁中）
+  - Agent 規則仍以 [`AGENTS.md`](AGENTS.md) 為準；`CLAUDE`／`SKILL` 僅作薄入口（0.13.4 再釐清）
 - `evidence:manifest` 的 `validationDoc` 改指 `docs/RELEASING.md`；`AGENTS`／README／CONTRIBUTING 同步。
 
 ## 0.13.2 - 2026-08-02

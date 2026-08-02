@@ -169,6 +169,9 @@ export function SettingsPage() {
   const [editingAnimationId, setEditingAnimationId] = useState<string | null>(
     null,
   );
+  const [highlightedAnimationId, setHighlightedAnimationId] = useState<
+    string | null
+  >(null);
   const [editingAnimationMetadata, setEditingAnimationMetadata] =
     useState<CustomAnimationMetadata>({
       animation_name: '',
@@ -615,6 +618,9 @@ export function SettingsPage() {
       t('notice.clipsAdded', { name: animation.animation_name }),
     );
     if (!snapshot) return;
+    if (highlightedAnimationId === animation.id) {
+      setHighlightedAnimationId(null);
+    }
     const updated = snapshot.animations.find(
       (candidate) => candidate.id === animation.id,
     );
@@ -639,6 +645,12 @@ export function SettingsPage() {
       );
       if (previewAnimation?.id === animation.id) {
         setPreviewAnimation(updated ?? null);
+      }
+      if (
+        highlightedAnimationId === animation.id &&
+        result.summary.imported > 0
+      ) {
+        setHighlightedAnimationId(null);
       }
       const parts = [
         result.summary.quality
@@ -694,6 +706,7 @@ export function SettingsPage() {
 
   const createAnimation = async () => {
     if (!bridge) return;
+    const createdName = animationMetadata.animation_name.trim();
     const snapshot = await run(
       () => bridge.createAnimation(animationMetadata),
       t('notice.animationCreated'),
@@ -705,6 +718,10 @@ export function SettingsPage() {
       animation_trigger_scenario: '',
     });
     setSelectedActionPresetId(null);
+    const created = snapshot.animations.find(
+      (animation) => animation.animation_name === createdName,
+    );
+    if (created) setHighlightedAnimationId(created.id);
   };
 
   const applyActionPreset = (preset: ActionPresetDefinition) => {
@@ -751,6 +768,10 @@ export function SettingsPage() {
       animation_trigger_scenario: '',
     });
     setSelectedActionPresetId(null);
+    const created = snapshot.animations.find(
+      (animation) => animation.animation_name === resolved.animation_name,
+    );
+    if (created) setHighlightedAnimationId(created.id);
   };
 
   const setDefaultModel = async (modelId: string) => {
@@ -830,6 +851,7 @@ export function SettingsPage() {
 
   const beginEditingAnimation = (animation: VoxAvatarAnimationSettings) => {
     if (!animation.editable) return;
+    setHighlightedAnimationId(null);
     setEditingAnimationId(animation.id);
     setEditingAnimationMetadata({
       animation_name: animation.animation_name,
@@ -1380,6 +1402,7 @@ export function SettingsPage() {
               deleteAnimationClip={deleteAnimationClip}
               editingAnimationId={editingAnimationId}
               editingAnimationMetadata={editingAnimationMetadata}
+              highlightedAnimationId={highlightedAnimationId}
               locale={locale}
               playAnimationClip={playAnimationClip}
               previewClipId={previewClipId}

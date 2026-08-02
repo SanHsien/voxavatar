@@ -99,7 +99,7 @@ const ZH_TW: MessageDictionary = {
   'notice.modelsImportedOff':
     '已從目錄匯入 {imported}／{scanned} 個 VRM。',
   'notice.animationCreated':
-    '動作已建立。請加入至少一個 VRMA 片段才能播放。',
+    '動作已建立。請到下方該動作卡片按「+ 加入 VRMA 檔案」加入片段；之後可用「編輯」修改詳情。',
   'notice.actionPresetExists':
     '動作「{name}」已存在；已套用到表單，可直接編輯或改名。',
   'notice.clipsAdded': '已將 VRMA 片段加入 {name}。',
@@ -208,7 +208,7 @@ const ZH_TW: MessageDictionary = {
   'actions.idleGuideStep3': '查看完整角色表現指南。',
   'actions.listTitle': '動作列表',
   'actions.listDesc':
-    '點選 VRMA 片段可預覽該動畫。動作執行時 VoxAvatar 會從中隨機選取。',
+    '每張卡片可用「+ 加入 VRMA 檔案」加入任意數量片段，並以「編輯」修改 MCP 名稱／描述／觸發情境。點選片段可預覽；播放時會從中選取。',
   'actions.resetPackaged': '重設內建動作',
   'actions.deleteAllClips': '一鍵刪除全部 VRMA',
   'actions.systemAction': '系統動作',
@@ -240,23 +240,25 @@ const ZH_TW: MessageDictionary = {
   'actions.emptyClipsSystemSpeaking':
     '請上傳一或多個說話片段。在此之前 VoxAvatar 使用模型預設姿勢。',
   'actions.emptyClipsCustom':
-    '請上傳一或多個片段，此動作才可供 MCP 使用。',
+    '尚未加入 VRMA。請用下方按鈕加入一或多個片段，此動作才可供 MCP 使用。',
+  'actions.nextAddClips':
+    '下一步：為此動作加入 VRMA 片段（可一次選多個檔案，之後仍可再加）。',
   'actions.previewClip': '預覽 {name}',
   'actions.deleteClip': '刪除 {name}',
   'actions.moveClipUp': '上移 {name}',
   'actions.moveClipDown': '下移 {name}',
   'actions.editTitle': '編輯動作詳情',
   'actions.editDesc':
-    '這些詳情供 VoxAvatar MCP 工具描述動作。更名後片段仍歸在同一動作下。',
+    '這些詳情供 VoxAvatar MCP 工具描述動作。更名後片段仍歸在同一動作下。可隨時再次編輯。',
   'actions.nameLabel': '動作名稱 animation_name',
   'actions.descriptionLabel': '描述 animation_description',
   'actions.triggerLabel': '觸發情境 animation_trigger_scenario',
   'actions.createTitle': '建立自訂動作',
   'actions.createDesc':
-    '先建立 MCP 可見的動作，再從上方卡片加入任意數量的 VRMA 片段。',
+    '先填名稱與 MCP 描述並建立動作；建立後到下方該動作卡片按「+ 加入 VRMA 檔案」加入任意數量片段。已建立的動作可用「編輯」修改詳情，並隨時增刪片段。',
   'actions.presetsTitle': '常用動作選單',
   'actions.presetsDesc':
-    '點選可檢視並套用到下方表單；「套用並建立」會立刻建立動作（仍須自行加入 VRMA）。',
+    '點選可套用到下方表單；「套用並建立」會立刻建立動作。建立後請到下方卡片加入 VRMA，之後也可編輯。',
   'actions.presetsApply': '套用到表單',
   'actions.presetsApplyCreate': '套用並建立',
   'actions.presetsExists': '已建立',
@@ -529,7 +531,7 @@ const EN: MessageDictionary = {
   'notice.modelsImportedOff':
     'Imported {imported}/{scanned} VRM file(s) from the folder.',
   'notice.animationCreated':
-    'Animation action created. Add one or more VRMA clips to make it playable.',
+    'Action created. Use “+ Add VRMA files” on its card below to add clips; use Edit anytime to change details.',
   'notice.actionPresetExists':
     'Action “{name}” already exists; applied to the form so you can edit or rename it.',
   'notice.clipsAdded': 'VRMA clips added to {name}.',
@@ -639,7 +641,7 @@ const EN: MessageDictionary = {
   'actions.idleGuideStep3': 'Open the full character behavior guide.',
   'actions.listTitle': 'Animation actions',
   'actions.listDesc':
-    'Click a VRMA clip to preview that exact animation. VoxAvatar chooses randomly between them when the action runs.',
+    'On each card, use “+ Add VRMA files” for any number of clips, and Edit to change the MCP name/description/trigger. Click a clip to preview; playback picks from them.',
   'actions.resetPackaged': 'Reset packaged actions',
   'actions.deleteAllClips': 'Delete all VRMA',
   'actions.systemAction': 'System action',
@@ -671,23 +673,25 @@ const EN: MessageDictionary = {
   'actions.emptyClipsSystemSpeaking':
     'Upload one or more clips for the speaking state. VoxAvatar uses the model pose until then.',
   'actions.emptyClipsCustom':
-    'Upload one or more clips to make this action available to MCP.',
+    'No VRMA yet. Use the buttons below to add one or more clips so MCP can play this action.',
+  'actions.nextAddClips':
+    'Next: add VRMA clips to this action (select multiple files; you can add more later).',
   'actions.previewClip': 'Preview {name}',
   'actions.deleteClip': 'Delete {name}',
   'actions.moveClipUp': 'Move {name} up',
   'actions.moveClipDown': 'Move {name} down',
   'actions.editTitle': 'Edit action details',
   'actions.editDesc':
-    'These details describe the action to the VoxAvatar MCP tool. Clips remain grouped under the action if its name changes.',
+    'These details describe the action to the VoxAvatar MCP tool. Clips remain grouped under the action if its name changes. You can edit again anytime.',
   'actions.nameLabel': 'Action name animation_name',
   'actions.descriptionLabel': 'Description animation_description',
   'actions.triggerLabel': 'Trigger scenario animation_trigger_scenario',
   'actions.createTitle': 'Create a custom action',
   'actions.createDesc':
-    'Create the MCP-visible action first, then add any number of VRMA clips from its card above.',
+    'Fill in the name and MCP description, then create the action. Afterward, use “+ Add VRMA files” on its card below to add any number of clips. Edit changes details later; you can add or remove clips anytime.',
   'actions.presetsTitle': 'Common actions',
   'actions.presetsDesc':
-    'Select a preset to preview and apply it to the form below. “Apply & create” creates the action immediately (you still add VRMA clips yourself).',
+    'Select a preset to apply it to the form below. “Apply & create” creates the action immediately. Then add VRMA on its card below; you can edit it later.',
   'actions.presetsApply': 'Apply to form',
   'actions.presetsApplyCreate': 'Apply & create',
   'actions.presetsExists': 'Already created',

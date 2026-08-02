@@ -19,7 +19,7 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 | `control_window` | `action`: `show`／`hide`／`toggle` | 控制角色視窗；hide 不會結束程式 |
 | `get_status` | 無 | 回傳視窗、模型、語音狀態、listener（含 `state`）、版本化 `readiness`，以及 `mcp_show_message_enabled`／`message_visible`（不含訊息文字） |
 | `show_message` | `text`；可選 `duration_ms`／`mood` | 在角色旁顯示短句氣泡（Settings 預設關閉；需 opt-in） |
-| `set_character_state` | `state`；可選 `ttl_ms` | 設定呈現狀態（idle／listening／speaking／working／reviewing／success／failed）；經 `normalizeExternalStateEvent`；session 斷線清除；依 Settings 狀態槽播動作 |
+| `set_character_state` | `state`；可選 `ttl_ms` | 設定呈現狀態（idle／listening／speaking／working／reviewing／success／failed）；經 `normalizeExternalStateEvent`；`ttl_ms` 省略或 `0` 用狀態預設 TTL；session 斷線清除；依 Settings 狀態槽播動作 |
 
 ### Agent 應如何使用
 
@@ -150,7 +150,16 @@ Invoke-RestMethod http://127.0.0.1:47831/health
 
 ## HTTP 事件 API
 
-`POST http://127.0.0.1:47831/events` 接受 VoxAvatar 定義的狀態、音量或動畫事件。請使用 `Content-Type: application/json`；bridge 會拒絕非 loopback Host、未允許來源、過大 body 與不合法 schema。
+`POST http://127.0.0.1:47831/events` 接受 VoxAvatar 定義的狀態、音量、動畫或角色狀態事件。請使用 `Content-Type: application/json`；bridge 會拒絕非 loopback Host、未允許來源、過大 body 與不合法 schema。
+
+支援的 `type`：
+
+| `type` | 主要欄位 | 行為 |
+| --- | --- | --- |
+| `state` | `state`（voice phase／activity） | 語音活動狀態 |
+| `audio-level` | `level`（0–1） | 外部口型音量 |
+| `animation` | `animation_name` | 播放已設定動作 |
+| `character-state` | `state`；可選 `ttl_ms`／`source_id` | 經 `normalizeExternalStateEvent`（`sourceKind: integration`）進入狀態仲裁 |
 
 若是一般 agent 整合，優先使用 MCP；HTTP API 適合已在本機產生明確狀態事件的 adapter，不是任意命令端點。
 
@@ -182,7 +191,8 @@ Start-Process 'voxavatar://show'
 Windows helper 使用 WASAPI application loopback，只計算目標應用程式播放輸出的正規化音量。設定方式：
 
 1. VoxAvatar「設定 → 語音」選擇自動、特定應用程式、外部或進階 pattern。
-2. 或在啟動前設定 `VOXAVATAR_TARGET_PROCESS_PATTERN`；環境變數會覆寫介面選擇。
+2. 或在啟動前設定 `VOXAVATAR_TARGET_PROCESS_PATTERN`；環境變數會覆寫介面選擇的**應用程式／自動／進階**目標（改走 pattern 比對，忽略已選 `source_id`）。`output`／`external` 模式不受此 pattern 覆寫。
 3. 不同 port 可用 `VOXAVATAR_BRIDGE_PORT` 覆寫，之後要用畫面顯示的新 URL 重新註冊 MCP。
+4. External 模式不啟動 WASAPI helper；`get_status.listener.state` 為 `external`，由 HTTP／MCP 餵入音量與狀態。
 
 VoxAvatar 不監聽麥克風，不保存或傳送音訊樣本。

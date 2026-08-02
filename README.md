@@ -124,7 +124,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.15.1`**（jsdom 互動測／匯入回饋／schema 政策）。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+目前發行版為 **`v0.13.0`**；`main` tip 為 **`0.15.2`**（docs／整合對齊）。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

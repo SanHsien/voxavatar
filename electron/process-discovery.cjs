@@ -142,10 +142,17 @@ async function discoverVoiceProcesses({
   if (platform !== "win32") return { pids: [], rootPids: [] };
   const processes = await listPlatformProcesses({ platform, run });
   const selected = normalizeVoiceSource(voiceSource);
+  const envPattern = environment?.VOXAVATAR_TARGET_PROCESS_PATTERN;
+  const envOverridesUi =
+    typeof envPattern === "string" && envPattern.trim().length > 0;
+  // 環境變數覆寫介面選擇的應用程式來源，改走 pattern 比對。
   return selectVoiceProcessTree(processes, {
     ownProcessId,
     platform,
-    sourceId: selected.mode === "application" ? selected.source_id : null,
+    sourceId:
+      envOverridesUi || selected.mode !== "application"
+        ? null
+        : selected.source_id,
     pattern: pattern ?? configuredPattern(environment),
   });
 }

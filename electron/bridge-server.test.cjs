@@ -80,6 +80,21 @@ test("normalizes voice events and configured animation commands", () => {
     null,
   );
   assert.equal(normalizeEvent({ type: "state", state: { phase: "wat" } }), null);
+  assert.deepEqual(
+    normalizeEvent({
+      type: "character-state",
+      state: "working",
+      ttl_ms: 5000,
+      source_id: "pipeline-1",
+    }),
+    {
+      type: "character-state",
+      state: "working",
+      ttl_ms: 5000,
+      source_id: "pipeline-1",
+    },
+  );
+  assert.equal(normalizeEvent({ type: "character-state", state: "" }), null);
 });
 
 test("only accepts supported app and local webview origins", () => {

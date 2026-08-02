@@ -14,9 +14,9 @@
 
 | 模式 | 行為 |
 | --- | --- |
-| 報告 | 全部匯入並產生 `voxavatar-vrma-report.md` |
-| 嚴格 | 略過判定為 `reject` 的檔案，仍產生報告 |
-| 關閉 | 不分析，直接匯入 |
+| 報告 | 全部送入匯入流程並產生 `voxavatar-vrma-report.md`；仍受 GLB／catalog 驗證與數量限制（`skipped_invalid`／`failed` 可見） |
+| 嚴格 | 略過品質判定為 `reject` 的檔案，仍產生報告；同樣受 GLB／catalog gate |
+| 關閉 | 不做品質分析，直接走匯入；仍受 GLB／catalog gate |
 
 品質分數只協助找出解析錯誤、速度尖峰或循環接縫，不代表美術品質、角色相容性或授權結論。
 
@@ -27,12 +27,12 @@
 已落地：
 
 - 可調的口型強度與最小可見開口，保留 attack／release 平滑（`lip-sync-gain`）。
-- 依角色縮放推估螢幕頭部高度並調整增益；精確 head 投影與 DPI 實機仍待。
+- Scene／Avatar 以 VRM head／chest 骨點投影驅動口型增益與氣泡錨點；缺骨點時退回角色尺寸估算。
 
-仍待：
+仍待／未驗：
 
-- Speaking 可搭配低幅度頭部／上身反應作第二層提示。
-- 以最小 30% 角色尺寸及 100%／150%／225% DPI 做實機可讀性驗收。
+- Speaking 可搭配低幅度頭部／上身反應作第二層提示（尚未實作；見 ROADMAP）。
+- 以最小 30% 角色尺寸及 100%／150%／225% DPI 做實機可讀性驗收（無桌面時標未驗）。
 
 ## 狀態與動作契約
 
@@ -42,7 +42,7 @@
 
 同時出現多個來源時，優先序為：
 
-1. 使用者手動指定
+1. 使用者手動指定（仲裁保留 `sourceKind: "user"` 為最高；**目前無設定頁／系統匣手動狀態 UI**，見 ROADMAP）
 2. `failed` 短暫回饋
 3. `success` 短暫回饋
 4. `speaking`
@@ -51,7 +51,7 @@
 7. `listening`
 8. `idle`
 
-相同狀態同時到達時，以最新的有效事件取代舊事件。所有外部狀態都有 bounded TTL，`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名；MCP `set_character_state` 已接線。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
+相同狀態同時到達時，以最新的有效事件取代舊事件。外部狀態有 bounded TTL：`ttl_ms` 省略或 `0` 時使用狀態預設 TTL（`idle` 預設 0＝直到被取代）；正值限制存活時間。`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／HTTP integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁（MCP `set_character_state`；HTTP `POST /events` 的 `type: "character-state"`）；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
 
 ### 動作用途
 
@@ -105,7 +105,7 @@ VRMA 品質分析先區分用途，再套用規則：
 - 純文字，支援 Unicode、Emoji 與顏文字；不解析 HTML、Markdown、圖片或連結。
 - 預設最多 80 個 Unicode grapheme，可設定 1–15 秒 TTL；到期淡出。
 - 以 `resolveBubbleLayout` 在視窗邊緣自動換邊（頭部錨點優先使用 Scene 投影的 VRM head／chest 骨點；缺骨點時退回角色尺寸估算）；不可阻擋拖曳或點穿。
-- 同時只顯示一則；新訊息依來源優先序取代或排入小型有界佇列。
+- 同時只顯示一則；新訊息進入有界佇列（容量 4），相同文字／mood 合併延長 TTL，超出時丟棄最舊待播；**無跨來源優先序**（與狀態仲裁不同）。
 - 內容只在記憶體與本機視窗呈現，不寫入歷史或 debug log。
 
 MCP 工具 `show_message` 已提供：參數只含 `text`、可選 `duration_ms` 與 `mood`（`neutral`／`cheerful`／`thinking`／`warning`）。Settings「允許已連接 AI 顯示訊息」預設關閉；啟用後仍有 session／全域速率限制，斷線清除該來源訊息。`get_status` 只回報開關與是否可見，不回傳內容或歷史。

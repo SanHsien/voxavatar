@@ -45,7 +45,7 @@ test("buildStartupReport shapes JSON with guidance note", () => {
   assert.equal(report.appVersion, "0.6.0");
   assert.equal(report.totals.requireTotalMs, 12.5);
   assert.equal(report.totals.buildMs, null);
-  assert.match(report.note, /v0\.9/);
+  assert.match(report.note, /ROADMAP verification gaps/);
   assert.ok(report.guidance.notes.length > 0);
 });
 

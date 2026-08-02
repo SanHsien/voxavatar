@@ -120,7 +120,7 @@ function buildStartupReport({
     appVersion: appVersion ?? null,
     scope: "node-main-modules",
     note:
-      "Measures Node require() cost for selected main-process modules only; real cold-start, Idle, and memory baselines are planned for v0.9 on Windows.",
+      "Measures Node require() cost for selected main-process modules only; Windows GUI cold-start, Idle residency, and memory baselines stay ROADMAP verification gaps until a desktop is available.",
     modules: moduleTimings,
     totals: {
       requireTotalMs,
@@ -130,7 +130,7 @@ function buildStartupReport({
       notes: [
         "Run on the same machine and Node version for comparable numbers.",
         "Use --include-build to optionally time npm run build (skipped by default).",
-        "Electron GUI cold-start and idle memory are out of scope until v0.9 Windows validation.",
+        "Electron GUI cold-start and idle memory remain unverified without a Windows desktop (see ROADMAP verification gaps).",
       ],
     },
   };

@@ -429,6 +429,8 @@ const ZH_TW: MessageDictionary = {
   'mcp.usageWindow': '「顯示、隱藏或切換 VoxAvatar 視窗。」',
   'mcp.usageMessage':
     '啟用後可請 AI：「在角色旁顯示：完成！」；預設關閉，且本機 MCP 無身分驗證。',
+  'mcp.usageState':
+    '「把角色設成 working／success／failed。」（set_character_state；不臆測情緒）',
   'mcp.usageGuide': '查看完整 MCP 使用方式、schema 與錯誤處理。',
   'mcp.agentMessagesTitle': 'AI 訊息氣泡',
   'mcp.agentMessagesDesc':
@@ -444,7 +446,10 @@ const ZH_TW: MessageDictionary = {
   'mcp.tools.control_window': '顯示、隱藏或切換 VoxAvatar 角色視窗。',
   'mcp.tools.get_status': '讀取視窗、模型、語音、監聽器與訊息氣泡開關狀態。',
   'mcp.tools.show_message': '在角色旁顯示短句、Emoji 或顏文字（需先啟用）。',
+  'mcp.tools.set_character_state':
+    '設定呈現狀態（working／success／failed 等）；不臆測聊天內容。',
   'mcp.tools.fallback': 'VoxAvatar MCP 工具',
+  'mcp.schemaVersions': '契約版本 tools={tools}／status={status}',
   'mcp.actionsTitle': '可播放動作',
   'mcp.actionsDesc': '動作在至少有一個 VRMA 片段後會出現在 MCP 動畫工具中。',
   'mcp.actionsActive': '{count} 個使用中',
@@ -894,6 +899,8 @@ const EN: MessageDictionary = {
   'mcp.usageWindow': '“Show, hide, or toggle the VoxAvatar window.”',
   'mcp.usageMessage':
     'After enabling: “Show beside the avatar: Done!” Default off; local MCP has no authentication.',
+  'mcp.usageState':
+    '“Set the character to working / success / failed.” (set_character_state; never invent emotion.)',
   'mcp.usageGuide': 'Read the full MCP usage, schemas, and error handling guide.',
   'mcp.agentMessagesTitle': 'AI message bubble',
   'mcp.agentMessagesDesc':
@@ -915,7 +922,10 @@ const EN: MessageDictionary = {
     'Read window, model, voice, listener readiness, and message-bubble flags.',
   'mcp.tools.show_message':
     'Show a short caption, emoji, or kaomoji beside the avatar (opt-in).',
+  'mcp.tools.set_character_state':
+    'Set a presentation state (working / success / failed, etc.); never invent chat content.',
   'mcp.tools.fallback': 'VoxAvatar MCP tool',
+  'mcp.schemaVersions': 'Contract versions tools={tools} / status={status}',
   'mcp.actionsTitle': 'Playable actions',
   'mcp.actionsDesc':
     'Actions appear in the MCP animation tool after they have at least one VRMA clip.',
@@ -949,6 +959,7 @@ const MCP_TOOL_KEYS = [
   'control_window',
   'get_status',
   'show_message',
+  'set_character_state',
 ] as const;
 
 export function mcpToolDescriptionKeys(): readonly string[] {

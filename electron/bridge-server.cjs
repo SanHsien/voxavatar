@@ -40,6 +40,22 @@ function normalizeEvent(value) {
       animationName: value.animation_name,
     };
   }
+  if (
+    value?.type === "character-state" &&
+    typeof value.state === "string" &&
+    value.state.trim()
+  ) {
+    const ttlRaw = value.ttl_ms ?? value.ttlMs;
+    const sourceRaw = value.source_id ?? value.sourceId;
+    return {
+      type: "character-state",
+      state: value.state.trim(),
+      ...(ttlRaw != null ? { ttl_ms: ttlRaw } : {}),
+      ...(typeof sourceRaw === "string" && sourceRaw.trim()
+        ? { source_id: sourceRaw.trim().slice(0, 64) }
+        : {}),
+    };
+  }
   return null;
 }
 

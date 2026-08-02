@@ -73,6 +73,47 @@ test("supports a custom target application pattern without accepting invalid reg
   assert.equal(configuredPattern({ VOXAVATAR_TARGET_PROCESS_PATTERN: "[" }).test("Codex"), true);
 });
 
+test("VOXAVATAR_TARGET_PROCESS_PATTERN overrides application source id", async () => {
+  const { discoverVoiceProcesses } = require("./process-discovery.cjs");
+  const { processSourceId } = require("./voice-source.cjs");
+  const processes = [
+    {
+      ProcessId: 50,
+      ParentProcessId: 1,
+      Name: "Voice.exe",
+      ExecutablePath: "C:\\Apps\\Voice\\Voice.exe",
+      CommandLine: "",
+    },
+    {
+      ProcessId: 51,
+      ParentProcessId: 1,
+      Name: "local-tts.exe",
+      ExecutablePath: "C:\\Apps\\local-tts\\local-tts.exe",
+      CommandLine: "",
+    },
+  ];
+  const voiceEntry = {
+    pid: 50,
+    parentId: 1,
+    name: "Voice.exe",
+    executable: "C:\\Apps\\Voice\\Voice.exe",
+    command: "",
+  };
+  const sourceId = processSourceId("win32", voiceEntry);
+  const selected = await discoverVoiceProcesses({
+    platform: "win32",
+    environment: { VOXAVATAR_TARGET_PROCESS_PATTERN: "local-tts" },
+    voiceSource: {
+      mode: "application",
+      process_pattern: null,
+      source_id: sourceId,
+      source_name: "Voice",
+    },
+    run: async () => ({ stdout: JSON.stringify(processes) }),
+  });
+  assert.deepEqual(selected, { pids: [51], rootPids: [51] });
+});
+
 test("selects processes with an explicit pattern override", () => {
   const selected = selectVoiceProcessTree(
     [

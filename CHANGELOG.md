@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.15.2 - 2026-08-02
+
+- 對齊 docs 承諾與實作：HTTP `/events` 支援 `character-state`；`VOXAVATAR_TARGET_PROCESS_PATTERN` 覆寫應用程式來源；external listener 回報 `external`。
+- Settings MCP 顯示 tools／status schema 版本與 `set_character_state` 文案；`ttl_ms` 0／省略改用狀態預設 TTL；`show_message` zod 上限放寬（仍以 80 grapheme 為準）。
+- 文件修正：氣泡佇列無跨來源優先、品質 gate「報告」模式仍受 GLB／catalog gate、CHARACTER_BEHAVIOR 投影已落地敘述。
+- 路線圖註記仍缺：使用者手動狀態 UI、Speaking 第二層頭部反應、以及既有 Windows／簽署／真實 exporter 未驗項。
+
 ## 0.15.1 - 2026-08-02
 
 - 補 Settings／氣泡 jsdom 互動測（狀態槽選取／匯入、品質門檻、語音隱私警告、投影錨點）。

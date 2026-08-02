@@ -195,7 +195,9 @@ interface VoxAvatarMcpStatus {
   playable_actions: string[];
   server_url: string;
   setup_command: string;
+  status_schema_version?: number;
   tools: string[];
+  tools_schema_version?: number;
   transport: string;
   version: string;
 }

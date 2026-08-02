@@ -144,6 +144,16 @@ export function SettingsMcpSection({
           </button>
         </div>
 
+        {(mcpStatus?.tools_schema_version != null ||
+          mcpStatus?.status_schema_version != null) && (
+          <p className="desktop-note" data-testid="mcp-schema-versions">
+            {t('mcp.schemaVersions', {
+              tools: mcpStatus?.tools_schema_version ?? '—',
+              status: mcpStatus?.status_schema_version ?? '—',
+            })}
+          </p>
+        )}
+
         <p className="desktop-note">{t('mcp.portNote')}</p>
       </section>
 
@@ -185,6 +195,7 @@ export function SettingsMcpSection({
           <li>{t('mcp.usagePlay')}</li>
           <li>{t('mcp.usageWindow')}</li>
           <li>{t('mcp.usageMessage')}</li>
+          <li>{t('mcp.usageState')}</li>
         </ol>
         <p className="desktop-note">
           <a
@@ -205,7 +216,7 @@ export function SettingsMcpSection({
           </div>
           <span className="file-pill">
             {t('mcp.toolsCount', {
-              count: mcpStatus?.tools.length ?? 5,
+              count: mcpStatus?.tools.length ?? mcpToolDescriptionKeys().length,
             })}
           </span>
         </div>

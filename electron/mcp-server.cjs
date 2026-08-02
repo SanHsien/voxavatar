@@ -199,8 +199,10 @@ function createVoxAvatarMcpServer({
           text: z
             .string()
             .min(1)
-            .max(240)
-            .describe("Short plain-text caption (max 80 graphemes after sanitize)."),
+            .max(480)
+            .describe(
+              "Short plain-text caption (max 80 Unicode graphemes after sanitize; keep under ~480 UTF-16 units).",
+            ),
           duration_ms: z
             .number()
             .int()
@@ -251,7 +253,9 @@ function createVoxAvatarMcpServer({
             .min(0)
             .max(600_000)
             .optional()
-            .describe("Optional time-to-live in milliseconds (0–600000)."),
+            .describe(
+              "Optional TTL in milliseconds (0–600000). Omit or 0 to use the state's default TTL; positive values bound lifetime.",
+            ),
         },
         annotations: {
           readOnlyHint: false,

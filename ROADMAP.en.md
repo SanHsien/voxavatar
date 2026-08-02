@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `v0.15.1` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `v0.15.2` (`main` tip; published Release tag `v0.13.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,15 +11,14 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `v0.15.1` / `main`; GitHub Latest Release: `v0.13.0`
+Review baseline: `v0.15.2` / `main`; GitHub Latest Release: `v0.13.0`
 
-No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new features this round**—only closing existing gaps. `main` tip `0.15.1`: jsdom interaction tests, import partial-failure feedback, catalog schema policy/tests (no extra tag).
+No known open P0/P1. `v0.13.0` is Latest. Upstream open PR/issues evaluated (nothing to merge; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new features this round**—align docs claims with implementation. `main` tip `0.15.2`: docs/integration gap closure (no extra tag).
 
-- Latest Release: `v0.13.0`; `main` tip is `0.15.1`.
-- Upstream: commit watermark `cf27d12`; open PR #16 / issue #13 are macOS (skip); issue #11 first-run avatar docs already covered.
-- MCP tools: 6 (including opt-in `show_message` and `set_character_state`); `tools_schema_version` = 3.
-- Settings: state slots, action-pack, quality thresholds; state-slot / threshold / voice / bubble have jsdom interaction tests.
-- Head anchors: Scene/Avatar project VRM humanoid bones; missing data falls back to size estimate.
+- Latest Release: `v0.13.0`; `main` tip is `0.15.2`.
+- Upstream: commit watermark `cf27d12`; open PR #16 / issue #13 are macOS (skip); issue #11 already covered.
+- MCP tools: 6 (including `show_message` and `set_character_state`); Settings shows tools/status schema versions.
+- HTTP `/events` accepts `character-state`; `VOXAVATAR_TARGET_PROCESS_PATTERN` overrides application targeting; external listener state is correct.
 
 This round: `npm run check` green; Release/Latest/assets verified per [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -28,11 +27,26 @@ This round: `npm run check` green; Release/Latest/assets verified per [`docs/REL
 | Item | Status | Reason |
 | --- | --- | --- |
 | Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Unverified** | No Windows desktop |
-| 30% character size and multi-DPI on hardware | **Unverified** | No Windows desktop |
+| 30% character size and multi-DPI readability | **Unverified** | No Windows desktop |
 | Idle long-run / model-switch memory (GUI residency) | **Unverified** | No Windows desktop; `baseline:startup` excludes GUI |
 | Installer signing / publisher / SmartScreen / upgrade path | **Unverified** | No signing secrets |
 | Native helper COM/WASAPI typed exit codes (C++) | **Unverified** | Needs Windows runner/toolchain; JS classification exists |
 | Real VRoid/UniVRM/Blender sample results | **Unverified** | No clearly licensed off-repo sample evidence yet |
+
+### Doc claims aligned / still missing product entry (not Windows-blocked)
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| Lip-sync / head projection narrative | **Aligned** | Scene bone wiring shipped; docs no longer say “projection still pending” |
+| HTTP integration `character-state` | **Shipped** | `POST /events` + `normalizeExternalStateEvent` |
+| Env process pattern overrides UI | **Shipped** | Overrides application/default/custom; not output/external |
+| External `listener.state` | **Shipped** | Reports `external` |
+| Settings MCP schema versions / 6-tool copy | **Shipped** | |
+| `ttl_ms` 0 = default TTL | **Shipped** | |
+| `show_message` zod limit relaxed | **Shipped** | Authority remains 80-grapheme sanitize |
+| Bubble “source priority” | **Docs corrected** | Implementation is a bounded queue without cross-source priority |
+| User manual state UI | **Not built** | Arbitration keeps `user` highest; **no Settings/tray entry** (noted only; no new feature track) |
+| Speaking secondary head/torso cue | **Not built** | Still listed in CHARACTER_BEHAVIOR; not a hard 1.0 gate |
 
 Product remains **Windows-only**; do not restore Linux/macOS shipping.
 
@@ -43,60 +57,48 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 3. Automate pure logic and contracts; keep real Windows evidence for desktop behavior, WASAPI, DPI, tray, and installers.
 4. Regular development does not require Visual Studio Build Tools; the GitHub Windows runner is the canonical native and installer gate.
 5. Do not compete on bundled characters, motions, or agent count; do not expand into a chat client.
-6. **Close existing gaps before new features**; mark what cannot be verified as unverified.
+6. **Close existing gaps and doc/implementation drift before new features**; mark what cannot be verified as unverified.
 
 ## Completed summary
 
 | Series | Highlights |
 | --- | --- |
-| v0.1.x | Stable Windows baseline, licensing, CI, and Release trust root |
-| v0.2.x | Voice sources, IPC/preload, readiness, diagnostics, MCP session and action queue |
-| v0.3.x | Confirmed media import, migration fixtures, clip ordering, quality reports |
-| v0.4.x | Structured MCP schemas, integration docs, multi-client tests |
-| v0.5.x | Error recovery, settings module split, bundle/SBOM/release-evidence tooling |
-| v0.6.x | Settings/IPC/asset validation convergence and renderer error tests |
-| v0.7.x | Bundle/startup baselines, non-first-screen lazy-load, Settings further split |
-| v0.8.x | Synthetic VRM/VRMA matrix, exporter notes, import rollback |
-| v0.9–v0.10 | Motion purpose, state arbitration, bubble DOM, opt-in `show_message`, lip-sync gain |
-| v0.11–v0.12 | Action-pack contract, overlay/catalog extraction, state-event normalize, Idle freeze fix |
-| v0.13.0 | Upstream #14/#15 skipped; batch Release; `REVIEW` → Current health |
-| v0.14.0 | State-slot UI, MCP `set_character_state`, action-pack import, settings schema 9 |
-| v0.14.1 | head-projection pure logic, Settings SSR tests, native helper failure classification |
-| v0.15.0 | Scene/Avatar VRM head bone projection (bubble anchors + lip-sync gain) |
-| v0.15.1 | jsdom interaction tests, import partial-failure feedback, catalog schema policy/reject tests |
+| v0.1.x–v0.13.0 | See CHANGELOG; `REVIEW` → Current health |
+| v0.14.0–v0.14.1 | State slots / MCP state / head-projection pure logic / native JS classification |
+| v0.15.0 | Scene/Avatar VRM head bone projection wiring |
+| v0.15.1 | jsdom interaction tests, import partial-failure feedback, catalog schema policy |
+| v0.15.2 | Docs/integration alignment (HTTP character-state, env pattern, MCP UI, TTL/message contract) |
 
-## Closing existing gaps (v0.14–v0.15)
+## Closing existing gaps
 
-### Character, MCP, tests (automatable)
+### Automatable (done)
 
-Detailed contract: [`docs/CHARACTER_BEHAVIOR.md`](docs/CHARACTER_BEHAVIOR.md) (Traditional Chinese).
+- [x] State-slot UI; MCP `set_character_state`; HTTP `character-state`.
+- [x] Action-pack import; head projection wiring; jsdom tests; import partial-failure feedback.
+- [x] Settings/catalog/MCP schema policy and tests; env pattern override; external listener state.
+- [x] Docs/implementation drift fixes (bubble queue, quality-gate report mode, CHARACTER_BEHAVIOR projection copy).
 
-- [x] System state-slot UI; MCP `set_character_state`.
-- [x] `action-pack.json` import pipeline (no bypass of license/path/GLB gates).
-- [x] Precise head projection: pure logic + Scene/Avatar VRM bone wiring; missing bones fall back.
-- [x] Settings state-slot / quality-threshold / voice-mode / bubble-anchor jsdom interaction tests.
-- [x] Native helper failure classification vocabulary (JS).
-- [x] Directory / action-pack import partial-failure user-visible feedback (skip/fail counts).
+### Still open / unverified
 
-### Still open / unverified (see table above)
-
-- [~] Native helper COM/WASAPI typed exit codes (needs Windows runner).
-- [~] Idle long-run / model-switch GUI baselines; real exporter manual results.
-- [~] Windows smoke, DPI/30%, installer signing.
+- [~] Native COM/WASAPI typed exit codes (Windows runner).
+- [~] Idle/DPI/30%/GUI smoke/installer signing (see verification table).
+- [~] Real exporter manual results.
+- [~] User manual state UI (arbitration ready; no product entry).
+- [~] Speaking secondary head/torso cue (docs still pending; non-blocking).
 
 ## v1.0.0 criteria
 
-- [x] No known P0/P1; active operations (Settings `run` / import / MCP / listener state) report success or failure; directory and action-pack partial failures are visible.
-- [~] Windows 10/11 install, upgrade, uninstall, onboarding, voice, media, character presence, and MCP have real-machine evidence. **Unverified** (no desktop).
-- [~] Installer signed with publisher, SmartScreen, and upgrade path verified. **Unverified** (no secrets); unsigned builds cannot become 1.0.
-- [x] Settings, catalog, and MCP schemas have version policies ([`docs/DECISIONS.md`](docs/DECISIONS.md) §9) and tests (Settings 1–8→9, catalog unsupported reject, MCP schema outputs).
-- [x] Failed imports do not lose data: single-file VRM/VRMA rollback, catalog mutation all-or-nothing, directory/action-pack best-effort structured results tested.
-- [~] Common exporters’ **real** compatibility results. **Unverified** (synthetic matrix only; see [`docs/VRM_VRMA_COMPATIBILITY.md`](docs/VRM_VRMA_COMPATIBILITY.md)).
-- [x] Privacy, loopback-only, media licensing, Windows-only, and upstream attribution have docs and automated gates (`SECURITY` / bridge / assets / listener tests).
+- [x] No known P0/P1; active operations report success or failure.
+- [~] Windows real-machine evidence. **Unverified**.
+- [~] Installer signing. **Unverified**; unsigned builds cannot become 1.0.
+- [x] Settings/catalog/MCP schema version policies and tests.
+- [x] Failed imports do not lose data.
+- [~] Common exporters’ **real** compatibility results. **Unverified**.
+- [x] Privacy, loopback-only, media licensing, Windows-only, upstream attribution remain verifiable.
 
 ### Completion gate (required before 1.0)
 
-- Every “unverified” row above must gain evidence or an explicit downgrade note (never pretend done).
+- Every “unverified” row must gain evidence or an explicit downgrade note.
 - At least one published asset set has SHA-256, Windows smoke evidence, and recorded signing status.
 - `npm run check`, CI, CodeQL, and production audit have no unresolved high-risk findings.
 

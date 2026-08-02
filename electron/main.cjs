@@ -523,6 +523,13 @@ function publishSettings(snapshot) {
 
 function resolveListenerProcessPattern(snapshot = settingsStore?.getSnapshot()) {
   const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
+  const envSource = process.env.VOXAVATAR_TARGET_PROCESS_PATTERN;
+  if (typeof envSource === "string" && envSource.trim()) {
+    return resolveVoiceSourcePattern({
+      environment: process.env,
+      settingsPattern: null,
+    });
+  }
   if (!["default", "custom"].includes(voiceSource.mode)) return null;
   return resolveVoiceSourcePattern({
     environment: process.env,
@@ -556,11 +563,21 @@ function createConfiguredAudioListener(snapshot = settingsStore?.getSnapshot()) 
 
 function reportInactiveListenerStatus(snapshot = settingsStore?.getSnapshot()) {
   const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
+  if (voiceSource.mode === "external") {
+    handleListenerStatus({
+      available: true,
+      capturing: false,
+      monitoring: false,
+      source: "External integration",
+      state: LISTENER_STATE.EXTERNAL,
+    });
+    return;
+  }
   handleListenerStatus({
-    available: voiceSource.mode === "external",
+    available: false,
     capturing: false,
     monitoring: false,
-    source: voiceSource.mode === "external" ? "External integration" : null,
+    source: null,
   });
 }
 
@@ -683,16 +700,17 @@ function onMcpSessionClosed(sourceId) {
   clearCharacterStateForSource(sourceId);
 }
 
-function applyCharacterState(input, { sessionId = null } = {}) {
+function applyCharacterState(input, { sessionId = null, sourceKind = "mcp" } = {}) {
   if (!hasConfiguredModel()) {
     return { applied: false, error: "avatar_unavailable" };
   }
   const nowMs = Date.now();
+  const kind = sourceKind === "integration" ? "integration" : "mcp";
   const normalized = normalizeExternalStateEvent(
     {
       state: input?.state,
       ttlMs: input?.ttl_ms ?? input?.ttlMs,
-      sourceKind: "mcp",
+      sourceKind: kind,
       sourceId: sessionId ?? undefined,
     },
     nowMs,
@@ -704,8 +722,9 @@ function applyCharacterState(input, { sessionId = null } = {}) {
         normalized.error === "invalid_ttl" ? "invalid_ttl" : "invalid_state",
     };
   }
+  // ttl_ms 省略或 0 → 使用狀態預設 TTL（idle 預設 0＝直到被取代）。
   const ttl =
-    normalized.event.ttlMs != null
+    normalized.event.ttlMs != null && normalized.event.ttlMs > 0
       ? normalized.event.ttlMs
       : defaultTtlForState(normalized.event.state);
   const event = { ...normalized.event, ttlMs: ttl };
@@ -716,6 +735,7 @@ function applyCharacterState(input, { sessionId = null } = {}) {
   debugLog("character-state", {
     state: event.state,
     sourceId: event.sourceId,
+    sourceKind: event.sourceKind,
     ttlMs: ttl,
   });
   return {
@@ -925,6 +945,16 @@ function handleBridgeEvent(event) {
 function handleIntegrationEvent(event) {
   if (event.type === "animation-command") {
     return playConfiguredAnimation(event.animationName);
+  }
+  if (event.type === "character-state") {
+    const result = applyCharacterState(
+      { state: event.state, ttl_ms: event.ttl_ms },
+      {
+        sessionId: event.source_id ?? "integration",
+        sourceKind: "integration",
+      },
+    );
+    return Boolean(result?.applied);
   }
   handleBridgeEvent(event);
   return true;

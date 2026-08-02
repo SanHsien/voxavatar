@@ -118,7 +118,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The published release is **`v0.13.0`**; `main` tip is **`0.15.1`** (jsdom interaction tests / import feedback / schema policy). Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The published release is **`v0.13.0`**; `main` tip is **`0.15.2`** (docs/integration alignment). Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 

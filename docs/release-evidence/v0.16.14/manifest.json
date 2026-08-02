@@ -6,7 +6,7 @@
   "release": {
     "version": "0.16.14",
     "tag": "v0.16.14",
-    "commitSha": null,
+    "commitSha": "87c60e6fff33b9148788613b28c5d60f167341e1",
     "releaseUrl": null,
     "githubActionsRunUrl": null,
     "hasInstaller": false

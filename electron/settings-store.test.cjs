@@ -1219,3 +1219,94 @@ test("updateClipsPurpose updates pool and assigned clips", (context) => {
   assert.equal(updatedPool?.purpose, "pose");
   assert.equal(updatedAssigned?.purpose, "pose");
 });
+
+test("updateUnassignedClip renames disk file; delete and move-to-pool round-trip", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const poolSource = path.join(root, "Pool Clip.vrma");
+  writeGlb(poolSource);
+
+  let snapshot = store.addUnassignedClips([poolSource]);
+  const poolClip = snapshot.unassigned_clips[0];
+  assert.ok(poolClip);
+  const clipId = poolClip.id;
+  const beforePath = path.join(
+    userDataPath,
+    "assets",
+    "animations",
+    poolClip.stored_filename,
+  );
+  assert.equal(fs.existsSync(beforePath), true);
+
+  snapshot = store.updateUnassignedClip(clipId, {
+    clip_name: "Pool Renamed",
+    purpose: "pose",
+  });
+  const renamed = snapshot.unassigned_clips.find((clip) => clip.id === clipId);
+  assert.ok(renamed);
+  assert.equal(renamed.animation_name, "pool-renamed");
+  assert.equal(renamed.purpose, "pose");
+  assert.equal(renamed.source_basename, "pool-renamed.vrma");
+  const expectedDisk = `pool-renamed--${shortAssetId(clipId)}.vrma`;
+  assert.equal(renamed.stored_filename, expectedDisk);
+  assert.equal(fs.existsSync(beforePath), false);
+  assert.equal(
+    fs.existsSync(path.join(userDataPath, "assets", "animations", expectedDisk)),
+    true,
+  );
+
+  snapshot = store.createAnimation({
+    animation_name: "temp-action",
+    animation_description: "Temporary.",
+    animation_trigger_scenario: "When testing pool move.",
+  });
+  const action = snapshot.animations.find(
+    (animation) => animation.animation_name === "temp-action",
+  );
+  assert.ok(action);
+  snapshot = store.assignUnassignedClip(clipId, action.id);
+  assert.equal(snapshot.unassigned_clips.length, 0);
+  assert.ok(
+    snapshot.animations
+      .find((candidate) => candidate.id === action.id)
+      ?.clips.some((clip) => clip.id === clipId),
+  );
+
+  snapshot = store.moveAnimationClipToUnassigned(action.id, clipId);
+  assert.equal(snapshot.unassigned_clips.length, 1);
+  assert.equal(snapshot.unassigned_clips[0].id, clipId);
+  assert.ok(
+    !snapshot.animations
+      .find((candidate) => candidate.id === action.id)
+      ?.clips.some((clip) => clip.id === clipId),
+  );
+
+  snapshot = store.deleteUnassignedClip(clipId);
+  assert.equal(snapshot.unassigned_clips.length, 0);
+  assert.equal(
+    fs.existsSync(path.join(userDataPath, "assets", "animations", expectedDisk)),
+    false,
+  );
+});
+
+test("migrates schema 10 fixture to schema 11 with empty unassigned pool", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-10.json",
+  );
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.deepEqual(snapshot.unassigned_clips, []);
+  assert.equal(snapshot.state_slot_bindings.working, "wave-soft");
+  const animation = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "wave-soft",
+  );
+  assert.ok(animation);
+  assert.equal(animation.clips[0]?.purpose, "one-shot");
+  assert.equal(animation.clips[0]?.source_basename, "Wave Soft.vrma");
+});

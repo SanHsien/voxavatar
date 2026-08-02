@@ -4,7 +4,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SettingsStateSlotsSection } from './SettingsStateSlotsSection';
+import { SettingsStateSlotsSection, ACTION_PACK_MINI_EXAMPLE } from './SettingsStateSlotsSection';
 import { SETTINGS_FALLBACK } from '../../settings-defaults';
 import { settingsT } from '../../settings-i18n';
 
@@ -109,5 +109,24 @@ describe('SettingsStateSlotsSection interaction', () => {
     });
     await user.click(button);
     expect(importActionPack).toHaveBeenCalledTimes(1);
+  });
+
+  it('copies the mini action-pack example to the clipboard', async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    renderSection();
+    await user.click(
+      screen.getByText(settingsT('zh-TW', 'stateSlots.packHelpSummary')),
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: settingsT('zh-TW', 'stateSlots.packExampleCopy'),
+      }),
+    );
+    expect(writeText).toHaveBeenCalledWith(ACTION_PACK_MINI_EXAMPLE);
   });
 });

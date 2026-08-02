@@ -149,8 +149,8 @@ MCP 工具 `show_message` 已提供：參數只含 `text`、可選 `duration_ms`
 
 - 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試。
 - 口型增益純函式見 `src/lip-sync-gain.ts`；頭部錨點／投影見 `src/head-projection.ts` 與 `src/vrm-head-bones.ts`（Scene 已接 VRM bone；DPI 實機仍標未驗）。
-- Settings 狀態槽／品質門檻／語音模式與氣泡錨點有 jsdom 互動測；目錄／action-pack partial failure 有可見 notice；動作頁未分類池／依檔名分槽有 static 測。
-- 離線 `vrma:curate`（inspect／rename／verify-names）有 Node 測試；真實素材只記授權清楚的人工結果。
+- Settings 狀態槽／品質門檻／語音模式與氣泡錨點有 jsdom 互動測；目錄／action-pack partial failure 有可見 notice；動作頁未分類池／批次用途／依檔名分槽有 static＋互動測；模型匯入 `form-actions` 有契約測。
+- 離線 `vrma:curate`（inspect／rename／verify-names）有 Node 測試；Speaking 第二層 bone 套用與系統匣頂層選單骨架有純邏輯測；真實素材只記授權清楚的人工結果。
 - 氣泡位置、DPI、長字串、Emoji、點穿與 reduced motion 以 Windows 實機 smoke 驗證。
 - 修正以最小範圍進行；不得因單一素材問題改寫整套 renderer 或降低安全 gate。
 

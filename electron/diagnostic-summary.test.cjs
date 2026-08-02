@@ -54,3 +54,32 @@ test("buildDiagnosticSummary never embeds absolute paths or asset names", () => 
   assert.doesNotMatch(text, /\.vrm/i);
   assert.doesNotMatch(text, /C:\\/i);
 });
+
+test("buildDiagnosticSummary reports setup complete with no next step", () => {
+  const text = buildDiagnosticSummary({
+    readiness: {
+      schema_version: 1,
+      complete: true,
+      window_visible: true,
+      listener_state: "running",
+      mcp_health: "online",
+      playable_actions: 2,
+      voice_activity: null,
+      steps: [
+        {
+          id: "model",
+          ready: true,
+          optional: false,
+          code: "model_ready",
+          next_action: null,
+        },
+      ],
+      next_step: null,
+    },
+    appVersion: "0.16.11",
+    platform: "win32",
+    generatedAt: "2026-08-02T00:00:00.000Z",
+  });
+  assert.match(text, /setup_complete: yes/);
+  assert.match(text, /next: none/);
+});

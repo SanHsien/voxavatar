@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-02
-Planning baseline: `0.16.11` (`main`; GitHub Latest Release tag remains `v0.16.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.12` (`main`; GitHub Latest Release moves with this batch cut; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,11 +11,11 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.11` / `main`; GitHub Latest Release: `v0.16.0`
+Review baseline: `0.16.12` / `main`; GitHub Latest Release: this batch cut (accumulated since `v0.16.0`)
 
-No known open P0/P1. Upstream open PR/issues re-scanned (`9287ea3` has no newer tip commits; #16 remains out of scope—see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). **No new feature tracks this round**—close existing gaps and contract drift. `0.16.10` offline VRMA curation; `0.16.11` contract tests and DEVELOPMENT wiring for curation / unassigned pool / batch purpose.
+No known open P0/P1. Upstream open PR/issues re-scanned (`9287ea3` has no newer tip commits; #16 remains out of scope). **No new feature tracks this round**—close existing gaps and contract drift. `0.16.12` closes schema/IPC/tray/Speaking-bone/Settings interaction contract coverage.
 
-- Latest Release: `v0.16.0` (GUI/signing/real exporters still unverified).
+- Latest Release: this batch cut targets `v0.16.12` (GUI/signing/real exporters still unverified).
 - Upstream: commit watermark `9287ea3`; no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
@@ -74,6 +74,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.16.9 | Model import buttons use shared form-actions spacing |
 | v0.16.10 | Offline VRMA structure inspection, safe renaming, and curation workflow (DECISIONS §10) |
 | v0.16.11 | Curation / unassigned-pool IPC·preload·Animations UI contract tests; upstream re-scan; DEVELOPMENT commands |
+| v0.16.12 | Schema/IPC/tray/Speaking-bone/Settings interaction contracts; installer batch cut |
 
 ## Closing existing gaps
 
@@ -84,6 +85,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 - [x] Docs drift fixes; user manual state; native typed exit codes with JS/listener tests.
 - [x] Speaking secondary head/torso; tray menu extract tests; Usage=2 runner assertion.
 - [x] Offline `vrma:curate` core flow tests; unassigned pool / batch-purpose IPC·preload·Animations static tests.
+- [x] Schema 10→11 migration; pool rename/delete/return; IPC handler forwarding; exit 10–13 matrix; tray top-level; Speaking bones; Settings interactions (animations/models/copy example/setup gate).
 
 ### Still open / unverified
 

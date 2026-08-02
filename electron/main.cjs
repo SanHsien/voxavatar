@@ -89,6 +89,9 @@ const {
   TRAY_USER_SOURCE_ID,
   buildCharacterStateMenuSubmenu: buildCharacterStateMenuEntries,
 } = require("./tray-character-state-menu.cjs");
+const {
+  buildTrayMenuTemplate: buildTrayMenuTemplateEntries,
+} = require("./tray-menu-template.cjs");
 
 const VOXAVATAR_ASSET_SCHEME = "voxavatar-asset";
 const startInBackground = process.argv.includes("--background");
@@ -310,75 +313,30 @@ function buildCharacterStateMenuSubmenu(t) {
 function buildTrayMenuTemplate() {
   const t = currentMenuStrings();
   const ready = hasConfiguredModel();
-  const quitItem = {
-    label: t.quit,
-    click: () => {
+  const visible = Boolean(
+    avatarWindow && !avatarWindow.isDestroyed() && avatarWindow.isVisible(),
+  );
+  return buildTrayMenuTemplateEntries(t, {
+    ready,
+    visible,
+    locale: normalizeUiLocale(settingsStore?.getSnapshot()?.ui_locale),
+    characterStateSubmenu: ready ? buildCharacterStateMenuSubmenu(t) : [],
+    onSetup: showSettings,
+    onToggleVisible: () => toggleOverlay(),
+    onResetView: () => sendAvatarResetView(),
+    onSettings: showSettings,
+    onPreviewListening: () => handleBridgeEvent(voiceState("listening")),
+    onPreviewSpeaking: () => handleBridgeEvent(voiceState("speaking")),
+    onSetLocale: (locale) => {
+      if (!settingsStore) return;
+      publishSettings(settingsStore.setUiLocale(locale));
+    },
+    onAbout: () => showAboutDialog(),
+    onQuit: () => {
       isQuitting = true;
       app.quit();
     },
-  };
-  const aboutItem = { label: t.about, click: () => showAboutDialog() };
-  const languageSubmenu = [
-    {
-      label: t.languageZh,
-      type: "radio",
-      checked: normalizeUiLocale(settingsStore?.getSnapshot()?.ui_locale) === "zh-TW",
-      click: () => {
-        if (!settingsStore) return;
-        publishSettings(settingsStore.setUiLocale("zh-TW"));
-      },
-    },
-    {
-      label: t.languageEn,
-      type: "radio",
-      checked: normalizeUiLocale(settingsStore?.getSnapshot()?.ui_locale) === "en",
-      click: () => {
-        if (!settingsStore) return;
-        publishSettings(settingsStore.setUiLocale("en"));
-      },
-    },
-  ];
-  if (!ready) {
-    return [
-      { label: t.setup, click: showSettings },
-      { type: "separator" },
-      { label: t.language, submenu: languageSubmenu },
-      { type: "separator" },
-      aboutItem,
-      quitItem,
-    ];
-  }
-  const visible = Boolean(avatarWindow && !avatarWindow.isDestroyed() && avatarWindow.isVisible());
-  return [
-    {
-      label: visible ? t.hide : t.show,
-      click: () => toggleOverlay(),
-    },
-    {
-      label: t.resetView,
-      enabled: visible,
-      click: () => sendAvatarResetView(),
-    },
-    { label: t.settings, click: showSettings },
-    { type: "separator" },
-    {
-      label: t.characterState,
-      submenu: buildCharacterStateMenuSubmenu(t),
-    },
-    {
-      label: t.previewListening,
-      click: () => handleBridgeEvent(voiceState("listening")),
-    },
-    {
-      label: t.previewSpeaking,
-      click: () => handleBridgeEvent(voiceState("speaking")),
-    },
-    { type: "separator" },
-    { label: t.language, submenu: languageSubmenu },
-    { type: "separator" },
-    aboutItem,
-    quitItem,
-  ];
+  });
 }
 
 function popupTrayMenu() {

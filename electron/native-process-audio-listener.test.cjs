@@ -166,46 +166,61 @@ test("native listener prefers a sticky root when multiple roots appear", async (
 });
 
 test("native listener maps typed exit codes to helper_error", async () => {
-  const statuses = [];
-  const child = fakeChild();
-  const listener = new NativeProcessAudioListener({
-    platform: "win32",
-    helperPath: __filename,
-    processDiscovery: async () => ({ pids: [10], rootPids: [10] }),
-    spawnProcess: () => child,
-    onStatus: (status) => statuses.push(status),
-  });
+  const cases = [
+    { exit: 10, helper: "native_helper_com_error", state: "launch_failed" },
+    { exit: 11, helper: "native_helper_wasapi_error", state: "launch_failed" },
+    { exit: 12, helper: "native_helper_device_error", state: "no_output" },
+    { exit: 13, helper: "native_helper_wasapi_error", state: "launch_failed" },
+  ];
+  for (const entry of cases) {
+    const statuses = [];
+    const child = fakeChild();
+    const listener = new NativeProcessAudioListener({
+      platform: "win32",
+      helperPath: __filename,
+      processDiscovery: async () => ({ pids: [10], rootPids: [10] }),
+      spawnProcess: () => child,
+      onStatus: (status) => statuses.push(status),
+    });
 
-  await listener.start();
-  child.emit("exit", 10, null);
-  await new Promise((resolve) => setTimeout(resolve, 5));
+    await listener.start();
+    child.emit("exit", entry.exit, null);
+    await new Promise((resolve) => setTimeout(resolve, 5));
 
-  const last = statuses.at(-1);
-  assert.equal(last.helper_error, "native_helper_com_error");
-  assert.equal(last.state, "launch_failed");
-  listener.stop();
+    const last = statuses.at(-1);
+    assert.equal(last.helper_error, entry.helper, `exit ${entry.exit}`);
+    assert.equal(last.state, entry.state, `exit ${entry.exit} state`);
+    listener.stop();
+  }
 });
 
-test("native listener maps NDJSON error code to device helper_error", async () => {
-  const statuses = [];
-  const child = fakeChild();
-  const listener = new NativeProcessAudioListener({
-    platform: "win32",
-    helperPath: __filename,
-    processDiscovery: async () => ({ pids: [10], rootPids: [10] }),
-    spawnProcess: () => child,
-    onStatus: (status) => statuses.push(status),
-  });
+test("native listener maps NDJSON typed error codes to helper_error", async () => {
+  const cases = [
+    { code: 10, helper: "native_helper_com_error" },
+    { code: 11, helper: "native_helper_wasapi_error" },
+    { code: 12, helper: "native_helper_device_error" },
+    { code: 13, helper: "native_helper_wasapi_error" },
+  ];
+  for (const entry of cases) {
+    const statuses = [];
+    const child = fakeChild();
+    const listener = new NativeProcessAudioListener({
+      platform: "win32",
+      helperPath: __filename,
+      processDiscovery: async () => ({ pids: [10], rootPids: [10] }),
+      spawnProcess: () => child,
+      onStatus: (status) => statuses.push(status),
+    });
 
-  await listener.start();
-  child.stdout.emit(
-    "data",
-    '{"type":"error","code":12,"message":"No playback device"}\n',
-  );
-  await new Promise((resolve) => setTimeout(resolve, 5));
+    await listener.start();
+    child.stdout.emit(
+      "data",
+      `{"type":"error","code":${entry.code},"message":"typed failure ${entry.code}"}\n`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 5));
 
-  const last = statuses.at(-1);
-  assert.equal(last.helper_error, "native_helper_device_error");
-  assert.equal(last.state, "no_output");
-  listener.stop();
+    const last = statuses.at(-1);
+    assert.equal(last.helper_error, entry.helper, `ndjson code ${entry.code}`);
+    listener.stop();
+  }
 });

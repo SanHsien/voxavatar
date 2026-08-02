@@ -45,6 +45,7 @@ import {
 import { SettingsMcpSection } from './settings/SettingsMcpSection';
 import { SettingsPreviewPanel } from './settings/SettingsPreviewPanel';
 import { SettingsConfirmationDialog } from './settings/SettingsConfirmationDialog';
+import { shouldShowSetupChecklist } from '../setup-checklist-visibility';
 import type { CharacterState } from '../character-state';
 
 type SettingsSection = 'models' | 'animations' | 'appearance' | 'voice' | 'mcp';
@@ -1572,7 +1573,7 @@ export function SettingsPage() {
         )}
 
         <div className="settings-scroll">
-          {readiness && !readiness.complete && (
+          {shouldShowSetupChecklist(readiness) && (
             <section className="settings-panel setup-checklist-panel">
               <div className="panel-heading">
                 <div>

@@ -1,11 +1,11 @@
 # VoxAvatar 專案覆核
 
 覆核日期：2026-08-02
-基準：`v0.13.1`／`main`；GitHub Release：`v0.13.0`
+基準：`v0.13.1`／`main`；GitHub Latest Release：`v0.13.0`
 
 ## 結論
 
-沒有已知未解 P0／P1。角色表現主線（v0.9–v0.12）與上游評估（水位 `cf27d12`，#14／#15 不合併）已收斂。路線圖焦點改為 **v0.14**（狀態槽 UI／MCP 狀態工具、jsdom、Windows 實機與簽署）。
+沒有已知未解 P0／P1。`v0.13.0` 已成為 Latest（installer＋SHA-256）；舊 `v0.5.0` 已清理。路線圖焦點為 **v0.14**。`main` tip `0.13.1` 為文件／路線圖收斂（未另 tag）。
 
 ## 現況
 
@@ -28,4 +28,4 @@
 
 ## 發行判定
 
-- 批次 tag `v0.13.0`；成功成為 Latest 後只保留最新 Release。
+- Latest=`v0.13.0`；僅保留最新 Release／tag。`main` tip=`0.13.1`（文件）未另發版。

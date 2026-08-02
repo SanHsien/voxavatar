@@ -32,6 +32,7 @@ Without a local C++ toolchain, the application-loopback listener is unavailable,
 - Do not add Linux or macOS listeners or distribution targets.
 - Do not commit VRM or VRMA media without verified redistribution rights.
 - Preserve the upstream MIT license and `xikhar` attribution.
+- When evaluating upstream commits, issues, or PRs, continue from the watermark in [`docs/UPSTREAM_EVAL.md`](docs/UPSTREAM_EVAL.md) and only pick changes that fit this fork’s boundaries.
 
 ## Validation before submission
 

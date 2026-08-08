@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-08
-Planning baseline: `0.16.20` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.20` (`main`; GitHub Latest Release: `v0.16.20`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,11 +11,11 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.20` / `main`; GitHub Latest Release: `v0.16.14`
+Review baseline: `0.16.20` / `main`; GitHub Latest Release: `v0.16.20`
 
 No known open P0/P1. Upstream watermark `bb7ef24` (#17 **not merged**). `0.16.20` fixes a path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list (the `<home>` / `<user>` placeholders cut the following path regexes short, leaving `\OneDrive\…` and `\AppData\…` segments in place) and adds environment-independent regression tests. This round cuts an installer Release — the first user-visible privacy fix since `v0.16.14`.
 
-- Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified).
+- Latest Release: `v0.16.20` (installer + SHA256 downloaded and matched; Authenticode `NotSigned` confirmed via both PowerShell and the PE Certificate Table; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `bb7ef24` (#17 bundles AvatarSample / speaking VRMA — **do not merge**); no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.

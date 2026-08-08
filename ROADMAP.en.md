@@ -2,8 +2,8 @@
 
 [繁體中文](ROADMAP.md) · English
 
-Updated: 2026-08-02
-Planning baseline: `0.16.19` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Updated: 2026-08-08
+Planning baseline: `0.16.20` (`main`; GitHub Latest Release: `v0.16.14`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,16 +11,16 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.19` / `main`; GitHub Latest Release: `v0.16.14`
+Review baseline: `0.16.20` / `main`; GitHub Latest Release: `v0.16.14`
 
-No known open P0/P1. Upstream watermark `bb7ef24` (#17 **not merged**). `0.16.19` advances the evidence path (`evidence:verify` / PE NotSigned, `--emit-error`, separate Event code, exporter skeleton, 30% contracts) and rewrites ROADMAP “Evidence-path progress”. No installer Release this round (still no installer-visible change since `v0.16.14`).
+No known open P0/P1. Upstream watermark `bb7ef24` (#17 **not merged**). `0.16.20` fixes a path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list (the `<home>` / `<user>` placeholders cut the following path regexes short, leaving `\OneDrive\…` and `\AppData\…` segments in place) and adds environment-independent regression tests. This round cuts an installer Release — the first user-visible privacy fix since `v0.16.14`.
 
 - Latest Release: `v0.16.14` (installer + SHA256; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `bb7ef24` (#17 bundles AvatarSample / speaking VRMA — **do not merge**); no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
 
-This round: `npm run check` green.
+This round: `npm run check` green (the authoritative gate is CI on Node 24). Known local limitation: Node 25 ships a built-in Web Storage global that shadows jsdom's `window.localStorage`, so `src/theme.test.ts` fails under Node 25. Unrelated to product code; not yet addressed.
 
 ### Verification gaps (marked unverified; never fabricate completion)
 
@@ -62,7 +62,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.1–v0.13 | Windows-only fork baseline; `REVIEW` → Current health (details in CHANGELOG) |
 | v0.14–v0.15 | State slots / MCP / HTTP / head projection / manual state / typed exit |
 | v0.16.0–0.16.9 | Speaking secondary, tray, slot defaults, action-pack, clip pool/preview, UI spacing |
-| v0.16.10–0.16.19 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction, CodeQL, i18n/sanitize/IPC, evidence-path scaffolding |
+| v0.16.10–0.16.20 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction (incl. the 0.16.20 placeholder-tail fix), CodeQL, i18n/sanitize/IPC, evidence-path scaffolding |
 
 Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 

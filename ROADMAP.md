@@ -2,8 +2,8 @@
 
 繁體中文 · [English](ROADMAP.en.md)
 
-更新日期：2026-08-02
-規劃基準：`0.16.19`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+更新日期：2026-08-08
+規劃基準：`0.16.20`（`main`；GitHub Latest Release：`v0.16.14`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,16 +11,16 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.19`／`main`；GitHub Latest Release：`v0.16.14`
+覆核基準：`0.16.20`／`main`；GitHub Latest Release：`v0.16.14`
 
-沒有已知未解 P0／P1。上游水位 `bb7ef24`（#17 **不合併**）。`0.16.19` 推進證據路徑（`evidence:verify`／PE NotSigned、`--emit-error`、Event 獨立碼、exporter 骨架、30% 契約）並重寫 ROADMAP「證據路徑進度」。本輪不切 installer Release（自 `v0.16.14` 累積仍無安裝包可見變更）。
+沒有已知未解 P0／P1。上游水位 `bb7ef24`（#17 **不合併**）。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞（`<home>`／`<user>` 佔位符切斷後續路徑正則，殘留 `\OneDrive\…`、`\AppData\…`），並補上不依賴執行環境的迴歸測試。本輪切 installer Release（自 `v0.16.14` 起首個對使用者可見的隱私修正）。
 
 - Latest Release：`v0.16.14`（installer＋SHA256；GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `bb7ef24`（#17 內建 AvatarSample／speaking VRMA，**不合併**）；無 open PR；#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
-本輪驗證：`npm run check` 全綠。
+本輪驗證：`npm run check` 全綠（正式 gate 為 CI 的 Node 24）。已知本機環境限制：Node 25 內建 Web Storage 會覆蓋 jsdom 的 `window.localStorage`，`src/theme.test.ts` 在 Node 25 下會紅；與產品程式無關，尚未處理。
 
 ### 驗證缺口（標未驗，不虛構完成）
 
@@ -62,7 +62,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.1–v0.13 | Windows-only fork 基線；`REVIEW`→「目前健康」（細節見 CHANGELOG） |
 | v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
 | v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
-| v0.16.10–0.16.19 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩、CodeQL、i18n／sanitize／IPC、證據路徑腳手架 |
+| v0.16.10–0.16.20 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 

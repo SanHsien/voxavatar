@@ -8,6 +8,20 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const PLACEHOLDER = "<(?:home|user|path|asset)>";
+const PLACEHOLDER_TAIL = new RegExp(
+  `<(?:home|user|path)>(?:[\\\\/](?:${PLACEHOLDER}|[^\\s\`"'<>]*))+`,
+  "g",
+);
+const ADJACENT_PLACEHOLDERS = new RegExp(`(?:${PLACEHOLDER}){2,}`, "g");
+
+/** 佔位符後面殘留的路徑段落一律收斂為 <path>。 */
+function collapsePlaceholderPaths(text) {
+  return text
+    .replace(PLACEHOLDER_TAIL, "<path>")
+    .replace(ADJACENT_PLACEHOLDERS, "<path>");
+}
+
 function redactSensitive(text, { homeDir = os.homedir(), username } = {}) {
   let out = String(text ?? "");
   const home = homeDir || "";
@@ -49,6 +63,10 @@ function redactSensitive(text, { homeDir = os.homedir(), username } = {}) {
     /\b(user(?:name)?)\s+[A-Za-z0-9._-]{2,32}\b/gi,
     "$1 <user>",
   );
+
+  // 佔位符含 <>，會切斷上面路徑正則的字元類，讓 <user>\OneDrive\… 這種尾段留在原地；
+  // 收斂佔位符後面接續的路徑段落，再把相鄰佔位符併成一個。
+  out = collapsePlaceholderPaths(out);
 
   return out;
 }

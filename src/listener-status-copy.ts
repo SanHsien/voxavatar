@@ -1,3 +1,10 @@
+const PLACEHOLDER = '<(?:home|user|path|asset)>';
+const PLACEHOLDER_TAIL = new RegExp(
+  `<(?:home|user|path)>(?:[\\\\/](?:${PLACEHOLDER}|[^\\s\`"'<>]*))+`,
+  'g',
+);
+const ADJACENT_PLACEHOLDERS = new RegExp(`(?:${PLACEHOLDER}){2,}`, 'g');
+
 /**
  * 將可能含路徑／使用者名的 listener 錯誤字串遮罩後再顯示。
  * 不依賴 Node os；僅做啟發式替換。
@@ -18,6 +25,10 @@ export function redactDisplayText(input: string | null | undefined): string {
     '$1 <user>',
   );
   text = text.replace(/(?:[A-Za-z]:\\|\/)[^\s"'<>]{8,}/g, '<path>');
+  // 佔位符含 <>，會切斷上面路徑正則的字元類，讓 <home>\OneDrive\… 這種尾段留在原地；
+  // 收斂佔位符後面接續的路徑段落，再把相鄰佔位符併成一個。
+  text = text.replace(PLACEHOLDER_TAIL, '<path>');
+  text = text.replace(ADJACENT_PLACEHOLDERS, '<path>');
   return text;
 }
 

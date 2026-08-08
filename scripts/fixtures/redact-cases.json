@@ -33,5 +33,20 @@
     "id": "username-label",
     "input": "username Alice could not open model.GLB",
     "mustNotContain": ["Alice", "model.GLB"]
+  },
+  {
+    "id": "onedrive-folder-no-extension",
+    "input": "err C:\\Users\\SanHsien\\OneDrive\\人物",
+    "mustNotContain": ["SanHsien", "OneDrive", "人物"]
+  },
+  {
+    "id": "appdata-helper-path",
+    "input": "ENOENT C:\\Users\\SanHsien\\AppData\\Local\\ChatGPT\\app.exe",
+    "mustNotContain": ["SanHsien", "AppData", "ChatGPT", "app.exe"]
+  },
+  {
+    "id": "posix-nested-folder",
+    "input": "denied /home/SanHsien/Documents/私人素材",
+    "mustNotContain": ["SanHsien", "Documents", "私人素材"]
   }
 ]

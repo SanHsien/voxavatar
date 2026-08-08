@@ -122,7 +122,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The version on `main` is **`0.16.19`** (evidence-path scaffolding, `--emit-error`, separate Event code). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release remains **`v0.16.14`**; GUI smoke and Authenticode remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The version on `main` is **`0.16.20`** (diagnostic/MCP path-redaction tail fix). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release remains **`v0.16.14`**; GUI smoke and Authenticode remain unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 

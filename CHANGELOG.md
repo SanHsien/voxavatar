@@ -2,6 +2,14 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.20 - 2026-08-08
+
+- 修正診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩漏洞：精確替換插入的 `<home>`／`<user>` 佔位符含 `<>`，會切斷後續路徑正則的字元類，使 `\OneDrive\人物`、`\AppData\Local\…` 等尾段原樣留在輸出中。只有在使用者家目錄／帳號真的出現在路徑裡時才觸發，CI runner 帳號與測試字串永遠不同，因此自動化測不到。
+- `redactSensitive`（Electron／MCP）與 `redactDisplayText`（UI）新增佔位符尾段收斂，兩側行為對齊；`SECURITY.md` 既有的遮罩承諾自此在實機成立。
+- 迴歸測試：shared fixture 補 OneDrive 無副檔名資料夾、AppData helper 路徑、POSIX 巢狀資料夾三案；另加顯式帶入 `homeDir`／`username` 的環境無關測試，避免同類漏洞再次只在 CI 綠燈。
+- 依賴：fast-uri 3.1.5（修 GHSA-7p8r-x3mc-p8w7 high）、hono 4.13.1、js-yaml 4.3.1。
+- 本輪切 installer Release。
+
 ## 0.16.19 - 2026-08-02
 
 - ROADMAP 拆「實機仍待」與「證據路徑進度」；新增 `evidence:verify`／`evidence:pe`（PE Certificate Table → NotSigned 機器證據，≠ SmartScreen）。

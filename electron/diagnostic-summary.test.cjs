@@ -36,6 +36,28 @@ test("redactSensitive matches shared fixture secrets with UI heuristics", () => 
   }
 });
 
+// 迴歸：homeDir／username 真的命中時，精確替換插入的 <home>／<user> 會切斷後續路徑正則
+// （字元類排除 <>），害資料夾名留在原地。CI runner 的帳號永遠不等於 fixture 字串，測不到，
+// 所以這裡顯式帶入 homeDir／username，讓失敗與執行環境無關。
+test("redactSensitive redacts folder tails when home and username match", () => {
+  const cases = [
+    "err C:\\Users\\SanHsien\\OneDrive\\人物\\clip.VRMA",
+    "ENOENT C:\\Users\\SanHsien\\AppData\\Local\\ChatGPT\\app.exe",
+    "open C:/Users/SanHsien/OneDrive/私人素材",
+  ];
+  for (const input of cases) {
+    const out = redactSensitive(input, {
+      homeDir: "C:\\Users\\SanHsien",
+      username: "SanHsien",
+    });
+    assert.doesNotMatch(out, /SanHsien/i, input);
+    assert.doesNotMatch(out, /OneDrive|AppData|ChatGPT/i, input);
+    assert.doesNotMatch(out, /人物|私人素材/, input);
+    assert.doesNotMatch(out, /clip|app\.exe/i, input);
+    assert.match(out, /<home>|<path>|<user>|<asset>/, input);
+  }
+});
+
 test("buildDiagnosticSummary never embeds absolute paths or asset names", () => {
   const text = buildDiagnosticSummary({
     readiness: {

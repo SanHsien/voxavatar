@@ -2,8 +2,8 @@
 
 繁體中文 · [English](ROADMAP.en.md)
 
-更新日期：2026-08-08
-規劃基準：`0.16.20`（`main`；GitHub Latest Release：`v0.16.20`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+更新日期：2026-08-10
+規劃基準：`0.16.21`（`main`；GitHub Latest Release：`v0.16.20`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,9 +11,9 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.20`／`main`；GitHub Latest Release：`v0.16.20`
+覆核基準：`0.16.21`／`main`；GitHub Latest Release：`v0.16.20`
 
-沒有已知未解 P0／P1。上游水位 `bb7ef24`（#17 **不合併**）。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞（`<home>`／`<user>` 佔位符切斷後續路徑正則，殘留 `\OneDrive\…`、`\AppData\…`），並補上不依賴執行環境的迴歸測試。本輪切 installer Release（自 `v0.16.14` 起首個對使用者可見的隱私修正）。
+已知未解：Speaking 動作不隨機輪播（見下）。上游水位 `bb7ef24`（#17 **不合併**）。`0.16.21` 修掉待機動作被預設 state slot 綁定鎖成單一片段無限循環的迴歸（`ambientIdleMotionUrls` 整池形同虛設）；`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞，並切了 installer Release。
 
 - Latest Release：`v0.16.20`（installer＋SHA256 已下載比對相符；Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `bb7ef24`（#17 內建 AvatarSample／speaking VRMA，**不合併**）；無 open PR；#11 已涵蓋。
@@ -22,10 +22,17 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 本輪驗證：`npm run check` 全綠（正式 gate 為 CI 的 Node 24）。已知本機環境限制：Node 25 內建 Web Storage 會覆蓋 jsdom 的 `window.localStorage`，`src/theme.test.ts` 在 Node 25 下會紅；與產品程式無關，尚未處理。
 
+### 已知缺陷（未修）
+
+| 項目 | 影響 | 說明 |
+| --- | --- | --- |
+| Speaking 動作不隨機輪播 | 說話期間只循環單一片段 | `cycleRandomMotions` 硬綁 `animation === 'IDLE'`，TALK 一律 `playback: 'loop'` 且 `animationRequest` 不推進。指派多支 Speaking 片段時每次說話只會用到一支 |
+
 ### 驗證缺口（標未驗，不虛構完成）
 
 | 項目 | 狀態 | 原因 |
 | --- | --- | --- |
+| 0.16.21 待機輪播修正的實機確認 | **未驗** | 邏輯有單元測試涵蓋；single-instance lock 下無法在使用者安裝版執行中另開實例觀察 |
 | Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **未驗** | 無 Windows 桌面 |
 | 30% 角色尺寸與多 DPI 實機可讀性 | **未驗** | 無 Windows 桌面 |
 | Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 無 Windows 桌面；`baseline:startup` 不含 GUI |

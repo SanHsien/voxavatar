@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.21 - 2026-08-10
+
+- 修正待機動作不再隨機輪播、從啟動起固定循環同一支的問題。快照層 `applyDefaultStateSlotBindings` 會自動補上 `{idle:'idle', listening:'idle', speaking:'speaking'}`，於是 `resolveStateMotion` 對 idle 一定解析出具名動作，`App` 照單全收建立 state override；override 存在時 `cycleRandomMotions` 為 false、`playback` 退回 `loop`，且 `animationRequest` 綁在不會變的 `requestId` 上，結果是啟動時抽中的那支 Idle 片段無限循環，`ambientIdleMotionUrls` 整池形同虛設。
+- 新增 `isSystemSlotFallbackMotion`：綁定只是指回該狀態本來就會走的系統槽（idle→`IDLE`、speaking→`TALK`）時視同沒有具名動作，讓 Idle 回到 ambient 隨機輪播（播完一支、休息 `idle_rest_ms`、從整池重抽並排除上一支）。綁到真正自訂動作的狀態槽行為不變。
+- 迴歸測試涵蓋預設綁定三個狀態、自訂槽、具名動作型別與 hint 不同、以及無具名動作四種情形。
+- 已知未修：Speaking 仍走 `playback: 'loop'`，說話期間只會循環單一片段，不隨機輪播。
+
 ## 0.16.20 - 2026-08-08
 
 - 修正診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩漏洞：精確替換插入的 `<home>`／`<user>` 佔位符含 `<>`，會切斷後續路徑正則的字元類，使 `\OneDrive\人物`、`\AppData\Local\…` 等尾段原樣留在輸出中。只有在使用者家目錄／帳號真的出現在路徑裡時才觸發，CI runner 帳號與測試字串永遠不同，因此自動化測不到。

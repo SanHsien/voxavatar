@@ -84,6 +84,22 @@ export function resolveStateMotion(
   };
 }
 
+/**
+ * 綁定是否只是指回該狀態本來就會走的系統槽（idle→IDLE、speaking→TALK）。
+ *
+ * 快照層的 applyDefaultStateSlotBindings 會把 idle／listening／speaking 自動綁到
+ * 系統 Idle／Speaking 動作，於是每個使用者都拿得到具名綁定。呼叫端若照單全收建立
+ * state override，Idle 就會被鎖成單一具名動作並無限循環，蓋掉 ambient 隨機輪播。
+ * 這種「綁了等於沒綁」的情況要當成沒有具名動作處理。
+ */
+export function isSystemSlotFallbackMotion(
+  motion: Pick<ResolvedStateMotion, 'animationName' | 'animationHint'>,
+  matchedAnimationType: string | null | undefined,
+): boolean {
+  if (!motion.animationName || !motion.animationHint) return false;
+  return matchedAnimationType === motion.animationHint;
+}
+
 /** 從 action-pack actions 建立 state_slot → animation_name 對照。 */
 export function bindingsFromActionPackActions(
   actions: readonly {

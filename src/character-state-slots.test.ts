@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   bindingsFromActionPackActions,
+  isSystemSlotFallbackMotion,
   resolveStateMotion,
 } from './character-state-slots';
 
@@ -32,6 +33,55 @@ describe('resolveStateMotion', () => {
     const resolved = resolveStateMotion({ state: 'speaking' });
     expect(resolved.animationHint).toBe('TALK');
     expect(resolved.fallback).toBe('none');
+  });
+});
+
+describe('isSystemSlotFallbackMotion', () => {
+  // 迴歸：快照的預設綁定 {idle:'idle', listening:'idle', speaking:'speaking'} 會讓
+  // idle 解析出具名動作，呼叫端若當成 override 就會把 Idle 鎖成單一動作無限循環。
+  it('treats default idle/listening/speaking bindings as no named motion', () => {
+    const defaults = {
+      idle: 'idle',
+      listening: 'idle',
+      speaking: 'speaking',
+    };
+    for (const [state, type] of [
+      ['idle', 'IDLE'],
+      ['listening', 'IDLE'],
+      ['speaking', 'TALK'],
+    ] as const) {
+      const motion = resolveStateMotion({
+        state,
+        bindings: defaults,
+        playableNames: ['idle', 'speaking'],
+      });
+      expect(motion.animationName, state).not.toBeNull();
+      expect(isSystemSlotFallbackMotion(motion, type), state).toBe(true);
+    }
+  });
+
+  it('keeps a real custom action bound to a non-system slot', () => {
+    const motion = resolveStateMotion({
+      state: 'working',
+      bindings: { working: 'work-nod' },
+      playableNames: ['work-nod'],
+    });
+    expect(isSystemSlotFallbackMotion(motion, null)).toBe(false);
+  });
+
+  it('keeps a named action whose type differs from the state hint', () => {
+    const motion = resolveStateMotion({
+      state: 'idle',
+      bindings: { idle: 'dance' },
+      playableNames: ['dance'],
+    });
+    expect(isSystemSlotFallbackMotion(motion, 'DANCE')).toBe(false);
+  });
+
+  it('is false without a named motion', () => {
+    const motion = resolveStateMotion({ state: 'idle', playableNames: [] });
+    expect(motion.animationName).toBeNull();
+    expect(isSystemSlotFallbackMotion(motion, 'IDLE')).toBe(false);
   });
 });
 

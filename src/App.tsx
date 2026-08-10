@@ -32,7 +32,10 @@ import {
   voiceActivityToStateEvent,
   type CharacterStateEvent,
 } from './character-state';
-import { resolveStateMotion } from './character-state-slots';
+import {
+  isSystemSlotFallbackMotion,
+  resolveStateMotion,
+} from './character-state-slots';
 import {
   loadPackagedSettingsFallback,
   SETTINGS_FALLBACK,
@@ -175,7 +178,12 @@ export function App() {
       const matched = settings.animations.find(
         (animation) => animation.animation_name === motion.animationName,
       );
-      if (matched && matched.asset_urls.length > 0) {
+      // 綁定指回系統 Idle／Speaking 槽時不建立 override，否則 Idle 會被鎖成單一動作循環。
+      const systemSlotFallback = isSystemSlotFallbackMotion(
+        motion,
+        matched?.animation_type,
+      );
+      if (matched && matched.asset_urls.length > 0 && !systemSlotFallback) {
         if (stateMotionKeyRef.current !== motionKey) {
           stateMotionKeyRef.current = motionKey;
           setStateDrivenOverride({

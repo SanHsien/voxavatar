@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-10
-Planning baseline: `0.16.22` (`main`; GitHub Latest Release: `v0.16.20`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.22` (`main`; GitHub Latest Release: `v0.16.22`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,7 +11,7 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.22` / `main`; GitHub Latest Release: `v0.16.20`
+Review baseline: `0.16.22` / `main`; GitHub Latest Release: `v0.16.22`
 
 No known open P0/P1. Upstream watermark `bb7ef24` (#17 **not merged**). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
 

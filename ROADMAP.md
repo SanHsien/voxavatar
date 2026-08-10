@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-10
-規劃基準：`0.16.22`（`main`；GitHub Latest Release：`v0.16.20`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.22`（`main`；GitHub Latest Release：`v0.16.22`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,7 +11,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.22`／`main`；GitHub Latest Release：`v0.16.20`
+覆核基準：`0.16.22`／`main`；GitHub Latest Release：`v0.16.22`
 
 沒有已知未解 P0／P1。上游水位 `bb7ef24`（#17 **不合併**）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
 

@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-10
-Planning baseline: `0.16.23` (`main`; GitHub Latest Release: `v0.16.22`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.23` (`main`; GitHub Latest Release: `v0.16.23`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,11 +11,11 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.23` / `main`; GitHub Latest Release: `v0.16.22`
+Review baseline: `0.16.23` / `main`; GitHub Latest Release: `v0.16.23`
 
 No known open P0/P1. Upstream watermark `152b1b4` (rescanned 2026-08-10; 12 commits after `bb7ef24` still need per-item evaluation — see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.23` then replaced pure random selection with a shuffle bag — every clip plays once per round before reshuffling — fixing the poor coverage and near-repeats of pure random. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
 
-- Latest Release: `v0.16.22` (installer + SHA256 downloaded and matched; Authenticode `NotSigned` confirmed via both PowerShell and the PE Certificate Table; GUI / signing / real exporters still unverified).
+- Latest Release: `v0.16.23` (installer + SHA256 downloaded and matched; Authenticode `NotSigned` confirmed via both PowerShell and the PE Certificate Table; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `152b1b4` (2026-08-10). The 12 commits after `bb7ef24` (#17 bundles AvatarSample / speaking VRMA — **do not merge**) are listed but still need per-item diff review; open PRs #45–#48 and open issues #18 / #35 / #43 / #44 (#45 includes microphone capture, which crosses a hard boundary; #18 is out of scope; #11 is already covered).
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.

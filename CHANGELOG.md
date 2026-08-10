@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.22 - 2026-08-10
+
+- 說話動作改為隨機輪播，修掉與 0.16.21 待機問題同源的第二半：`cycleRandomMotions` 原本硬綁 `animation === 'IDLE'`，TALK 一律 `playback: 'loop'` 且 `animationRequest` 不推進，指派多支 Speaking 片段時每次說話只會用到一支。
+- 新增 `shouldCycleRandomMotions`（IDLE 與 TALK 都輪播，空池不輪播）與 `motionRestMsForAnimation`（TALK 停頓為 0，其餘沿用 `idle_rest_ms`）。說話期間片段直接接續下一支，不套用待機休息，避免句子講到一半凍住。
+- `idleCycle`／`idleRestTimerRef`／`clearIdleRestTimer` 更名為 `motionCycle`／`motionRestTimerRef`／`clearMotionRestTimer`，名稱與「待機與說話共用」的實際行為一致。
+- 迴歸測試涵蓋 IDLE／TALK／CUSTOM／DANCE 與空池的輪播判斷，以及 TALK 停頓為 0、非有限值與負值的停頓正規化。
+
 ## 0.16.21 - 2026-08-10
 
 - 修正待機動作不再隨機輪播、從啟動起固定循環同一支的問題。快照層 `applyDefaultStateSlotBindings` 會自動補上 `{idle:'idle', listening:'idle', speaking:'speaking'}`，於是 `resolveStateMotion` 對 idle 一定解析出具名動作，`App` 照單全收建立 state override；override 存在時 `cycleRandomMotions` 為 false、`playback` 退回 `loop`，且 `animationRequest` 綁在不會變的 `requestId` 上，結果是啟動時抽中的那支 Idle 片段無限循環，`ambientIdleMotionUrls` 整池形同虛設。

@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-10
-Planning baseline: `0.16.21` (`main`; GitHub Latest Release: `v0.16.20`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.22` (`main`; GitHub Latest Release: `v0.16.20`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,9 +11,9 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.21` / `main`; GitHub Latest Release: `v0.16.20`
+Review baseline: `0.16.22` / `main`; GitHub Latest Release: `v0.16.20`
 
-Known open defect: Speaking motions do not cycle randomly (see below). Upstream watermark `bb7ef24` (#17 **not merged**). `0.16.21` fixes idle motion being locked to a single looping clip by the default state-slot bindings, which made the whole `ambientIdleMotionUrls` pool unreachable. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list, and cut an installer Release.
+No known open P0/P1. Upstream watermark `bb7ef24` (#17 **not merged**). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
 
 - Latest Release: `v0.16.20` (installer + SHA256 downloaded and matched; Authenticode `NotSigned` confirmed via both PowerShell and the PE Certificate Table; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `bb7ef24` (#17 bundles AvatarSample / speaking VRMA — **do not merge**); no open PR; #16 / closed issue #13 are macOS (skip), and issue #11 is already covered.
@@ -22,17 +22,11 @@ Known open defect: Speaking motions do not cycle randomly (see below). Upstream 
 
 This round: `npm run check` green (the authoritative gate is CI on Node 24). Known local limitation: Node 25 ships a built-in Web Storage global that shadows jsdom's `window.localStorage`, so `src/theme.test.ts` fails under Node 25. Unrelated to product code; not yet addressed.
 
-### Known defects (not fixed)
-
-| Item | Impact | Notes |
-| --- | --- | --- |
-| Speaking motions never cycle | One clip loops for the whole utterance | `cycleRandomMotions` is hard-gated to `animation === 'IDLE'`, so TALK always uses `playback: 'loop'` and `animationRequest` never advances. Assigning several Speaking clips still yields one clip per utterance |
-
 ### Verification gaps (marked unverified; never fabricate completion)
 
 | Item | Status | Reason |
 | --- | --- | --- |
-| Real-desktop confirmation of the 0.16.21 idle-cycling fix | **Unverified** | Covered by unit tests; the single-instance lock prevents launching a second instance while the user's installed build is running |
+| Real-desktop confirmation of the 0.16.21 / 0.16.22 idle and speaking cycling fixes | **Unverified** | Covered by unit tests; the single-instance lock prevents launching a second instance while an installed build is running, so this needs a reinstall and desktop observation |
 | Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Unverified** | No Windows desktop |
 | 30% character size and multi-DPI readability | **Unverified** | No Windows desktop |
 | Idle long-run / model-switch memory (GUI residency) | **Unverified** | No Windows desktop; `baseline:startup` excludes GUI |

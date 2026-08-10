@@ -3,7 +3,9 @@ import {
   ambientIdleMotionUrls,
   animationUrlsForType,
   immediateVoiceAnimation,
+  motionRestMsForAnimation,
   randomAnimationUrl,
+  shouldCycleRandomMotions,
 } from './animation-catalog';
 
 describe('VoxAvatar animation contract', () => {
@@ -33,6 +35,24 @@ describe('VoxAvatar animation contract', () => {
 
   it('uses no clip for the empty idle pose when no asset is configured', () => {
     expect(randomAnimationUrl([])).toBeNull();
+  });
+
+  // 迴歸：輪播原本硬綁 IDLE，說話一律 loop，指派多支 Speaking 片段也只會用到一支。
+  it('cycles both idle and talk pools, never an empty pool', () => {
+    expect(shouldCycleRandomMotions('IDLE', 3)).toBe(true);
+    expect(shouldCycleRandomMotions('TALK', 3)).toBe(true);
+    expect(shouldCycleRandomMotions('IDLE', 0)).toBe(false);
+    expect(shouldCycleRandomMotions('TALK', 0)).toBe(false);
+    expect(shouldCycleRandomMotions('CUSTOM', 3)).toBe(false);
+    expect(shouldCycleRandomMotions('DANCE', 3)).toBe(false);
+  });
+
+  // 說話時套用待機休息會讓角色在句子中間凍住，所以 TALK 的停頓必須是 0。
+  it('rests between idle clips but chains talk clips without a gap', () => {
+    expect(motionRestMsForAnimation('IDLE', 8000)).toBe(8000);
+    expect(motionRestMsForAnimation('TALK', 8000)).toBe(0);
+    expect(motionRestMsForAnimation('IDLE', Number.NaN)).toBe(0);
+    expect(motionRestMsForAnimation('IDLE', -5)).toBe(0);
   });
 
   it('chooses randomly while avoiding an immediate repeat', () => {

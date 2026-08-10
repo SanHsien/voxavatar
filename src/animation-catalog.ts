@@ -54,6 +54,30 @@ export function ambientIdleMotionUrls(
   return urls;
 }
 
+/** 會隨機輪播的狀態：待機與說話都應該從整池輪播，不是鎖死單一片段。 */
+const CYCLING_ANIMATION_TYPES = new Set<PlayableAnimationType>([
+  'IDLE',
+  'TALK',
+]);
+
+export function shouldCycleRandomMotions(
+  animation: PlayableAnimationType,
+  urlCount: number,
+): boolean {
+  return CYCLING_ANIMATION_TYPES.has(animation) && urlCount > 0;
+}
+
+/**
+ * 兩支輪播片段之間的停頓。說話不套用待機休息，否則句子講到一半會凍住。
+ */
+export function motionRestMsForAnimation(
+  animation: PlayableAnimationType,
+  idleRestMs: number,
+): number {
+  if (animation === 'TALK') return 0;
+  return Number.isFinite(idleRestMs) ? Math.max(0, idleRestMs) : 0;
+}
+
 /**
  * 從多段素材隨機抽一支。有上一支時先排除再抽，避免固定順序／連播同一支。
  */

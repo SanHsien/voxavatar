@@ -11,6 +11,8 @@ import { CharacterBubble } from './components/CharacterBubble';
 import {
   ambientIdleMotionUrls,
   animationUrlsForType,
+  motionRestMsForAnimation,
+  shouldCycleRandomMotions,
   type AnimationType,
 } from './animation-catalog';
 import {
@@ -60,7 +62,7 @@ export function App() {
     useState<BodyAnimationOverride | null>(null);
   const [stateDrivenOverride, setStateDrivenOverride] =
     useState<BodyAnimationOverride | null>(null);
-  const [idleCycle, setIdleCycle] = useState(0);
+  const [motionCycle, setMotionCycle] = useState(0);
   const [settings, setSettings] =
     useState<VoxAvatarSettingsSnapshot>(SETTINGS_FALLBACK);
   const [messageQueue, setMessageQueue] = useState<CharacterMessage[]>([]);
@@ -70,7 +72,7 @@ export function App() {
   const [headProjection, setHeadProjection] =
     useState<ProjectedHeadReport | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
-  const idleRestTimerRef = useRef<number | null>(null);
+  const motionRestTimerRef = useRef<number | null>(null);
   const stateMotionKeyRef = useRef('');
 
   useEffect(() => {
@@ -143,13 +145,13 @@ export function App() {
     return settingsBridge.subscribe(setSettings);
   }, []);
 
-  const clearIdleRestTimer = useCallback(() => {
-    if (idleRestTimerRef.current == null) return;
-    window.clearTimeout(idleRestTimerRef.current);
-    idleRestTimerRef.current = null;
+  const clearMotionRestTimer = useCallback(() => {
+    if (motionRestTimerRef.current == null) return;
+    window.clearTimeout(motionRestTimerRef.current);
+    motionRestTimerRef.current = null;
   }, []);
 
-  useEffect(() => () => clearIdleRestTimer(), [clearIdleRestTimer]);
+  useEffect(() => () => clearMotionRestTimer(), [clearMotionRestTimer]);
 
   const speaking =
     voice.phase === 'active' &&
@@ -289,12 +291,14 @@ export function App() {
   const animationUrls =
     effectiveOverride?.animationUrls ?? configuredAnimationUrls;
   const cycleRandomMotions =
-    !effectiveOverride && animation === 'IDLE' && animationUrls.length > 0;
-  const animationRequest = effectiveOverride?.requestId ?? idleCycle;
+    !effectiveOverride &&
+    shouldCycleRandomMotions(animation, animationUrls.length);
+  const animationRequest = effectiveOverride?.requestId ?? motionCycle;
   const overrideRequestId = bodyOverride?.requestId ?? null;
   const idleRestMs = Number.isFinite(settings.idle_rest_ms)
     ? Math.max(2000, Math.min(60000, settings.idle_rest_ms))
     : DEFAULT_IDLE_REST_MS;
+  const motionRestMs = motionRestMsForAnimation(animation, idleRestMs);
   const playback =
     bodyOverride || cycleRandomMotions
       ? 'once'
@@ -303,8 +307,8 @@ export function App() {
         : 'loop';
 
   useEffect(() => {
-    if (!cycleRandomMotions) clearIdleRestTimer();
-  }, [clearIdleRestTimer, cycleRandomMotions]);
+    if (!cycleRandomMotions) clearMotionRestTimer();
+  }, [clearMotionRestTimer, cycleRandomMotions]);
 
   const handleAnimationComplete = useCallback(() => {
     if (overrideRequestId != null) {
@@ -314,12 +318,17 @@ export function App() {
       return;
     }
     if (!cycleRandomMotions) return;
-    clearIdleRestTimer();
-    idleRestTimerRef.current = window.setTimeout(() => {
-      idleRestTimerRef.current = null;
-      setIdleCycle((value) => value + 1);
-    }, idleRestMs);
-  }, [clearIdleRestTimer, cycleRandomMotions, idleRestMs, overrideRequestId]);
+    clearMotionRestTimer();
+    motionRestTimerRef.current = window.setTimeout(() => {
+      motionRestTimerRef.current = null;
+      setMotionCycle((value) => value + 1);
+    }, motionRestMs);
+  }, [
+    clearMotionRestTimer,
+    cycleRandomMotions,
+    motionRestMs,
+    overrideRequestId,
+  ]);
 
   return defaultModel ? (
     <SceneErrorBoundary

@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-10
-Planning baseline: `0.16.22` (`main`; GitHub Latest Release: `v0.16.22`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.23` (`main`; GitHub Latest Release: `v0.16.22`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,9 +11,9 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.22` / `main`; GitHub Latest Release: `v0.16.22`
+Review baseline: `0.16.23` / `main`; GitHub Latest Release: `v0.16.22`
 
-No known open P0/P1. Upstream watermark `152b1b4` (rescanned 2026-08-10; 12 commits after `bb7ef24` still need per-item evaluation — see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
+No known open P0/P1. Upstream watermark `152b1b4` (rescanned 2026-08-10; 12 commits after `bb7ef24` still need per-item evaluation — see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.23` then replaced pure random selection with a shuffle bag — every clip plays once per round before reshuffling — fixing the poor coverage and near-repeats of pure random. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
 
 - Latest Release: `v0.16.22` (installer + SHA256 downloaded and matched; Authenticode `NotSigned` confirmed via both PowerShell and the PE Certificate Table; GUI / signing / real exporters still unverified).
 - Upstream: commit watermark `152b1b4` (2026-08-10). The 12 commits after `bb7ef24` (#17 bundles AvatarSample / speaking VRMA — **do not merge**) are listed but still need per-item diff review; open PRs #45–#48 and open issues #18 / #35 / #43 / #44 (#45 includes microphone capture, which crosses a hard boundary; #18 is out of scope; #11 is already covered).
@@ -26,7 +26,7 @@ This round: `npm run check` green (the authoritative gate is CI on Node 24). Kno
 
 | Item | Status | Reason |
 | --- | --- | --- |
-| Real-desktop confirmation of the 0.16.21 / 0.16.22 idle and speaking cycling fixes | **Unverified** | Covered by unit tests; the single-instance lock prevents launching a second instance while an installed build is running, so this needs a reinstall and desktop observation |
+| Real-desktop confirmation of the 0.16.21–0.16.23 idle and speaking shuffle-bag cycling | **Unverified** | Covered by unit tests; the single-instance lock prevents launching a second instance while an installed build is running, so this needs a reinstall and desktop observation |
 | Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Unverified** | No Windows desktop |
 | 30% character size and multi-DPI readability | **Unverified** | No Windows desktop |
 | Idle long-run / model-switch memory (GUI residency) | **Unverified** | No Windows desktop; `baseline:startup` excludes GUI |
@@ -63,7 +63,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.1–v0.13 | Windows-only fork baseline; `REVIEW` → Current health (details in CHANGELOG) |
 | v0.14–v0.15 | State slots / MCP / HTTP / head projection / manual state / typed exit |
 | v0.16.0–0.16.9 | Speaking secondary, tray, slot defaults, action-pack, clip pool/preview, UI spacing |
-| v0.16.10–0.16.22 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction (incl. the 0.16.20 placeholder-tail fix), CodeQL, i18n/sanitize/IPC, evidence-path scaffolding, idle/speaking random cycling fixes (0.16.21 / 0.16.22) |
+| v0.16.10–0.16.23 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction (incl. the 0.16.20 placeholder-tail fix), CodeQL, i18n/sanitize/IPC, evidence-path scaffolding, idle/speaking cycling fixes and the shuffle bag (0.16.21–0.16.23) |
 
 Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 
@@ -77,7 +77,7 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 - [x] Setup voice-code i18n; MCP/Settings voice-catalog path redaction; zh/en i18n key parity; helper state next-step hints; sanitize/migration/preload contracts.
 - [x] Settings notice redaction; tip evidence does not invent tags; dual-track redact fixtures; confirm-dialog / listener-pattern / TTL extraction; format / rate-limit / IPC channel contracts.
 - [x] `evidence:verify` / PE NotSigned; `--emit-error`; separate Event code; smoke sub-items; exporter schema; 30%/idle/theme contracts.
-- [x] Idle/speaking random cycling: `shouldCycleRandomMotions`, `motionRestMsForAnimation`, and `isSystemSlotFallbackMotion` pure-logic contracts (real-desktop observation listed under verification gaps).
+- [x] Idle/speaking cycling: `shouldCycleRandomMotions`, `motionRestMsForAnimation`, `isSystemSlotFallbackMotion`, and the shuffle bag (round coverage / seam / pool change / random-source hardening) pure-logic contracts (real-desktop observation listed under verification gaps).
 
 ### Still open / unverified (blocked on desktop, secrets, or licensed samples)
 
@@ -122,7 +122,7 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 
 ## Next three actions
 
-1. Reinstall `v0.16.22` and confirm idle and speaking random cycling on a real desktop (idle switches clip per segment plus gap; speaking chains clips without freezing). This is the only item still blocking a verified-complete claim for the action system.
+1. Reinstall `v0.16.23` and confirm idle and speaking shuffle-bag cycling on a real desktop (idle switches clip per segment plus gap; speaking chains clips without freezing; no repeat within a round). This is the only item still blocking a verified-complete claim for the action system.
 2. Review the 12 upstream commits in `bb7ef24..152b1b4` plus the open PRs/issues item by item and resolve the **待評估** (pending) rows in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 — starting with #23 (stateful animation scheduler, which overlaps this fork's cycling design) and #43 / #48 (settings IPC sender gate, possibly already covered).
 3. Blocked on a Windows desktop / signing secrets / licensed samples: fill segmented smoke sub-items under `docs/release-evidence/` and cross-check NotSigned via `evidence:verify` / `evidence:pe` (SmartScreen still needs a human); obtain clearly licensed real exporter samples for `_templates/exporter-results.json`; add real failure-path coverage once an audio/COM environment is available (`--emit-error` is contract-only).
 

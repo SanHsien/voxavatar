@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-10
-規劃基準：`0.16.22`（`main`；GitHub Latest Release：`v0.16.22`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.23`（`main`；GitHub Latest Release：`v0.16.22`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,9 +11,9 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.22`／`main`；GitHub Latest Release：`v0.16.22`
+覆核基準：`0.16.23`／`main`；GitHub Latest Release：`v0.16.22`
 
-沒有已知未解 P0／P1。上游水位 `152b1b4`（2026-08-10 重掃；`bb7ef24` 之後有 12 個 commit 待逐項評估，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
+沒有已知未解 P0／P1。上游水位 `152b1b4`（2026-08-10 重掃；`bb7ef24` 之後有 12 個 commit 待逐項評估，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.23` 再把選片從純隨機換成洗牌袋，一輪內每支各播一次再重洗，解決純隨機覆蓋率差與近距重複。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
 
 - Latest Release：`v0.16.22`（installer＋SHA256 已下載比對相符；Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；GUI／簽署／真實 exporter 仍標未驗）。
 - 上游：commit 水位 `152b1b4`（2026-08-10）；`bb7ef24`（#17 內建 AvatarSample／speaking VRMA，**不合併**）之後 12 個 commit 已建清單、待逐項讀 diff；open PR #45–#48、open issue #18／#35／#43／#44（#45 含麥克風，撞硬性邊界；#18 範圍外；#11 已涵蓋）。
@@ -26,7 +26,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 | 項目 | 狀態 | 原因 |
 | --- | --- | --- |
-| 0.16.21／0.16.22 待機與說話輪播修正的實機確認 | **未驗** | 邏輯有單元測試涵蓋；single-instance lock 下無法在使用者安裝版執行中另開實例觀察，須由實機重裝後觀察 |
+| 0.16.21–0.16.23 待機與說話洗牌輪播的實機確認 | **未驗** | 邏輯有單元測試涵蓋；single-instance lock 下無法在使用者安裝版執行中另開實例觀察，須由實機重裝後觀察 |
 | Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **未驗** | 無 Windows 桌面 |
 | 30% 角色尺寸與多 DPI 實機可讀性 | **未驗** | 無 Windows 桌面 |
 | Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 無 Windows 桌面；`baseline:startup` 不含 GUI |
@@ -63,7 +63,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.1–v0.13 | Windows-only fork 基線；`REVIEW`→「目前健康」（細節見 CHANGELOG） |
 | v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
 | v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
-| v0.16.10–0.16.22 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架、Idle／Speaking 隨機輪播修正（0.16.21／0.16.22） |
+| v0.16.10–0.16.23 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架、Idle／Speaking 輪播修正與洗牌袋（0.16.21–0.16.23） |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -77,7 +77,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [x] 設定進度語音碼人話；MCP／Settings 語音清單路徑遮罩；zh／en i18n 鍵對齊；helper 狀態下一步；sanitize／migration／preload 契約。
 - [x] Settings notice 遮罩；tip evidence 不虛構 tag；雙軌 redact fixture；確認對話／listener pattern／TTL 抽出；format／rate-limit／IPC 頻道窮舉契約。
 - [x] `evidence:verify`／PE NotSigned；`--emit-error`；Event 獨立碼；smoke 子項；exporter schema；30%／idle／theme 契約。
-- [x] Idle／Speaking 隨機輪播：`shouldCycleRandomMotions`、`motionRestMsForAnimation`、`isSystemSlotFallbackMotion` 純邏輯契約（實機觀察見驗證缺口表）。
+- [x] Idle／Speaking 輪播：`shouldCycleRandomMotions`、`motionRestMsForAnimation`、`isSystemSlotFallbackMotion` 與洗牌袋（整輪覆蓋／跨輪接縫／池變動／亂數防禦）純邏輯契約（實機觀察見驗證缺口表）。
 
 ### 仍待／未驗（實機、密鑰或授權樣本阻塞）
 
@@ -122,7 +122,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 接下來三件事
 
-1. 重裝 `v0.16.22` 後在實機確認 Idle 與 Speaking 的隨機輪播行為（待機每段＋間隔換一支、說話連續換片段不凍住）。這是目前唯一擋著「動作系統」宣稱驗收完成的項目。
+1. 重裝 `v0.16.23` 後在實機確認 Idle 與 Speaking 的洗牌輪播行為（待機每段＋間隔換一支、說話連續換片段不凍住、一輪內不重複）。這是目前唯一擋著「動作系統」宣稱驗收完成的項目。
 2. 逐項評估上游 `bb7ef24..152b1b4` 的 12 個 commit 與 open PR／issue，收斂 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 的**待評估**；優先 #23（stateful animation scheduler，與本 fork 輪播設計重疊）與 #43／#48（settings IPC sender gate，可能已涵蓋）。
 3. 阻塞項（等 Windows 桌面／簽署密鑰／授權樣本）：依分段 smoke 子項填 `docs/release-evidence/` 並用 `evidence:verify`／`evidence:pe` 對照 NotSigned（SmartScreen 仍需人）；取得授權清楚的真實 exporter 樣本填 `_templates/exporter-results.json`；有音訊／COM 環境時補真實失敗路徑（`--emit-error` 僅契約，不取代）。
 

@@ -6,10 +6,11 @@ import {
 } from '@pixiv/three-vrm-animation';
 import type { VRM } from '@pixiv/three-vrm';
 import * as THREE from 'three';
+import type { PlayableAnimationType } from '../animation-catalog';
 import {
-  randomAnimationUrl,
-  type PlayableAnimationType,
-} from '../animation-catalog';
+  drawNextMotion,
+  type MotionBagState,
+} from '../motion-shuffle-bag';
 import {
   configureAnimationAction,
   crossFadeAnimationActions,
@@ -64,15 +65,16 @@ export function useVrmAnimation(vrm: VRM | null) {
   const currentType = useRef<PlayableAnimationType | null>(null);
   const cache = useRef(new Map<string, VRMAnimation>());
   const clipCache = useRef(new Map<string, THREE.AnimationClip>());
-  const previousAnimation = useRef(
-    new Map<PlayableAnimationType, string>(),
+  // 每種動作類型各自維護洗牌袋，一輪內每支各播一次再重洗。
+  const motionBags = useRef(
+    new Map<PlayableAnimationType, MotionBagState>(),
   );
   const requestGeneration = useRef(0);
   const pendingCompletion = useRef<PendingCompletion | null>(null);
 
   useEffect(() => {
     if (!vrm) return;
-    const animationHistory = previousAnimation.current;
+    const animationHistory = motionBags.current;
     const clips = clipCache.current;
     const animationMixer = new THREE.AnimationMixer(vrm.scene);
     const handleFinished = ({ action }: { action: THREE.AnimationAction }) => {
@@ -121,10 +123,11 @@ export function useVrmAnimation(vrm: VRM | null) {
       const generation = ++requestGeneration.current;
       pendingCompletion.current = null;
       try {
-        const url = randomAnimationUrl(
+        const draw = drawNextMotion(
+          motionBags.current.get(type) ?? null,
           animationUrls,
-          previousAnimation.current.get(type) ?? null,
         );
+        const url = draw.url;
         if (!url) {
           const fadeSeconds = transitionSeconds(currentType.current, type);
           current.current?.fadeOut(fadeSeconds);
@@ -133,7 +136,7 @@ export function useVrmAnimation(vrm: VRM | null) {
           if (playback === 'once') onComplete?.();
           return;
         }
-        previousAnimation.current.set(type, url);
+        motionBags.current.set(type, draw.state);
         const animation = await load(url);
         if (generation !== requestGeneration.current || !mixer.current) {
           // 已被更新的 play 取代；完成責任交給新 generation。

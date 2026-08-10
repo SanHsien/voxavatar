@@ -78,23 +78,5 @@ export function motionRestMsForAnimation(
   return Number.isFinite(idleRestMs) ? Math.max(0, idleRestMs) : 0;
 }
 
-/**
- * 從多段素材隨機抽一支。有上一支時先排除再抽，避免固定順序／連播同一支。
- */
-export function randomAnimationUrl(
-  choices: readonly string[],
-  previous: string | null = null,
-  random: () => number = Math.random,
-): string | null {
-  if (choices.length === 0) return null;
-  const candidates =
-    choices.length > 1 && previous != null
-      ? choices.filter((choice) => choice !== previous)
-      : [...choices];
-  if (candidates.length === 0) return choices[0] ?? null;
-  const randomIndex = Math.min(
-    candidates.length - 1,
-    Math.floor(Math.max(0, random()) * candidates.length),
-  );
-  return candidates[randomIndex] ?? null;
-}
+// 選片邏輯見 `motion-shuffle-bag.ts`：一輪內每支各播一次再重洗，
+// 取代原本「每次從整池重抽、只排除上一支」的純隨機（覆蓋率差且會近距重複）。

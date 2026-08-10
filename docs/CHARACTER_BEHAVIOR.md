@@ -5,8 +5,9 @@
 ## 現有能力
 
 - Settings 可為 Idle、Speaking 與自訂動作加入一個或多個 `.vrma`。
-- Idle 從可用的非說話動作池抽播並避免立即重複；每段以 `once` 播完後依「待機動作間隔」停在最後一幀再播下一段（預設約 8 秒，不是當機）。實作重用 clip／action，並有完成逾時後備，避免長跑後永久停住。
-- Speaking 由語音輸出音量觸發，並以同一機制從 Speaking 池隨機輪播：每段 `once` 播完直接接續下一段，**不套用待機間隔**（說話中間停住 8 秒不是預期行為）。判斷集中在 `shouldCycleRandomMotions`（IDLE／TALK 才輪播，空池不輪播）與 `motionRestMsForAnimation`（TALK 停頓 0，其餘沿用 `idle_rest_ms`）。
+- 選片用**洗牌袋**（`src/motion-shuffle-bag.ts`）：把整池洗成一輪依序播完，再自動重洗開下一輪，因此一輪內每支各播一次、看完整池所需次數等於池大小。重洗時若新一輪第一支等於上一輪最後一支會交換，跨輪接縫不連播同一支；池變動即重建當前輪次。輪次永不結束，沒有「播完就停」的狀態。Idle、Speaking 與自訂動作依動作類型各自維護獨立輪次。
+- Idle 每段以 `once` 播完後依「待機動作間隔」停在最後一幀再播下一段（預設約 8 秒，不是當機）。實作重用 clip／action，並有完成逾時後備，避免長跑後永久停住。
+- Speaking 由語音輸出音量觸發，走同一套輪次：每段 `once` 播完直接接續下一段，**不套用待機間隔**（說話中間停住 8 秒不是預期行為）。判斷集中在 `shouldCycleRandomMotions`（IDLE／TALK 才輪播，空池不輪播）與 `motionRestMsForAnimation`（TALK 停頓 0，其餘沿用 `idle_rest_ms`）。
 - 輪播只在沒有 override 時生效。MCP `play_animation` 建立的 one-shot override 播完即釋放；狀態槽 override 見下方「角色狀態」。
 - 自訂動作有 MCP 名稱、描述與觸發情境，可用 `play_animation` 播放。
 - 安裝包不附第三方 VRM／VRMA；取得與再散布規則見 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
@@ -151,7 +152,7 @@ MCP 工具 `show_message` 已提供：參數只含 `text`、可選 `duration_ms`
 ## 驗證
 
 - 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試。
-- 動作輪播：`shouldCycleRandomMotions`／`motionRestMsForAnimation`／`isSystemSlotFallbackMotion` 有純邏輯迴歸測試（涵蓋預設綁定三狀態、空池、TALK 停頓為 0）。實機觀察待重裝後補（見 [`ROADMAP.md`](../ROADMAP.md) 驗證缺口）。
+- 動作輪播：`shouldCycleRandomMotions`／`motionRestMsForAnimation`／`isSystemSlotFallbackMotion` 有純邏輯迴歸測試（涵蓋預設綁定三狀態、空池、TALK 停頓為 0）；洗牌袋另有整輪覆蓋、連續多輪、跨輪接縫、池變動重建、單片段／空池與亂數防禦契約測。實機觀察待重裝後補（見 [`ROADMAP.md`](../ROADMAP.md) 驗證缺口）。
 - 口型增益純函式見 `src/lip-sync-gain.ts`；頭部錨點／投影見 `src/head-projection.ts` 與 `src/vrm-head-bones.ts`（Scene 已接 VRM bone；DPI 實機仍標未驗）。
 - Settings 狀態槽／品質門檻／語音模式與氣泡錨點有 jsdom 互動測；目錄／action-pack partial failure 有可見 notice；動作頁未分類池／批次用途／依檔名分槽有 static＋互動測；模型匯入 `form-actions` 有契約測。
 - 離線 `vrma:curate`（inspect／rename／verify-names）有 Node 測試；Speaking 第二層 bone 套用與系統匣頂層選單骨架有純邏輯測；真實素材只記授權清楚的人工結果。

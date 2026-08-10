@@ -36,7 +36,7 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；helper 狀態人話與路徑遮罩；sticky discovery |
 | 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵（含手動狀態）、重設視角、聆聽／說話預覽、About（含 NotSigned） |
 | 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告；未分類片段池；可選依檔名白名單分槽；VRM 0.x／1.0 |
-| 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、兩者都隨機多片段輪播（Idle 間隔可設定，說話直接接續）、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
+| 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、多片段洗牌輪播（一輪內每支各播一次再重洗；Idle 間隔可設定，說話直接接續）、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
 | 角色表現 | 狀態仲裁、系統狀態動作槽、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益 |
 | 設定進度 | 進度清單人話 code；可複製診斷摘要（遮罩路徑）；與 `get_status` 共用 readiness |
 | Agent 整合 | loopback-only MCP（6 工具）、HTTP 事件 API、`voxavatar://`；`get_status` 遮罩 listener 路徑 |
@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`0.16.22`**（修正待機與說話動作固定循環、不隨機輪播）。GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 為 **`v0.16.22`**（installer SHA-256 已比對相符，Authenticode `NotSigned`）；GUI smoke 仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`0.16.23`**（動作改洗牌輪播：一輪內每支各播一次再重洗）。GitHub repo 已解除 fork network，並持續保留上游 credit 與 `upstream` remote。GitHub Latest Release 為 **`v0.16.22`**（installer SHA-256 已比對相符，Authenticode `NotSigned`）；GUI smoke 仍標未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

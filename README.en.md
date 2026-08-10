@@ -36,7 +36,7 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 | Voice lip sync | App / custom matcher / external events / system-output (opt-in) loopback; human-readable helper status with path redaction; sticky discovery |
 | Desktop avatar | Transparent topmost click-through, drag, zoom (min 30%), rotate, tray menus (including manual state), reset view, listen/speak preview, About (NotSigned) |
 | Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports; unassigned clip pool; optional filename-whitelist assignment; VRM 0.x / 1.0 |
-| Action system | Idle / Speaking slots (optional Speaking secondary head/torso), random multi-clip cycling for both (configurable idle gap; speaking chains without one), `loop` / `one-shot` / `pose`, preview/rename/move, MCP catalog |
+| Action system | Idle / Speaking slots (optional Speaking secondary head/torso), shuffle-bag multi-clip cycling (every clip plays once per round before reshuffling; configurable idle gap, speaking chains without one), `loop` / `one-shot` / `pose`, preview/rename/move, MCP catalog |
 | Character presence | State arbitration, system state-slot bindings, comic bubbles, `show_message` (Settings opt-in), lip-sync gain |
 | Setup progress | Human-readable progress codes; copyable redacted diagnostics; shared readiness with `get_status` |
 | Agent integration | Loopback-only MCP (6 tools), HTTP event API, `voxavatar://`; `get_status` redacts listener paths |
@@ -122,7 +122,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The version on `main` is **`0.16.22`** (fixes idle and speaking motions looping one clip instead of cycling randomly). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release is **`v0.16.22`** (installer SHA-256 matched; Authenticode `NotSigned`); GUI smoke remains unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The version on `main` is **`0.16.23`** (motion selection now uses a shuffle bag: every clip plays once per round before reshuffling). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release is **`v0.16.22`** (installer SHA-256 matched; Authenticode `NotSigned`); GUI smoke remains unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 

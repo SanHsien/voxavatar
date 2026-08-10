@@ -122,7 +122,8 @@
 - Idle、Speaking、自訂動作與後續狀態／氣泡契約集中在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 - VRMA clip 可標註用途 `loop`／`one-shot`／`pose`（settings schema ≥7）；品質分析依用途套規則。
 - **動作↔VRMA 自動對應**：正式來源是 action-pack 明示 `files`／`state_slot`／`purpose`（匯入時寫入 clip purpose）與狀態槽同名預選。可選「依檔名白名單建議分槽」須使用者確認；**禁止**以品質分數、動作特徵、聊天／情緒／音訊內容語意猜分槽。
-- **隨機輪播是 Idle 與 Speaking 的預設，不是 Idle 專屬**：兩者都以 `once` 播完後從整池重抽並排除上一支；Speaking 的片段間停頓固定為 0，只有 Idle 套用 `idle_rest_ms`。狀態 override 會停用輪播並改用 `loop`，因此**指回該狀態系統槽的預設綁定不得建立 override**（`isSystemSlotFallbackMotion`）——否則人人都有的預設綁定會把 Idle 鎖在單一片段無限循環（0.16.21／0.16.22 實錯）。契約細節見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
+- **選片採洗牌袋，不用純隨機**：整池洗成一輪依序播完再重洗，一輪內每支各播一次。純隨機（每次重抽、只排除上一支）覆蓋率太差——45 支的池平均要約 300 次才會全部看過，且會近距重複。重洗檢查跨輪接縫、池變動即重建輪次；輪次永不結束。實作見 `src/motion-shuffle-bag.ts`。
+- **輪播是 Idle 與 Speaking 的預設，不是 Idle 專屬**：兩者都以 `once` 播完後取下一支；Speaking 的片段間停頓固定為 0，只有 Idle 套用 `idle_rest_ms`。狀態 override 會停用輪播並改用 `loop`，因此**指回該狀態系統槽的預設綁定不得建立 override**（`isSystemSlotFallbackMotion`）——否則人人都有的預設綁定會把 Idle 鎖在單一片段無限循環（0.16.21／0.16.22 實錯）。契約細節見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 
 ## 4. Electron 與狀態邊界
 

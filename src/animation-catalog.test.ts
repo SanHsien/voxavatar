@@ -4,9 +4,9 @@ import {
   animationUrlsForType,
   immediateVoiceAnimation,
   motionRestMsForAnimation,
-  randomAnimationUrl,
   shouldCycleRandomMotions,
 } from './animation-catalog';
+import { createMotionBag, drawNextMotion } from './motion-shuffle-bag';
 
 describe('VoxAvatar animation contract', () => {
   it('enters speaking directly when voice is already active at startup', () => {
@@ -34,7 +34,7 @@ describe('VoxAvatar animation contract', () => {
   });
 
   it('uses no clip for the empty idle pose when no asset is configured', () => {
-    expect(randomAnimationUrl([])).toBeNull();
+    expect(drawNextMotion(createMotionBag(), []).url).toBeNull();
   });
 
   // 迴歸：輪播原本硬綁 IDLE，說話一律 loop，指派多支 Speaking 片段也只會用到一支。
@@ -55,15 +55,23 @@ describe('VoxAvatar animation contract', () => {
     expect(motionRestMsForAnimation('IDLE', -5)).toBe(0);
   });
 
-  it('chooses randomly while avoiding an immediate repeat', () => {
-    const choices = ['first.vrma', 'second.vrma', 'third.vrma'];
-    expect(randomAnimationUrl(choices, null, () => 0)).toBe('first.vrma');
-    expect(randomAnimationUrl(choices, 'first.vrma', () => 0)).toBe(
-      'second.vrma',
-    );
-    expect(randomAnimationUrl(choices, 'first.vrma', () => 0.99)).toBe(
-      'third.vrma',
-    );
+  // 選片改由洗牌袋負責；輪次覆蓋與接縫規則的完整契約在 motion-shuffle-bag.test.ts。
+  it('plays the whole ambient pool before repeating any clip', () => {
+    const pool = ambientIdleMotionUrls([
+      {
+        animation_name: 'idle',
+        animation_type: 'IDLE',
+        asset_urls: ['idle-a.vrma', 'idle-b.vrma', 'idle-c.vrma'],
+      },
+    ] as never);
+    let state = createMotionBag();
+    const drawn: string[] = [];
+    for (let index = 0; index < pool.length; index += 1) {
+      const result = drawNextMotion(state, pool);
+      state = result.state;
+      if (result.url) drawn.push(result.url);
+    }
+    expect(new Set(drawn)).toEqual(new Set(pool));
   });
 
   it('builds an ambient idle pool from non-talk motions without duplicates', () => {

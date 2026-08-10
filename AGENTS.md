@@ -39,6 +39,7 @@
 | `ROADMAP.md`／`ROADMAP.en.md` | 完成項勾選、規劃基準、「目前健康」、接下來三件事、SemVer 節奏是否仍正確 |
 | `README.md`／`README.en.md` | 產品敘述、能力、安全邊界、安裝／開發指引是否與現況一致 |
 | `SECURITY.md`／`SECURITY.en.md` | 隱私／IPC／MCP／語音模式邊界是否跟上 |
+| `docs/CHARACTER_BEHAVIOR.md` | 動作輪播／狀態槽／口型／氣泡的行為契約是否與實作一致 |
 | `docs/DECISIONS.md` | 新取捨、上游評估水位是否需更新 |
 | `CONTRIBUTING*`／`docs/DEVELOPMENT.md`／`docs/RELEASING.md` | 流程或指令是否漂移（含 Windows 實機驗收專節） |
 | `AGENTS.md`／`.cursorrules`／`CLAUDE.md`／`SKILL.md` | agent 行為規則與薄入口是否需同步 |

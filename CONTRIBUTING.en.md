@@ -12,7 +12,7 @@ Contributions to Windows UX, VRM/VRMA compatibility, tests, documentation, acces
 
 ## Development setup
 
-Regular UI, settings, MCP, documentation, and JavaScript/TypeScript work requires Windows, Node.js 24+, and npm. Visual Studio Build Tools with the Desktop development with C++ workload is needed only for WASAPI-helper changes, full audio-path validation, or local packaging.
+Regular UI, settings, MCP, documentation, and JavaScript/TypeScript work requires Windows, Node.js 24 (the CI baseline; Node 25 has a known jsdom `localStorage` conflict — see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)), and npm. Visual Studio Build Tools with the Desktop development with C++ workload is needed only for WASAPI-helper changes, full audio-path validation, or local packaging.
 
 ```powershell
 git clone https://github.com/SanHsien/voxavatar.git

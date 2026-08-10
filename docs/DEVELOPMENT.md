@@ -3,8 +3,10 @@
 ## 技術基線
 
 - Windows 10 build 20348+／Windows 11 x64
-- Node.js 24+ 與 npm
+- Node.js 24（CI 基準版本）與 npm
 - Electron、Vite、React、TypeScript、Three.js、`@pixiv/three-vrm`
+
+**Node 25 已知不相容**：Node 25 起內建 Web Storage 全域會覆蓋 jsdom 的 `window.localStorage`（未給 `--localstorage-file` 時該物件連 `setItem` 都沒有），`src/theme.test.ts` 會以 `TypeError: window.localStorage.clear is not a function` 失敗。與產品程式無關，正式 gate 是 CI 的 Node 24；本機請用 Node 24 跑 `npm run check`。
 
 Visual Studio Build Tools 與「使用 C++ 的桌面開發」工作負載只用於編譯 WASAPI helper 與本機安裝包。一般 UI、設定、MCP、文件與 JavaScript／TypeScript 工作不需要安裝；正式 native／installer gate 由 GitHub Windows runner 執行。
 

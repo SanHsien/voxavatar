@@ -12,7 +12,7 @@
 
 ## 開發環境
 
-一般 UI、設定、MCP、文件與 JavaScript／TypeScript 開發只需要 Windows、Node.js 24+ 與 npm。修改 WASAPI helper、驗證完整語音路徑或在本機打包時，才需要含「使用 C++ 的桌面開發」工作負載的 Visual Studio Build Tools。
+一般 UI、設定、MCP、文件與 JavaScript／TypeScript 開發只需要 Windows、Node.js 24（CI 基準；Node 25 有已知的 jsdom `localStorage` 衝突，見 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)）與 npm。修改 WASAPI helper、驗證完整語音路徑或在本機打包時，才需要含「使用 C++ 的桌面開發」工作負載的 Visual Studio Build Tools。
 
 ```powershell
 git clone https://github.com/SanHsien/voxavatar.git

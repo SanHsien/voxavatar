@@ -6,7 +6,8 @@
 
 - Settings 可為 Idle、Speaking 與自訂動作加入一個或多個 `.vrma`。
 - Idle 從可用的非說話動作池抽播並避免立即重複；每段以 `once` 播完後依「待機動作間隔」停在最後一幀再播下一段（預設約 8 秒，不是當機）。實作重用 clip／action，並有完成逾時後備，避免長跑後永久停住。
-- Speaking 由語音輸出音量觸發。
+- Speaking 由語音輸出音量觸發，並以同一機制從 Speaking 池隨機輪播：每段 `once` 播完直接接續下一段，**不套用待機間隔**（說話中間停住 8 秒不是預期行為）。判斷集中在 `shouldCycleRandomMotions`（IDLE／TALK 才輪播，空池不輪播）與 `motionRestMsForAnimation`（TALK 停頓 0，其餘沿用 `idle_rest_ms`）。
+- 輪播只在沒有 override 時生效。MCP `play_animation` 建立的 one-shot override 播完即釋放；狀態槽 override 見下方「角色狀態」。
 - 自訂動作有 MCP 名稱、描述與觸發情境，可用 `play_animation` 播放。
 - 安裝包不附第三方 VRM／VRMA；取得與再散布規則見 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
 
@@ -51,7 +52,9 @@
 7. `listening`
 8. `idle`
 
-相同狀態同時到達時，以最新的有效事件取代舊事件。外部狀態有 bounded TTL：`ttl_ms` 省略或 `0` 時使用狀態預設 TTL（`idle` 預設 0＝直到被取代）；正值限制存活時間。`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／HTTP integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁（MCP `set_character_state`；HTTP `POST /events` 的 `type: "character-state"`）；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名。**沒有獨立的 listening 系統動作**；有可播放 Idle 時 idle／listening 槽預選 `idle`，有 Speaking 時 speaking 槽預選 `speaking`。明確選「未綁定」則保留空並退回類型預設。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
+相同狀態同時到達時，以最新的有效事件取代舊事件。外部狀態有 bounded TTL：`ttl_ms` 省略或 `0` 時使用狀態預設 TTL（`idle` 預設 0＝直到被取代）；正值限制存活時間。`failed`／`success` 預設使用短 TTL；來源 session 斷線時立即清除該來源狀態。每個狀態可對應選用的系統動作槽；缺少素材時安全退回 Idle 或模型預設姿勢。外部（MCP／HTTP integration）狀態事件輸入須經 `normalizeExternalStateEvent` 驗證後才進入仲裁（MCP `set_character_state`；HTTP `POST /events` 的 `type: "character-state"`）；語音來源仍只由本機 voice 路徑產生。Settings「系統狀態動作槽」可綁定狀態→可播放動作名。**沒有獨立的 listening 系統動作**；有可播放 Idle 時 idle／listening 槽預選 `idle`，有 Speaking 時 speaking 槽預選 `speaking`。明確選「未綁定」則保留空並退回類型預設。
+
+綁定**指回該狀態本來就會走的系統槽**（idle／listening→`IDLE` 型、speaking→`TALK` 型）時視同沒有具名動作，不建立狀態 override（`isSystemSlotFallbackMotion`）。這是必要的：狀態 override 會關掉隨機輪播並改用 `loop`，而預設綁定人人都有，若照單全收，Idle 會被鎖在啟動時抽中的那一支無限循環，整個動作池形同虛設。只有綁到**真正自訂**動作的狀態槽才建立 override。action-pack 可經 Settings 匯入（仍走 GLB／路徑／catalog gate），並合併 `state_slot` 綁定。
 
 ### 動作用途
 
@@ -148,6 +151,7 @@ MCP 工具 `show_message` 已提供：參數只含 `text`、可選 `duration_ms`
 ## 驗證
 
 - 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試。
+- 動作輪播：`shouldCycleRandomMotions`／`motionRestMsForAnimation`／`isSystemSlotFallbackMotion` 有純邏輯迴歸測試（涵蓋預設綁定三狀態、空池、TALK 停頓為 0）。實機觀察待重裝後補（見 [`ROADMAP.md`](../ROADMAP.md) 驗證缺口）。
 - 口型增益純函式見 `src/lip-sync-gain.ts`；頭部錨點／投影見 `src/head-projection.ts` 與 `src/vrm-head-bones.ts`（Scene 已接 VRM bone；DPI 實機仍標未驗）。
 - Settings 狀態槽／品質門檻／語音模式與氣泡錨點有 jsdom 互動測；目錄／action-pack partial failure 有可見 notice；動作頁未分類池／批次用途／依檔名分槽有 static＋互動測；模型匯入 `form-actions` 有契約測。
 - 離線 `vrma:curate`（inspect／rename／verify-names）有 Node 測試；Speaking 第二層 bone 套用與系統匣頂層選單骨架有純邏輯測；真實素材只記授權清楚的人工結果。

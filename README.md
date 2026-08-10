@@ -36,7 +36,7 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；helper 狀態人話與路徑遮罩；sticky discovery |
 | 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵（含手動狀態）、重設視角、聆聽／說話預覽、About（含 NotSigned） |
 | 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告；未分類片段池；可選依檔名白名單分槽；VRM 0.x／1.0 |
-| 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、隨機多片段、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
+| 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、兩者都隨機多片段輪播（Idle 間隔可設定，說話直接接續）、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
 | 角色表現 | 狀態仲裁、系統狀態動作槽、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益 |
 | 設定進度 | 進度清單人話 code；可複製診斷摘要（遮罩路徑）；與 `get_status` 共用 readiness |
 | Agent 整合 | loopback-only MCP（6 工具）、HTTP 事件 API、`voxavatar://`；`get_status` 遮罩 listener 路徑 |
@@ -83,7 +83,7 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 | --- | --- |
 | 使用正式版 | Windows 10 build 20348+ 或 Windows 11 x64、支援硬體加速的桌面環境 |
 | 角色素材 | 一個你有權使用的 `.vrm`；`.vrma` 動作可選 |
-| 一般原始碼開發 | Windows、Node.js 24+、npm |
+| 一般原始碼開發 | Windows、Node.js 24（CI 基準；Node 25 有已知 jsdom `localStorage` 衝突）、npm |
 | 修改原生 listener／本機打包 | Visual Studio Build Tools，含「使用 C++ 的桌面開發」工作負載 |
 
 一般 UI、設定、MCP、文件與 JavaScript／TypeScript 開發不需要安裝 Visual Studio Build Tools；GitHub Actions 會執行正式的 Windows 原生編譯與打包。

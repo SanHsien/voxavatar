@@ -1,6 +1,6 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-08-02
+最後修訂：2026-08-10
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
@@ -21,7 +21,7 @@
 
 ### 上游評估紀錄（xikhar/persona）
 
-最後評估：2026-08-02（同日晚間再掃：仍無 tip 之後 commit）
+最後評估：2026-08-10（只重掃水位與 open PR／issue 清單，**未**逐項讀 diff）
 
 遠端：`https://github.com/xikhar/persona.git`（`upstream`）
 
@@ -31,26 +31,53 @@
 
 | 項目 | 值 |
 | --- | --- |
-| `upstream/main` tip（commit 水位） | `bb7ef24`（#17，2026-08-02；預設 AvatarSample_A＋speaking chunks，**不合併**） |
-| 下次接續 | tip 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次 |
-| Open PR／issue 本輪掃描 | 2026-08-02（0.16.19）；`9287ea3..upstream/main`＝`bb7ef24`；無 open PR，open issue 僅 #11（已涵蓋） |
+| `upstream/main` tip（commit 水位） | `152b1b4`（#42，2026-08-08） |
+| 上一次已評估水位 | `bb7ef24`（#17，2026-08-02；預設 AvatarSample_A＋speaking chunks，**不合併**） |
+| 下次接續 | 逐項讀 `bb7ef24..152b1b4` 的 diff 並收斂下表的 **待評估**；之後再掃 tip 之後的新 commit |
+| Open PR／issue 本輪掃描 | 2026-08-10（0.16.22）；`bb7ef24..upstream/main`＝`152b1b4`，共 12 個新 commit；open PR #45–#48，open issue #18／#35／#43／#44 |
 
 #### 評估流程
 
 1. `git fetch upstream main`，列出水位之後的 commit。
 2. `gh pr list`／`gh issue list` 掃 open（必要時對照近期 merged／closed）。
-3. 對每一項標 **採用／部分採用／不合併／已涵蓋／範圍外**，並寫理由。
+3. 對每一項標 **採用／部分採用／不合併／已涵蓋／範圍外**，並寫理由。只重掃清單而未讀 diff 時標 **待評估**，不得先寫結論。
 4. 需要程式變更才動手；僅文件決策也要更新本節水位。
 5. 不把上游 `PERSONA_*`、PipeWire、Hyprland、macOS native、`demo.jpg`（無再散布確認）或授權檔路徑大搬遷直接合入。
 
-#### Open PR
+#### `bb7ef24..152b1b4` 新 commit（2026-08-10 重掃）
 
-目前無 open PR。
+12 個 commit。本輪只建立清單，未讀 diff，故除可機器核對者外一律標 **待評估**。
 
-#### Open issues
+| Commit | 標題 | 結論 | 理由 |
+| --- | --- | --- | --- |
+| `22557aa` | #23 replace speaking transitions with a stateful animation scheduler | **待評估** | 與本 fork 0.16.21／0.16.22 的輪播修正（`shouldCycleRandomMotions`／`isSystemSlotFallbackMotion`）直接重疊，須先比對兩套設計再決定是否借用 |
+| `612fd7e` | #25 avatar window size setting and Alt+drag window move | **待評估** | 本 fork 已有角色縮放（下限 30%）與拖曳；須確認是否已涵蓋或另有 Alt+drag 價值 |
+| `cd09d68` `d95e006` `81b3a4c` `1e798fc` | #24／#28／#31／#34 VRoid Hub 帳號連線與瀏覽 | **待評估** | 引入外部服務帳號連線與線上瀏覽，牽動 local-first 邊界與憑證保存；須先做邊界決策再談實作（另見 open issue #44、PR #47） |
+| `0f0e1a4` | #29 extract VRM 1.0 conditions of use from vrm_meta | **待評估** | 與授權顯示相關，可能對 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md) 流程有價值 |
+| `49b185f` | #32 bump fast-uri and hono past their published advisories | **已涵蓋** | 本 fork 已由 Dependabot 於 0.16.20（fast-uri 3.1.5、GHSA-7p8r-x3mc-p8w7）與 0.16.22（hono 4.13.1）處理，lockfile 可核對 |
+| `582be3b` | #37 unbreak Electron install on Node.js 24.16.0 and newer | **待評估** | 本 fork CI 釘 Node 24 目前安裝正常；須確認此修正是否適用於本 fork 的 Electron／npm 組合 |
+| `6406641` `152b1b4` | #39／#42 drag／orbit 的 secondary motion 與 lean 累加修正 | **待評估** | 本 fork 已有 Speaking 第二層頭部／上身反應；拖曳／環繞的 secondary motion 屬另一路徑，須評估是否重疊 |
+| `f24e8fe` | #40 change avatar logo | **不合併** | 產品識別由本 fork 自行維護（見本節「識別字串」與 `AGENTS.md`） |
+
+#### Open PR（2026-08-10）
+
+四件皆 **待評估**，未讀 diff。
+
+| PR | 標題 | 備註 |
+| --- | --- | --- |
+| [#48](https://github.com/xikhar/persona/pull/48) | Fix/gate settings ipc sender | 與本 fork 既有「設定寫入 IPC 另驗 settings 視窗 webContents」（§4）疑似同題，須比對是否已涵蓋 |
+| [#47](https://github.com/xikhar/persona/pull/47) | Keep the VRoid Hub session through a transient refresh failure | 依附 VRoid Hub 整合；邊界未決策前不評估實作 |
+| [#46](https://github.com/xikhar/persona/pull/46) | feat: add VRM expressions to animation actions | 觸及動作與 expression 契約，與口型（音量驅動）邊界須釐清 |
+| [#45](https://github.com/xikhar/persona/pull/45) | feat: desktop-pet click-through and in-renderer lip-sync (mic + system audio) | **含麥克風**輸入；麥克風擷取是本專案硬性邊界，click-through 部分本 fork 已有 |
+
+#### Open issues（2026-08-10）
 
 | Issue | 標題 | 結論 | 理由 |
 | --- | --- | --- | --- |
+| [#44](https://github.com/xikhar/persona/issues/44) | VRoid Hub token refresh destroys a valid session on transient API errors | **範圍外** | 本 fork 未實作 VRoid Hub 帳號連線，無此程式路徑 |
+| [#43](https://github.com/xikhar/persona/issues/43) | Settings-mutation and VRoid plaintext-storage IPC handlers bypass the sender-restriction pattern | **待評估** | 設定寫入 sender 限制部分須對照本 fork §4 現況確認是否已涵蓋；VRoid plaintext 儲存部分範圍外 |
+| [#35](https://github.com/xikhar/persona/issues/35) | Support VRM expressions in custom animation actions | **待評估** | 對應 PR #46 |
+| [#18](https://github.com/xikhar/persona/issues/18) | Proposal: explore a PocketJS-native VRM renderer and an Electron-free path | **範圍外** | 本 fork 明確維護 Windows Electron／WASAPI／NSIS 路線（§1） |
 | [#11](https://github.com/xikhar/persona/issues/11) | Docs: first-run guide for getting a VRM avatar and VRMA animations | **已涵蓋** | 需求為「首次如何取得／匯入 VRM／VRMA」。本 fork README「快速開始」＋ VRoid Hub／BOOTH／Studio 連結、[`ASSET_LICENSES.md`](../ASSET_LICENSES.md)、[`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md) 已覆蓋；追蹤 issue [`SanHsien/voxavatar#1`](https://github.com/SanHsien/voxavatar/issues/1) 已關閉。無需再合上游文件。 |
 
 #### 已評估的 merged commit／PR（摘要）
@@ -95,6 +122,7 @@
 - Idle、Speaking、自訂動作與後續狀態／氣泡契約集中在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 - VRMA clip 可標註用途 `loop`／`one-shot`／`pose`（settings schema ≥7）；品質分析依用途套規則。
 - **動作↔VRMA 自動對應**：正式來源是 action-pack 明示 `files`／`state_slot`／`purpose`（匯入時寫入 clip purpose）與狀態槽同名預選。可選「依檔名白名單建議分槽」須使用者確認；**禁止**以品質分數、動作特徵、聊天／情緒／音訊內容語意猜分槽。
+- **隨機輪播是 Idle 與 Speaking 的預設，不是 Idle 專屬**：兩者都以 `once` 播完後從整池重抽並排除上一支；Speaking 的片段間停頓固定為 0，只有 Idle 套用 `idle_rest_ms`。狀態 override 會停用輪播並改用 `loop`，因此**指回該狀態系統槽的預設綁定不得建立 override**（`isSystemSlotFallbackMotion`）——否則人人都有的預設綁定會把 Idle 鎖在單一片段無限循環（0.16.21／0.16.22 實錯）。契約細節見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
 
 ## 4. Electron 與狀態邊界
 
@@ -112,6 +140,7 @@
 - action-pack 契約寫在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)；Windows 實機驗收寫在 [`RELEASING.md`](RELEASING.md)。
 - Settings「系統狀態動作槽」：有可播放 Idle／Speaking（或同名）時對尚未設定的鍵自動預選——**listening 槽預選綁到 idle**（無獨立 listening 系統動作）；使用者明確選「未綁定」（存成 `null`）不覆寫。使用者面向的 action-pack 說明與範例在 Settings 面板與 [`docs/examples/action-pack.example.json`](examples/action-pack.example.json)。
 - 一般 Node／Electron／文件開發不要求 Visual Studio Build Tools。C++ helper 或本機 installer 才需 C++ toolchain；GitHub Windows runner 是正式 native 與 package gate。
+- **支援的 Node 版本以 CI 為準（Node 24）**。Node 25 起內建 Web Storage 全域會覆蓋 jsdom 的 `window.localStorage`，`src/theme.test.ts` 在 Node 25 下會失敗；這是本機工具鏈限制，不是產品缺陷，本機請用 Node 24 跑 `npm run check`。
 
 ## 6. 依賴與合併自動化
 

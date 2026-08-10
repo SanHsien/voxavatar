@@ -36,7 +36,7 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 | Voice lip sync | App / custom matcher / external events / system-output (opt-in) loopback; human-readable helper status with path redaction; sticky discovery |
 | Desktop avatar | Transparent topmost click-through, drag, zoom (min 30%), rotate, tray menus (including manual state), reset view, listen/speak preview, About (NotSigned) |
 | Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports; unassigned clip pool; optional filename-whitelist assignment; VRM 0.x / 1.0 |
-| Action system | Idle / Speaking slots (optional Speaking secondary head/torso), random multi-clip, `loop` / `one-shot` / `pose`, preview/rename/move, MCP catalog |
+| Action system | Idle / Speaking slots (optional Speaking secondary head/torso), random multi-clip cycling for both (configurable idle gap; speaking chains without one), `loop` / `one-shot` / `pose`, preview/rename/move, MCP catalog |
 | Character presence | State arbitration, system state-slot bindings, comic bubbles, `show_message` (Settings opt-in), lip-sync gain |
 | Setup progress | Human-readable progress codes; copyable redacted diagnostics; shared readiness with `get_status` |
 | Agent integration | Loopback-only MCP (6 tools), HTTP event API, `voxavatar://`; `get_status` redacts listener paths |
@@ -83,7 +83,7 @@ Other processes under the same Windows account can still connect to the unauthen
 | --- | --- |
 | Installed release | Windows 10 build 20348+ or Windows 11 x64, with a hardware-accelerated desktop session |
 | Character media | One `.vrm` you are allowed to use; `.vrma` motions are optional |
-| Regular source development | Windows, Node.js 24+, and npm |
+| Regular source development | Windows, Node.js 24 (CI baseline; Node 25 has a known jsdom `localStorage` conflict), and npm |
 | Native-listener changes or local packaging | Visual Studio Build Tools with the Desktop development with C++ workload |
 
 Visual Studio Build Tools is not required for normal UI, settings, MCP, documentation, or JavaScript/TypeScript work. GitHub Actions performs the canonical Windows native build and packaging.

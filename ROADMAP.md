@@ -13,10 +13,10 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 覆核基準：`0.16.22`／`main`；GitHub Latest Release：`v0.16.22`
 
-沒有已知未解 P0／P1。上游水位 `bb7ef24`（#17 **不合併**）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
+沒有已知未解 P0／P1。上游水位 `152b1b4`（2026-08-10 重掃；`bb7ef24` 之後有 12 個 commit 待逐項評估，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
 
-- Latest Release：`v0.16.20`（installer＋SHA256 已下載比對相符；Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；GUI／簽署／真實 exporter 仍標未驗）。
-- 上游：commit 水位 `bb7ef24`（#17 內建 AvatarSample／speaking VRMA，**不合併**）；無 open PR；#11 已涵蓋。
+- Latest Release：`v0.16.22`（installer＋SHA256 已下載比對相符；Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；GUI／簽署／真實 exporter 仍標未驗）。
+- 上游：commit 水位 `152b1b4`（2026-08-10）；`bb7ef24`（#17 內建 AvatarSample／speaking VRMA，**不合併**）之後 12 個 commit 已建清單、待逐項讀 diff；open PR #45–#48、open issue #18／#35／#43／#44（#45 含麥克風，撞硬性邊界；#18 範圍外；#11 已涵蓋）。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
@@ -63,7 +63,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.1–v0.13 | Windows-only fork 基線；`REVIEW`→「目前健康」（細節見 CHANGELOG） |
 | v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
 | v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
-| v0.16.10–0.16.20 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架 |
+| v0.16.10–0.16.22 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架、Idle／Speaking 隨機輪播修正（0.16.21／0.16.22） |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -77,6 +77,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [x] 設定進度語音碼人話；MCP／Settings 語音清單路徑遮罩；zh／en i18n 鍵對齊；helper 狀態下一步；sanitize／migration／preload 契約。
 - [x] Settings notice 遮罩；tip evidence 不虛構 tag；雙軌 redact fixture；確認對話／listener pattern／TTL 抽出；format／rate-limit／IPC 頻道窮舉契約。
 - [x] `evidence:verify`／PE NotSigned；`--emit-error`；Event 獨立碼；smoke 子項；exporter schema；30%／idle／theme 契約。
+- [x] Idle／Speaking 隨機輪播：`shouldCycleRandomMotions`、`motionRestMsForAnimation`、`isSystemSlotFallbackMotion` 純邏輯契約（實機觀察見驗證缺口表）。
 
 ### 仍待／未驗（實機、密鑰或授權樣本阻塞）
 
@@ -121,8 +122,8 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 接下來三件事
 
-1. 有 Windows／密鑰時：依分段 smoke 子項填 `docs/release-evidence/`，並用 `evidence:verify`／`evidence:pe` 對照 NotSigned 標示（SmartScreen 仍需人）。
-2. 取得授權清楚的真實 exporter 樣本，填 `_templates/exporter-results.json`。
-3. 有音訊／COM 環境時補真實失敗路徑（`--emit-error` 僅契約，不取代）。
+1. 重裝 `v0.16.22` 後在實機確認 Idle 與 Speaking 的隨機輪播行為（待機每段＋間隔換一支、說話連續換片段不凍住）。這是目前唯一擋著「動作系統」宣稱驗收完成的項目。
+2. 逐項評估上游 `bb7ef24..152b1b4` 的 12 個 commit 與 open PR／issue，收斂 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 的**待評估**；優先 #23（stateful animation scheduler，與本 fork 輪播設計重疊）與 #43／#48（settings IPC sender gate，可能已涵蓋）。
+3. 阻塞項（等 Windows 桌面／簽署密鑰／授權樣本）：依分段 smoke 子項填 `docs/release-evidence/` 並用 `evidence:verify`／`evidence:pe` 對照 NotSigned（SmartScreen 仍需人）；取得授權清楚的真實 exporter 樣本填 `_templates/exporter-results.json`；有音訊／COM 環境時補真實失敗路徑（`--emit-error` 僅契約，不取代）。
 
 動作↔VRMA 自動對應政策已定（pack／同名預選／白名單確認；不做語意猜分），見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §10；不再另開語意分槽路線。

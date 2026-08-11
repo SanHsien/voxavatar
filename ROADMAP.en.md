@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-10
-Planning baseline: `0.16.23` (`main`; GitHub Latest Release: `v0.16.23`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `0.16.24` (`main`; GitHub Latest Release: `v0.16.23`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,12 +11,12 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.23` / `main`; GitHub Latest Release: `v0.16.23`
+Review baseline: `0.16.24` / `main`; GitHub Latest Release: `v0.16.23`
 
-No known open P0/P1. Upstream watermark `152b1b4` (rescanned 2026-08-10; 12 commits after `bb7ef24` still need per-item evaluation — see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.23` then replaced pure random selection with a shuffle bag — every clip plays once per round before reshuffling — fixing the poor coverage and near-repeats of pure random. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
+No known open P0/P1. Upstream watermark `152b1b4` (2026-08-10; the 12 commits after `bb7ef24` and every open PR/issue have been evaluated item by item — see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.23` then replaced pure random selection with a shuffle bag — every clip plays once per round before reshuffling — fixing the poor coverage and near-repeats of pure random. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
 
 - Latest Release: `v0.16.23` (installer + SHA256 downloaded and matched; Authenticode `NotSigned` confirmed via both PowerShell and the PE Certificate Table; GUI / signing / real exporters still unverified).
-- Upstream: commit watermark `152b1b4` (2026-08-10). The 12 commits after `bb7ef24` (#17 bundles AvatarSample / speaking VRMA — **do not merge**) are listed but still need per-item diff review; open PRs #45–#48 and open issues #18 / #35 / #43 / #44 (#45 includes microphone capture, which crosses a hard boundary; #18 is out of scope; #11 is already covered).
+- Upstream: commit watermark `152b1b4` (2026-08-10, evaluated). Of the 12 commits: 6 rejected (the four VRoid Hub account commits and the #23 scheduler among them), 1 already covered, 1 not applicable, 4 shortlisted. Open PRs: #45 rejected (microphone capture crosses a hard boundary), #47 out of scope, #46 shortlisted, #48 partially adopted and shipped. Open issues: #43 already covered and further hardened, #44 / #18 out of scope, #35 shortlisted, #11 already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
 
@@ -123,7 +123,7 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 ## Next three actions
 
 1. Reinstall `v0.16.23` and confirm idle and speaking shuffle-bag cycling on a real desktop (idle switches clip per segment plus gap; speaking chains clips without freezing; no repeat within a round). This is the only item still blocking a verified-complete claim for the action system.
-2. Review the 12 upstream commits in `bb7ef24..152b1b4` plus the open PRs/issues item by item and resolve the **待評估** (pending) rows in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 — starting with #23 (stateful animation scheduler, which overlaps this fork's cycling design) and #43 / #48 (settings IPC sender gate, possibly already covered).
+2. Land one item from the shortlist in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1: Alt+drag window move, VRM-meta license terms in Settings, drag/orbit secondary motion, or per-action VRM expressions (needs a lip-sync priority rule first).
 3. Blocked on a Windows desktop / signing secrets / licensed samples: fill segmented smoke sub-items under `docs/release-evidence/` and cross-check NotSigned via `evidence:verify` / `evidence:pe` (SmartScreen still needs a human); obtain clearly licensed real exporter samples for `_templates/exporter-results.json`; add real failure-path coverage once an audio/COM environment is available (`--emit-error` is contract-only).
 
 Action↔VRMA auto-assignment policy is settled (pack / name preselect / whitelist confirm; no semantic guessing); see [`docs/DECISIONS.md`](docs/DECISIONS.md) §10. Do not open a semantic slotting track.

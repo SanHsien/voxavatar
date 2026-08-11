@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-10
-規劃基準：`0.16.23`（`main`；GitHub Latest Release：`v0.16.23`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`0.16.24`（`main`；GitHub Latest Release：`v0.16.23`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,12 +11,12 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.23`／`main`；GitHub Latest Release：`v0.16.23`
+覆核基準：`0.16.24`／`main`；GitHub Latest Release：`v0.16.23`
 
-沒有已知未解 P0／P1。上游水位 `152b1b4`（2026-08-10 重掃；`bb7ef24` 之後有 12 個 commit 待逐項評估，見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.23` 再把選片從純隨機換成洗牌袋，一輪內每支各播一次再重洗，解決純隨機覆蓋率差與近距重複。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
+沒有已知未解 P0／P1。上游水位 `152b1b4`（2026-08-10；`bb7ef24` 之後 12 個 commit 與全部 open PR／issue 已逐項判定完成，結論見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.23` 再把選片從純隨機換成洗牌袋，一輪內每支各播一次再重洗，解決純隨機覆蓋率差與近距重複。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
 
 - Latest Release：`v0.16.23`（installer＋SHA256 已下載比對相符；Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；GUI／簽署／真實 exporter 仍標未驗）。
-- 上游：commit 水位 `152b1b4`（2026-08-10）；`bb7ef24`（#17 內建 AvatarSample／speaking VRMA，**不合併**）之後 12 個 commit 已建清單、待逐項讀 diff；open PR #45–#48、open issue #18／#35／#43／#44（#45 含麥克風，撞硬性邊界；#18 範圍外；#11 已涵蓋）。
+- 上游：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
@@ -123,7 +123,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 ## 接下來三件事
 
 1. 重裝 `v0.16.23` 後在實機確認 Idle 與 Speaking 的洗牌輪播行為（待機每段＋間隔換一支、說話連續換片段不凍住、一輪內不重複）。這是目前唯一擋著「動作系統」宣稱驗收完成的項目。
-2. 逐項評估上游 `bb7ef24..152b1b4` 的 12 個 commit 與 open PR／issue，收斂 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 的**待評估**；優先 #23（stateful animation scheduler，與本 fork 輪播設計重疊）與 #43／#48（settings IPC sender gate，可能已涵蓋）。
+2. 從 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 的候選清單挑一項落地：Alt+drag 移動視窗、VRM meta 授權條款顯示、drag／orbit secondary motion、動作 VRM expression（須先定與口型的優先序）。
 3. 阻塞項（等 Windows 桌面／簽署密鑰／授權樣本）：依分段 smoke 子項填 `docs/release-evidence/` 並用 `evidence:verify`／`evidence:pe` 對照 NotSigned（SmartScreen 仍需人）；取得授權清楚的真實 exporter 樣本填 `_templates/exporter-results.json`；有音訊／COM 環境時補真實失敗路徑（`--emit-error` 僅契約，不取代）。
 
 動作↔VRMA 自動對應政策已定（pack／同名預選／白名單確認；不做語意猜分），見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §10；不再另開語意分槽路線。

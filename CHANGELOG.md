@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 0.16.24 - 2026-08-10
+
+- 新增 `electron/ipc-registration.test.cjs`：直接讀 `main.cjs` 原始碼，釘住「未經 `handleTrusted*Ipc` 包裝而註冊的 IPC 通道」精確集合，要求每個都在自己的 body 內比對 `event.sender`，並斷言只有三個信任包裝可以用變數通道名註冊。日後有人用裸 `ipcMain.handle`／`ipcMain.on` 新增通道會讓 CI 紅，而不是等 review 抓。構想取自上游 `xikhar/persona` PR #48。
+- 現況實查：44 個設定變更通道全部走 `handleTrustedSettingsIpc`（驗 renderer URL＋settings 視窗 `webContents`），5 個未包裝的 `ipcMain.on` 各自比對 `event.sender`，`voxavatar:settings-get` 是唯一放行的讀取通道（avatar renderer 需要）。上游 issue #43 描述的繞過在本 fork 不成立，本次為預防性加固，非修補既有漏洞。
+- 上游評估：`bb7ef24`→`152b1b4` 的 12 個 commit 與全部 open PR／issue 已逐項判定並寫入 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+
 ## 0.16.23 - 2026-08-10
 
 - 動作選片改為洗牌袋（shuffle bag）：一輪內每支片段各播一次，播完自動重洗開下一輪。原本每次從整池重抽、只排除上一支的純隨機覆蓋率很差——45 支的池平均要抽約 300 次才會全部看過一輪，且同一支可能只隔一支就重播。改後看完整池只需與池同樣的次數。

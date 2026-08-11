@@ -21,7 +21,7 @@
 
 ### 上游評估紀錄（xikhar/persona）
 
-最後評估：2026-08-10（只重掃水位與 open PR／issue 清單，**未**逐項讀 diff）
+最後評估：2026-08-10（水位 `bb7ef24`→`152b1b4` 的 12 個 commit 與全部 open PR／issue 已逐項判定）
 
 遠端：`https://github.com/xikhar/persona.git`（`upstream`）
 
@@ -31,9 +31,8 @@
 
 | 項目 | 值 |
 | --- | --- |
-| `upstream/main` tip（commit 水位） | `152b1b4`（#42，2026-08-08） |
-| 上一次已評估水位 | `bb7ef24`（#17，2026-08-02；預設 AvatarSample_A＋speaking chunks，**不合併**） |
-| 下次接續 | 逐項讀 `bb7ef24..152b1b4` 的 diff 並收斂下表的 **待評估**；之後再掃 tip 之後的新 commit |
+| `upstream/main` tip（commit 水位，已評估） | `152b1b4`（#42，2026-08-08） |
+| 下次接續 | `152b1b4` 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次 |
 | Open PR／issue 本輪掃描 | 2026-08-10（0.16.22）；`bb7ef24..upstream/main`＝`152b1b4`，共 12 個新 commit；open PR #45–#48，open issue #18／#35／#43／#44 |
 
 #### 評估流程
@@ -44,40 +43,42 @@
 4. 需要程式變更才動手；僅文件決策也要更新本節水位。
 5. 不把上游 `PERSONA_*`、PipeWire、Hyprland、macOS native、`demo.jpg`（無再散布確認）或授權檔路徑大搬遷直接合入。
 
-#### `bb7ef24..152b1b4` 新 commit（2026-08-10 重掃）
+#### `bb7ef24..152b1b4` 新 commit（2026-08-10 評估完成）
 
-12 個 commit。本輪只建立清單，未讀 diff，故除可機器核對者外一律標 **待評估**。
+12 個 commit，逐項判定如下。判準為產品邊界、與本 fork 現況的重疊，以及變更規模對既有驗證的衝擊；未逐行讀 diff 者於理由中註明依據。
 
 | Commit | 標題 | 結論 | 理由 |
 | --- | --- | --- | --- |
-| `22557aa` | #23 replace speaking transitions with a stateful animation scheduler | **待評估** | 與本 fork 0.16.21／0.16.22 的輪播修正（`shouldCycleRandomMotions`／`isSystemSlotFallbackMotion`）直接重疊，須先比對兩套設計再決定是否借用 |
-| `612fd7e` | #25 avatar window size setting and Alt+drag window move | **待評估** | 本 fork 已有角色縮放（下限 30%）與拖曳；須確認是否已涵蓋或另有 Alt+drag 價值 |
-| `cd09d68` `d95e006` `81b3a4c` `1e798fc` | #24／#28／#31／#34 VRoid Hub 帳號連線與瀏覽 | **待評估** | 引入外部服務帳號連線與線上瀏覽，牽動 local-first 邊界與憑證保存；須先做邊界決策再談實作（另見 open issue #44、PR #47） |
-| `0f0e1a4` | #29 extract VRM 1.0 conditions of use from vrm_meta | **待評估** | 與授權顯示相關，可能對 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md) 流程有價值 |
-| `49b185f` | #32 bump fast-uri and hono past their published advisories | **已涵蓋** | 本 fork 已由 Dependabot 於 0.16.20（fast-uri 3.1.5、GHSA-7p8r-x3mc-p8w7）與 0.16.22（hono 4.13.1）處理，lockfile 可核對 |
-| `582be3b` | #37 unbreak Electron install on Node.js 24.16.0 and newer | **待評估** | 本 fork CI 釘 Node 24 目前安裝正常；須確認此修正是否適用於本 fork 的 Electron／npm 組合 |
-| `6406641` `152b1b4` | #39／#42 drag／orbit 的 secondary motion 與 lean 累加修正 | **待評估** | 本 fork 已有 Speaking 第二層頭部／上身反應；拖曳／環繞的 secondary motion 屬另一路徑，須評估是否重疊 |
+| `22557aa` | #23 stateful animation scheduler | **不合併** | 3967＋／954－，含 `speech-signal`／`speaking-chunks` 等依附上游語音管線的子系統。本 fork 已於 0.16.21–0.16.23 以 `isSystemSlotFallbackMotion`＋`shouldCycleRandomMotions`＋洗牌袋解決實際缺陷，規模小且各有契約測。以外來大型子系統取代可用且已驗證的實作，代價高於效益。日後若要做「依語音分段排程」再回頭參考 |
+| `612fd7e` | #25 window size setting and Alt+drag | **部分採用（候選）** | 視窗尺寸設定與本 fork 角色縮放（下限 30%）重疊，不取；Alt+drag 提供「不必點中角色也能移動視窗」的路徑，對透明點穿視窗有實用價值，列候選 |
+| `cd09d68` `d95e006` `81b3a4c` `1e798fc` | #24／#28／#31／#34 VRoid Hub 帳號連線與瀏覽 | **不合併** | 引入外部服務 OAuth 帳號連線、token 保存與應用程式內線上瀏覽，牴觸 local-first 定位並新增憑證保存面（上游 plaintext storage 開關與 issue #44 皆由此線長出）。使用者仍可自 VRoid Hub 網站下載 VRM 再匯入，功能不缺 |
+| `0f0e1a4` | #29 extract VRM 1.0 conditions of use from vrm_meta | **部分採用（候選）** | 去除 VRoid Hub 相依後，「從 VRM meta 讀出授權條款並在 Settings 顯示」有助使用者遵循 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)，方向正確。屬新功能，依 ROADMAP 原則 6 先列候選 |
+| `49b185f` | #32 bump fast-uri and hono | **已涵蓋** | 本 fork 已由 Dependabot 於 0.16.20（fast-uri 3.1.5、GHSA-7p8r-x3mc-p8w7）與 0.16.22（hono 4.13.1）處理，lockfile 可核對 |
+| `582be3b` | #37 unbreak Electron install on Node.js 24.16.0+ | **不採用（不適用）** | 實測：本 fork 於 CI Node 24 與本機 Node 25.6.0 皆 `npm ci` 成功，`node_modules/electron/dist/electron.exe` 存在；雖仍解析到 `yauzl@2.10.0` 也未觸發。加 root `overrides` 會蓋住整棵相依樹的 yauzl，風險大於效益。日後真的安裝失敗再套 |
+| `6406641` `152b1b4` | #39／#42 drag／orbit secondary motion 與 lean 累加修正 | **部分採用（候選）** | 與本 fork Speaking 第二層是不同路徑（拖曳／環繞慣性與 spring bone），不衝突且觀感加分。屬新功能，列候選 |
 | `f24e8fe` | #40 change avatar logo | **不合併** | 產品識別由本 fork 自行維護（見本節「識別字串」與 `AGENTS.md`） |
 
-#### Open PR（2026-08-10）
+#### Open PR（2026-08-10 評估完成）
 
-四件皆 **待評估**，未讀 diff。
+| PR | 標題 | 結論 | 理由 |
+| --- | --- | --- | --- |
+| [#48](https://github.com/xikhar/persona/pull/48) | Fix/gate settings ipc sender | **部分採用（已實作）** | 漏洞本身**本 fork 已涵蓋**：實查 44 個設定變更通道全走 `handleTrustedSettingsIpc`（驗 renderer URL＋settings 視窗 `webContents`），未包裝的 5 個 `ipcMain.on` 各自比對 `event.sender`，`voxavatar:settings-get` 是唯一放行的讀取通道（avatar renderer 需要）。**採用其結構性 pin 的構想**：新增 `electron/ipc-registration.test.cjs`，直接讀 `main.cjs` 釘住未包裝通道的精確集合並要求各自驗 sender，日後繞過包裝新增通道會讓 CI 紅 |
+| [#47](https://github.com/xikhar/persona/pull/47) | Keep the VRoid Hub session through a transient refresh failure | **範圍外** | 依附上方否決的 VRoid Hub 整合，本 fork 無此程式路徑 |
+| [#46](https://github.com/xikhar/persona/pull/46) | feat: add VRM expressions to animation actions | **部分採用（候選）** | 動作可帶 VRM expression 與本 fork「口型由音量驅動 expression」可能競用同組 blendshape，須先定義優先序（口型優先或動作優先）再談實作。列候選 |
+| [#45](https://github.com/xikhar/persona/pull/45) | feat: desktop-pet click-through and in-renderer lip-sync (mic + system audio) | **不合併** | 含**麥克風**擷取，直接牴觸硬性邊界；click-through 本 fork 已有 |
 
-| PR | 標題 | 備註 |
-| --- | --- | --- |
-| [#48](https://github.com/xikhar/persona/pull/48) | Fix/gate settings ipc sender | 與本 fork 既有「設定寫入 IPC 另驗 settings 視窗 webContents」（§4）疑似同題，須比對是否已涵蓋 |
-| [#47](https://github.com/xikhar/persona/pull/47) | Keep the VRoid Hub session through a transient refresh failure | 依附 VRoid Hub 整合；邊界未決策前不評估實作 |
-| [#46](https://github.com/xikhar/persona/pull/46) | feat: add VRM expressions to animation actions | 觸及動作與 expression 契約，與口型（音量驅動）邊界須釐清 |
-| [#45](https://github.com/xikhar/persona/pull/45) | feat: desktop-pet click-through and in-renderer lip-sync (mic + system audio) | **含麥克風**輸入；麥克風擷取是本專案硬性邊界，click-through 部分本 fork 已有 |
-
-#### Open issues（2026-08-10）
+#### Open issues（2026-08-10 評估完成）
 
 | Issue | 標題 | 結論 | 理由 |
 | --- | --- | --- | --- |
-| [#44](https://github.com/xikhar/persona/issues/44) | VRoid Hub token refresh destroys a valid session on transient API errors | **範圍外** | 本 fork 未實作 VRoid Hub 帳號連線，無此程式路徑 |
-| [#43](https://github.com/xikhar/persona/issues/43) | Settings-mutation and VRoid plaintext-storage IPC handlers bypass the sender-restriction pattern | **待評估** | 設定寫入 sender 限制部分須對照本 fork §4 現況確認是否已涵蓋；VRoid plaintext 儲存部分範圍外 |
-| [#35](https://github.com/xikhar/persona/issues/35) | Support VRM expressions in custom animation actions | **待評估** | 對應 PR #46 |
-| [#18](https://github.com/xikhar/persona/issues/18) | Proposal: explore a PocketJS-native VRM renderer and an Electron-free path | **範圍外** | 本 fork 明確維護 Windows Electron／WASAPI／NSIS 路線（§1） |
+| [#44](https://github.com/xikhar/persona/issues/44) | VRoid Hub token refresh destroys a valid session | **範圍外** | 本 fork 不做 VRoid Hub 帳號連線，無此程式路徑 |
+| [#43](https://github.com/xikhar/persona/issues/43) | Settings-mutation and VRoid plaintext-storage IPC handlers bypass sender restriction | **已涵蓋＋已加固** | 設定變更部分已涵蓋（見 PR #48 列）；VRoid plaintext 儲存部分範圍外。已補結構性 pin 測試防止日後繞過 |
+| [#35](https://github.com/xikhar/persona/issues/35) | Support VRM expressions in custom animation actions | **部分採用（候選）** | 同 PR #46，須先定 expression 優先序 |
+| [#18](https://github.com/xikhar/persona/issues/18) | Proposal: PocketJS-native VRM renderer and an Electron-free path | **範圍外** | 本 fork 明確維護 Windows Electron／WASAPI／NSIS 路線（§1） |
+
+#### 候選清單（已判定值得做，但依 ROADMAP 原則 6 排在既有缺口之後）
+
+Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VRoid 相依）、drag／orbit secondary motion（#39／#42）、動作 VRM expression 並定義與口型的優先序（#46／#35）。
 | [#11](https://github.com/xikhar/persona/issues/11) | Docs: first-run guide for getting a VRM avatar and VRMA animations | **已涵蓋** | 需求為「首次如何取得／匯入 VRM／VRMA」。本 fork README「快速開始」＋ VRoid Hub／BOOTH／Studio 連結、[`ASSET_LICENSES.md`](../ASSET_LICENSES.md)、[`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md) 已覆蓋；追蹤 issue [`SanHsien/voxavatar#1`](https://github.com/SanHsien/voxavatar/issues/1) 已關閉。無需再合上游文件。 |
 
 #### 已評估的 merged commit／PR（摘要）

@@ -29,6 +29,8 @@ React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 
 Windows process discovery 會呼叫 Windows PowerShell 5.1 的 CIM。命令必須先把 `[Console]::OutputEncoding` 設為無 BOM UTF-8；繁中系統預設 ANSI／Big5 在 pipe 中可能含 `0x5C` 尾位元組，若 Node 固定以 UTF-8 解碼會形成非法 JSON escape。修改 `electron/process-discovery.cjs` 時必須保留 `forces Windows PowerShell process JSON to UTF-8` 契約測，並在繁中 Windows 實跑 `listPlatformProcesses()`。
 
+`registerSettingsIpc()` 在 bridge 啟動前註冊。會變動的 MCP health／port／error 與 listener 必須透過 `getIntegrationRuntimeState()` 在 handler 呼叫當下取得；若改回傳 primitive，Settings 會永久閉包 `starting` 與初始 port。修改這條 seam 時保留 `runtime-dependent settings IPC reads bridge and listener state at call time` 回歸測。
+
 ## 目錄
 
 | 路徑 | 用途 |

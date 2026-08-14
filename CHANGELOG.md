@@ -2,11 +2,18 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 1.0.2 - 2026-08-14
+
+- 修正 Settings 的 MCP 健康狀態永久停在「啟動中」：Settings IPC 原本在 bridge `listen()` 前把 health／port／error／listener primitive 值閉包，之後即使 MCP 已 online 仍回傳舊狀態。現在每次 IPC 呼叫都讀取最新 runtime state，自訂 port、啟動錯誤與語音來源 listener 也不再陳舊。
+- 新增 IPC 回歸測試，先重現 `starting:0`→`online:49152` 與 listener 更新，再驗證 MCP status 與 voice catalog 都取得呼叫當下值。
+- Windows 11、225% DPI 實機候選驗證確認 Settings 顯示版本 1.0.2、MCP「線上／就緒」、6 個工具與 2 個可播放動作；既有 12 個模型、10 個動作與預設模型完整保留。
+- 已執行從 GitHub Release 下載且通過 SHA-256 核對的 `v1.0.0` 正式 installer 同版本重裝；安裝後版本 1.0.0、12 個模型、10 個動作、預設模型、語音自動模式與 MCP 設定均保留，readiness complete 且 bridge 只綁 `127.0.0.1`。
+
 ## 1.0.1 - 2026-08-14
 
 - 發布後回填 `v1.0.0` 正式證據：CI、CodeQL、Windows 打包與 Release workflow 全綠；Latest／tag／Release 均指向 `2482b602d04c2304a5db634681646a3e635a7eb7`。
 - GitHub runner installer 的 digest、`SHA256SUMS.txt` 與本機 SHA-256 三路一致（`d9fcd68ce0862891a809f59b7faa506608e5698ad34a3b32c1e5eef51498fa29`，`105138682` bytes）；PowerShell 與 PE Certificate Table 均確認 `NotSigned`。
-- 新版成功後移除舊 `v0.16.23` Release／tag；遠端與本機只保留 `v1.0.0`。正式下載檔的桌面同版本重裝仍待使用者允許後執行，不以候選安裝冒充正式資產實跑。
+- 新版成功後移除舊 `v0.16.23` Release／tag；遠端與本機只保留 `v1.0.0`。當時正式下載檔的桌面同版本重裝仍待使用者允許，後續結果記於 1.0.2。
 
 ## 1.0.0 - 2026-08-14
 

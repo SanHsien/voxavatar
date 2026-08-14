@@ -91,10 +91,12 @@ function createIpcHarness(overrides = {}) {
     getAppReadinessSnapshot: () => ({}),
     getDiagnosticSummaryText: () => "summary",
     listVoiceSources: async () => ({ platform: "win32", sources: [] }),
-    mcpServerPort: 47831,
-    latestListenerStatus: null,
-    mcpServerError: null,
-    mcpServerHealth: "online",
+    getIntegrationRuntimeState: () => ({
+      mcpServerPort: 47831,
+      latestListenerStatus: null,
+      mcpServerError: null,
+      mcpServerHealth: "online",
+    }),
     collectAssetFiles: () => ({ files: [], truncated: false }),
     normalizeQualityGate: (value) => value,
     analyzeVrmFiles: () => [],
@@ -178,10 +180,12 @@ test("registerSettingsIpc registers the bulk of settings channels", () => {
     getAppReadinessSnapshot: () => ({}),
     getDiagnosticSummaryText: () => "summary",
     listVoiceSources: async () => ({ platform: "win32", sources: [] }),
-    mcpServerPort: 47831,
-    latestListenerStatus: null,
-    mcpServerError: null,
-    mcpServerHealth: "online",
+    getIntegrationRuntimeState: () => ({
+      mcpServerPort: 47831,
+      latestListenerStatus: null,
+      mcpServerError: null,
+      mcpServerHealth: "online",
+    }),
     collectAssetFiles: () => ({ files: [], truncated: false }),
     normalizeQualityGate: (value) => value,
     analyzeVrmFiles: () => [],
@@ -340,10 +344,12 @@ test("registerSettingsIpc forwards unassigned pool and purpose handlers", async 
     getAppReadinessSnapshot: () => ({}),
     getDiagnosticSummaryText: () => "summary",
     listVoiceSources: async () => ({ platform: "win32", sources: [] }),
-    mcpServerPort: 47831,
-    latestListenerStatus: null,
-    mcpServerError: null,
-    mcpServerHealth: "online",
+    getIntegrationRuntimeState: () => ({
+      mcpServerPort: 47831,
+      latestListenerStatus: null,
+      mcpServerError: null,
+      mcpServerHealth: "online",
+    }),
     collectAssetFiles: () => ({ files: [], truncated: false }),
     normalizeQualityGate: (value) => value,
     analyzeVrmFiles: () => [],
@@ -561,17 +567,62 @@ test("get-app-info returns version and show-about invokes dialog", async () => {
   assert.equal(aboutCalls, 1);
 });
 
+test("runtime-dependent settings IPC reads bridge and listener state at call time", async () => {
+  let runtimeState = {
+    mcpServerPort: 0,
+    latestListenerStatus: null,
+    mcpServerError: null,
+    mcpServerHealth: "starting",
+  };
+  const { registered, snapshot } = createIpcHarness({
+    createMcpSettingsStatus: (input) => input,
+    getIntegrationRuntimeState: () => runtimeState,
+    listVoiceSources: async () => ({ platform: "win32", sources: [] }),
+  });
+
+  assert.deepEqual(
+    await registered.get("voxavatar:settings-get-mcp-status")({}),
+    {
+      error: null,
+      health: "starting",
+      port: 0,
+      settingsSnapshot: snapshot,
+    },
+  );
+
+  runtimeState = {
+    mcpServerPort: 49152,
+    latestListenerStatus: { state: "no_output" },
+    mcpServerError: null,
+    mcpServerHealth: "online",
+  };
+  const online = await registered.get("voxavatar:settings-get-mcp-status")({});
+  assert.equal(online.health, "online");
+  assert.equal(online.port, 49152);
+
+  const catalog = await registered.get(
+    "voxavatar:settings-list-voice-sources",
+  )({});
+  assert.equal(catalog.events_url, "http://127.0.0.1:49152/events");
+  assert.deepEqual(catalog.listener, { state: "no_output" });
+});
+
 test("list-voice-sources redacts listener paths and catalog errors", async () => {
   const { registered } = createIpcHarness({
     listVoiceSources: async () => {
       throw new Error("boom C:\\Users\\SanHsien\\helper.exe");
     },
-    latestListenerStatus: {
-      state: "missing",
-      error: "C:\\Users\\SanHsien\\voxavatar-audio-listener.exe",
-      source: "C:\\Users\\SanHsien\\ChatGPT.exe",
-      helper_error: "native_helper_missing",
-    },
+    getIntegrationRuntimeState: () => ({
+      mcpServerPort: 47831,
+      latestListenerStatus: {
+        state: "missing",
+        error: "C:\\Users\\SanHsien\\voxavatar-audio-listener.exe",
+        source: "C:\\Users\\SanHsien\\ChatGPT.exe",
+        helper_error: "native_helper_missing",
+      },
+      mcpServerError: null,
+      mcpServerHealth: "online",
+    }),
   });
   const catalog = await registered.get(
     "voxavatar:settings-list-voice-sources",

@@ -22,10 +22,7 @@ function registerSettingsIpc({
   getAppReadinessSnapshot,
   getDiagnosticSummaryText,
   listVoiceSources,
-  mcpServerPort,
-  latestListenerStatus,
-  mcpServerError,
-  mcpServerHealth,
+  getIntegrationRuntimeState,
   collectAssetFiles,
   normalizeQualityGate,
   analyzeVrmFiles,
@@ -562,6 +559,8 @@ function registerSettingsIpc({
     return snapshot;
   });
   handleTrustedSettingsIpc("voxavatar:settings-list-voice-sources", async () => {
+    const { mcpServerPort, latestListenerStatus } =
+      getIntegrationRuntimeState();
     try {
       return sanitizeVoiceSourcesCatalog({
         ...(await listVoiceSources()),
@@ -589,14 +588,16 @@ function registerSettingsIpc({
     (_event, modelId) =>
       publishSettings(settingsStore.resetModelLighting(modelId)),
   );
-  handleTrustedSettingsIpc("voxavatar:settings-get-mcp-status", () =>
-    createMcpSettingsStatus({
+  handleTrustedSettingsIpc("voxavatar:settings-get-mcp-status", () => {
+    const { mcpServerError, mcpServerHealth, mcpServerPort } =
+      getIntegrationRuntimeState();
+    return createMcpSettingsStatus({
       error: mcpServerError,
       health: mcpServerHealth,
       port: mcpServerPort,
       settingsSnapshot: settingsStore.getSnapshot(),
-    }),
-  );
+    });
+  });
   handleTrustedSettingsIpc("voxavatar:settings-get-readiness", () =>
     getAppReadinessSnapshot(),
   );

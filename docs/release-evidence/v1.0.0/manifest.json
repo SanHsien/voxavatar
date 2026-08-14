@@ -53,7 +53,7 @@
         "id": "install",
         "section": "安裝",
         "result": "部分驗證",
-        "note": "既有 all-users／Program Files 安裝上完成候選重裝與啟動；全新安裝、自訂位置、捷徑與免管理員矩陣未驗。"
+        "note": "正式 GitHub installer 在既有 all-users／Program Files 安裝上完成同版本重裝與啟動；全新安裝、自訂位置、捷徑與免管理員矩陣未驗。"
       },
       {
         "id": "upgrade",
@@ -104,10 +104,10 @@
         "note": "無 WIN_CSC_* 密鑰；未宣稱 SmartScreen 或具名 publisher。"
       }
     ],
-    "notes": "Formal runner asset digest, SHA256SUMS.txt, local SHA-256, size, signing state, Latest, tag, CI, CodeQL, and Release were verified. Desktop execution used the same-commit local candidate; running the downloaded formal installer still awaits user confirmation."
+    "notes": "Formal runner asset digest, SHA256SUMS.txt, local SHA-256, size, signing state, Latest, tag, CI, CodeQL, and Release were verified. The downloaded formal installer completed a desktop same-version reinstall; version, library, settings, listener readiness, actions, and loopback-only MCP were preserved."
   },
   "mediaReferences": [],
   "issues": [],
   "reviewer": "Codex desktop agent",
-  "reviewedAt": "2026-08-14T07:31:00.000Z"
+  "reviewedAt": "2026-08-14T07:44:59.000Z"
 }

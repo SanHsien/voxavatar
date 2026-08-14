@@ -70,6 +70,7 @@ npm run dist:windows
 | `npm run assets:check` | 開發用 catalog／manifest 契約 |
 | `npm run assets:release` | 發行資產授權 fail-closed gate |
 | `npm run audit:production` | production dependency audit |
+| `npm run audit:dependencies` | production＋development dependency high-severity audit；`npm run check`／CI 的正式 gate |
 | `npm run build` | TypeScript + Vite production build |
 | `npm run native:build` | 編譯 Windows helper |
 | `npm run native:test` | helper self-test 與 Usage=2 typed exit 斷言 |
@@ -119,7 +120,7 @@ npm run baseline:startup
 
 ## 依賴維護
 
-Dependabot 每週檢查 npm 與 GitHub Actions。`scripts/dependabot-policy.cjs` 只允許 CI 直接覆蓋的開發工具與 workflow-only Actions minor／patch 自動合併；runtime、Electron／打包、React／Three.js／VRM、major 或範圍不明更新一律人工審查。
+Dependabot 每週檢查 npm 與 GitHub Actions。`scripts/dependabot-policy.cjs` 只允許 CI 直接覆蓋的開發工具與 workflow-only Actions minor／patch 自動合併；runtime、Electron／打包、React／Three.js／VRM、major 或範圍不明更新一律人工審查。`npm run check` 與 Windows CI 另執行完整 high-severity audit；Electron 安裝／打包鏈的 dev-only 漏洞同樣必須修正，不得只以 production audit 為綠便略過。
 
 ## 修改原則
 

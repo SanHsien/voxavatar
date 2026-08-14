@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-14
-Planning baseline: `1.0.4` (`main`; GitHub Latest Release: `v1.0.4`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `1.0.5` (`main`; not released; GitHub Latest Release: `v1.0.4`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,12 +11,13 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `1.0.4` / `main`; GitHub Latest Release: `v1.0.4`
+Review baseline: `1.0.5` / `main`; GitHub Latest Release: `v1.0.4`
 
 No known open P0/P1. `1.0.0` stabilizes the existing Windows-only, local-first, loopback-only MCP, level-driven lip-sync, and no-microphone product boundaries. `1.0.4` on `main` adds four redistribution-cleared VRMs scoring 100 / `keep` and 13 explicitly CC0 VRMAs scoring 78–100 / `keep`; all 18 unlicensed upstream VRMAs and ten local `review` motions remain excluded. Real-machine testing on Windows 11 found and fixed mixed Big5/UTF-8 process JSON from Traditional Chinese Windows PowerShell 5.1: automatic voice discovery no longer enters `launch_failed`, and a system-output TTS pass again proved the `speaking` / `listening` path. The general upstream-code watermark remains `152b1b4` (2026-08-10; see the renewed asset decision for #17 in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1).
 
 - Formal Release: `v1.0.4` (the Release workflow's licensed-asset gate, Node 24 check, Windows native build, NSIS packaging, and publishing are green; the runner installer digest, `SHA256SUMS.txt`, and local SHA-256 match, with Authenticode `NotSigned` confirmed two ways). The formal installer was not rerun on the desktop for this release; the existing `1.0.0`→`1.0.2` data-retention and MCP “Online / Ready” evidence remains valid but is not expanded to 1.0.4.
-- `main` / `v1.0.4`: VRoid Sample A/B/C, Tsukuyomi-chan Type A, and 13 CC0 VRMAs all pass source, redistribution, quality-`keep` (default >75; 75 is `review`), and SHA-256 review. Idle, Speaking, and ten custom actions work out of the box; `assets:release` recomputes every digest.
+- `main` 1.0.5: Electron 39.8.10 is upgraded to supported 43.4.0. `extract-zip@2.0.1`, affected by GHSA-jmr9-qjv8-65gv, is absent from the lockfile and replaced by Electron's maintained extractor. The complete dependency audit is clean, and daily / CI gates no longer audit production dependencies only.
+- Bundled assets: VRoid Sample A/B/C, Tsukuyomi-chan Type A, and 13 CC0 VRMAs all pass source, redistribution, quality-`keep` (default >75; 75 is `review`), and SHA-256 review. Idle, Speaking, and ten custom actions work out of the box; `assets:release` recomputes every digest.
 - Upstream: commit watermark `152b1b4` (2026-08-10, evaluated). Of the 12 commits: 6 rejected (the four VRoid Hub account commits and the #23 scheduler among them), 1 already covered, 1 not applicable, 4 shortlisted. Open PRs: #45 rejected (microphone capture crosses a hard boundary), #47 out of scope, #46 shortlisted, #48 partially adopted and shipped. Open issues: #43 already covered and further hardened, #44 / #18 out of scope, #35 shortlisted, #11 already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
@@ -70,6 +71,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v1.0.2 | Formal installer desktop reinstall evidence; Settings MCP status reads live runtime state |
 | v1.0.3 | `v1.0.2` runner / Latest / formal upgrade and MCP-fix desktop evidence closeout |
 | v1.0.4 | Four licensed quality-`keep` VRMs, 13 CC0 quality-`keep` VRMAs, per-file SHA-256 release gate, and exclusion of unlicensed or `review` media |
+| v1.0.5 | Upgrade to supported Electron 43, remove symlink-path-traversal-affected `extract-zip`, and enforce the full dependency audit in CI |
 
 Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 

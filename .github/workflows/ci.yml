@@ -40,8 +40,8 @@ jobs:
       - name: Validate the asset contract
         run: npm run assets:check
 
-      - name: Audit production dependencies
-        run: npm run audit:production
+      - name: Audit all dependencies
+        run: npm run audit:dependencies
 
       - name: Compile the native listener
         run: npm run native:build

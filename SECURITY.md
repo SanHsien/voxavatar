@@ -21,6 +21,7 @@
 - Electron renderer 啟用 sandbox 與 context isolation，停用 Node integration；avatar／settings 使用不同 preload allowlist，privileged handler 會驗證 sender URL，設定寫入另驗 settings 視窗 webContents。
 - 自訂 process matcher 限制為有界安全子集，拒絕明顯易 ReDoS 的 pattern。
 - 使用者匯入媒體會複製到每使用者應用資料，renderer 只能以已登記 ID 經 `voxavatar-asset:` 讀取。
+- `npm run check` 與 Windows CI 會對 production 與 development dependencies 執行 high-severity audit；Electron／打包鏈的漏洞不得因「只在開發時使用」而忽略。lockfile 回歸測試禁止重新引入 GHSA-jmr9-qjv8-65gv 的 `extract-zip`，且安全修補可直接升級至仍受支援的 Electron major，不等待已停更 transitive 套件。
 
 ### 安裝包完整性與簽署
 

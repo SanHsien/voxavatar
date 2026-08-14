@@ -20,6 +20,7 @@ Use [GitHub Private Vulnerability Reporting](https://github.com/SanHsien/voxavat
 - The Electron renderer uses sandboxing and context isolation without Node integration. Avatar and Settings use separate preload allowlists; privileged handlers validate the sender URL, and Settings write IPC also requires the Settings window webContents.
 - Custom process matchers are limited to a bounded safe subset that rejects obvious ReDoS patterns.
 - Imported media is copied to per-user application data. The renderer can access only registered IDs through `voxavatar-asset:`.
+- `npm run check` and Windows CI audit both production and development dependencies for high-severity issues; Electron and packaging-chain vulnerabilities are not ignored merely because they execute during development. A lockfile regression test prevents reintroducing the `extract-zip` package affected by GHSA-jmr9-qjv8-65gv, and security fixes may upgrade directly to a supported Electron major instead of waiting for an abandoned transitive package.
 
 ### Installer integrity and signing
 

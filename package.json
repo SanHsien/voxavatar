@@ -1,6 +1,6 @@
 {
   "name": "voxavatar",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Windows desktop VRM avatar companion for voice experiences.",
   "author": {
     "name": "SanHsien",
@@ -21,7 +21,7 @@
   },
   "allowScripts": {
     "@swc/core@1.15.46": true,
-    "electron@39.8.10": true,
+    "electron@43.4.0": true,
     "electron-winstaller@5.4.0": true,
     "esbuild@0.28.1": true,
     "fsevents@2.3.3": true
@@ -47,10 +47,11 @@
     "native:test": "node scripts/test-native.cjs",
     "vrma:curate": "node scripts/vrma-curation.cjs",
     "audit:production": "npm audit --omit=dev --audit-level=high",
+    "audit:dependencies": "npm audit --audit-level=high",
     "sbom": "node scripts/generate-sbom.cjs",
     "baseline:bundle": "node scripts/bundle-baseline.cjs",
     "baseline:startup": "node scripts/startup-baseline.cjs",
-    "check": "npm run lint && npm run docs:check && npm test && npm run assets:check && npm run audit:production && npm run build",
+    "check": "npm run lint && npm run docs:check && npm test && npm run assets:check && npm run audit:dependencies && npm run build",
     "dist": "npm run dist:windows",
     "dist:windows": "npm run native:build && npm run native:test && npm run build && electron-builder --win nsis --publish never"
   },
@@ -71,7 +72,7 @@
     "@vitejs/plugin-react-swc": "^4.2.2",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "^39.2.7",
+    "electron": "^43.4.0",
     "electron-builder": "^26.15.7",
     "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.0.1",

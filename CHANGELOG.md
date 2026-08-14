@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 1.0.5 - 2026-08-14
+
+- 將已停止支援且透過 `extract-zip@2.0.1` 暴露 symlink path traversal（GHSA-jmr9-qjv8-65gv）的 Electron 39 升級至仍受支援的 Electron 43.4.0；lockfile 改用 Electron 維護的 `@electron-internal/extract-zip`，舊 `extract-zip` 完全移除。
+- 同步更新受影響的 `brace-expansion` 與 `nanoid` transitive 鎖定；完整 `npm audit` 由 4 個 high 降為 0，不只檢查 production dependencies。
+- `npm run check` 與 Windows CI 改為執行全部 dependencies 的 high-severity audit；新增 lockfile 回歸測試，禁止舊 extractor 回流，並要求 Electron install-script allowlist 與實際鎖定版本一致。
+
 ## 1.0.4 - 2026-08-14
 
 - 新安裝與沒有可用使用者預設模型的既有設定會直接使用官方 `AvatarSample_A`，並可切換 VRoid 官方 Sample B／C 與「つくよみちゃん公式3Dモデル タイプA」。4 個 VRM 的官方條款允許本專案免費再配布，且品質分析皆為 100／`keep`；必要 credit 與限制已寫入 [`ASSET_LICENSES.md`](ASSET_LICENSES.md)。

@@ -12,7 +12,7 @@
 | 角色 | 路徑／版本 |
 | --- | --- |
 | Latest installer 證據 | `v1.0.4/` |
-| 目前 tip（無 installer） | 無；`main` 維持 1.0.4，發布後證據屬同版本收尾 |
+| 目前 tip（無 installer） | `main` 1.0.5；Electron dependency security update，尚未建立 Release |
 
 ## 產生與驗證
 

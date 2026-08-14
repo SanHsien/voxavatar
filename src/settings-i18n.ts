@@ -338,6 +338,8 @@ const ZH_TW: MessageDictionary = {
   'actions.qualityGateTitle': '目錄匯入品質把關',
   'actions.qualityGateDesc':
     '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。目前門檻：分數低於 {reject} 淘汰、{reviewLow}–{reviewHigh} 觀察、{keep} 以上保留。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
+  'actions.qualityGateDescNoReview':
+    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。目前門檻：分數低於 {reject} 淘汰、{keep} 以上保留（未設觀察區間）。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
   'actions.qualityGateMode': '把關模式',
   'actions.qualityGate.report': '分析並寫報告（全部匯入）',
   'actions.qualityGate.strict': '嚴格：略過評為「淘汰」的檔案',
@@ -346,6 +348,8 @@ const ZH_TW: MessageDictionary = {
   'actions.qualityKeepAtLeast': '保留分數門檻（達標且無高嚴重度）',
   'actions.qualityScoreHint':
     '預覽：< {reject} 淘汰；{reviewLow}–{reviewHigh} 觀察；≥ {keep} 保留。保留門檻不可低於淘汰門檻。',
+  'actions.qualityScoreHintNoReview':
+    '預覽：< {reject} 淘汰；≥ {keep} 保留；目前未設觀察區間。保留門檻不可低於淘汰門檻。',
   'actions.reportDirTitle': '報告儲存位置',
   'actions.reportDirDesc':
     '預設寫入你選的掃描目錄（VRM：voxavatar-vrm-report.md；VRMA：voxavatar-vrma-report.md）。也可指定固定資料夾。',
@@ -922,6 +926,8 @@ const EN: MessageDictionary = {
   'actions.qualityGateTitle': 'Folder-import quality gate',
   'actions.qualityGateDesc':
     'Applied when importing VRM or VRMA from a folder (one shared setting). Current thresholds: reject below {reject}, review {reviewLow}–{reviewHigh}, keep at {keep}+. VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
+  'actions.qualityGateDescNoReview':
+    'Applied when importing VRM or VRMA from a folder (one shared setting). Current thresholds: reject below {reject}, keep at {keep}+ (no review range). VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
   'actions.qualityGateMode': 'Gate mode',
   'actions.qualityGate.report': 'Analyze and write report (import all)',
   'actions.qualityGate.strict': 'Strict: skip clips judged “reject”',
@@ -930,6 +936,8 @@ const EN: MessageDictionary = {
   'actions.qualityKeepAtLeast': 'Keep score threshold (and no high severity)',
   'actions.qualityScoreHint':
     'Preview: < {reject} reject; {reviewLow}–{reviewHigh} review; ≥ {keep} keep. Keep threshold cannot be lower than reject.',
+  'actions.qualityScoreHintNoReview':
+    'Preview: < {reject} reject; ≥ {keep} keep; no review range is configured. Keep threshold cannot be lower than reject.',
   'actions.reportDirTitle': 'Report save location',
   'actions.reportDirDesc':
     'By default the report is written into the folder you scanned (VRM: voxavatar-vrm-report.md; VRMA: voxavatar-vrma-report.md). You can also pick a fixed folder.',

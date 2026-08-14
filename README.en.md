@@ -122,7 +122,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The version on `main` is **`0.16.24`** (structural pin on the IPC registration surface; upstream watermark fully evaluated). The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. GitHub Latest Release is **`v0.16.23`** (installer SHA-256 matched; Authenticode `NotSigned`); GUI smoke remains unverified. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The version on `main` is **`1.0.0`**: the Windows-only, local-first product and integration contracts are now stable, with candidate GUI, WASAPI, MCP, and security-boundary smoke completed on Windows 11 at 225% DPI. The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. Until the formal tag completes, GitHub Latest Release remains **`v0.16.23`**. Public installers remain Authenticode `NotSigned`; DPI, SmartScreen, signing, and exporter sub-items without evidence stay explicitly unverified in the versioned record. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 

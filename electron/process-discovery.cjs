@@ -85,7 +85,7 @@ async function listPlatformProcesses({
 } = {}) {
   if (platform !== "win32") return [];
   const command =
-    "Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,ExecutablePath,CommandLine | ConvertTo-Json -Compress";
+    "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new([bool]0); Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,ExecutablePath,CommandLine | ConvertTo-Json -Compress";
   const { stdout } = await run(
     "powershell.exe",
     ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command],

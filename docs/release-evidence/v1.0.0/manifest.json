@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Windows release evidence record for the local 1.0.0 candidate; formal GitHub asset fields are updated after publishing.",
+  "smokeExecuted": true,
+  "generatedAt": "2026-08-14T07:22:15.006Z",
+  "release": {
+    "version": "1.0.0",
+    "tag": "v1.0.0",
+    "commitSha": null,
+    "releaseUrl": null,
+    "githubActionsRunUrl": null,
+    "hasInstaller": true
+  },
+  "assets": {
+    "installerFilename": "VoxAvatar-1.0.0-windows-x64-setup.exe",
+    "installerSha256": "5b8758b15f82d85a0e6af51539ff3160454992a36479b01a20c9c605b1e64acb",
+    "installerSizeBytes": 105138679,
+    "checksumsFile": "SHA256SUMS.txt",
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned",
+    "authenticodeEvidence": "pe-certificate-table-empty"
+  },
+  "environment": {
+    "windowsEdition": "Windows 11 Pro",
+    "windowsVersion": "10.0.26200",
+    "windowsBuild": "26200",
+    "architecture": "x64",
+    "displayScalingPercent": 225,
+    "gpu": "NVIDIA GeForce RTX 3060 (32.0.16.1088)"
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝",
+      "升級",
+      "移除",
+      "系統匣",
+      "DPI／縮放",
+      "角色尺寸 30%",
+      "語音與 MCP",
+      "簽署標示（NotSigned）",
+      "SmartScreen／publisher"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "部分驗證",
+        "note": "本機 Node 24 check、assets release、native self-test 與 NSIS 候選打包通過；GitHub CI／CodeQL／Release 待 tag。"
+      },
+      {
+        "id": "install",
+        "section": "安裝",
+        "result": "部分驗證",
+        "note": "既有 all-users／Program Files 安裝上完成候選重裝與啟動；全新安裝、自訂位置、捷徑與免管理員矩陣未驗。"
+      },
+      {
+        "id": "upgrade",
+        "section": "升級",
+        "result": "pass",
+        "note": "0.16.23→1.0.0 提升權限升級通過；模型、動作、預設模型、語音與 MCP 設定保留。"
+      },
+      {
+        "id": "uninstall",
+        "section": "移除",
+        "result": "未驗",
+        "note": "為保留既有使用者資料，本輪未執行移除。"
+      },
+      {
+        "id": "tray",
+        "section": "系統匣",
+        "result": "未驗",
+        "note": "有桌面但未操作系統匣左右鍵。"
+      },
+      {
+        "id": "dpi_scaling",
+        "section": "DPI／縮放",
+        "result": "部分驗證",
+        "note": "225% DPI 設定五區、預覽與 About 可操作；100%／150% 未驗。"
+      },
+      {
+        "id": "size_30",
+        "section": "角色尺寸 30%",
+        "result": "未驗",
+        "note": "225%／50% 可讀；30% 控制未取得可靠實機結果。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "pass",
+        "note": "自動來源與系統輸出 TTS 實測；MCP 6 工具、氣泡、狀態、動作與視窗控制通過。"
+      },
+      {
+        "id": "signing_label",
+        "section": "簽署標示（NotSigned）",
+        "result": "pass",
+        "note": "本機候選經 PowerShell 與 PE Certificate Table 兩路確認 NotSigned；正式 runner 資產待重驗。"
+      },
+      {
+        "id": "smartscreen",
+        "section": "SmartScreen／publisher",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；未宣稱 SmartScreen 或具名 publisher。"
+      }
+    ],
+    "notes": "Local candidate desktop smoke completed; formal GitHub runner asset fields remain pending until the release workflow finishes."
+  },
+  "mediaReferences": [],
+  "issues": [],
+  "reviewer": "Codex desktop agent",
+  "reviewedAt": "2026-08-14T07:22:15.006Z"
+}

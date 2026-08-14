@@ -27,6 +27,8 @@ React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 
 安全界線：main process 處理檔案、process discovery 與網路 listener；renderer 保持 sandbox、context isolation、無 Node integration。使用者媒體只透過登記 ID 的 `voxavatar-asset:` protocol 進入 renderer。avatar 與 settings 使用不同 preload（`preload-avatar.cjs`／`preload-settings.cjs`）；設定寫入 IPC 另驗 settings 視窗 webContents。
 
+Windows process discovery 會呼叫 Windows PowerShell 5.1 的 CIM。命令必須先把 `[Console]::OutputEncoding` 設為無 BOM UTF-8；繁中系統預設 ANSI／Big5 在 pipe 中可能含 `0x5C` 尾位元組，若 Node 固定以 UTF-8 解碼會形成非法 JSON escape。修改 `electron/process-discovery.cjs` 時必須保留 `forces Windows PowerShell process JSON to UTF-8` 契約測，並在繁中 Windows 實跑 `listPlatformProcesses()`。
+
 ## 目錄
 
 | 路徑 | 用途 |

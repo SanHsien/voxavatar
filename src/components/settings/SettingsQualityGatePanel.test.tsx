@@ -48,4 +48,26 @@ describe('SettingsQualityGatePanel', () => {
     expect(html).toContain('type="number"');
     expect(html).toContain('disabled=""');
   });
+
+  it('does not describe an impossible review range when thresholds are equal', () => {
+    const html = renderToStaticMarkup(
+      <SettingsQualityGatePanel
+        bridge={undefined}
+        busy={false}
+        chooseVrmaReportDir={vi.fn()}
+        clearVrmaReportDir={vi.fn()}
+        setVrmaQualityGate={vi.fn()}
+        setVrmaQualityScoreThresholds={vi.fn()}
+        settings={{
+          ...SETTINGS_FALLBACK,
+          vrma_quality_reject_below: 75,
+          vrma_quality_keep_at_least: 75,
+        }}
+        t={(key, vars) => settingsT('zh-TW', key, vars)}
+      />,
+    );
+
+    expect(html).toContain('未設觀察區間');
+    expect(html).not.toContain('75–75');
+  });
 });

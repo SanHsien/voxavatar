@@ -229,7 +229,7 @@ jobs:
             ## Signing / Windows verification
 
             - Authenticode: **NotSigned** unless this release explicitly documents a signed publisher.
-            - SmartScreen / GUI smoke / DPI / real WASAPI: **未驗** until evidence exists under `docs/release-evidence/`.
+            - SmartScreen / GUI smoke / DPI / real WASAPI: see the versioned record under `docs/release-evidence/`; every unavailable item remains explicitly marked **未驗**.
             - Verify `SHA256SUMS.txt` before installing.
 
             ---

@@ -4,7 +4,7 @@
 
 ## Supported versions
 
-Only the [latest GitHub Release](https://github.com/SanHsien/voxavatar/releases/latest) and current `main` are supported. Older beta releases do not receive separate security patches.
+Only the [latest GitHub Release](https://github.com/SanHsien/voxavatar/releases/latest) and current `main` are supported. Older pre-1.0 releases do not receive separate security patches.
 
 ## Private reporting
 

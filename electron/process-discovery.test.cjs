@@ -5,6 +5,7 @@ const test = require("node:test");
 const {
   configuredPattern,
   isPidAlive,
+  listPlatformProcesses,
   parseWindowsProcessList,
   selectStickyRootPid,
   selectVoiceProcessTree,
@@ -35,6 +36,24 @@ test("parses one or many Windows CIM process records", () => {
     rootPids: [100],
   });
   assert.equal(parseWindowsProcessList('{"ProcessId":7,"Name":"ChatGPT.exe"}')[0].pid, 7);
+});
+
+test("forces Windows PowerShell process JSON to UTF-8", async () => {
+  let invoked = null;
+  await listPlatformProcesses({
+    platform: "win32",
+    run: async (file, args, options) => {
+      invoked = { file, args, options };
+      return { stdout: "[]" };
+    },
+  });
+
+  assert.equal(invoked.file, "powershell.exe");
+  assert.match(
+    invoked.args.at(-1),
+    /^\[Console\]::OutputEncoding = \[System\.Text\.UTF8Encoding\]::new\(\[bool\]0\); /,
+  );
+  assert.equal(invoked.options.encoding, "utf8");
 });
 
 test("selects processes by stable application source id", () => {

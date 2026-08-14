@@ -2,8 +2,8 @@
 
 [繁體中文](ROADMAP.md) · English
 
-Updated: 2026-08-10
-Planning baseline: `0.16.24` (`main`; GitHub Latest Release: `v0.16.23`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Updated: 2026-08-14
+Planning baseline: `1.0.0` (`main`; GitHub Latest Release remains `v0.16.23` until the formal tag is created; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,26 +11,26 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `0.16.24` / `main`; GitHub Latest Release: `v0.16.23`
+Review baseline: `1.0.0` / `main`; GitHub Latest Release remains `v0.16.23` until the formal tag is created
 
-No known open P0/P1. Upstream watermark `152b1b4` (2026-08-10; the 12 commits after `bb7ef24` and every open PR/issue have been evaluated item by item — see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1). `0.16.21` and `0.16.22` fix both halves of the motion-cycling defect: idle was locked to a single looping clip by the default state-slot bindings (making the whole `ambientIdleMotionUrls` pool unreachable), and speaking always used `loop` because cycling was hard-gated to `IDLE`, so only one Speaking clip was ever used per utterance. `0.16.23` then replaced pure random selection with a shuffle bag — every clip plays once per round before reshuffling — fixing the poor coverage and near-repeats of pure random. `0.16.20` fixed the path-redaction tail leak in the diagnostic summary and in MCP `get_status` / the Settings voice-source list.
+No known open P0/P1. `1.0.0` stabilizes the existing Windows-only, local-first, loopback-only MCP, level-driven lip-sync, and no-microphone product boundaries. Real-machine testing on Windows 11 found and fixed mixed Big5/UTF-8 process JSON from Traditional Chinese Windows PowerShell 5.1: automatic voice discovery no longer enters `launch_failed`, and a system-output TTS pass again proved the `speaking` / `listening` path. The upstream watermark remains `152b1b4` (2026-08-10; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1).
 
-- Latest Release: `v0.16.23` (installer + SHA256 downloaded and matched; Authenticode `NotSigned` confirmed via both PowerShell and the PE Certificate Table; GUI / signing / real exporters still unverified).
+- Release candidate: `1.0.0` (local NSIS candidate hashed; Authenticode `NotSigned` confirmed through both PowerShell and the PE Certificate Table; the formal GitHub asset will be compared after the tag workflow). Latest remains `v0.16.23` until that tag exists.
 - Upstream: commit watermark `152b1b4` (2026-08-10, evaluated). Of the 12 commits: 6 rejected (the four VRoid Hub account commits and the #23 scheduler among them), 1 already covered, 1 not applicable, 4 shortlisted. Open PRs: #45 rejected (microphone capture crosses a hard boundary), #47 out of scope, #46 shortlisted, #48 partially adopted and shipped. Open issues: #43 already covered and further hardened, #44 / #18 out of scope, #35 shortlisted, #11 already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
 
-This round: `npm run check` green (the authoritative gate is CI on Node 24). Known local limitation: Node 25 ships a built-in Web Storage global that shadows jsdom's `window.localStorage`, so `src/theme.test.ts` fails under Node 25. Unrelated to product code; not yet addressed.
+This round used Node 24.19.0 for lint, 298 Node tests, 151 renderer tests, the production build, release asset gate, native self-test / Usage=2 / typed errors 10–13, and a local NSIS package. On Windows 11 at 225% DPI, Settings, preview, About, all six MCP tools, bubbles, window control, bridge defenses, and system-output TTS were exercised. No claim is expanded to the 100% / 150% DPI or remaining rows below.
 
 ### Verification gaps (marked unverified; never fabricate completion)
 
 | Item | Status | Reason |
 | --- | --- | --- |
-| Real-desktop confirmation of the 0.16.21–0.16.23 idle and speaking shuffle-bag cycling | **Unverified** | Covered by unit tests; the single-instance lock prevents launching a second instance while an installed build is running, so this needs a reinstall and desktop observation |
-| Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Unverified** | No Windows desktop |
-| 30% character size and multi-DPI readability | **Unverified** | No Windows desktop |
-| Idle long-run / model-switch memory (GUI residency) | **Unverified** | No Windows desktop; `baseline:startup` excludes GUI |
-| Installer signing / publisher / SmartScreen / upgrade path | **Unverified** | No signing secrets |
+| Real-desktop confirmation of the 0.16.21–0.16.23 idle and speaking shuffle-bag cycling | **Partially verified** | The 1.0 candidate plays Idle and Speaking with visible motion; a full no-repeat round still has only shuffle-bag contract tests because no clip ID is exposed for observation |
+| Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Partially verified** | The local candidate passed an elevated 0.16.23→1.0.0 upgrade with settings preserved, plus Settings, preview, About, MCP/bubbles/window control at 225% DPI; uninstall, tray, and keyboard matrix remain open |
+| 30% character size and multi-DPI readability | **Partially verified** | 225% DPI at 50% character size is readable; 30% and 100%/150% remain unverified |
+| Idle long-run / model-switch memory (GUI residency) | **Unverified** | Only a short GUI session was run; `baseline:startup` excludes GUI |
+| Installer signing / publisher / SmartScreen / upgrade path | **Partially verified** | Local candidate `NotSigned` status is proven two ways, and the elevated 0.16.23→1.0.0 upgrade preserved user data; the formal runner asset, SmartScreen, and publisher remain open |
 | Native COM/WASAPI/Device/Event **real** failure paths | **Unverified** | Usage=2 assertable on runner; real audio/COM failures need the environment |
 | Real VRoid/UniVRM/Blender sample results | **Unverified** | No clearly licensed off-repo sample evidence yet |
 
@@ -64,6 +64,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v0.14–v0.15 | State slots / MCP / HTTP / head projection / manual state / typed exit |
 | v0.16.0–0.16.9 | Speaking secondary, tray, slot defaults, action-pack, clip pool/preview, UI spacing |
 | v0.16.10–0.16.23 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction (incl. the 0.16.20 placeholder-tail fix), CodeQL, i18n/sanitize/IPC, evidence-path scaffolding, idle/speaking cycling fixes and the shuffle bag (0.16.21–0.16.23) |
+| v1.0.0 | Stable product contract; UTF-8 fix for Traditional Chinese Windows process discovery; candidate 225% DPI GUI/WASAPI/MCP real-machine smoke |
 
 Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 
@@ -98,7 +99,7 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 ## Full production-release assurance
 
 - [x] No known P0/P1; active operations report success or failure.
-- [~] Windows real-machine evidence. **Unverified**.
+- [~] Windows real-machine evidence. **Partially verified**; local candidate install/upgrade and 225% DPI smoke passed, while uninstall and the multi-DPI matrix remain open.
 - [~] Installer signing. **Unverified**; unsigned builds must be labelled explicitly.
 - [x] Settings/catalog/MCP schema version policies and tests.
 - [x] Failed imports do not lose data.
@@ -122,8 +123,8 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 
 ## Next three actions
 
-1. Reinstall `v0.16.23` and confirm idle and speaking shuffle-bag cycling on a real desktop (idle switches clip per segment plus gap; speaking chains clips without freezing; no repeat within a round). This is the only item still blocking a verified-complete claim for the action system.
-2. Land one item from the shortlist in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1: Alt+drag window move, VRM-meta license terms in Settings, drag/orbit secondary motion, or per-action VRM expressions (needs a lip-sync priority rule first).
-3. Blocked on a Windows desktop / signing secrets / licensed samples: fill segmented smoke sub-items under `docs/release-evidence/` and cross-check NotSigned via `evidence:verify` / `evidence:pe` (SmartScreen still needs a human); obtain clearly licensed real exporter samples for `_templates/exporter-results.json`; add real failure-path coverage once an audio/COM environment is available (`--emit-error` is contract-only).
+1. Create the `v1.0.0` tag and GitHub Release, download the runner-built assets, match SHA-256, and record executable upgrade/startup results under `docs/release-evidence/v1.0.0/`.
+2. Fill the remaining real-machine matrix: 100% / 150% DPI, 30% character size, tray, keyboard, uninstall, idle residency, and a full shuffle round with observable clip IDs.
+3. When signing secrets, licensed samples, and a controllable COM-failure environment exist, add SmartScreen/publisher, real exporter, and true Native COM/WASAPI/Device/Event failure evidence; only then select a new feature from [`docs/DECISIONS.md`](docs/DECISIONS.md) §1.
 
 Action↔VRMA auto-assignment policy is settled (pack / name preselect / whitelist confirm; no semantic guessing); see [`docs/DECISIONS.md`](docs/DECISIONS.md) §10. Do not open a semantic slotting track.

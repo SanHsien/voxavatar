@@ -2,6 +2,14 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 1.0.0 - 2026-08-14
+
+- 正式化 Windows-only、local-first 的 1.0 產品契約：VRM／VRMA 桌面角色、指定應用程式與 opt-in 系統輸出音量驅動、Idle／Speaking 洗牌輪播、漫畫氣泡、6 個 loopback-only MCP 工具，以及不擷取麥克風、不錄音、不轉錄、不上傳的硬性邊界。
+- 修正繁中 Windows PowerShell 5.1 程序列舉的編碼錯誤：CIM JSON 現在明確以無 BOM UTF-8 輸出，避免 Big5 尾位元組被誤解為 JSON escape，導致自動語音來源進入 `launch_failed`。新增命令契約測試，並在 Windows 11 實機確認自動偵測與系統輸出 TTS 皆恢復正常。
+- 品質門檻相等時不再顯示不存在的 `75–75` 觀察區間；繁中與英文改為明確標示「未設觀察區間」，並加入 renderer 回歸測試。
+- 完成 225% DPI 實機候選驗收：設定五區、角色預覽、About、MCP 6 工具、漫畫氣泡、視窗顯示／隱藏、loopback-only bridge 防護與未簽署狀態均取得證據；尚無法覆蓋的 100%／150% DPI、SmartScreen、簽署與真實 exporter 樣本仍明確標示未驗。
+- Release notes 不再無條件宣稱所有 GUI／DPI／WASAPI 未驗，改為指向各版本 `docs/release-evidence/` 的實際結果；未取得證據的子項仍須逐項標示。
+
 ## 0.16.24 - 2026-08-10
 
 - 新增 `electron/ipc-registration.test.cjs`：直接讀 `main.cjs` 原始碼，釘住「未經 `handleTrusted*Ipc` 包裝而註冊的 IPC 通道」精確集合，要求每個都在自己的 body 內比對 `event.sender`，並斷言只有三個信任包裝可以用變數通道名註冊。日後有人用裸 `ipcMain.handle`／`ipcMain.on` 新增通道會讓 CI 紅，而不是等 review 抓。構想取自上游 `xikhar/persona` PR #48。

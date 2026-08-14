@@ -152,7 +152,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 ## 7. 版本與 Release
 
 - 完成可交付工作後直接 commit／push `main`，並以 SemVer 更新 package、lockfile 與 CHANGELOG。
-- `0.16.1` 維持 pre-1.0 版號；產品識別、Windows-only 邊界與公開契約雖已獨立成形，仍須完成路線圖中的 Windows 實機、簽署與真實素材相容證據，才評估進入 1.0。
+- `1.0.0` 將已穩定的 Windows-only、local-first、loopback-only MCP、音量驅動口型與媒體授權邊界定為正式契約。進入 1.0 不等於虛構所有環境皆驗收完成：225% DPI、GUI／WASAPI／MCP 候選 smoke 有實機證據；100%／150% DPI、30% 角色、簽署／SmartScreen、完整 installer 生命週期與真實 exporter 樣本仍在 ROADMAP／release evidence 逐項標示部分驗證或未驗。
 - `main` 可累積多個版號再批次 Release；不為空轉或無實質變更建立 tag。
 - Release tag 必須精確指向可信 `main` tip。已發布 tag 不 force-update；目前不要求以 repository ruleset 保護 tag。
 - 新 Release 成功且成為 Latest 後才清理舊 Release／tag；失敗時保留舊版。
@@ -198,4 +198,3 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 - JS／Settings／MCP 使用獨立碼 `native_helper_event_error`；**不再**把 exit 13 摺進 `native_helper_wasapi_error`。
 - `--emit-error 10|11|12|13` 僅供契約／self-test，**不**等同真實 HRESULT 或裝置失敗已驗。
 - 真實 COM／WASAPI／Device／Event 失敗仍須有環境證據；見 ROADMAP「仍待／未驗」。
-

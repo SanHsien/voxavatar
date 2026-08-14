@@ -34,6 +34,7 @@ export function SettingsQualityGatePanel({
   const rejectBelow = settings.vrma_quality_reject_below ?? 60;
   const keepAtLeast = settings.vrma_quality_keep_at_least ?? 75;
   const reviewUpper = Math.max(rejectBelow, keepAtLeast - 1);
+  const hasReviewRange = keepAtLeast > rejectBelow;
 
   return (
     <section className="settings-panel quality-gate-panel">
@@ -41,7 +42,7 @@ export function SettingsQualityGatePanel({
         <div>
           <h2>{t('actions.qualityGateTitle')}</h2>
           <p>
-            {t('actions.qualityGateDesc', {
+            {t(hasReviewRange ? 'actions.qualityGateDesc' : 'actions.qualityGateDescNoReview', {
               reject: rejectBelow,
               reviewLow: rejectBelow,
               reviewHigh: reviewUpper,
@@ -102,7 +103,7 @@ export function SettingsQualityGatePanel({
         </label>
       </div>
       <p className="quality-score-hint">
-        {t('actions.qualityScoreHint', {
+        {t(hasReviewRange ? 'actions.qualityScoreHint' : 'actions.qualityScoreHintNoReview', {
           reject: rejectBelow,
           reviewLow: rejectBelow,
           reviewHigh: reviewUpper,

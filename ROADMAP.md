@@ -2,8 +2,8 @@
 
 繁體中文 · [English](ROADMAP.en.md)
 
-更新日期：2026-08-10
-規劃基準：`0.16.24`（`main`；GitHub Latest Release：`v0.16.23`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+更新日期：2026-08-14
+規劃基準：`1.0.0`（`main`；正式 tag 建立前 GitHub Latest Release：`v0.16.23`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,26 +11,26 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`0.16.24`／`main`；GitHub Latest Release：`v0.16.23`
+覆核基準：`1.0.0`／`main`；正式 tag 建立前 GitHub Latest Release：`v0.16.23`
 
-沒有已知未解 P0／P1。上游水位 `152b1b4`（2026-08-10；`bb7ef24` 之後 12 個 commit 與全部 open PR／issue 已逐項判定完成，結論見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。`0.16.21`＋`0.16.22` 修掉動作輪播的兩半：待機被預設 state slot 綁定鎖成單一片段無限循環（`ambientIdleMotionUrls` 整池形同虛設），以及說話因輪播硬綁 `IDLE` 而一律 `loop`、多支 Speaking 片段每次只用到一支。`0.16.23` 再把選片從純隨機換成洗牌袋，一輪內每支各播一次再重洗，解決純隨機覆蓋率差與近距重複。`0.16.20` 修掉診斷摘要與 MCP `get_status`／語音來源清單的路徑遮罩尾段漏洞。
+沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。上游水位仍為 `152b1b4`（2026-08-10；結論見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
 
-- Latest Release：`v0.16.23`（installer＋SHA256 已下載比對相符；Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；GUI／簽署／真實 exporter 仍標未驗）。
+- 發行候選：`1.0.0`（本機 NSIS 候選的 SHA-256 已計算，Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；正式 GitHub 資產待 tag workflow 後另行比對）。正式 tag 建立前 Latest 仍為 `v0.16.23`。
 - 上游：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
-本輪驗證：`npm run check` 全綠（正式 gate 為 CI 的 Node 24）。已知本機環境限制：Node 25 內建 Web Storage 會覆蓋 jsdom 的 `window.localStorage`，`src/theme.test.ts` 在 Node 25 下會紅；與產品程式無關，尚未處理。
+本輪驗證：以 Node 24.19.0 完成 lint、298 個 Node 測試、151 個 renderer 測試、production build、資產 release gate、native self-test／Usage=2／typed error 10–13 與本機 NSIS 打包。Windows 11、225% DPI 實機完成設定五區、預覽、About、MCP 6 工具、氣泡、視窗控制、bridge 防護與輸出裝置 TTS；100%／150% DPI 與下列細項仍不擴大宣稱。
 
 ### 驗證缺口（標未驗，不虛構完成）
 
 | 項目 | 狀態 | 原因 |
 | --- | --- | --- |
-| 0.16.21–0.16.23 待機與說話洗牌輪播的實機確認 | **未驗** | 邏輯有單元測試涵蓋；single-instance lock 下無法在使用者安裝版執行中另開實例觀察，須由實機重裝後觀察 |
-| Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **未驗** | 無 Windows 桌面 |
-| 30% 角色尺寸與多 DPI 實機可讀性 | **未驗** | 無 Windows 桌面 |
-| Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 無 Windows 桌面；`baseline:startup` 不含 GUI |
-| Installer 簽署／publisher／SmartScreen／升級路徑 | **未驗** | 無簽署密鑰 |
+| 0.16.21–0.16.23 待機與說話洗牌輪播的實機確認 | **部分驗證** | 1.0 候選可播放 Idle／Speaking 且角色有動作；整輪不重複仍只有洗牌袋契約測，無可觀察 clip ID 的實機證據 |
+| Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **部分驗證** | 本機候選 0.16.23→1.0.0 提升權限升級、設定保留、225% DPI 設定／預覽／About、MCP／氣泡／視窗控制已驗；移除、系統匣與鍵盤矩陣待補 |
+| 30% 角色尺寸與多 DPI 實機可讀性 | **部分驗證** | 225% DPI、50% 角色尺寸可讀；30% 與 100%／150% 尚未驗 |
+| Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 本輪只做短時間 GUI 操作；`baseline:startup` 不含 GUI |
+| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 本機候選 `NotSigned` 已雙軌證明，0.16.23→1.0.0 提升權限升級與資料保留通過；正式 runner 資產、SmartScreen 與 publisher 待補 |
 | Native COM／WASAPI／Device／Event **真實**失敗路徑 | **未驗** | Usage=2 可由 runner 斷言；真實音訊／COM 失敗仍需環境 |
 | 真實 VRoid／UniVRM／Blender 樣本人工結果 | **未驗** | 尚無授權清楚之二進位樣本入庫外證據 |
 
@@ -64,6 +64,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
 | v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
 | v0.16.10–0.16.23 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架、Idle／Speaking 輪播修正與洗牌袋（0.16.21–0.16.23） |
+| v1.0.0 | 穩定產品契約；繁中 Windows 程序列舉 UTF-8 修正；225% DPI GUI／WASAPI／MCP 候選實機驗收 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -98,7 +99,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 ## 正式發行完整驗收
 
 - [x] 沒有已知 P0／P1；主動操作有成功或失敗回饋。
-- [~] Windows 實機證據。**未驗**。
+- [~] Windows 實機證據。**部分驗證**；本機候選安裝／升級與 225% DPI smoke 已完成，移除／多 DPI 矩陣仍待補。
 - [~] Installer 簽署。**未驗**；未簽署版本必須明確標示。
 - [x] settings／catalog／MCP schema 版本政策與測試。
 - [x] 匯入失敗不造成資料遺失。
@@ -122,8 +123,8 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 接下來三件事
 
-1. 重裝 `v0.16.23` 後在實機確認 Idle 與 Speaking 的洗牌輪播行為（待機每段＋間隔換一支、說話連續換片段不凍住、一輪內不重複）。這是目前唯一擋著「動作系統」宣稱驗收完成的項目。
-2. 從 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 的候選清單挑一項落地：Alt+drag 移動視窗、VRM meta 授權條款顯示、drag／orbit secondary motion、動作 VRM expression（須先定與口型的優先序）。
-3. 阻塞項（等 Windows 桌面／簽署密鑰／授權樣本）：依分段 smoke 子項填 `docs/release-evidence/` 並用 `evidence:verify`／`evidence:pe` 對照 NotSigned（SmartScreen 仍需人）；取得授權清楚的真實 exporter 樣本填 `_templates/exporter-results.json`；有音訊／COM 環境時補真實失敗路徑（`--emit-error` 僅契約，不取代）。
+1. 完成 `v1.0.0` tag／GitHub Release，下載正式 runner 資產比對 SHA-256，並把可執行的升級／啟動結果寫入 `docs/release-evidence/v1.0.0/`。
+2. 補齊尚未覆蓋的實機矩陣：100%／150% DPI、30% 角色、系統匣、鍵盤、移除、Idle 長跑與可觀察 clip ID 的洗牌整輪證據。
+3. 等簽署密鑰／授權樣本／可控 COM 失敗環境：補 SmartScreen／publisher、真實 exporter 結果與 Native COM／WASAPI／Device／Event 真實失敗路徑；其後才從 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 候選清單選新功能。
 
 動作↔VRMA 自動對應政策已定（pack／同名預選／白名單確認；不做語意猜分），見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §10；不再另開語意分槽路線。

@@ -4,7 +4,7 @@
 
 ## 支援版本
 
-僅支援 [最新 GitHub Release](https://github.com/SanHsien/voxavatar/releases/latest) 與目前 `main`。舊 beta 不會另行維護安全修補。
+僅支援 [最新 GitHub Release](https://github.com/SanHsien/voxavatar/releases/latest) 與目前 `main`。舊 pre-1.0 版本不會另行維護安全修補。
 
 ## 私下回報
 

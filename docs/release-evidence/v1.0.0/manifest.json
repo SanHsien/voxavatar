@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "purpose": "Windows release evidence record for the local 1.0.0 candidate; formal GitHub asset fields are updated after publishing.",
-  "smokeExecuted": true,
-  "generatedAt": "2026-08-14T07:22:15.006Z",
+  "purpose": "Machine-readable metadata for the published v1.0.0 release; human desktop results live in windows-smoke.md.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-14T07:29:47.000Z",
   "release": {
     "version": "1.0.0",
     "tag": "v1.0.0",
-    "commitSha": null,
-    "releaseUrl": null,
-    "githubActionsRunUrl": null,
+    "commitSha": "2482b602d04c2304a5db634681646a3e635a7eb7",
+    "releaseUrl": "https://github.com/SanHsien/voxavatar/releases/tag/v1.0.0",
+    "githubActionsRunUrl": "https://github.com/SanHsien/voxavatar/actions/runs/31779768128",
     "hasInstaller": true
   },
   "assets": {
     "installerFilename": "VoxAvatar-1.0.0-windows-x64-setup.exe",
-    "installerSha256": "5b8758b15f82d85a0e6af51539ff3160454992a36479b01a20c9c605b1e64acb",
-    "installerSizeBytes": 105138679,
+    "installerSha256": "d9fcd68ce0862891a809f59b7faa506608e5698ad34a3b32c1e5eef51498fa29",
+    "installerSizeBytes": 105138682,
     "checksumsFile": "SHA256SUMS.txt",
     "unsigned": true,
     "authenticodeStatus": "NotSigned",
@@ -46,8 +46,8 @@
       {
         "id": "ci_gates",
         "section": "自動化前置 gate",
-        "result": "部分驗證",
-        "note": "本機 Node 24 check、assets release、native self-test 與 NSIS 候選打包通過；GitHub CI／CodeQL／Release 待 tag。"
+        "result": "pass",
+        "note": "本機 Node 24 check／assets release／native self-test 與 GitHub CI、CodeQL、Windows 打包、Release workflow 全綠。"
       },
       {
         "id": "install",
@@ -95,7 +95,7 @@
         "id": "signing_label",
         "section": "簽署標示（NotSigned）",
         "result": "pass",
-        "note": "本機候選經 PowerShell 與 PE Certificate Table 兩路確認 NotSigned；正式 runner 資產待重驗。"
+        "note": "本機候選與正式 runner 資產均經 PowerShell 與 PE Certificate Table 兩路確認 NotSigned。"
       },
       {
         "id": "smartscreen",
@@ -104,10 +104,10 @@
         "note": "無 WIN_CSC_* 密鑰；未宣稱 SmartScreen 或具名 publisher。"
       }
     ],
-    "notes": "Local candidate desktop smoke completed; formal GitHub runner asset fields remain pending until the release workflow finishes."
+    "notes": "Formal runner asset digest, SHA256SUMS.txt, local SHA-256, size, signing state, Latest, tag, CI, CodeQL, and Release were verified. Desktop execution used the same-commit local candidate; running the downloaded formal installer still awaits user confirmation."
   },
   "mediaReferences": [],
   "issues": [],
   "reviewer": "Codex desktop agent",
-  "reviewedAt": "2026-08-14T07:22:15.006Z"
+  "reviewedAt": "2026-08-14T07:31:00.000Z"
 }

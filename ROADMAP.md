@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-14
-規劃基準：`1.0.0`（`main`；正式 tag 建立前 GitHub Latest Release：`v0.16.23`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`1.0.1`（`main`；GitHub Latest Release：`v1.0.0`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,11 +11,11 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`1.0.0`／`main`；正式 tag 建立前 GitHub Latest Release：`v0.16.23`
+覆核基準：`1.0.1`／`main`；GitHub Latest Release：`v1.0.0`
 
 沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。上游水位仍為 `152b1b4`（2026-08-10；結論見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
 
-- 發行候選：`1.0.0`（本機 NSIS 候選的 SHA-256 已計算，Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認；正式 GitHub 資產待 tag workflow 後另行比對）。正式 tag 建立前 Latest 仍為 `v0.16.23`。
+- 正式 Release：`v1.0.0`（CI、CodeQL、Windows 打包與發布全綠；runner installer digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經 PowerShell 與 PE Certificate Table 兩路確認）。正式下載檔的桌面同版本重裝仍待使用者允許；不把同 commit 的本機候選冒充正式資產實跑。
 - 上游：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
@@ -30,7 +30,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **部分驗證** | 本機候選 0.16.23→1.0.0 提升權限升級、設定保留、225% DPI 設定／預覽／About、MCP／氣泡／視窗控制已驗；移除、系統匣與鍵盤矩陣待補 |
 | 30% 角色尺寸與多 DPI 實機可讀性 | **部分驗證** | 225% DPI、50% 角色尺寸可讀；30% 與 100%／150% 尚未驗 |
 | Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 本輪只做短時間 GUI 操作；`baseline:startup` 不含 GUI |
-| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 本機候選 `NotSigned` 已雙軌證明，0.16.23→1.0.0 提升權限升級與資料保留通過；正式 runner 資產、SmartScreen 與 publisher 待補 |
+| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 本機候選與正式 runner 資產均雙軌證明 `NotSigned`，0.16.23→1.0.0 提升權限升級與資料保留通過；正式下載檔桌面重裝、SmartScreen 與 publisher 待補 |
 | Native COM／WASAPI／Device／Event **真實**失敗路徑 | **未驗** | Usage=2 可由 runner 斷言；真實音訊／COM 失敗仍需環境 |
 | 真實 VRoid／UniVRM／Blender 樣本人工結果 | **未驗** | 尚無授權清楚之二進位樣本入庫外證據 |
 
@@ -65,6 +65,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
 | v0.16.10–0.16.23 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架、Idle／Speaking 輪播修正與洗牌袋（0.16.21–0.16.23） |
 | v1.0.0 | 穩定產品契約；繁中 Windows 程序列舉 UTF-8 修正；225% DPI GUI／WASAPI／MCP 候選實機驗收 |
+| v1.0.1 | `v1.0.0` 正式 runner 資產／workflow／Latest 證據與舊 tag 清理收尾 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -123,7 +124,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 接下來三件事
 
-1. 完成 `v1.0.0` tag／GitHub Release，下載正式 runner 資產比對 SHA-256，並把可執行的升級／啟動結果寫入 `docs/release-evidence/v1.0.0/`。
+1. 取得使用者動作確認後，用已核對 SHA-256 的正式 GitHub installer 做同版本桌面重裝，確認既有 library／設定與 MCP 狀態不變，再完成 `docs/release-evidence/v1.0.0/`。
 2. 補齊尚未覆蓋的實機矩陣：100%／150% DPI、30% 角色、系統匣、鍵盤、移除、Idle 長跑與可觀察 clip ID 的洗牌整輪證據。
 3. 等簽署密鑰／授權樣本／可控 COM 失敗環境：補 SmartScreen／publisher、真實 exporter 結果與 Native COM／WASAPI／Device／Event 真實失敗路徑；其後才從 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 候選清單選新功能。
 

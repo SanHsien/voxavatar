@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 1.0.1 - 2026-08-14
+
+- 發布後回填 `v1.0.0` 正式證據：CI、CodeQL、Windows 打包與 Release workflow 全綠；Latest／tag／Release 均指向 `2482b602d04c2304a5db634681646a3e635a7eb7`。
+- GitHub runner installer 的 digest、`SHA256SUMS.txt` 與本機 SHA-256 三路一致（`d9fcd68ce0862891a809f59b7faa506608e5698ad34a3b32c1e5eef51498fa29`，`105138682` bytes）；PowerShell 與 PE Certificate Table 均確認 `NotSigned`。
+- 新版成功後移除舊 `v0.16.23` Release／tag；遠端與本機只保留 `v1.0.0`。正式下載檔的桌面同版本重裝仍待使用者允許後執行，不以候選安裝冒充正式資產實跑。
+
 ## 1.0.0 - 2026-08-14
 
 - 正式化 Windows-only、local-first 的 1.0 產品契約：VRM／VRMA 桌面角色、指定應用程式與 opt-in 系統輸出音量驅動、Idle／Speaking 洗牌輪播、漫畫氣泡、6 個 loopback-only MCP 工具，以及不擷取麥克風、不錄音、不轉錄、不上傳的硬性邊界。

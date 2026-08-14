@@ -33,6 +33,7 @@ const {
   defaultPurposeForAnimationType,
   normalizeAnimationPurpose,
   roundedLightingNumber,
+  sanitizeIdlePoolExcludedAnimationIds,
   sanitizeModelLighting,
   sanitizeStateSlotBindings,
   validateAnimationMetadata,
@@ -214,6 +215,7 @@ function createSettingsStore({
 
   function getSnapshot() {
     const models = availableModels();
+    const animations = availableAnimations();
     const modelIds = new Set(models.map((model) => model.id));
     const defaultModel = models.some(
       (model) => model.id === state.default_model_id,
@@ -241,7 +243,7 @@ function createSettingsStore({
       ui_locale: normalizeUiLocale(state.ui_locale),
       packaged_animation_change_count: changedPackagedIds.size,
       models,
-      animations: availableAnimations(),
+      animations,
       unassigned_clips: availableUnassignedClips(),
       model_lighting: sanitizeModelLighting(
         state.model_lighting,
@@ -253,16 +255,24 @@ function createSettingsStore({
       vrma_quality_keep_at_least: qualityThresholds.keepAtLeast,
       vrma_report_dir: normalizeReportDir(state.vrma_report_dir),
       idle_rest_ms: normalizeIdleRestMs(state.idle_rest_ms),
+      idle_pool_excluded_animation_ids:
+        sanitizeIdlePoolExcludedAnimationIds(
+          state.idle_pool_excluded_animation_ids,
+        ).filter((id) => animations.some((animation) => animation.id === id)),
       mcp_show_message_enabled: state.mcp_show_message_enabled === true,
-      state_slot_bindings: applyDefaultStateSlotBindings(
-        sanitizeStateSlotBindings(state.state_slot_bindings),
-        availableAnimations().filter(
-          (animation) =>
-            Array.isArray(animation.asset_urls) &&
-            animation.asset_urls.length > 0,
-        ),
-      ),
+      state_slot_bindings: effectiveStateSlotBindings(animations),
     };
+  }
+
+  function effectiveStateSlotBindings(animations) {
+    return applyDefaultStateSlotBindings(
+      sanitizeStateSlotBindings(state.state_slot_bindings),
+      animations.filter(
+        (animation) =>
+          Array.isArray(animation.asset_urls) &&
+          animation.asset_urls.length > 0,
+      ),
+    );
   }
 
   const {
@@ -347,6 +357,38 @@ function createSettingsStore({
 
   function setIdleRestMs(value) {
     state.idle_rest_ms = normalizeIdleRestMs(value);
+    writeState();
+    return getSnapshot();
+  }
+
+  function setIdlePoolAnimationEnabled(animationId, enabled) {
+    if (typeof enabled !== "boolean") {
+      throw new Error("Idle pool enabled state must be a boolean.");
+    }
+    const animations = availableAnimations();
+    const animation = animations.find(
+      (candidate) => candidate.id === animationId,
+    );
+    if (!animation) throw new Error("Animation action is not installed.");
+    const speakingName = effectiveStateSlotBindings(animations).speaking;
+    const forcedSpeaking =
+      animation.animation_type === "TALK" ||
+      (typeof speakingName === "string" &&
+        animation.animation_name.trim().toLowerCase() ===
+          speakingName.trim().toLowerCase());
+    if (enabled && forcedSpeaking) {
+      throw new Error(
+        "Speaking/TALK actions cannot be enabled for ambient idle rotation.",
+      );
+    }
+    const excluded = new Set(
+      sanitizeIdlePoolExcludedAnimationIds(
+        state.idle_pool_excluded_animation_ids,
+      ),
+    );
+    if (enabled) excluded.delete(animationId);
+    else excluded.add(animationId);
+    state.idle_pool_excluded_animation_ids = [...excluded];
     writeState();
     return getSnapshot();
   }
@@ -534,6 +576,7 @@ function createSettingsStore({
     resetPackagedAnimations,
     resolveAssetRequest,
     setCharacterSize,
+    setIdlePoolAnimationEnabled,
     setIdleRestMs,
     setMcpShowMessageEnabled,
     setStateSlotBinding,

@@ -126,6 +126,7 @@ Get-AuthenticodeSignature .\VoxAvatar-*-windows-x64-setup.exe
 
 - [ ] 4 個內建 VRM 都可載入；另匯入合法 VRM、切換預設模型，關閉再開仍能載入。
 - [ ] 內建 13 個 VRMA 的 Idle／Speaking／自訂動作可預覽與播放；另匯入合法 VRMA 仍正常。
+- [ ] Settings「待機池」預設勾選所有非說話動作，取消後不再待機輪播且重開仍保留；`TALK`、Speaking 槽與其綁定動作固定不可勾。
 - [ ] 損壞、錯誤副檔名、過大或不含 VRM／VRMA extension 的 GLB 被拒絕，既有 library 不受影響。
 - [ ] 透明區點穿；角色本體拖曳、縮放、旋轉與右鍵選單正常。
 - [ ] 系統匣左鍵顯示／隱藏，右鍵選單、設定與結束正常。

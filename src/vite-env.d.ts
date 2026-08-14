@@ -163,6 +163,7 @@ type VoxAvatarSettingsSnapshot = {
   vrma_quality_keep_at_least: number;
   vrma_report_dir: string | null;
   idle_rest_ms: number;
+  idle_pool_excluded_animation_ids: string[];
   mcp_show_message_enabled: boolean;
   state_slot_bindings: VoxAvatarStateSlotBindings;
 };
@@ -358,6 +359,10 @@ interface Window {
     setDefaultModel(modelId: string): Promise<VoxAvatarSettingsSnapshot>;
     setCharacterSize(size: number): Promise<VoxAvatarSettingsSnapshot>;
     setIdleRestMs?(ms: number): Promise<VoxAvatarSettingsSnapshot>;
+    setIdlePoolAnimationEnabled?(
+      animationId: string,
+      enabled: boolean,
+    ): Promise<VoxAvatarSettingsSnapshot>;
     setMcpShowMessageEnabled?(
       enabled: boolean,
     ): Promise<VoxAvatarSettingsSnapshot>;

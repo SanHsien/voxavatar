@@ -36,7 +36,7 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；helper 狀態人話與路徑遮罩；sticky discovery |
 | 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵（含手動狀態）、重設視角、聆聽／說話預覽、About（含 NotSigned） |
 | 本機素材 | 內建 4 個授權可追溯 VRM／13 個品質判定 `keep`（預設 >75）的 CC0 VRMA；可再匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告；未分類片段池；可選依檔名白名單分槽；VRM 0.x／1.0 |
-| 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、多片段洗牌輪播（一輪內每支各播一次再重洗；Idle 間隔可設定，說話直接接續）、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
+| 動作系統 | 可勾選的待機池（預設納入所有非說話動作，Speaking／TALK 強制排除）、Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、多片段洗牌輪播（一輪內每支各播一次再重洗；Idle 間隔可設定，說話直接接續）、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
 | 角色表現 | 狀態仲裁、系統狀態動作槽、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益 |
 | 設定進度 | 進度清單人話 code；可複製診斷摘要（遮罩路徑）；與 `get_status` 共用 readiness |
 | Agent 整合 | loopback-only MCP（6 工具）、HTTP 事件 API、`voxavatar://`；`get_status` 遮罩 listener 路徑 |
@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`1.0.5`**，正式穩定版為 **[`v1.0.5`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.5)**。本版將已停止支援且帶入高風險 `extract-zip` 的 Electron 39 升級至仍受支援的 Electron 43.4.0；舊 extractor 已從 lockfile 移除，完整 dependency audit 與防回流測試納入日常 gate。正式 runner 完成授權資產 gate、Node 24 check、Windows native build／self-test 與 NSIS；installer 的 GitHub digest、checksum 與本機 SHA-256 一致。Windows 11、225% DPI 的乾淨 per-user 安裝另確認 AvatarSample_A 預設、0 個自訂模型／動作，以及 Settings MCP 線上／就緒、6 工具／12 動作。內建的 4 個 VRM／13 個 VRMA 均經逐檔授權、品質 `keep` 與 digest 查核。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`；未取得證據的完整 DPI／SmartScreen／簽署／exporter 子項仍明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`1.0.6`**；尚未建立本版 Release，正式穩定版仍為 **[`v1.0.5`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.5)**。1.0.6 新增可逐類型勾選的「待機池」：預設輪播所有非說話動作，Speaking／TALK 與綁定 Speaking 的動作固定排除。v1.0.5 將已停止支援且帶入高風險 `extract-zip` 的 Electron 39 升級至仍受支援的 Electron 43.4.0；舊 extractor 已從 lockfile 移除，完整 dependency audit 與防回流測試納入日常 gate。正式 runner 完成授權資產 gate、Node 24 check、Windows native build／self-test 與 NSIS；installer 的 GitHub digest、checksum 與本機 SHA-256 一致。Windows 11、225% DPI 的乾淨 per-user 安裝另確認 AvatarSample_A 預設、0 個自訂模型／動作，以及 Settings MCP 線上／就緒、6 工具／12 動作。內建的 4 個 VRM／13 個 VRMA 均經逐檔授權、品質 `keep` 與 digest 查核。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`；未取得證據的完整 DPI／SmartScreen／簽署／exporter 子項仍明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

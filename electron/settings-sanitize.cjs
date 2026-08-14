@@ -2,6 +2,7 @@
 
 const {
   ANIMATION_NAME_PATTERN,
+  LIBRARY_ID_PATTERN,
 } = require("./library-catalog.cjs");
 const {
   ANIMATION_PURPOSE,
@@ -248,6 +249,19 @@ function sanitizeStateSlotBindings(raw) {
   return sanitized;
 }
 
+function sanitizeIdlePoolExcludedAnimationIds(raw) {
+  if (!Array.isArray(raw)) return [];
+  return [
+    ...new Set(
+      raw.filter(
+        (value) =>
+          typeof value === "string" &&
+          LIBRARY_ID_PATTERN.test(value),
+      ),
+    ),
+  ];
+}
+
 module.exports = {
   ASSET_ID_PATTERN,
   CHARACTER_STATE_KEYS,
@@ -260,6 +274,7 @@ module.exports = {
   normalizeClipNameCandidate,
   roundedLightingNumber,
   sanitizeAnimationClips,
+  sanitizeIdlePoolExcludedAnimationIds,
   sanitizeModelLighting,
   sanitizeModels,
   sanitizeSourceBasename,

@@ -68,6 +68,7 @@ function createIpcHarness(overrides = {}) {
       deleteAllUserAnimationClips: () => snapshot,
       setDefaultModel: () => snapshot,
       setCharacterSize: () => snapshot,
+      setIdlePoolAnimationEnabled: () => snapshot,
       setIdleRestMs: () => snapshot,
       setUiLocale: () => snapshot,
       setVoiceSource: () => snapshot,
@@ -164,6 +165,7 @@ test("registerSettingsIpc registers the bulk of settings channels", () => {
       deleteAllUserAnimationClips: () => ({}),
       setDefaultModel: () => ({}),
       setCharacterSize: () => ({}),
+      setIdlePoolAnimationEnabled: () => ({}),
       setIdleRestMs: () => ({}),
       setUiLocale: () => ({}),
       setVoiceSource: () => ({}),
@@ -237,6 +239,7 @@ test("registerSettingsIpc registers the bulk of settings channels", () => {
     "voxavatar:settings-reveal-path",
     "voxavatar:settings-set-character-size",
     "voxavatar:settings-set-default-model",
+    "voxavatar:settings-set-idle-pool-animation-enabled",
     "voxavatar:settings-set-idle-rest-ms",
     "voxavatar:settings-set-mcp-show-message-enabled",
     "voxavatar:settings-set-model-lighting",
@@ -325,6 +328,10 @@ test("registerSettingsIpc forwards unassigned pool and purpose handlers", async 
       deleteAllUserAnimationClips: () => snapshot,
       setDefaultModel: () => snapshot,
       setCharacterSize: () => snapshot,
+      setIdlePoolAnimationEnabled: (...args) => {
+        calls.push(["setIdlePoolAnimationEnabled", ...args]);
+        return snapshot;
+      },
       setIdleRestMs: () => snapshot,
       setUiLocale: () => snapshot,
       setVoiceSource: () => snapshot,
@@ -421,6 +428,12 @@ test("registerSettingsIpc forwards unassigned pool and purpose handlers", async 
     ),
     snapshot,
   );
+  assert.equal(
+    await registered.get(
+      "voxavatar:settings-set-idle-pool-animation-enabled",
+    )(event, "anim-1", false),
+    snapshot,
+  );
 
   assert.deepEqual(calls, [
     ["addUnassignedClips", ["C:\\clips\\a.vrma"]],
@@ -436,6 +449,8 @@ test("registerSettingsIpc forwards unassigned pool and purpose handlers", async 
     ["updateClipsPurpose", [{ clipId: "clip-1", pool: true }], "loop"],
     ["publish", snapshot],
     ["updateAnimationClip", "anim-1", "clip-1", { clip_name: "renamed" }],
+    ["publish", snapshot],
+    ["setIdlePoolAnimationEnabled", "anim-1", false],
     ["publish", snapshot],
   ]);
 });

@@ -5,6 +5,8 @@
 ## 現有能力
 
 - Settings 可為 Idle、Speaking 與自訂動作加入一個或多個 `.vrma`。
+- 待機池由**所有可播放且未被使用者排除的非說話動作**組成，不限於 `IDLE` 或預設內建名稱。Settings「待機池」逐一列出動作種類，預設全部非說話種類都勾選；使用者可取消不適合自動待機的動作。
+- `TALK`、Speaking 槽與目前綁定 Speaking 的動作是硬性排除，UI 固定為未勾且不可操作。若要讓該動作進待機池，須先解除 Speaking 綁定、重新分類或另建動作；不提供同時標成 Speaking 又允許待機的矛盾狀態。
 - 選片用**洗牌袋**（`src/motion-shuffle-bag.ts`）：把整池洗成一輪依序播完，再自動重洗開下一輪，因此一輪內每支各播一次、看完整池所需次數等於池大小。重洗時若新一輪第一支等於上一輪最後一支會交換，跨輪接縫不連播同一支；池變動即重建當前輪次。輪次永不結束，沒有「播完就停」的狀態。Idle、Speaking 與自訂動作依動作類型各自維護獨立輪次。
 - Idle 每段以 `once` 播完後依「待機動作間隔」停在最後一幀再播下一段（預設約 8 秒，不是當機）。實作重用 clip／action，並有完成逾時後備，避免長跑後永久停住。
 - Speaking 由語音輸出音量觸發，走同一套輪次：每段 `once` 播完直接接續下一段，**不套用待機間隔**（說話中間停住 8 秒不是預期行為）。判斷集中在 `shouldCycleRandomMotions`（IDLE／TALK 才輪播，空池不輪播）與 `motionRestMsForAnimation`（TALK 停頓 0，其餘沿用 `idle_rest_ms`）。
@@ -152,7 +154,7 @@ MCP 工具 `show_message` 已提供：參數只含 `text`、可選 `duration_ms`
 ## 驗證
 
 - 狀態仲裁、TTL、佇列、Unicode 長度與輸入拒絕採純邏輯測試。
-- 動作輪播：`shouldCycleRandomMotions`／`motionRestMsForAnimation`／`isSystemSlotFallbackMotion` 有純邏輯迴歸測試（涵蓋預設綁定三狀態、空池、TALK 停頓為 0）；洗牌袋另有整輪覆蓋、連續多輪、跨輪接縫、池變動重建、單片段／空池與亂數防禦契約測。1.0 候選已在 Windows 實機確認 Idle／Speaking 可播放且有可見動作；因 UI／MCP 不暴露當前 clip ID，整輪不重複仍只由契約測證明，見 [`ROADMAP.md`](../ROADMAP.md) 驗證缺口。
+- 動作輪播：`ambientIdleMotionUrls` 覆蓋所有非說話動作、使用者排除、TALK 與 Speaking 綁定排除；待機池 UI、schema 12 migration、sanitize、store、IPC 與 preload 另有 static／互動／Node 契約測。`shouldCycleRandomMotions`／`motionRestMsForAnimation`／`isSystemSlotFallbackMotion` 涵蓋預設綁定三狀態、空池與 TALK 停頓為 0；洗牌袋另有整輪覆蓋、連續多輪、跨輪接縫、池變動重建、單片段／空池與亂數防禦契約測。1.0 候選已在 Windows 實機確認 Idle／Speaking 可播放且有可見動作；因 UI／MCP 不暴露當前 clip ID，整輪不重複仍只由契約測證明，見 [`ROADMAP.md`](../ROADMAP.md) 驗證缺口。
 - 口型增益純函式見 `src/lip-sync-gain.ts`；頭部錨點／投影見 `src/head-projection.ts` 與 `src/vrm-head-bones.ts`（Scene 已接 VRM bone；DPI 實機仍標未驗）。
 - Settings 狀態槽／品質門檻／語音模式與氣泡錨點有 jsdom 互動測；目錄／action-pack partial failure 有可見 notice；動作頁未分類池／批次用途／依檔名分槽有 static＋互動測；模型匯入 `form-actions` 有契約測。
 - 離線 `vrma:curate`（inspect／rename／verify-names）有 Node 測試；Speaking 第二層 bone 套用與系統匣頂層選單骨架有純邏輯測；真實素材只記授權清楚的人工結果。

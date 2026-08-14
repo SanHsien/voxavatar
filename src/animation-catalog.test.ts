@@ -59,6 +59,7 @@ describe('VoxAvatar animation contract', () => {
   it('plays the whole ambient pool before repeating any clip', () => {
     const pool = ambientIdleMotionUrls([
       {
+        id: 'idle',
         animation_name: 'idle',
         animation_type: 'IDLE',
         asset_urls: ['idle-a.vrma', 'idle-b.vrma', 'idle-c.vrma'],
@@ -74,32 +75,81 @@ describe('VoxAvatar animation contract', () => {
     expect(new Set(drawn)).toEqual(new Set(pool));
   });
 
-  it('builds an ambient idle pool from non-talk motions without duplicates', () => {
+  it('builds an ambient idle pool from every non-talk motion without duplicates', () => {
     const animations = [
       {
+        animation_name: 'idle',
         animation_type: 'IDLE',
         asset_urls: ['idle-a.vrma', 'idle-b.vrma'],
       },
       {
+        id: 'greeting',
+        animation_name: 'greeting',
         animation_type: 'GREETING',
         asset_urls: ['wave.vrma'],
       },
       {
+        id: 'speaking',
+        animation_name: 'speaking',
         animation_type: 'TALK',
         asset_urls: ['talk.vrma'],
       },
       {
+        id: 'happy',
+        animation_name: 'happy',
         animation_type: 'HAPPY',
         asset_urls: ['wave.vrma', 'happy.vrma'],
       },
+      {
+        id: 'review-phone',
+        animation_name: 'review-phone',
+        animation_type: null,
+        asset_urls: ['review-phone.vrma'],
+      },
+      {
+        id: 'failed-apology',
+        animation_name: 'failed-apology',
+        animation_type: null,
+        asset_urls: ['failed-apology.vrma'],
+      },
     ] as VoxAvatarAnimationSettings[];
 
-    expect(ambientIdleMotionUrls(animations)).toEqual([
+    expect(ambientIdleMotionUrls(animations, {}, ['failed-apology'])).toEqual([
       'idle-a.vrma',
       'idle-b.vrma',
       'wave.vrma',
       'happy.vrma',
+      'review-phone.vrma',
     ]);
+  });
+
+  it('excludes a custom action explicitly assigned to the speaking state', () => {
+    const animations = [
+      {
+        id: 'idle',
+        animation_name: 'idle',
+        animation_type: 'IDLE',
+        asset_urls: ['idle.vrma'],
+      },
+      {
+        id: 'conversation-gesture',
+        animation_name: 'conversation-gesture',
+        animation_type: null,
+        asset_urls: ['conversation-a.vrma', 'conversation-b.vrma'],
+      },
+      {
+        id: 'walk',
+        animation_name: 'walk',
+        animation_type: null,
+        asset_urls: ['walk.vrma'],
+      },
+    ] as VoxAvatarAnimationSettings[];
+
+    expect(
+      ambientIdleMotionUrls(animations, {
+        speaking: 'conversation-gesture',
+      }),
+    ).toEqual(['idle.vrma', 'walk.vrma']);
   });
 
   it('combines every configured asset for the same live role', () => {

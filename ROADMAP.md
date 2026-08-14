@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-14
-規劃基準：`1.0.5`（`main`；GitHub Latest Release：`v1.0.5`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`1.0.6`（`main`；GitHub Latest Release：`v1.0.5`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,7 +11,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`1.0.5`／`main`；GitHub Latest Release：`v1.0.5`
+覆核基準：`1.0.6`／`main`；GitHub Latest Release：`v1.0.5`
 
 沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。`1.0.4` 在 `main` 納入 4 個可再配布且品質 100／`keep` 的 VRM，以及 13 個來源明示 CC0、品質 78–100／`keep` 的 VRMA；上游 18 個未授權 VRMA 與本機 10 個只有 `review` 的動作仍排除。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。一般上游程式評估水位仍為 `152b1b4`（2026-08-10；素材 #17 的重新判定見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
 
@@ -21,6 +21,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - 上游：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
+- 1.0.6 的待機池預設納入所有非說話動作，可在 Settings 依動作種類取消；`TALK`、Speaking 槽及其綁定動作強制排除。schema 12、store／IPC／preload 與 renderer 互動均有契約測。
 
 1.0.4 候選曾以 Node 24.19.0 完成 lint、305 個 Node 測試、152 個 renderer 測試、production build、資產 release gate 與本機 `electron-builder` NSIS 打包；封裝內容為精確 4 個 VRM／13 個 VRMA。正式 Release workflow `31795033665` 後續完成授權資產 gate、Node 24 check、Windows native build、NSIS 打包與發布；下載檔 SHA-256 與兩路 `NotSigned` 證據已核對。Windows 11、225% DPI fresh-userData 已顯示 AvatarSample_A 並列出完整 catalog；正式安裝／升級、100%／150% DPI、另 3 模型切換與逐片段播放仍不擴大宣稱。
 
@@ -72,6 +73,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v1.0.3 | `v1.0.2` runner／Latest／正式升級與 MCP 修正實機證據收尾 |
 | v1.0.4 | 4 個品質 `keep` 的已授權 VRM、13 個品質 `keep` 的 CC0 VRMA、逐檔 SHA-256 發行 gate；未授權與 `review` 媒體排除 |
 | v1.0.5 | 升級至受支援的 Electron 43；移除易受 symlink path traversal 影響的 `extract-zip`；完整 dependency audit 納入 CI；正式乾淨安裝與 MCP smoke |
+| v1.0.6 | 可設定的非說話待機池；Speaking／TALK 與其綁定動作強制排除；schema 12 持久化與 UI／IPC 契約 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -86,6 +88,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [x] Settings notice 遮罩；tip evidence 不虛構 tag；雙軌 redact fixture；確認對話／listener pattern／TTL 抽出；format／rate-limit／IPC 頻道窮舉契約。
 - [x] `evidence:verify`／PE NotSigned；`--emit-error`；Event 獨立碼；smoke 子項；exporter schema；30%／idle／theme 契約。
 - [x] Idle／Speaking 輪播：`shouldCycleRandomMotions`、`motionRestMsForAnimation`、`isSystemSlotFallbackMotion` 與洗牌袋（整輪覆蓋／跨輪接縫／池變動／亂數防禦）純邏輯契約（實機觀察見驗證缺口表）。
+- [x] 待機池：所有非說話動作預設納入、使用者排除可持久化；Speaking／TALK 與其綁定動作不可啟用，具 static／互動／migration／IPC 契約測。
 
 ### 仍待／未驗（實機、密鑰或授權樣本阻塞）
 

@@ -12,6 +12,7 @@ import {
   type ActionPresetDefinition,
 } from '../../action-presets';
 import { SettingsQualityGatePanel } from './SettingsQualityGatePanel';
+import { SettingsIdlePoolPanel } from './SettingsIdlePoolPanel';
 
 type SettingsBridge = NonNullable<Window['voxavatarSettings']>;
 type ClipPurpose = VoxAvatarAnimationClipSettings['purpose'];
@@ -117,6 +118,10 @@ export interface SettingsAnimationsSectionProps {
   ) => Promise<void>;
   resetPackagedAnimations: () => void;
   saveAnimation: () => Promise<void>;
+  setIdlePoolAnimationEnabled: (
+    animation: VoxAvatarAnimationSettings,
+    enabled: boolean,
+  ) => Promise<void>;
   selectedActionPresetId: string | null;
   setAnimationMetadata: Dispatch<SetStateAction<CustomAnimationMetadata>>;
   setEditingAnimationId: (id: string | null) => void;
@@ -218,6 +223,7 @@ export function SettingsAnimationsSection({
   reorderAnimationClip,
   resetPackagedAnimations,
   saveAnimation,
+  setIdlePoolAnimationEnabled,
   selectedActionPresetId,
   setAnimationMetadata,
   setEditingAnimationId,
@@ -629,6 +635,16 @@ export function SettingsAnimationsSection({
           {t('actions.createButton')}
         </button>
       </section>
+
+      <SettingsIdlePoolPanel
+        animations={settings.animations}
+        bindings={settings.state_slot_bindings}
+        busy={busy}
+        excludedAnimationIds={settings.idle_pool_excluded_animation_ids}
+        onSetEnabled={setIdlePoolAnimationEnabled}
+        setterAvailable={Boolean(bridge?.setIdlePoolAnimationEnabled)}
+        t={t}
+      />
 
       <section className="settings-panel unassigned-pool-panel">
         <div className="panel-heading">

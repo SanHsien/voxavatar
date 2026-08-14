@@ -208,6 +208,8 @@ const ZH_TW: MessageDictionary = {
   'notice.packagedRestored': '內建動作已還原。',
   'notice.characterSizeSet': '預設角色大小已設為 {percent}%。',
   'notice.idleRestSet': '待機動作間隔已設為 {seconds} 秒。',
+  'notice.idlePoolIncluded': '「{name}」已加入待機池。',
+  'notice.idlePoolExcluded': '「{name}」已移出待機池。',
   'notice.mcpShowMessageEnabled': '已允許 AI 顯示訊息氣泡。',
   'notice.mcpShowMessageDisabled': '已關閉 AI 訊息氣泡。',
   'notice.uiLocaleZh': '介面語系已設為繁體中文。',
@@ -282,7 +284,7 @@ const ZH_TW: MessageDictionary = {
 
   'actions.idleGuideTitle': '更豐富的待機動作',
   'actions.idleGuideDesc':
-    '安裝包已內建通過授權與品質評比的 Idle 動作。若想增加變化，可再匯入有權使用的 .vrma 並加入 Idle；待機時有多個片段會隨機抽播。',
+    '待機時會輪播待機池內所有有素材的非說話動作。Speaking／TALK 與綁定 Speaking 的動作固定排除；其他不適合自動播放的種類可在待機池取消勾選。',
   'actions.idleGuideStep1Prefix':
     '從 BOOTH 取得 VRoid 免費 Photo Booth 組',
   'actions.idleGuideStep1Suffix':
@@ -295,6 +297,12 @@ const ZH_TW: MessageDictionary = {
   'actions.assignByFilename': '依檔名建議分槽…',
   'actions.assignByFilenameHint':
     '選多個 VRMA 後，依檔名與白名單建議加入既有動作（須確認；不明確則略過）。正式分槽仍建議用 action-pack。',
+  'actions.idlePoolTitle': '待機池',
+  'actions.idlePoolDesc':
+    '預設勾選所有非說話動作種類。Speaking／TALK 與綁定 Speaking 的動作強制排除；取消其他種類可避免不適合的內容在待機時自動播放。',
+  'actions.idlePoolIncluded': '納入待機輪播',
+  'actions.idlePoolExcluded': '不在待機輪播',
+  'actions.idlePoolSpeakingExcluded': '已排除（Speaking／TALK）',
   'actions.clipsManageHint':
     '點片段或「預覽」可在右側預覽播放；「編輯」可改顯示名稱、用途（loop／one-shot／pose）、移至其他動作或未分類池。磁碟檔名會與顯示名稱同步（可讀名稱＋短 ID）。',
   'actions.previewButton': '預覽',
@@ -795,6 +803,8 @@ const EN: MessageDictionary = {
   'notice.packagedRestored': 'Packaged animation actions restored.',
   'notice.characterSizeSet': 'Default character size set to {percent}%.',
   'notice.idleRestSet': 'Idle motion gap set to {seconds}s.',
+  'notice.idlePoolIncluded': 'Added “{name}” to the idle pool.',
+  'notice.idlePoolExcluded': 'Removed “{name}” from the idle pool.',
   'notice.mcpShowMessageEnabled': 'AI message bubbles enabled.',
   'notice.mcpShowMessageDisabled': 'AI message bubbles disabled.',
   'notice.uiLocaleZh': 'Menu language set to Traditional Chinese.',
@@ -870,7 +880,7 @@ const EN: MessageDictionary = {
 
   'actions.idleGuideTitle': 'Richer idle motions',
   'actions.idleGuideDesc':
-    'The installer includes a license-cleared, quality-reviewed Idle clip. To add variety, import .vrma files you have the right to use and add them to Idle; VoxAvatar randomly selects among available clips.',
+    'While idle, VoxAvatar rotates every playable non-speaking action selected in the idle pool. Speaking/TALK and actions bound to Speaking are always excluded; uncheck any other action type that should not autoplay.',
   'actions.idleGuideStep1Prefix':
     'Get VRoid’s free Photo Booth set from',
   'actions.idleGuideStep1Suffix':
@@ -883,6 +893,12 @@ const EN: MessageDictionary = {
   'actions.assignByFilename': 'Assign by filename…',
   'actions.assignByFilenameHint':
     'Pick multiple VRMA files; whitelist/name matches suggest existing actions (confirm required; unclear files skipped). Prefer action-pack for explicit mapping.',
+  'actions.idlePoolTitle': 'Idle pool',
+  'actions.idlePoolDesc':
+    'All non-speaking action types are selected by default. Speaking/TALK and actions bound to Speaking are always excluded; uncheck any other type that should not autoplay while idle.',
+  'actions.idlePoolIncluded': 'Included in idle rotation',
+  'actions.idlePoolExcluded': 'Not in idle rotation',
+  'actions.idlePoolSpeakingExcluded': 'Excluded (Speaking/TALK)',
   'actions.clipsManageHint':
     'Click a clip or Preview to play on the right. Edit renames the display name, sets purpose (loop / one-shot / pose), moves to another action or the unassigned pool. The on-disk filename stays in sync (readable name + short id).',
   'actions.previewButton': 'Preview',

@@ -46,6 +46,7 @@ function noopProps(
     reorderAnimationClip: vi.fn(),
     resetPackagedAnimations: vi.fn(),
     saveAnimation: vi.fn(),
+    setIdlePoolAnimationEnabled: vi.fn(),
     selectedActionPresetId: null,
     setAnimationMetadata: vi.fn(),
     setEditingAnimationId: vi.fn(),
@@ -76,6 +77,42 @@ describe('SettingsAnimationsSection', () => {
     expect(html).toContain(t('actions.assignByFilename'));
     expect(html).toContain(t('actions.assignByFilenameHint'));
     expect(html).toContain('disabled');
+  });
+
+  it('lists action types in an explicit ambient idle pool', () => {
+    const t = (key: string, vars?: Record<string, string | number>) =>
+      settingsT('zh-TW', key, vars);
+    const custom: VoxAvatarAnimationSettings = {
+      id: 'custom-context',
+      animation_name: 'context-only',
+      animation_description: 'Only for an explicit context.',
+      animation_trigger_scenario: 'When explicitly requested.',
+      animation_type: null,
+      origin: 'user',
+      system: false,
+      editable: true,
+      modified: false,
+      removable: true,
+      clips: [],
+      asset_urls: [],
+    };
+    const settings: VoxAvatarSettingsSnapshot = {
+      ...SETTINGS_FALLBACK,
+      animations: [...SETTINGS_FALLBACK.animations, custom],
+    };
+    const html = renderToStaticMarkup(
+      <SettingsAnimationsSection
+        {...noopProps({
+          settings,
+          t,
+        })}
+      />,
+    );
+
+    expect(html).toContain(t('actions.idlePoolTitle'));
+    expect(html).toContain(t('actions.idlePoolDesc'));
+    expect(html).toContain('context-only');
+    expect(html).toContain(t('actions.idlePoolSpeakingExcluded'));
   });
 
   it('lists pool clips and batch purpose toolbar when clips exist', () => {

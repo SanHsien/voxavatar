@@ -279,8 +279,17 @@ export function App() {
   }, [defaultModel?.id]);
 
   const ambientUrls = useMemo(
-    () => ambientIdleMotionUrls(settings.animations),
-    [settings.animations],
+    () =>
+      ambientIdleMotionUrls(
+        settings.animations,
+        settings.state_slot_bindings,
+        settings.idle_pool_excluded_animation_ids,
+      ),
+    [
+      settings.animations,
+      settings.idle_pool_excluded_animation_ids,
+      settings.state_slot_bindings,
+    ],
   );
   const roleUrls = useMemo(
     () => animationUrlsForType(settings.animations, animation),

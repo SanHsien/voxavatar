@@ -262,6 +262,57 @@ test("imports, persists, resolves, and deletes user assets", (context) => {
   );
 });
 
+test("persists which action types are excluded from ambient idle rotation", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+
+  let snapshot = store.createAnimation({
+    animation_name: "context-only",
+    animation_description: "Only play for an explicit context.",
+    animation_trigger_scenario: "Use only when explicitly requested.",
+  });
+  const action = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "context-only",
+  );
+  assert.deepEqual(snapshot.idle_pool_excluded_animation_ids, []);
+
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled(action.id, "false"),
+    /must be a boolean/,
+  );
+  assert.deepEqual(
+    store.getSnapshot().idle_pool_excluded_animation_ids,
+    [],
+  );
+
+  snapshot = store.setIdlePoolAnimationEnabled(action.id, false);
+  assert.deepEqual(snapshot.idle_pool_excluded_animation_ids, [action.id]);
+
+  const reloaded = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.deepEqual(reloaded.idle_pool_excluded_animation_ids, [action.id]);
+  assert.deepEqual(
+    store.setIdlePoolAnimationEnabled(action.id, true)
+      .idle_pool_excluded_animation_ids,
+    [],
+  );
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled("system-speaking", true),
+    /Speaking\/TALK/,
+  );
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled("missing-action", true),
+    /not installed/,
+  );
+  store.setStateSlotBinding("speaking", action.animation_name);
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled(action.id, true),
+    /Speaking\/TALK/,
+  );
+});
+
 test("keeps user library records when migrating the earlier settings schema", (context) => {
   const { userDataPath, packagedLibraryPath } = fixture(context);
   const modelId = "11111111-1111-4111-8111-111111111111";
@@ -298,7 +349,7 @@ test("keeps user library records when migrating the earlier settings schema", (c
   );
 
   const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.equal(snapshot.default_model_id, modelId);
   assert.equal(snapshot.character_size, 1.15);
   assert.ok(snapshot.models.some((model) => model.id === modelId));
@@ -661,7 +712,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     mode: "custom",
     process_pattern: "  local-tts|open-webui  ",
   });
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.equal(snapshot.idle_rest_ms, 8000);
   assert.deepEqual(snapshot.voice_source, {
     mode: "custom",
@@ -704,7 +755,7 @@ test("persists a custom voice source and migrates older settings to schema 6", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 11);
+  assert.equal(migrated.schema_version, 12);
   assert.equal(migrated.idle_rest_ms, 8000);
   assert.deepEqual(migrated.voice_source, {
     mode: "default",
@@ -842,6 +893,9 @@ function installFixtureSettings(context, fixtureName) {
       writeGlb(path.join(animationDirectory, clip.stored_filename));
     }
   }
+  for (const clip of legacy.unassigned_clips ?? []) {
+    writeGlb(path.join(animationDirectory, clip.stored_filename));
+  }
 
   fs.writeFileSync(
     path.join(userDataPath, "settings.json"),
@@ -860,7 +914,7 @@ test("migrates schema 4 fixture through legacy animation clip grouping", (contex
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.ok(snapshot.models.some((model) => model.id === legacy.models[0].id));
@@ -886,7 +940,7 @@ test("migrates schema 5 fixture while preserving split animation metadata and cl
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.equal(snapshot.character_size, legacy.character_size);
   assert.equal(snapshot.ui_locale, "en");
@@ -924,7 +978,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
   const readResult = safeReadState(settingsPath, packagedLibrary);
   assert.equal(readResult.migration_error, "unsupported_schema");
   assert.equal(readResult.migrated, false);
-  assert.equal(readResult.state.schema_version, 11);
+  assert.equal(readResult.state.schema_version, 12);
   assert.deepEqual(readResult.state.models, []);
   assert.equal(
     fs.existsSync(`${settingsPath}.unmigratable-backup`),
@@ -939,7 +993,7 @@ test("backs up unmigratable settings and falls back without blocking the store",
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.deepEqual(snapshot.models, []);
 });
 
@@ -1056,7 +1110,7 @@ test("persists state_slot_bindings and migrates schema 8 with empty bindings", (
   const packagedLibraryPath = writePackagedLibrary(root);
   const store = createSettingsStore({ userDataPath, packagedLibraryPath });
   let snapshot = store.getSnapshot();
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.deepEqual(snapshot.state_slot_bindings, {});
 
   snapshot = store.createAnimation({
@@ -1092,7 +1146,7 @@ test("persists state_slot_bindings and migrates schema 8 with empty bindings", (
     userDataPath,
     packagedLibraryPath,
   }).getSnapshot();
-  assert.equal(migrated.schema_version, 11);
+  assert.equal(migrated.schema_version, 12);
   assert.deepEqual(migrated.state_slot_bindings, {});
 });
 
@@ -1214,7 +1268,7 @@ test("adds unassigned clips to the pool and assigns them to actions", (context) 
   writeGlb(sourceB);
 
   let snapshot = store.addUnassignedClips([sourceA, sourceB]);
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.equal(snapshot.unassigned_clips.length, 2);
   const poolClip = snapshot.unassigned_clips[0];
   assert.ok(poolClip);
@@ -1356,7 +1410,7 @@ test("updateUnassignedClip renames disk file; delete and move-to-pool round-trip
   );
 });
 
-test("migrates schema 10 fixture to schema 11 with empty unassigned pool", (context) => {
+test("migrates schema 10 fixture to schema 12 with empty unassigned pool", (context) => {
   const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
     context,
     "settings-schema-10.json",
@@ -1366,7 +1420,7 @@ test("migrates schema 10 fixture to schema 11 with empty unassigned pool", (cont
     packagedLibraryPath,
   }).getSnapshot();
 
-  assert.equal(snapshot.schema_version, 11);
+  assert.equal(snapshot.schema_version, 12);
   assert.equal(snapshot.default_model_id, legacy.default_model_id);
   assert.deepEqual(snapshot.unassigned_clips, []);
   assert.equal(snapshot.state_slot_bindings.working, "wave-soft");
@@ -1376,4 +1430,47 @@ test("migrates schema 10 fixture to schema 11 with empty unassigned pool", (cont
   assert.ok(animation);
   assert.equal(animation.clips[0]?.purpose, "one-shot");
   assert.equal(animation.clips[0]?.source_basename, "Wave Soft.vrma");
+});
+
+test("migrates populated schema 11 settings without losing existing data", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-11.json",
+  );
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.getSnapshot();
+
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.equal(snapshot.character_size, legacy.character_size);
+  assert.equal(snapshot.ui_locale, legacy.ui_locale);
+  assert.equal(snapshot.models[0]?.model_name, legacy.models[0].model_name);
+  assert.equal(snapshot.animations[0]?.animation_name, "idle");
+  const custom = snapshot.animations.find(
+    (animation) => animation.animation_name === "wave-soft",
+  );
+  assert.ok(custom);
+  assert.equal(custom?.clips[0]?.source_basename, "Wave Soft.vrma");
+  assert.equal(snapshot.unassigned_clips[0]?.animation_name, "pool-motion");
+  assert.equal(snapshot.unassigned_clips[0]?.purpose, "pose");
+  assert.equal(snapshot.model_lighting[legacy.default_model_id].exposure, 1.25);
+  assert.equal(snapshot.voice_source.mode, "external");
+  assert.equal(snapshot.vrma_quality_gate, "report");
+  assert.equal(snapshot.vrma_quality_reject_below, 62);
+  assert.equal(snapshot.vrma_quality_keep_at_least, 80);
+  assert.equal(snapshot.idle_rest_ms, 15000);
+  assert.equal(snapshot.mcp_show_message_enabled, true);
+  assert.equal(snapshot.state_slot_bindings.working, "wave-soft");
+  assert.deepEqual(snapshot.idle_pool_excluded_animation_ids, []);
+
+  const rewritten = JSON.parse(
+    fs.readFileSync(path.join(userDataPath, "settings.json"), "utf8"),
+  );
+  assert.equal(rewritten.schema_version, 12);
+  assert.equal(rewritten.models[0].model_name, legacy.models[0].model_name);
+  assert.equal(rewritten.animations[0].animation_name, "wave-soft");
+  assert.equal(rewritten.animation_clips[custom.id][0].purpose, "one-shot");
+  assert.equal(rewritten.unassigned_clips[0].clip_name, "pool-motion");
+  assert.equal(rewritten.mcp_show_message_enabled, true);
+  assert.deepEqual(rewritten.idle_pool_excluded_animation_ids, []);
 });

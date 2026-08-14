@@ -24,24 +24,40 @@ export function animationUrlsForType(
     .flatMap((animation) => animation.asset_urls);
 }
 
-/** Idle 待機可隨機輪播的動作池：Idle＋其他非說話類（有素材才進池）。 */
-const AMBIENT_IDLE_TYPES = new Set<VoxAvatarAnimationType>([
-  'IDLE',
-  'GREETING',
-  'HAPPY',
-  'FINGER_GUN',
-  'DANCE',
-]);
+export function isForcedSpeakingIdleAction(
+  animation: Pick<
+    VoxAvatarAnimationSettings,
+    'animation_name' | 'animation_type'
+  >,
+  bindings: VoxAvatarStateSlotBindings = {},
+): boolean {
+  const speakingName =
+    typeof bindings.speaking === 'string'
+      ? bindings.speaking.trim().toLowerCase()
+      : null;
+  return (
+    animation.animation_type === 'TALK' ||
+    (speakingName != null &&
+      animation.animation_name.trim().toLowerCase() === speakingName)
+  );
+}
 
+/**
+ * Idle 待機可隨機輪播的動作池。
+ * 預設納入所有有素材的非說話動作；TALK、Speaking 狀態槽與使用者取消的種類排除。
+ */
 export function ambientIdleMotionUrls(
   animations: readonly VoxAvatarAnimationSettings[],
+  bindings: VoxAvatarStateSlotBindings = {},
+  excludedAnimationIds: readonly string[] = [],
 ): string[] {
   const urls: string[] = [];
   const seen = new Set<string>();
+  const excludedIds = new Set(excludedAnimationIds);
   for (const animation of animations) {
     if (
-      !animation.animation_type ||
-      !AMBIENT_IDLE_TYPES.has(animation.animation_type)
+      isForcedSpeakingIdleAction(animation, bindings) ||
+      excludedIds.has(animation.id)
     ) {
       continue;
     }

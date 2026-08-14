@@ -125,6 +125,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 - **動作↔VRMA 自動對應**：正式來源是 action-pack 明示 `files`／`state_slot`／`purpose`（匯入時寫入 clip purpose）與狀態槽同名預選。可選「依檔名白名單建議分槽」須使用者確認；**禁止**以品質分數、動作特徵、聊天／情緒／音訊內容語意猜分槽。
 - **選片採洗牌袋，不用純隨機**：整池洗成一輪依序播完再重洗，一輪內每支各播一次。純隨機（每次重抽、只排除上一支）覆蓋率太差——45 支的池平均要約 300 次才會全部看過，且會近距重複。重洗檢查跨輪接縫、池變動即重建輪次；輪次永不結束。實作見 `src/motion-shuffle-bag.ts`。
 - **輪播是 Idle 與 Speaking 的預設，不是 Idle 專屬**：兩者都以 `once` 播完後取下一支；Speaking 的片段間停頓固定為 0，只有 Idle 套用 `idle_rest_ms`。狀態 override 會停用輪播並改用 `loop`，因此**指回該狀態系統槽的預設綁定不得建立 override**（`isSystemSlotFallbackMotion`）——否則人人都有的預設綁定會把 Idle 鎖在單一片段無限循環（0.16.21／0.16.22 實錯）。契約細節見 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。
+- **待機池採明確排除，不做語意猜測**：所有可播放的非說話動作預設加入，使用者可按動作種類取消；`TALK`、Speaking 槽與其綁定動作強制不可勾。這能讓新動作自動有作用，同時以可測分類邊界避免待機誤播說話手勢；若要改用途，先解除 Speaking 綁定或重新分類，不允許同一動作同時宣告為 Speaking 又進待機池。產品仍不分析 VRMA 骨架或內容猜用途。
 
 ## 4. Electron 與狀態邊界
 
@@ -166,7 +167,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 
 ## 9. Schema 版本政策
 
-- **Settings**（`settings-migration.cjs`）：目前 `schema_version`＝11。允許清單內舊版（1–10）讀取時遷移並寫回；不在清單者備份為 `settings.json.unmigratable-backup` 並回報 `unsupported_schema`。升版須加 migration 路徑與 fixture 測試。schema 10 起使用者 clip 可選存 `source_basename`，並支援更新顯示名稱／用途與跨動作搬移；schema 11 起新增 `unassigned_clips` 未分類片段池，磁碟檔名可為可讀 `{clip_name}--{id8}.vrma` 並與顯示名同步。
+- **Settings**（`settings-migration.cjs`）：目前 `schema_version`＝12。允許清單內舊版（1–11）讀取時遷移並寫回；不在清單者備份為 `settings.json.unmigratable-backup` 並回報 `unsupported_schema`。升版須加 migration 路徑與 fixture 測試。schema 10 起使用者 clip 可選存 `source_basename`，並支援更新顯示名稱／用途與跨動作搬移；schema 11 起新增 `unassigned_clips` 未分類片段池，磁碟檔名可為可讀 `{clip_name}--{id8}.vrma` 並與顯示名同步；schema 12 起保存待機池明確排除的動作 ID。
 - **MCP tools／status**（`mcp-schemas.cjs`）：`tools_schema_version`／`status_schema_version` 隨工具契約變更遞增；成功與失敗皆回結構化 JSON。政策與相容說明見 [`INTEGRATIONS.md`](INTEGRATIONS.md)。
 - **Packaged library／catalog**（`library-catalog.cjs`）：`schema_version` 必須精確等於 `PACKAGED_LIBRARY_SCHEMA_VERSION`（目前為 1）。不支援就地 migration；不匹配直接拒絕載入，避免半套 catalog 污染執行期。升版時改常數並同步 `library.json`／example／測試。
 - **action-pack.json**：獨立 `schema_version`（見 `action-pack.cjs`）；匯入仍走 GLB／路徑／catalog gate，失敗項不覆寫既有動作；`purpose` 寫入對應 clip。

@@ -1278,6 +1278,20 @@ export function SettingsPage() {
     );
   };
 
+  const setIdlePoolAnimationEnabled = async (
+    animation: VoxAvatarAnimationSettings,
+    enabled: boolean,
+  ) => {
+    const setter = bridge?.setIdlePoolAnimationEnabled;
+    if (!setter) return;
+    await run(
+      () => setter(animation.id, enabled),
+      enabled
+        ? t('notice.idlePoolIncluded', { name: animation.animation_name })
+        : t('notice.idlePoolExcluded', { name: animation.animation_name }),
+    );
+  };
+
   const toggleMcpShowMessage = (enabled: boolean) => {
     const setter = bridge?.setMcpShowMessageEnabled;
     if (!setter) return;
@@ -1682,6 +1696,7 @@ export function SettingsPage() {
               reorderAnimationClip={reorderAnimationClip}
               resetPackagedAnimations={resetPackagedAnimations}
               saveAnimation={saveAnimation}
+              setIdlePoolAnimationEnabled={setIdlePoolAnimationEnabled}
               selectedActionPresetId={selectedActionPresetId}
               setAnimationMetadata={setAnimationMetadata}
               setEditingAnimationId={setEditingAnimationId}

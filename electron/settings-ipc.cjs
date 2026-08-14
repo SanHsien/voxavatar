@@ -421,6 +421,13 @@ function registerSettingsIpc({
     publishSettings(settingsStore.setIdleRestMs(ms)),
   );
   handleTrustedSettingsIpc(
+    "voxavatar:settings-set-idle-pool-animation-enabled",
+    (_event, animationId, enabled) =>
+      publishSettings(
+        settingsStore.setIdlePoolAnimationEnabled(animationId, enabled),
+      ),
+  );
+  handleTrustedSettingsIpc(
     "voxavatar:settings-set-mcp-show-message-enabled",
     (_event, enabled) =>
       publishSettings(settingsStore.setMcpShowMessageEnabled(enabled)),

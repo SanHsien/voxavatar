@@ -114,6 +114,12 @@ contextBridge.exposeInMainWorld("voxavatarSettings", {
     ipcRenderer.invoke("voxavatar:settings-set-character-size", size),
   setIdleRestMs: (ms) =>
     ipcRenderer.invoke("voxavatar:settings-set-idle-rest-ms", ms),
+  setIdlePoolAnimationEnabled: (animationId, enabled) =>
+    ipcRenderer.invoke(
+      "voxavatar:settings-set-idle-pool-animation-enabled",
+      animationId,
+      enabled,
+    ),
   setMcpShowMessageEnabled: (enabled) =>
     ipcRenderer.invoke(
       "voxavatar:settings-set-mcp-show-message-enabled",

@@ -148,6 +148,7 @@ test("settings preload exposes management APIs without avatar bridge", async () 
   await settings.deleteAllUserAnimationClips();
   await settings.setDefaultModel("m1");
   await settings.setCharacterSize(0.5);
+  await settings.setIdlePoolAnimationEnabled("happy", false);
   await settings.setIdleRestMs(1000);
   await settings.setUiLocale("zh-TW");
   await settings.getMcpStatus();
@@ -189,6 +190,7 @@ test("settings preload exposes management APIs without avatar bridge", async () 
     "voxavatar:settings-delete-all-user-animation-clips",
     "voxavatar:settings-set-default-model",
     "voxavatar:settings-set-character-size",
+    "voxavatar:settings-set-idle-pool-animation-enabled",
     "voxavatar:settings-set-idle-rest-ms",
     "voxavatar:settings-set-ui-locale",
     "voxavatar:settings-get-mcp-status",

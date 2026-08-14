@@ -1305,6 +1305,49 @@ button {
   margin-top: 8px;
 }
 
+.idle-pool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.idle-pool-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--fill-sunken);
+}
+
+.idle-pool-item input {
+  width: 17px;
+  height: 17px;
+  margin: 2px 0 0;
+  flex: 0 0 auto;
+}
+
+.idle-pool-item span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.idle-pool-item strong,
+.idle-pool-item small {
+  overflow-wrap: anywhere;
+}
+
+.idle-pool-item small {
+  color: var(--text-secondary);
+}
+
+.idle-pool-item:has(input:disabled) {
+  opacity: 0.68;
+}
+
 .state-slot-pack-help {
   margin: 12px 0 4px;
   padding: 10px 12px;

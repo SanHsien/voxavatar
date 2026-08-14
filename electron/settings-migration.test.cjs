@@ -101,3 +101,24 @@ test("safeReadState loads a current schema snapshot", () => {
   assert.equal(result.state.state_slot_bindings.idle, "idle");
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test("safeReadState migrates schema 11 with an empty idle exclusion list", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-migration-"));
+  const settingsPath = path.join(dir, "settings.json");
+  fs.writeFileSync(
+    settingsPath,
+    JSON.stringify({
+      schema_version: 11,
+      models: [],
+      animations: [],
+      animation_clips: {},
+      unassigned_clips: [],
+    }),
+    "utf8",
+  );
+  const result = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(result.migrated, true);
+  assert.equal(result.state.schema_version, SETTINGS_SCHEMA_VERSION);
+  assert.deepEqual(result.state.idle_pool_excluded_animation_ids, []);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

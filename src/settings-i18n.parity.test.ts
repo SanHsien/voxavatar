@@ -52,8 +52,10 @@ describe('settings-i18n parity', () => {
     }
   });
 
-  it('describes the packaged Idle clip in both locales', () => {
-    expect(settingsT('zh-TW', 'actions.idleGuideDesc')).toContain('已內建');
-    expect(settingsT('en', 'actions.idleGuideDesc')).toContain('installer includes');
+  it('describes non-speaking idle rotation and the speaking exclusion', () => {
+    expect(settingsT('zh-TW', 'actions.idleGuideDesc')).toContain('非說話');
+    expect(settingsT('zh-TW', 'actions.idleGuideDesc')).toContain('Speaking');
+    expect(settingsT('en', 'actions.idleGuideDesc')).toContain('non-speaking');
+    expect(settingsT('en', 'actions.idleGuideDesc')).toContain('Speaking');
   });
 });

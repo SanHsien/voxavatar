@@ -7,6 +7,7 @@ const {
   DEFAULT_MODEL_LIGHTING,
   normalizeClipNameCandidate,
   sanitizeAnimationClips,
+  sanitizeIdlePoolExcludedAnimationIds,
   sanitizeModels,
   sanitizeModelLighting,
   sanitizeStateSlotBindings,
@@ -14,6 +15,25 @@ const {
   sanitizeUserAnimations,
   validStoredAsset,
 } = require("./settings-sanitize.cjs");
+
+test("sanitizeIdlePoolExcludedAnimationIds keeps unique valid IDs", () => {
+  const longValidId = `action-${"x".repeat(160)}`;
+  assert.deepEqual(sanitizeIdlePoolExcludedAnimationIds(null), []);
+  assert.deepEqual(
+    sanitizeIdlePoolExcludedAnimationIds([
+      "happy",
+      "happy",
+      "custom-action-2",
+      longValidId,
+      "Uppercase",
+      "Bad Value!",
+      "",
+      42,
+      null,
+    ]),
+    ["happy", "custom-action-2", longValidId],
+  );
+});
 
 test("sanitizeStateSlotBindings returns empty object for non-objects", () => {
   assert.deepEqual(sanitizeStateSlotBindings(null), {});

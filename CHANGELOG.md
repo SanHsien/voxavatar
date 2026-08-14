@@ -2,6 +2,12 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 1.0.6 - 2026-08-14
+
+- 待機不再只從舊的 Idle／Happy 等硬編碼類型取片：所有可播放、未被排除的非說話動作預設進入待機池，內建 catalog 因此可輪播 11 種非說話動作、共 12 支 VRMA。
+- Settings 動作頁新增獨立「待機池」，逐一列出動作種類並讓使用者勾選或取消；`TALK`、Speaking 槽及其綁定動作固定不可勾，若要改作待機用途須先解除 Speaking 綁定或重新分類。
+- Settings schema 升至 12，持久化使用者明確排除的動作 ID；migration、sanitize、store、IPC、preload、renderer 與中英 UI 契約均有回歸測試。
+
 ## 1.0.5 - 2026-08-14
 
 - 將已停止支援且透過 `extract-zip@2.0.1` 暴露 symlink path traversal（GHSA-jmr9-qjv8-65gv）的 Electron 39 升級至仍受支援的 Electron 43.4.0；lockfile 改用 Electron 維護的 `@electron-internal/extract-zip`，舊 `extract-zip` 完全移除。

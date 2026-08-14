@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Machine-readable metadata for the published v1.0.4 release; no formal desktop install or upgrade was executed for this release.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-14T11:20:36.649Z",
+  "release": {
+    "version": "1.0.4",
+    "tag": "v1.0.4",
+    "commitSha": "9a62ebaaab62769a13bf57b6a09a62c9b460fba7",
+    "releaseUrl": "https://github.com/SanHsien/voxavatar/releases/tag/v1.0.4",
+    "githubActionsRunUrl": "https://github.com/SanHsien/voxavatar/actions/runs/31795033665",
+    "hasInstaller": true
+  },
+  "assets": {
+    "installerFilename": "VoxAvatar-1.0.4-windows-x64-setup.exe",
+    "installerSha256": "7dea1f0598d694791d8ec32d473903fbdd92116be0b9c288a507d5f67eee01d3",
+    "installerSizeBytes": 171374566,
+    "checksumsFile": "SHA256SUMS.txt",
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned",
+    "authenticodeEvidence": "pe-certificate-table-empty"
+  },
+  "environment": {
+    "windowsEdition": "GitHub-hosted Windows runner plus local Windows verification",
+    "windowsVersion": null,
+    "windowsBuild": null,
+    "architecture": "x64",
+    "displayScalingPercent": null,
+    "gpu": null
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝",
+      "升級",
+      "移除",
+      "系統匣",
+      "DPI／縮放",
+      "角色尺寸 30%",
+      "語音與 MCP",
+      "簽署標示（NotSigned）",
+      "SmartScreen／publisher"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "pass",
+        "note": "Release workflow 31795033665 在精確 tag SHA 完成授權資產 gate、Node 24 check、Windows native build、NSIS 打包與發布。"
+      },
+      {
+        "id": "install",
+        "section": "安裝",
+        "result": "未驗",
+        "note": "已下載正式 installer 並核對 digest，但本輪沒有執行桌面安裝。"
+      },
+      {
+        "id": "upgrade",
+        "section": "升級",
+        "result": "未驗",
+        "note": "沒有以正式 1.0.4 installer 執行既有安裝升級。"
+      },
+      {
+        "id": "uninstall",
+        "section": "移除",
+        "result": "未驗",
+        "note": "本輪未執行移除。"
+      },
+      {
+        "id": "tray",
+        "section": "系統匣",
+        "result": "未驗",
+        "note": "正式 installer 桌面 smoke 未執行。"
+      },
+      {
+        "id": "dpi_scaling",
+        "section": "DPI／縮放",
+        "result": "部分驗證",
+        "note": "同一 1.0.4 commit 的本機候選已在 Windows 11、225% DPI 顯示 AvatarSample_A 與完整 catalog；100%／150% 未驗。"
+      },
+      {
+        "id": "size_30",
+        "section": "角色尺寸 30%",
+        "result": "未驗",
+        "note": "225%／50% 候選可讀；30% 控制未取得可靠實機結果。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "部分驗證",
+        "note": "同一 1.0.4 commit 的候選通過系統輸出 TTS、speaking/listening 與 loopback MCP；正式 installer 未重跑。"
+      },
+      {
+        "id": "signing_label",
+        "section": "簽署標示（NotSigned）",
+        "result": "pass",
+        "note": "正式 runner 資產經 PowerShell 與 PE Certificate Table 兩路確認 NotSigned。"
+      },
+      {
+        "id": "smartscreen",
+        "section": "SmartScreen／publisher",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；未宣稱 SmartScreen 或具名 publisher。"
+      }
+    ],
+    "notes": "v1.0.4 is the only Latest release/tag. The formal GitHub asset digest, SHA256SUMS.txt, local SHA-256, size, signing state, immutable tag, workflow, licensed-media gate, native build, and NSIS packaging were verified. Formal desktop install/upgrade was not executed and remains explicitly unverified."
+  },
+  "mediaReferences": [
+    "ASSET_LICENSES.md",
+    "public/assets/manifest.json"
+  ],
+  "issues": [],
+  "reviewer": "Codex desktop agent",
+  "reviewedAt": "2026-08-14T11:20:36.649Z"
+}

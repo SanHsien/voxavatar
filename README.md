@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`1.0.4`**（尚未 Release）；目前正式穩定版為 **[`v1.0.2`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.2)**。Windows-only、local-first 的產品與整合契約已穩定，並在 Windows 11、225% DPI 完成 GUI／WASAPI／MCP／安全邊界實機 smoke；正式 runner installer 的 digest、checksum、本機 SHA-256、`1.0.0`→`1.0.2` 桌面升級、資料保留與 MCP「線上／就緒」均已確認。`1.0.4` 在 `main` 加入經逐檔授權、品質 `keep` 與 digest 查核的 4 個 VRM／13 個 VRMA，但尚未建立新 Release。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`，未取得證據的 DPI／SmartScreen／簽署／exporter 子項會在版本化紀錄中明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`1.0.4`**，同時也是目前正式穩定版 **[`v1.0.4`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.4)**。Windows-only、local-first 的產品與整合契約已穩定，並在 Windows 11、225% DPI 完成 GUI／WASAPI／MCP／安全邊界實機 smoke。`v1.0.4` 內建經逐檔授權、品質 `keep` 與 digest 查核的 4 個 VRM／13 個 VRMA；正式 runner 已通過授權資產 gate、Node 24 check、Windows native build 與 NSIS 打包，GitHub digest、checksum 與本機 SHA-256 亦一致。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`；本輪未重跑正式安裝／升級，未取得證據的 DPI／SmartScreen／簽署／exporter 子項仍在版本化紀錄中明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-14
-規劃基準：`1.0.4`（`main`；尚未 Release；GitHub Latest Release：`v1.0.2`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`1.0.4`（`main`；GitHub Latest Release：`v1.0.4`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,17 +11,17 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`1.0.4`／`main`；GitHub Latest Release：`v1.0.2`
+覆核基準：`1.0.4`／`main`；GitHub Latest Release：`v1.0.4`
 
 沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。`1.0.4` 在 `main` 納入 4 個可再配布且品質 100／`keep` 的 VRM，以及 13 個來源明示 CC0、品質 78–100／`keep` 的 VRMA；上游 18 個未授權 VRMA 與本機 10 個只有 `review` 的動作仍排除。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。一般上游程式評估水位仍為 `152b1b4`（2026-08-10；素材 #17 的重新判定見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
 
-- 正式 Release：`v1.0.2`（Release workflow 的 Node 24 check、Windows native build、NSIS 打包與發布全綠；runner installer digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經兩路確認）。正式下載檔完成 `1.0.0`→`1.0.2` 升級並保留既有 library／設定；Settings MCP 卡片已從舊版永久「啟動中」修正為「線上／就緒」。
-- `main` 1.0.4：內建 VRoid Sample A／B／C、つくよみちゃん Type A 與 13 個 CC0 VRMA；全部同時通過原始來源、再配布、品質 `keep`（預設 >75；75 為 `review`）與 SHA-256 查核。Idle／Speaking 與 10 個自訂動作可直接使用；`assets:release` 會重算每個 digest。
+- 正式 Release：`v1.0.4`（Release workflow 的授權資產 gate、Node 24 check、Windows native build、NSIS 打包與發布全綠；runner installer digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經兩路確認）。本輪沒有重跑正式 installer 的桌面安裝／升級；既有 `1.0.0`→`1.0.2` 資料保留與 MCP「線上／就緒」證據仍有效，但不擴大到 1.0.4。
+- `main`／`v1.0.4`：內建 VRoid Sample A／B／C、つくよみちゃん Type A 與 13 個 CC0 VRMA；全部同時通過原始來源、再配布、品質 `keep`（預設 >75；75 為 `review`）與 SHA-256 查核。Idle／Speaking 與 10 個自訂動作可直接使用；`assets:release` 會重算每個 digest。
 - 上游：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
-本輪 1.0.4 候選驗證：以 Node 24.19.0 完成 lint、305 個 Node 測試、152 個 renderer 測試、production build、資產 release gate 與本機 `electron-builder` NSIS 打包；封裝內容為精確 4 個 VRM／13 個 VRMA。本機未安裝 C++ Build Tools，因此 1.0.4 的 native rebuild／self-test 與正式 GitHub runner NSIS 仍待 push 後由 CI 驗證。Windows 11、225% DPI fresh-userData 已顯示 AvatarSample_A 並列出完整 catalog；100%／150% DPI、另 3 模型切換與逐片段播放仍不擴大宣稱。
+1.0.4 候選曾以 Node 24.19.0 完成 lint、305 個 Node 測試、152 個 renderer 測試、production build、資產 release gate 與本機 `electron-builder` NSIS 打包；封裝內容為精確 4 個 VRM／13 個 VRMA。正式 Release workflow `31795033665` 後續完成授權資產 gate、Node 24 check、Windows native build、NSIS 打包與發布；下載檔 SHA-256 與兩路 `NotSigned` 證據已核對。Windows 11、225% DPI fresh-userData 已顯示 AvatarSample_A 並列出完整 catalog；正式安裝／升級、100%／150% DPI、另 3 模型切換與逐片段播放仍不擴大宣稱。
 
 ### 驗證缺口（標未驗，不虛構完成）
 
@@ -31,7 +31,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **部分驗證** | 本機候選 0.16.23→1.0.0 與正式下載檔 1.0.0→1.0.2 升級均保留設定；225% DPI 設定／預覽／About、MCP／氣泡／視窗控制已驗；移除、系統匣與鍵盤矩陣待補 |
 | 30% 角色尺寸與多 DPI 實機可讀性 | **部分驗證** | 225% DPI、50% 角色尺寸可讀；30% 與 100%／150% 尚未驗 |
 | Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 本輪只做短時間 GUI 操作；`baseline:startup` 不含 GUI |
-| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 1.0.0 與 1.0.2 正式 runner 資產均雙軌證明 `NotSigned`；0.16.23→1.0.0 與 1.0.0→1.0.2 升級均保留資料。SmartScreen 與 publisher 待補 |
+| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 1.0.0、1.0.2 與 1.0.4 正式 runner 資產均雙軌證明 `NotSigned`；0.16.23→1.0.0 與 1.0.0→1.0.2 升級均保留資料，1.0.4 正式升級未驗。SmartScreen 與 publisher 待補 |
 | Native COM／WASAPI／Device／Event **真實**失敗路徑 | **未驗** | Usage=2 可由 runner 斷言；真實音訊／COM 失敗仍需環境 |
 | 真實 VRoid／UniVRM／Blender 樣本人工結果 | **部分驗證** | 4 個內建 VRM 自動品質分析皆 100／`keep`；13 個內建 VRMA 為 78–100／`keep`。Windows fresh-userData 已顯示 AvatarSample_A 並列出全部 4 模型／13 片段；另 3 模型切換、逐片段播放與其他 exporter 仍待補 |
 

@@ -59,6 +59,13 @@ gh api repos/SanHsien/voxavatar/releases/latest
 
 新版 Release 成功且成為 Latest 後，才刪除其餘舊 Release／tag；失敗則全部保留。刪除舊 tag 是版本清理，不得把既有 tag 移到另一個 commit。
 
+發布工作尚未完成，直到以下收尾全部處理：
+
+- 下載正式 installer 與 `SHA256SUMS.txt`，核對 GitHub digest、本機 SHA-256、檔案大小與 Authenticode／PE Certificate Table。
+- 新增或更新 `docs/release-evidence/v{version}/`，同步 README、ROADMAP 與 CHANGELOG 的 Latest／已驗／未驗狀態。
+- 本輪若使用本機 VRM／VRMA 來源，依實際策展結果整理來源目錄，並重新核對數量、SHA-256 與品質報告；不把私人絕對路徑或未授權媒體提交到 repo。
+- 完成上述項目後再宣告 Release 收尾；**發布後補證據與整理本機來源仍屬剛發布版本，不得只為這些動作另建下一個 patch 版號**。若 tag 已建立，必要的證據／文件修正可另 commit 到 `main`，但 `package.json` 維持該發布版號。
+
 ## 輔助證據
 
 - `npm run baseline:bundle`：renderer bundle 對照。

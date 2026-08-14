@@ -23,11 +23,12 @@
 主人指示（2026-08-01；分支規則 2026-08-02；批次流程見 [`docs/RELEASING.md`](docs/RELEASING.md)）：
 
 1. **直接在 `main` 工作**：完成後 commit 並 `git push origin main`。**不要開 feature／cursor 分支，不要預設開 PR。**
-2. 每個可交付工作段落在 push 前 bump `package.json` 版號、同步 lockfile 並更新 `CHANGELOG.md`。**不必每次 bump 都 Release／tag**；`main` 可累積多個版本再批次發布。
+2. 每個有新產品／程式內容的可交付工作段落在 push 前 bump `package.json` 版號、同步 lockfile 並更新 `CHANGELOG.md`。**不必每次 bump 都 Release／tag**；`main` 可累積多個版本再批次發布。發布後的正式證據回填、公開文件狀態同步與本機來源整理屬於剛發布版本的同一工作項，**不得只為這些收尾另 bump patch 版號**。
 3. **批次 Release 時**：建立並推送 `v{version}` tag（指向 `main` tip）；**先推 tag、再推 `main`**，由「main tip 已 tagged」觸發打包，或依 [`docs/RELEASING.md`](docs/RELEASING.md) 手動 dispatch。驗證公開 Release、Latest、target commit 與資產。禁止空轉或無實質變更的 Release。
 4. 新版 Release **成功後**才刪除其餘舊 GitHub Release 與對應 tag，只保留最新版；新版失敗則不動舊版。
-5. **Windows 實機驗證**（GUI smoke、簽署、native capture 矩陣）在無 Windows 桌面或密鑰時**不得阻塞** v0.3+ 路線圖；應停止實機步驟、回報缺口，繼續可驗證的開發。
-6. 只有密鑰、未授權破壞性操作或互相矛盾的需求才停下詢問。
+5. **同一發布工作必須收尾**：下載正式資產核對 digest／checksum／簽署狀態，補 `docs/release-evidence/v{version}/`、README／ROADMAP／CHANGELOG 的實際狀態；若本輪使用本機素材來源，也要依本輪結果整理來源目錄並重驗數量／hash／報告。這些動作不得遺留到下一個版本。
+6. **Windows 實機驗證**（GUI smoke、簽署、native capture 矩陣）在無 Windows 桌面或密鑰時**不得阻塞** v0.3+ 路線圖；應停止實機步驟、回報缺口，繼續可驗證的開發。
+7. 只有密鑰、未授權破壞性操作或互相矛盾的需求才停下詢問。
 
 ### 每次 push 前的文件檢討（必做）
 

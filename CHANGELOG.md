@@ -10,6 +10,9 @@
 - 發行資產 manifest 現在記錄創作者、原始來源、授權 URL、credit、限制與精確 SHA-256；`assets:release` 會實際重算二進位 digest，授權欄位缺漏或檔案遭替換即 fail closed。
 - 修正品質門檻的邊界語意與 UI／Markdown：預設 75 分屬 `review`，只有 **高於 75 分**且沒有高嚴重度問題才是 `keep`；repo／Release 仍只接受 `keep`。
 - 更新快速開始、角色行為、開發、發行、路線圖與 agent 邊界；首次啟動驗收改為「4 個內建模型可切換、Idle／Speaking／自訂動作可播放，仍能匯入自有素材」，動作頁也不再錯稱安裝包未內建 Idle。
+- 正式發布後回填同版本證據：手動 dispatch 的 Release workflow `31795033665` 在精確 SHA `9a62ebaaab62769a13bf57b6a09a62c9b460fba7` 完成授權資產 gate、Node 24 check、Windows native build、NSIS 打包與 immutable tag 重驗。
+- 正式 runner installer 的 GitHub digest、`SHA256SUMS.txt` 與本機 SHA-256 三路一致（`7dea1f0598d694791d8ec32d473903fbdd92116be0b9c288a507d5f67eee01d3`，`171374566` bytes）；PowerShell 與 PE Certificate Table 均確認 `NotSigned`。
+- `v1.0.4` 成為唯一 Latest Release／tag；成功後移除舊 `v1.0.2` Release／tag，並新增 `docs/release-evidence/v1.0.4/`。本輪沒有執行正式 installer 的桌面安裝／升級，相關矩陣維持未驗或既有部分驗證。
 
 ## 1.0.3 - 2026-08-14
 

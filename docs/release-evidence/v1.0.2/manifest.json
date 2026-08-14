@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Machine-readable metadata for the published v1.0.2 release; human desktop results live in windows-smoke.md.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-14T08:26:27.372Z",
+  "release": {
+    "version": "1.0.2",
+    "tag": "v1.0.2",
+    "commitSha": "1d40dd8f96cfd24269cd248dcb8f6e9222a5fbe9",
+    "releaseUrl": "https://github.com/SanHsien/voxavatar/releases/tag/v1.0.2",
+    "githubActionsRunUrl": "https://github.com/SanHsien/voxavatar/actions/runs/31782426134",
+    "hasInstaller": true
+  },
+  "assets": {
+    "installerFilename": "VoxAvatar-1.0.2-windows-x64-setup.exe",
+    "installerSha256": "76a74e5584d482a2618e36c3a1da46b0a5f1874d6bc78c2862f8ce0d4db995b4",
+    "installerSizeBytes": 105138671,
+    "checksumsFile": "SHA256SUMS.txt",
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned",
+    "authenticodeEvidence": "pe-certificate-table-empty"
+  },
+  "environment": {
+    "windowsEdition": "Windows 11 Pro",
+    "windowsVersion": "10.0.26200",
+    "windowsBuild": "26200",
+    "architecture": "x64",
+    "displayScalingPercent": 225,
+    "gpu": "NVIDIA GeForce RTX 3060 (32.0.16.1088)"
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝",
+      "升級",
+      "移除",
+      "系統匣",
+      "DPI／縮放",
+      "角色尺寸 30%",
+      "語音與 MCP",
+      "簽署標示（NotSigned）",
+      "SmartScreen／publisher"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "pass",
+        "note": "本機 Node 24 check／assets release／native self-test 與正式 Release workflow 的 Node 24 check、native build、NSIS 打包及發布全綠。"
+      },
+      {
+        "id": "install",
+        "section": "安裝",
+        "result": "部分驗證",
+        "note": "正式 GitHub installer 在既有 all-users／Program Files 安裝上完成升級與自動啟動；全新安裝、自訂位置、捷徑與免管理員矩陣未驗。"
+      },
+      {
+        "id": "upgrade",
+        "section": "升級",
+        "result": "pass",
+        "note": "1.0.0→1.0.2 正式升級通過；12 個模型、10 個動作、預設模型與訊息氣泡設定保留。"
+      },
+      {
+        "id": "uninstall",
+        "section": "移除",
+        "result": "未驗",
+        "note": "為保留既有使用者資料，本輪未執行移除。"
+      },
+      {
+        "id": "tray",
+        "section": "系統匣",
+        "result": "未驗",
+        "note": "有桌面但本輪未操作系統匣左右鍵。"
+      },
+      {
+        "id": "dpi_scaling",
+        "section": "DPI／縮放",
+        "result": "部分驗證",
+        "note": "225% DPI Settings MCP 卡片與即時預覽可讀；100%／150% 未驗。"
+      },
+      {
+        "id": "size_30",
+        "section": "角色尺寸 30%",
+        "result": "未驗",
+        "note": "225%／50% 可讀；30% 控制未取得可靠實機結果。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "pass",
+        "note": "正式 1.0.2 顯示 MCP 線上／就緒；get_status readiness complete，listener no_output，6 工具、2 動作且 bridge 僅綁 loopback。"
+      },
+      {
+        "id": "signing_label",
+        "section": "簽署標示（NotSigned）",
+        "result": "pass",
+        "note": "正式 runner 資產經 PowerShell 與 PE Certificate Table 兩路確認 NotSigned。"
+      },
+      {
+        "id": "smartscreen",
+        "section": "SmartScreen／publisher",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；未宣稱 SmartScreen 或具名 publisher。"
+      }
+    ],
+    "notes": "v1.0.2 is the only Latest release/tag. Formal digest, SHA256SUMS.txt, local SHA-256, size, signing state, workflow, desktop upgrade, data retention, MCP UI, readiness, actions, and loopback binding were verified. The OAuth push did not create Actions runs, so the documented workflow_dispatch fallback performed the immutable-tag release."
+  },
+  "mediaReferences": [],
+  "issues": [],
+  "reviewer": "Codex desktop agent",
+  "reviewedAt": "2026-08-14T08:26:27.372Z"
+}

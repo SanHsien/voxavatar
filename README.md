@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`1.0.2`**；目前正式穩定版為 **[`v1.0.0`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.0)**，1.0.2 patch 正在準備發布。Windows-only、local-first 的產品與整合契約已穩定，並在 Windows 11、225% DPI 完成 GUI／WASAPI／MCP／安全邊界實機 smoke；GitHub runner installer 的 digest、checksum、本機 SHA-256 與桌面同版本重裝亦已確認。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`，未取得證據的 DPI／SmartScreen／簽署／exporter 子項會在版本化紀錄中明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`1.0.3`**；目前正式穩定版為 **[`v1.0.2`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.2)**。Windows-only、local-first 的產品與整合契約已穩定，並在 Windows 11、225% DPI 完成 GUI／WASAPI／MCP／安全邊界實機 smoke；正式 runner installer 的 digest、checksum、本機 SHA-256、`1.0.0`→`1.0.2` 桌面升級、資料保留與 MCP「線上／就緒」均已確認。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`，未取得證據的 DPI／SmartScreen／簽署／exporter 子項會在版本化紀錄中明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

@@ -2,6 +2,13 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 1.0.3 - 2026-08-14
+
+- 回填 `v1.0.2` 正式發布證據：手動 dispatch 的 Release workflow `31782426134` 在精確 SHA `1d40dd8f96cfd24269cd248dcb8f6e9222a5fbe9` 完成 Node 24 check、Windows native build、NSIS 打包與 immutable tag 重驗。
+- 正式 runner installer 的 GitHub digest、`SHA256SUMS.txt` 與本機 SHA-256 三路一致（`76a74e5584d482a2618e36c3a1da46b0a5f1874d6bc78c2862f8ce0d4db995b4`，`105138671` bytes）；PowerShell 與 PE Certificate Table 均確認 `NotSigned`。
+- 以正式下載檔完成 `1.0.0`→`1.0.2` all-users／Program Files 升級並自動啟動；12 個模型、10 個動作、預設模型與訊息氣泡設定保留，Settings MCP 卡片實際顯示「線上／就緒」，readiness complete，bridge 只綁 `127.0.0.1`。
+- `v1.0.2` 成為唯一 Latest Release／tag；成功後移除舊 `v1.0.0` Release／tag，並新增 `docs/release-evidence/v1.0.2/`。
+
 ## 1.0.2 - 2026-08-14
 
 - 修正 Settings 的 MCP 健康狀態永久停在「啟動中」：Settings IPC 原本在 bridge `listen()` 前把 health／port／error／listener primitive 值閉包，之後即使 MCP 已 online 仍回傳舊狀態。現在每次 IPC 呼叫都讀取最新 runtime state，自訂 port、啟動錯誤與語音來源 listener 也不再陳舊。

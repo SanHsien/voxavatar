@@ -3,7 +3,7 @@
 [繁體中文](ROADMAP.md) · English
 
 Updated: 2026-08-14
-Planning baseline: `1.0.2` (`main`; GitHub Latest Release: `v1.0.0`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+Planning baseline: `1.0.3` (`main`; GitHub Latest Release: `v1.0.2`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
 
 VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
@@ -11,26 +11,26 @@ VoxAvatar is a **local-first Windows desktop character presentation layer that A
 
 ## Current health
 
-Review baseline: `1.0.2` / `main`; GitHub Latest Release: `v1.0.0`
+Review baseline: `1.0.3` / `main`; GitHub Latest Release: `v1.0.2`
 
 No known open P0/P1. `1.0.0` stabilizes the existing Windows-only, local-first, loopback-only MCP, level-driven lip-sync, and no-microphone product boundaries. Real-machine testing on Windows 11 found and fixed mixed Big5/UTF-8 process JSON from Traditional Chinese Windows PowerShell 5.1: automatic voice discovery no longer enters `launch_failed`, and a system-output TTS pass again proved the `speaking` / `listening` path. The upstream watermark remains `152b1b4` (2026-08-10; see [`docs/DECISIONS.md`](docs/DECISIONS.md) §1).
 
-- Formal Release: `v1.0.0` (CI, CodeQL, Windows packaging, and publishing are green; the runner installer digest, `SHA256SUMS.txt`, and local SHA-256 match, with Authenticode `NotSigned` confirmed two ways; a desktop same-version reinstall of the downloaded formal asset preserved the existing library/settings and MCP readiness). That run also found the Settings MCP card permanently showing “Starting” because it captured pre-listen primitives; 1.0.2 now reads live runtime state.
+- Formal Release: `v1.0.2` (the Release workflow's Node 24 check, Windows native build, NSIS packaging, and publishing are green; the runner installer digest, `SHA256SUMS.txt`, and local SHA-256 match, with Authenticode `NotSigned` confirmed two ways). The downloaded formal asset completed a `1.0.0`→`1.0.2` upgrade while preserving the library/settings; the Settings MCP card now changes from the old permanent “Starting” state to “Online / Ready”.
 - Upstream: commit watermark `152b1b4` (2026-08-10, evaluated). Of the 12 commits: 6 rejected (the four VRoid Hub account commits and the #23 scheduler among them), 1 already covered, 1 not applicable, 4 shortlisted. Open PRs: #45 rejected (microphone capture crosses a hard boundary), #47 out of scope, #46 shortlisted, #48 partially adopted and shipped. Open issues: #43 already covered and further hardened, #44 / #18 out of scope, #35 shortlisted, #11 already covered.
 - MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
 - System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
 
-This round used Node 24.19.0 for lint, 298 Node tests, 151 renderer tests, the production build, release asset gate, native self-test / Usage=2 / typed errors 10–13, and a local NSIS package. On Windows 11 at 225% DPI, Settings, preview, About, all six MCP tools, bubbles, window control, bridge defenses, and system-output TTS were exercised. No claim is expanded to the 100% / 150% DPI or remaining rows below.
+This round used Node 24.19.0 for lint, 299 Node tests, 151 renderer tests, the production build, release asset gate, native self-test / Usage=2 / typed errors 10–13, and the formal GitHub runner NSIS package. On Windows 11 at 225% DPI, Settings, preview, About, all six MCP tools, bubbles, window control, bridge defenses, and system-output TTS were exercised. No claim is expanded to the 100% / 150% DPI or remaining rows below.
 
 ### Verification gaps (marked unverified; never fabricate completion)
 
 | Item | Status | Reason |
 | --- | --- | --- |
 | Real-desktop confirmation of the 0.16.21–0.16.23 idle and speaking shuffle-bag cycling | **Partially verified** | The 1.0 candidate plays Idle and Speaking with visible motion; a full no-repeat round still has only shuffle-bag contract tests because no clip ID is exposed for observation |
-| Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Partially verified** | Both the local candidate 0.16.23→1.0.0 upgrade and formal-download same-version reinstall preserved settings; Settings, preview, About, MCP/bubbles/window control passed at 225% DPI; uninstall, tray, and keyboard matrix remain open |
+| Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Partially verified** | Both the local candidate 0.16.23→1.0.0 and formal-download 1.0.0→1.0.2 upgrades preserved settings; Settings, preview, About, MCP/bubbles/window control passed at 225% DPI; uninstall, tray, and keyboard matrix remain open |
 | 30% character size and multi-DPI readability | **Partially verified** | 225% DPI at 50% character size is readable; 30% and 100%/150% remain unverified |
 | Idle long-run / model-switch memory (GUI residency) | **Unverified** | Only a short GUI session was run; `baseline:startup` excludes GUI |
-| Installer signing / publisher / SmartScreen / upgrade path | **Partially verified** | Both the local candidate and formal runner asset are proven `NotSigned` two ways; the 0.16.23→1.0.0 upgrade and formal-download same-version reinstall preserved user data. SmartScreen and publisher remain open |
+| Installer signing / publisher / SmartScreen / upgrade path | **Partially verified** | Both 1.0.0 and 1.0.2 formal runner assets are proven `NotSigned` two ways; the 0.16.23→1.0.0 and 1.0.0→1.0.2 upgrades preserved user data. SmartScreen and publisher remain open |
 | Native COM/WASAPI/Device/Event **real** failure paths | **Unverified** | Usage=2 assertable on runner; real audio/COM failures need the environment |
 | Real VRoid/UniVRM/Blender sample results | **Unverified** | No clearly licensed off-repo sample evidence yet |
 
@@ -67,6 +67,7 @@ Product remains **Windows-only**; do not restore Linux/macOS shipping.
 | v1.0.0 | Stable product contract; UTF-8 fix for Traditional Chinese Windows process discovery; candidate 225% DPI GUI/WASAPI/MCP real-machine smoke |
 | v1.0.1 | Post-release `v1.0.0` runner asset/workflow/Latest evidence and old-tag cleanup |
 | v1.0.2 | Formal installer desktop reinstall evidence; Settings MCP status reads live runtime state |
+| v1.0.3 | `v1.0.2` runner / Latest / formal upgrade and MCP-fix desktop evidence closeout |
 
 Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
 
@@ -125,8 +126,8 @@ Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stay
 
 ## Next three actions
 
-1. Publish the `v1.0.2` patch, confirm from the formal runner asset that the Settings MCP card changes to “Online” after the bridge starts, and update versioned evidence.
-2. Fill the remaining real-machine matrix: 100% / 150% DPI, 30% character size, tray, keyboard, uninstall, idle residency, and a full shuffle round with observable clip IDs.
-3. When signing secrets, licensed samples, and a controllable COM-failure environment exist, add SmartScreen/publisher, real exporter, and true Native COM/WASAPI/Device/Event failure evidence; only then select a new feature from [`docs/DECISIONS.md`](docs/DECISIONS.md) §1.
+1. Fill the remaining real-machine matrix: 100% / 150% DPI, 30% character size, tray, keyboard, uninstall, idle residency, and a full shuffle round with observable clip IDs.
+2. When signing secrets, licensed samples, and a controllable COM-failure environment exist, add SmartScreen/publisher, real exporter, and true Native COM/WASAPI/Device/Event failure evidence.
+3. After those stability records mature, select the next explicit feature from [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 without expanding the established security boundary.
 
 Action↔VRMA auto-assignment policy is settled (pack / name preselect / whitelist confirm; no semantic guessing); see [`docs/DECISIONS.md`](docs/DECISIONS.md) §10. Do not open a semantic slotting track.

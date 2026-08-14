@@ -39,7 +39,7 @@ Windows process discovery 會呼叫 Windows PowerShell 5.1 的 CIM。命令必�
 | `src/` | React／Three.js renderer、動作邏輯與 Vitest |
 | `native/windows/` | WASAPI process-loopback C++ helper |
 | `scripts/` | 原生 build、自測、資產／文件／版本／checksum、離線 VRMA 整理（`vrma:curate`） |
-| `public/assets/` | UI 圖示、打包 catalog 與授權 manifest；預設不含 VRM／VRMA |
+| `public/assets/` | UI 圖示、4 個品質 `keep` 的已授權 VRM、13 個品質 `keep` 的 CC0 VRMA、打包 catalog 與授權 manifest；預設 `keep` 為分數 >75 且沒有高嚴重度問題，75 分是 `review` |
 | `docs/` | 架構、整合、動作、決策與發行文件 |
 | `.github/` | CI、CodeQL、Dependabot、Release 與貢獻模板 |
 

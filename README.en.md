@@ -35,7 +35,7 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 | --- | --- |
 | Voice lip sync | App / custom matcher / external events / system-output (opt-in) loopback; human-readable helper status with path redaction; sticky discovery |
 | Desktop avatar | Transparent topmost click-through, drag, zoom (min 30%), rotate, tray menus (including manual state), reset view, listen/speak preview, About (NotSigned) |
-| Local media | Import `.vrm` / `.vrma`; folder evaluate-and-import with quality reports; unassigned clip pool; optional filename-whitelist assignment; VRM 0.x / 1.0 |
+| Local media | Four traceably licensed VRMs and 13 quality-`keep` (default >75) CC0 VRMAs included; import more `.vrm` / `.vrma`; folder evaluate-and-import with quality reports; unassigned clip pool; optional filename-whitelist assignment; VRM 0.x / 1.0 |
 | Action system | Idle / Speaking slots (optional Speaking secondary head/torso), shuffle-bag multi-clip cycling (every clip plays once per round before reshuffling; configurable idle gap, speaking chains without one), `loop` / `one-shot` / `pose`, preview/rename/move, MCP catalog |
 | Character presence | State arbitration, system state-slot bindings, comic bubbles, `show_message` (Settings opt-in), lip-sync gain |
 | Setup progress | Human-readable progress codes; copyable redacted diagnostics; shared readiness with `get_status` |
@@ -46,7 +46,7 @@ It is not another chatbot and does not run a language model. VoxAvatar focuses o
 
 VoxAvatar began from the original code in [`xikhar/persona`](https://github.com/xikhar/persona). Special thanks go to `xikhar` and every upstream contributor. This project continues to retain upstream copyright, the MIT License, and attribution whether or not GitHub displays a fork relationship.
 
-The current VoxAvatar product is **Windows-only** (no PipeWire / Hyprland / macOS distribution), uses the **VoxAvatar / `voxavatar`** identity, ships **without** bundled third-party VRM/VRMA by default, and independently maintains Windows audio listening, character states, comic bubbles, MCP controls, action imports, and release workflows. See [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 for provenance, product boundaries, and upstream evaluations.
+The current VoxAvatar product is **Windows-only** (no PipeWire / Hyprland / macOS distribution) and uses the **VoxAvatar / `voxavatar`** identity. It bundles VRoid's official Sample A/B/C, the official Tsukuyomi-chan Type A model, and 13 VRMA clips from three explicitly CC0 packs that VoxAvatar's quality analysis classifies as `keep`. Every file is bound to its original source, restrictions, and SHA-256 digest. VoxAvatar independently maintains Windows audio listening, character states, comic bubbles, MCP controls, action imports, and release workflows. See [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 for provenance, product boundaries, and upstream evaluations.
 
 ## How it works
 
@@ -73,7 +73,7 @@ Lip sync drives VRM expressions from the live level; VRMA supplies optional body
 - MCP controls only avatar actions, window state, and status. It cannot execute arbitrary commands or read arbitrary files.
 - Custom process matchers are limited to a bounded safe subset that rejects obvious ReDoS patterns.
 - Imported media is copied to per-user app data. The renderer can read only registered asset IDs through `voxavatar-asset:`.
-- Releases ship without third-party characters or motions by default. Lawful local import does not grant this project redistribution rights.
+- Releases include only the four characters and 13 CC0 motions that passed redistribution, quality-`keep` (default score >75 with no high-severity issue), and exact-digest checks. A score of 75 is `review` and is not bundled. Lawful local import of other media does not grant this project redistribution rights.
 
 Other processes under the same Windows account can still connect to the unauthenticated local MCP endpoint. Never forward the port to a LAN or the Internet. See [`SECURITY.en.md`](SECURITY.en.md) for the complete model.
 
@@ -82,7 +82,7 @@ Other processes under the same Windows account can still connect to the unauthen
 | Use | Requirement |
 | --- | --- |
 | Installed release | Windows 10 build 20348+ or Windows 11 x64, with a hardware-accelerated desktop session |
-| Character media | One `.vrm` you are allowed to use; `.vrma` motions are optional |
+| Character media | Four selectable VRMs plus Idle, Speaking, and custom actions are included; you may import additional lawful `.vrm` / `.vrma` files |
 | Regular source development | Windows, Node.js 24 (CI baseline; Node 25 has a known jsdom `localStorage` conflict), and npm |
 | Native-listener changes or local packaging | Visual Studio Build Tools with the Desktop development with C++ workload |
 
@@ -92,9 +92,9 @@ Visual Studio Build Tools is not required for normal UI, settings, MCP, document
 
 1. Download the Windows installer (`VoxAvatar-*-windows-x64-setup.exe`) from [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest).
 2. **Signing**: current public installers are **NotSigned** (no Authenticode signature). SmartScreen may warn about an unknown publisher—verify the file against `SHA256SUMS.txt` on the Release page before installing. Future signed builds will say so in the Release notes and the About dialog.
-3. Launch VoxAvatar. Settings opens automatically when no model is configured.
-4. Under **Models**, import a `.vrm` you are allowed to use. Releases do not ship third-party characters by default.
-5. Add `.vrma` clips to Idle, Speaking, or custom actions. Lip sync still works without motion clips.
+3. Launch VoxAvatar. `AvatarSample_A` appears on first run, with usable Idle, Speaking, and MCP-playable custom actions.
+4. Switch to one of the other three bundled models, or import a `.vrm` you are allowed to use under **Models**. See [`ASSET_LICENSES.md`](ASSET_LICENSES.md) for bundled sources and restrictions.
+5. Add more `.vrma` clips to Idle, Speaking, or custom actions if desired. Lip sync remains independent of body-motion clips.
 6. Under **Voice**, select the application that plays assistant audio.
 7. Follow Settings to connect local MCP to Codex or another compatible agent.
 
@@ -108,7 +108,7 @@ Keep VoxAvatar running and register it once:
 codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 ```
 
-Restart Codex or start a new task, then ask it to list installed actions, play an action such as `wave-hello`, control the window, report model and listener status, or (when enabled in Settings) show a short bubble caption.
+Restart Codex or start a new task, then ask it to list installed actions, play an action such as `happy`, `airplane`, or `pose-motion`, control the window, report model and listener status, or (when enabled in Settings) show a short bubble caption.
 
 The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_status`, `show_message` (default off), and `set_character_state`. Existing sessions receive updated tool descriptions after actions are added or removed in Settings. See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) for schemas, health checks, HTTP events, and URL protocol details.
 
@@ -122,7 +122,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 
 ## Project status and roadmap
 
-The version on `main` is **`1.0.3`**; the current formal stable release is **[`v1.0.2`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.2)**. The Windows-only, local-first product and integration contracts are stable, with GUI, WASAPI, MCP, and security-boundary smoke completed on Windows 11 at 225% DPI; the formal runner installer digest, checksum, local SHA-256, `1.0.0`→`1.0.2` desktop upgrade, data retention, and MCP “Online / Ready” state also passed. The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. Public installers remain Authenticode `NotSigned`; DPI, SmartScreen, signing, and exporter sub-items without evidence stay explicitly unverified in the versioned record. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
+The version on `main` is **`1.0.4`** (not yet released); the current formal stable release is **[`v1.0.2`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.2)**. The Windows-only, local-first product and integration contracts are stable, with GUI, WASAPI, MCP, and security-boundary smoke completed on Windows 11 at 225% DPI; the formal runner installer digest, checksum, local SHA-256, `1.0.0`→`1.0.2` desktop upgrade, data retention, and MCP “Online / Ready” state also passed. `1.0.4` on `main` adds four VRMs and 13 VRMAs after per-file license, quality-`keep`, and digest review, but no new Release has been created. The GitHub repository has left its fork network while retaining upstream credit and the local `upstream` remote. Public installers remain Authenticode `NotSigned`; DPI, SmartScreen, signing, and exporter sub-items without evidence stay explicitly unverified in the versioned record. Former `REVIEW.md` lives under [`ROADMAP.md`](ROADMAP.md) “Current health”. Upstream evaluation: [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 (Traditional Chinese).
 
 See [`ROADMAP.en.md`](ROADMAP.en.md) for version order, next work, and current health.
 
@@ -155,7 +155,7 @@ electron/        Electron main, preload-avatar / preload-settings, settings, MCP
 src/             React/Three.js renderer, action logic, and Vitest tests
 native/windows/  WASAPI process-loopback C++ helper
 scripts/         Build, media, docs, Dependabot, version, checksum, and offline VRMA curation (`vrma:curate`) gates
-public/assets/   UI icon and release manifests; no VRM/VRMA by default
+public/assets/   UI icon, four reviewed VRMs, 13 quality-`keep` CC0 VRMAs, release catalog, and license manifest
 docs/            Development, integration, character behavior, decisions, and release docs
 .github/         CI, CodeQL, Dependabot, Release, and contribution templates
 ```

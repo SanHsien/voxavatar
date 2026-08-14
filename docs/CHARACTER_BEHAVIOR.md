@@ -10,7 +10,7 @@
 - Speaking 由語音輸出音量觸發，走同一套輪次：每段 `once` 播完直接接續下一段，**不套用待機間隔**（說話中間停住 8 秒不是預期行為）。判斷集中在 `shouldCycleRandomMotions`（IDLE／TALK 才輪播，空池不輪播）與 `motionRestMsForAnimation`（TALK 停頓 0，其餘沿用 `idle_rest_ms`）。
 - 輪播只在沒有 override 時生效。MCP `play_animation` 建立的 one-shot override 播完即釋放；狀態槽 override 見下方「角色狀態」。
 - 自訂動作有 MCP 名稱、描述與觸發情境，可用 `play_animation` 播放。
-- 安裝包不附第三方 VRM／VRMA；取得與再散布規則見 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
+- 安裝包附 4 個通過再配布與 100／`keep` 查核的 VRM，以及 13 個授權為 CC0、品質判定為 `keep` 的 VRMA。預設 Idle／Speaking 各有一段，自訂動作包含 `happy`、`airplane`、`pose-motion`、`walk`、`run-slow`、`exercise-step`、`review-phone`、`drink-water`、`failed-apology`、`reaction-startle`。來源與限制見 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
 
 匯入路徑：系統匣 →「設定…」→「動作」。可加入單檔或遞迴掃描目錄，並用預覽檢查骨架、位移、循環與角色相容性。目錄品質 gate 有三種模式：
 
@@ -20,7 +20,7 @@
 | 嚴格 | 略過品質判定為 `reject` 的檔案，仍產生報告；同樣受 GLB／catalog gate |
 | 關閉 | 不做品質分析，直接走匯入；仍受 GLB／catalog gate |
 
-品質分數只協助找出解析錯誤、速度尖峰或循環接縫，不代表美術品質、角色相容性或授權結論。
+品質分數只協助找出解析錯誤、速度尖峰或循環接縫，不代表美術品質、角色相容性或授權結論。預設分數判定為淘汰 < 60、觀察 60–75、保留 > 75；**75 分仍是 `review`，不是 `keep`**。使用者本機的嚴格匯入只排除 `reject`；**repo／Release 的內建素材門檻更高，必須是 `keep`，`review` 不得入庫。**
 
 ## 口型與小尺寸可讀性
 

@@ -1,55 +1,95 @@
 {
   "schemaVersion": 1,
   "distributionAllowed": false,
-  "notice": "These paths describe local test media only. Complete the license and source fields before distributing any of these files.",
+  "notice": "These paths describe local test media only. Complete creator, license, licenseUrl, source, attribution, restrictions, and sha256 before distributing any file.",
   "assets": [
     {
       "path": "models/model.vrm",
       "role": "model",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     },
     {
       "path": "animations/idle.vrma",
       "role": "animation",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     },
     {
       "path": "animations/talk1.vrma",
       "role": "animation",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     },
     {
       "path": "animations/talk2.vrma",
       "role": "animation",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     },
     {
       "path": "animations/greeting.vrma",
       "role": "animation",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     },
     {
       "path": "animations/happy.vrma",
       "role": "animation",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     },
     {
       "path": "animations/finger-gun.vrma",
       "role": "animation",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     },
     {
       "path": "animations/dance.vrma",
       "role": "animation",
+      "creator": null,
       "license": null,
-      "source": null
+      "licenseUrl": null,
+      "source": null,
+      "attribution": null,
+      "restrictions": null,
+      "sha256": null
     }
   ]
 }

@@ -123,6 +123,73 @@ test("starts with permanent empty Idle and Speaking actions", (context) => {
   );
 });
 
+test("ships the reviewed model and motion library with AvatarSample_A as default", (context) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-shipping-library-"));
+  const userDataPath = path.join(root, "user-data");
+  const packagedLibraryPath = path.join(
+    __dirname,
+    "..",
+    "public",
+    "assets",
+    "library.json",
+  );
+  context.after(() => fs.rmSync(root, { force: true, recursive: true }));
+
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.default_model_id, "avatar-sample-a");
+  assert.deepEqual(snapshot.models, [
+    {
+      id: "avatar-sample-a",
+      model_name: "AvatarSample_A",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/AvatarSample_A.vrm",
+    },
+    {
+      id: "avatar-sample-b",
+      model_name: "AvatarSample_B",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/AvatarSample_B.vrm",
+    },
+    {
+      id: "avatar-sample-c",
+      model_name: "AvatarSample_C",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/AvatarSample_C.vrm",
+    },
+    {
+      id: "tsukuyomi-chan-type-a",
+      model_name: "つくよみちゃん公式3Dモデル タイプA",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/Tsukuyomi-chan_Type-A.vrm",
+    },
+  ]);
+  assert.equal(snapshot.animations.length, 12);
+  assert.equal(
+    snapshot.animations.reduce(
+      (count, animation) => count + animation.asset_urls.length,
+      0,
+    ),
+    13,
+  );
+  assert.deepEqual(
+    snapshot.animations
+      .filter((animation) => animation.system)
+      .map((animation) => [animation.id, animation.asset_urls.length]),
+    [
+      ["system-idle", 1],
+      ["system-speaking", 1],
+    ],
+  );
+});
+
 test("imports, persists, resolves, and deletes user assets", (context) => {
   const { root, userDataPath, packagedLibraryPath } = fixture(context);
   const sourceModel = path.join(root, "assistant.vrm");

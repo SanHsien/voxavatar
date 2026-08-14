@@ -109,7 +109,7 @@ Get-AuthenticodeSignature .\VoxAvatar-*-windows-x64-setup.exe
 
 - [ ] 一般使用者權限可啟動 installer，不要求管理員權限。
 - [ ] 自訂安裝位置、桌面捷徑與開始功能表捷徑符合選項。
-- [ ] 首次啟動會開啟設定頁，不會因沒有內建模型而白屏或退出。
+- [ ] 全新 userData 首次啟動會顯示內建 `AvatarSample_A`；另 3 個內建模型可切換，設定頁仍可匯入並替換預設模型。
 - [ ] 同版本重裝與上一個受支援版本升級不會遺失使用者 library／設定。
 - [ ] 移除程式成功；是否保留每使用者資料有清楚行為。
 - [ ] `voxavatar://show`、`hide`、`toggle` 的 protocol 註冊與移除符合預期。
@@ -117,8 +117,8 @@ Get-AuthenticodeSignature .\VoxAvatar-*-windows-x64-setup.exe
 
 ### 核心桌面流程
 
-- [ ] 匯入合法 VRM，切換預設模型，關閉再開仍能載入。
-- [ ] 匯入 VRMA，Idle／Speaking／自訂動作可預覽與播放。
+- [ ] 4 個內建 VRM 都可載入；另匯入合法 VRM、切換預設模型，關閉再開仍能載入。
+- [ ] 內建 13 個 VRMA 的 Idle／Speaking／自訂動作可預覽與播放；另匯入合法 VRMA 仍正常。
 - [ ] 損壞、錯誤副檔名、過大或不含 VRM／VRMA extension 的 GLB 被拒絕，既有 library 不受影響。
 - [ ] 透明區點穿；角色本體拖曳、縮放、旋轉與右鍵選單正常。
 - [ ] 系統匣左鍵顯示／隱藏，右鍵選單、設定與結束正常。

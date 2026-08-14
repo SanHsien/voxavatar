@@ -3,7 +3,7 @@
 繁體中文 · [English](ROADMAP.en.md)
 
 更新日期：2026-08-14
-規劃基準：`1.0.3`（`main`；GitHub Latest Release：`v1.0.2`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+規劃基準：`1.0.4`（`main`；尚未 Release；GitHub Latest Release：`v1.0.2`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,16 +11,17 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`1.0.3`／`main`；GitHub Latest Release：`v1.0.2`
+覆核基準：`1.0.4`／`main`；GitHub Latest Release：`v1.0.2`
 
-沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。上游水位仍為 `152b1b4`（2026-08-10；結論見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
+沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。`1.0.4` 在 `main` 納入 4 個可再配布且品質 100／`keep` 的 VRM，以及 13 個來源明示 CC0、品質 78–100／`keep` 的 VRMA；上游 18 個未授權 VRMA 與本機 10 個只有 `review` 的動作仍排除。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。一般上游程式評估水位仍為 `152b1b4`（2026-08-10；素材 #17 的重新判定見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
 
 - 正式 Release：`v1.0.2`（Release workflow 的 Node 24 check、Windows native build、NSIS 打包與發布全綠；runner installer digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經兩路確認）。正式下載檔完成 `1.0.0`→`1.0.2` 升級並保留既有 library／設定；Settings MCP 卡片已從舊版永久「啟動中」修正為「線上／就緒」。
+- `main` 1.0.4：內建 VRoid Sample A／B／C、つくよみちゃん Type A 與 13 個 CC0 VRMA；全部同時通過原始來源、再配布、品質 `keep`（預設 >75；75 為 `review`）與 SHA-256 查核。Idle／Speaking 與 10 個自訂動作可直接使用；`assets:release` 會重算每個 digest。
 - 上游：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 
-本輪驗證：以 Node 24.19.0 完成 lint、299 個 Node 測試、151 個 renderer 測試、production build、資產 release gate、native self-test／Usage=2／typed error 10–13 與正式 GitHub runner NSIS 打包。Windows 11、225% DPI 實機完成設定五區、預覽、About、MCP 6 工具、氣泡、視窗控制、bridge 防護與輸出裝置 TTS；100%／150% DPI 與下列細項仍不擴大宣稱。
+本輪 1.0.4 候選驗證：以 Node 24.19.0 完成 lint、305 個 Node 測試、152 個 renderer 測試、production build、資產 release gate 與本機 `electron-builder` NSIS 打包；封裝內容為精確 4 個 VRM／13 個 VRMA。本機未安裝 C++ Build Tools，因此 1.0.4 的 native rebuild／self-test 與正式 GitHub runner NSIS 仍待 push 後由 CI 驗證。Windows 11、225% DPI fresh-userData 已顯示 AvatarSample_A 並列出完整 catalog；100%／150% DPI、另 3 模型切換與逐片段播放仍不擴大宣稱。
 
 ### 驗證缺口（標未驗，不虛構完成）
 
@@ -32,7 +33,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 本輪只做短時間 GUI 操作；`baseline:startup` 不含 GUI |
 | Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 1.0.0 與 1.0.2 正式 runner 資產均雙軌證明 `NotSigned`；0.16.23→1.0.0 與 1.0.0→1.0.2 升級均保留資料。SmartScreen 與 publisher 待補 |
 | Native COM／WASAPI／Device／Event **真實**失敗路徑 | **未驗** | Usage=2 可由 runner 斷言；真實音訊／COM 失敗仍需環境 |
-| 真實 VRoid／UniVRM／Blender 樣本人工結果 | **未驗** | 尚無授權清楚之二進位樣本入庫外證據 |
+| 真實 VRoid／UniVRM／Blender 樣本人工結果 | **部分驗證** | 4 個內建 VRM 自動品質分析皆 100／`keep`；13 個內建 VRMA 為 78–100／`keep`。Windows fresh-userData 已顯示 AvatarSample_A 並列出全部 4 模型／13 片段；另 3 模型切換、逐片段播放與其他 exporter 仍待補 |
 
 ### 文件承諾已對齊／仍缺（非 Windows 阻塞）
 
@@ -68,6 +69,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v1.0.1 | `v1.0.0` 正式 runner 資產／workflow／Latest 證據與舊 tag 清理收尾 |
 | v1.0.2 | 正式 installer 桌面重裝證據；Settings MCP status 改讀 live runtime state |
 | v1.0.3 | `v1.0.2` runner／Latest／正式升級與 MCP 修正實機證據收尾 |
+| v1.0.4 | 4 個品質 `keep` 的已授權 VRM、13 個品質 `keep` 的 CC0 VRMA、逐檔 SHA-256 發行 gate；未授權與 `review` 媒體排除 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 
@@ -87,7 +89,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 - [~] Native COM／WASAPI／Device／Event **真實**失敗路徑（HRESULT／裝置環境）。
 - [~] Idle／DPI／30% 實機可讀性／GUI smoke／Installer 簽署與 SmartScreen（見驗證缺口表）。
-- [~] 真實 exporter 人工結果（授權清楚之二進位樣本）。
+- [~] 真實 exporter 人工結果：4 個內建 VRM 與 13 個 VRMA 已通過自動品質 gate；Windows fresh-userData 已顯示 AvatarSample_A 並讀出完整內建 catalog，另 3 模型切換、逐片段播放與其他 exporter 樣本仍待完整矩陣。
 
 ### 證據路徑進度（可自動／可在 Linux 推進；≠ 實機完成）
 
@@ -106,7 +108,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - [~] Installer 簽署。**未驗**；未簽署版本必須明確標示。
 - [x] settings／catalog／MCP schema 版本政策與測試。
 - [x] 匯入失敗不造成資料遺失。
-- [~] 常見 exporter **真實**相容結果。**未驗**。
+- [~] 常見 exporter **真實**相容結果。**部分驗證**：官方 VRoid sample 已通過自動品質 gate，AvatarSample_A 通過 fresh-userData 顯示 smoke；另 3 模型與其他 exporter 待補。
 - [x] 隱私、loopback-only、媒體授權、Windows-only、上游 attribution 可驗證。
 
 ### 完成條件

@@ -35,7 +35,7 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 | --- | --- |
 | 語音口型 | 指定應用／自訂 matcher／外部事件／系統輸出（opt-in）loopback；helper 狀態人話與路徑遮罩；sticky discovery |
 | 桌面角色 | 透明置頂與點穿、拖曳、縮放（下限 30%）、旋轉、系統匣左右鍵（含手動狀態）、重設視角、聆聽／說話預覽、About（含 NotSigned） |
-| 本機素材 | 匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告；未分類片段池；可選依檔名白名單分槽；VRM 0.x／1.0 |
+| 本機素材 | 內建 4 個授權可追溯 VRM／13 個品質判定 `keep`（預設 >75）的 CC0 VRMA；可再匯入 `.vrm`／`.vrma`；目錄評估匯入與品質報告；未分類片段池；可選依檔名白名單分槽；VRM 0.x／1.0 |
 | 動作系統 | Idle／Speaking 槽（Speaking 可有第二層頭部／上身）、多片段洗牌輪播（一輪內每支各播一次再重洗；Idle 間隔可設定，說話直接接續）、用途 `loop`／`one-shot`／`pose`、預覽／改名／搬移、MCP catalog |
 | 角色表現 | 狀態仲裁、系統狀態動作槽、漫畫式氣泡、`show_message`（Settings opt-in）、口型增益 |
 | 設定進度 | 進度清單人話 code；可複製診斷摘要（遮罩路徑）；與 `get_status` 共用 readiness |
@@ -46,7 +46,7 @@ VoxAvatar 是 Windows-only、local-first 的 VRM 桌面角色陪伴。它監聽�
 
 VoxAvatar 以 [`xikhar/persona`](https://github.com/xikhar/persona) 的原始程式為基礎；特別感謝 `xikhar` 與所有上游貢獻者。本專案持續保留上游著作權、MIT License 與 attribution，無論 GitHub 是否顯示 fork 關聯都不會移除。
 
-現行 VoxAvatar 為 **Windows-only**（不恢復 PipeWire／Hyprland／macOS 發行），產品識別改為 **VoxAvatar／`voxavatar`**，安裝包**預設不內建**第三方 VRM／VRMA，並獨立維護 Windows 語音監聽、角色狀態、漫畫氣泡、MCP 控制、動作匯入與發行流程。完整來源、差異取捨與上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+現行 VoxAvatar 為 **Windows-only**（不恢復 PipeWire／Hyprland／macOS 發行），產品識別改為 **VoxAvatar／`voxavatar`**。安裝包內建 VRoid 官方 Sample A／B／C、つくよみちゃん官方 Type A，以及 13 個來源明示 CC0 且品質判定為 `keep` 的 VRMA；所有檔案都以原始來源、限制與 SHA-256 綁定。專案另獨立維護 Windows 語音監聽、角色狀態、漫畫氣泡、MCP 控制、動作匯入與發行流程。完整來源、差異取捨與上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 ## 運作方式
 
@@ -73,7 +73,7 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 - MCP 只控制角色動作、視窗與狀態，不執行任意命令，也不讀取任意檔案。
 - 自訂 process matcher 為有界安全子集，拒絕明顯易 ReDoS 的 pattern。
 - 使用者媒體複製到每使用者應用資料；renderer 只能以登記後的資產 ID 經 `voxavatar-asset:` 讀取。
-- 安裝包預設不附第三方角色或動作。可本機匯入，不等於本專案可以再散布原檔。
+- 安裝包只附通過再配布查核、品質判定為 `keep`（預設分數 >75 且沒有高嚴重度問題）且以 SHA-256 固定的 4 個角色與 13 個 CC0 動作；75 分是 `review`，不會入庫。其他素材可本機匯入，但不等於本專案可以再散布原檔。
 
 同一 Windows 帳號下的其他行程仍可連到未驗證身分的本機 MCP，請勿把連接埠轉發到區域網路或 Internet。完整模型見 [`SECURITY.md`](SECURITY.md)。
 
@@ -82,7 +82,7 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 | 用途 | 需求 |
 | --- | --- |
 | 使用正式版 | Windows 10 build 20348+ 或 Windows 11 x64、支援硬體加速的桌面環境 |
-| 角色素材 | 一個你有權使用的 `.vrm`；`.vrma` 動作可選 |
+| 角色素材 | 內建 4 個可選 VRM 與 Idle／Speaking／自訂動作；可再匯入你有權使用的 `.vrm`／`.vrma` |
 | 一般原始碼開發 | Windows、Node.js 24（CI 基準；Node 25 有已知 jsdom `localStorage` 衝突）、npm |
 | 修改原生 listener／本機打包 | Visual Studio Build Tools，含「使用 C++ 的桌面開發」工作負載 |
 
@@ -92,9 +92,9 @@ React + Three.js ── VRM／VRMA／口型／桌面互動
 
 1. 從 [GitHub Releases](https://github.com/SanHsien/voxavatar/releases/latest) 下載 Windows 安裝程式（`VoxAvatar-*-windows-x64-setup.exe`）。
 2. **簽署狀態**：現行公開安裝包為 **NotSigned（未 Authenticode 簽署）**。SmartScreen 可能顯示未知發行者；請以同頁的 `SHA256SUMS.txt` 核對檔案雜湊後再安裝。有簽署密鑰後的版本會在 Release／About 明確標示。
-3. 啟動 VoxAvatar；首次沒有模型時會自動開啟設定頁。
-4. 在「模型」匯入你有權使用的 `.vrm`。安裝包預設不內建第三方角色。
-5. 在 Idle／Speaking 或自訂動作加入 `.vrma`；沒有 VRMA 時仍可做口型。
+3. 啟動 VoxAvatar；首次會直接顯示 `AvatarSample_A`，Idle／Speaking 與可由 MCP 播放的自訂動作也已可用。
+4. 可在「模型」切換另外三個內建角色，或匯入你有權使用的 `.vrm`；內建素材來源與限制見 [`ASSET_LICENSES.md`](ASSET_LICENSES.md)。
+5. 可繼續在 Idle／Speaking 或自訂動作加入 `.vrma`；即使移除身體動作，口型仍由音量獨立驅動。
 6. 在「語音」選擇會播放助理聲音的應用程式。
 7. 依設定頁指示把本機 MCP 接到 Codex 或其他相容代理。
 
@@ -111,7 +111,7 @@ codex mcp add voxavatar --url http://127.0.0.1:47831/mcp
 重新啟動 Codex 或建立新任務後，可以直接要求：
 
 - 列出目前可播放動作。
-- 播放指定動作，例如 `wave-hello`。
+- 播放指定動作，例如 `happy`、`airplane` 或 `pose-motion`。
 - 顯示、隱藏或切換 VoxAvatar 視窗。
 - 查詢模型、語音 listener 與視窗狀態。
 - （需 Settings 啟用）在角色旁顯示短句氣泡。
@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`1.0.3`**；目前正式穩定版為 **[`v1.0.2`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.2)**。Windows-only、local-first 的產品與整合契約已穩定，並在 Windows 11、225% DPI 完成 GUI／WASAPI／MCP／安全邊界實機 smoke；正式 runner installer 的 digest、checksum、本機 SHA-256、`1.0.0`→`1.0.2` 桌面升級、資料保留與 MCP「線上／就緒」均已確認。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`，未取得證據的 DPI／SmartScreen／簽署／exporter 子項會在版本化紀錄中明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`1.0.4`**（尚未 Release）；目前正式穩定版為 **[`v1.0.2`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.2)**。Windows-only、local-first 的產品與整合契約已穩定，並在 Windows 11、225% DPI 完成 GUI／WASAPI／MCP／安全邊界實機 smoke；正式 runner installer 的 digest、checksum、本機 SHA-256、`1.0.0`→`1.0.2` 桌面升級、資料保留與 MCP「線上／就緒」均已確認。`1.0.4` 在 `main` 加入經逐檔授權、品質 `keep` 與 digest 查核的 4 個 VRM／13 個 VRMA，但尚未建立新 Release。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`，未取得證據的 DPI／SmartScreen／簽署／exporter 子項會在版本化紀錄中明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 
@@ -161,7 +161,7 @@ electron/        Electron main、preload-avatar／preload-settings、設定、MC
 src/             React／Three.js renderer、動作邏輯與 Vitest
 native/windows/  WASAPI process-loopback C++ helper
 scripts/         build、資產、文件、Dependabot、版本與 checksum、離線 VRMA 整理（`vrma:curate`）gates
-public/assets/   UI 圖示與發行 manifest，預設不含 VRM／VRMA
+public/assets/   UI 圖示、4 個已審查 VRM、13 個品質 `keep` 的 CC0 VRMA、發行 catalog 與授權 manifest
 docs/            開發、整合、角色表現、決策與發行文件
 .github/         CI、CodeQL、Dependabot、Release 與貢獻模板
 ```

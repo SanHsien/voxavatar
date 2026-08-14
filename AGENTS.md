@@ -53,7 +53,7 @@ VoxAvatar 是 Windows-only Electron VRM 桌面角色陪伴：監聽指定應用�
 ## 硬性邊界
 
 - 不擷取麥克風、不保存／傳送音訊、不轉錄。
-- 不提交未驗證再散布權的 VRM／VRMA；預設安裝包不內建角色或動作媒體。
+- 不提交未驗證再散布權或品質未判定為 `keep` 的 VRM／VRMA；預設 `keep` 必須高於 75 分且沒有高嚴重度問題，75 分仍是 `review`。目前只內建通過官方來源、條款、品質與 SHA-256 查核的 4 個 VRM／13 個 CC0 VRMA，完整清單見 `ASSET_LICENSES.md`。
 - 不移除上游 MIT 與 `xikhar` attribution。
 - MCP／bridge 維持 loopback-only，不加入任意命令或任意檔案存取。
 - 不恢復 PipeWire、Hyprland、macOS native、`dist:linux` 或 `dist:mac`。

@@ -2,6 +2,15 @@
 
 本檔記錄使用者與維護者可觀察的重要變更。版本 tag 與 `package.json` 必須一致；`main` 上可有多次版號 bump，再依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次發布。
 
+## 1.0.4 - 2026-08-14
+
+- 新安裝與沒有可用使用者預設模型的既有設定會直接使用官方 `AvatarSample_A`，並可切換 VRoid 官方 Sample B／C 與「つくよみちゃん公式3Dモデル タイプA」。4 個 VRM 的官方條款允許本專案免費再配布，且品質分析皆為 100／`keep`；必要 credit 與限制已寫入 [`ASSET_LICENSES.md`](ASSET_LICENSES.md)。
+- 內建 13 個由三個作者頁明示 CC0、且 VoxAvatar 品質分析為 78–100／`keep` 的 VRMA：Idle、Speaking 與 10 個自訂動作首次啟動即可使用。10 個授權雖可再配布但只有 75／`review` 的本機動作仍排除，避免降低預設動作品質。
+- 未複製上游 `idle.vrma` 與 17 個 speaking chunk：逐檔 metadata 只有 Blender exporter 與切段／鏡像來源檔名，沒有作者、授權或原始公開來源；上游自身亦明載未另授予 reuse license，避免把「公開在 GitHub」誤當再配布授權。
+- 發行資產 manifest 現在記錄創作者、原始來源、授權 URL、credit、限制與精確 SHA-256；`assets:release` 會實際重算二進位 digest，授權欄位缺漏或檔案遭替換即 fail closed。
+- 修正品質門檻的邊界語意與 UI／Markdown：預設 75 分屬 `review`，只有 **高於 75 分**且沒有高嚴重度問題才是 `keep`；repo／Release 仍只接受 `keep`。
+- 更新快速開始、角色行為、開發、發行、路線圖與 agent 邊界；首次啟動驗收改為「4 個內建模型可切換、Idle／Speaking／自訂動作可播放，仍能匯入自有素材」，動作頁也不再錯稱安裝包未內建 Idle。
+
 ## 1.0.3 - 2026-08-14
 
 - 回填 `v1.0.2` 正式發布證據：手動 dispatch 的 Release workflow `31782426134` 在精確 SHA `1d40dd8f96cfd24269cd248dcb8f6e9222a5fbe9` 完成 Node 24 check、Windows native build、NSIS 打包與 immutable tag 重驗。

@@ -28,7 +28,7 @@ describe('SettingsQualityGatePanel', () => {
     expect(html).toContain('value="55"');
     expect(html).toContain('value="80"');
     expect(html).toContain('分數低於 55 淘汰');
-    expect(html).toContain('80 以上保留');
+    expect(html).toContain('高於 80 分保留');
     expect(html).toContain('value="strict"');
   });
 
@@ -49,7 +49,7 @@ describe('SettingsQualityGatePanel', () => {
     expect(html).toContain('disabled=""');
   });
 
-  it('does not describe an impossible review range when thresholds are equal', () => {
+  it('keeps the exact boundary score in the review range', () => {
     const html = renderToStaticMarkup(
       <SettingsQualityGatePanel
         bridge={undefined}
@@ -67,7 +67,7 @@ describe('SettingsQualityGatePanel', () => {
       />,
     );
 
-    expect(html).toContain('未設觀察區間');
-    expect(html).not.toContain('75–75');
+    expect(html).toContain('75–75 觀察');
+    expect(html).not.toContain('未設觀察區間');
   });
 });

@@ -45,8 +45,24 @@ test("VRM0 array humanBones is parsed for coverage (not false low_bone_coverage)
     !report.issues.some((issue) => issue.code === "low_bone_coverage"),
     "must not mark full VRM0 humanoid as 0/13 coverage",
   );
-  assert.ok(report.score >= KEEP_SCORE_AT_LEAST);
+  assert.ok(report.score > KEEP_SCORE_AT_LEAST);
   assert.equal(report.verdict, VERDICT.KEEP);
+});
+
+test("a VRM score equal to the keep threshold remains review", (context) => {
+  const { filePath } = writeTempVrm(context, buildVrmGlb());
+  const baseline = analyzeVrmFile(filePath);
+  const atBoundary = analyzeVrmFile(filePath, {
+    rejectBelow: 0,
+    keepAtLeast: baseline.score,
+  });
+  const aboveBoundary = analyzeVrmFile(filePath, {
+    rejectBelow: 0,
+    keepAtLeast: baseline.score - 1,
+  });
+
+  assert.equal(atBoundary.verdict, VERDICT.REVIEW);
+  assert.equal(aboveBoundary.verdict, VERDICT.KEEP);
 });
 
 test("missing VRM extension is rejected", (context) => {

@@ -51,4 +51,9 @@ describe('settings-i18n parity', () => {
       expect(settingsMessageKeys(locale)).not.toContain('setup.code.mcp_offline');
     }
   });
+
+  it('describes the packaged Idle clip in both locales', () => {
+    expect(settingsT('zh-TW', 'actions.idleGuideDesc')).toContain('已內建');
+    expect(settingsT('en', 'actions.idleGuideDesc')).toContain('installer includes');
+  });
 });

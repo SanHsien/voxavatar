@@ -282,7 +282,7 @@ const ZH_TW: MessageDictionary = {
 
   'actions.idleGuideTitle': '更豐富的待機動作',
   'actions.idleGuideDesc':
-    '安裝包不安裝任何 Idle 動作。請從官方或 BOOTH 下載 .vrma 並加入 Idle（亦可選 Greeting / Happy）。待機時若有素材，VoxAvatar 會隨機播放非說話片段。',
+    '安裝包已內建通過授權與品質評比的 Idle 動作。若想增加變化，可再匯入有權使用的 .vrma 並加入 Idle；待機時有多個片段會隨機抽播。',
   'actions.idleGuideStep1Prefix':
     '從 BOOTH 取得 VRoid 免費 Photo Booth 組',
   'actions.idleGuideStep1Suffix':
@@ -337,19 +337,19 @@ const ZH_TW: MessageDictionary = {
   'actions.addClipsFolder': '+ 從目錄批次加入',
   'actions.qualityGateTitle': '目錄匯入品質把關',
   'actions.qualityGateDesc':
-    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。目前門檻：分數低於 {reject} 淘汰、{reviewLow}–{reviewHigh} 觀察、{keep} 以上保留。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
+    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。目前門檻：分數低於 {reject} 淘汰、{reviewLow}–{reviewHigh} 觀察、高於 {keep} 分保留。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
   'actions.qualityGateDescNoReview':
-    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。目前門檻：分數低於 {reject} 淘汰、{keep} 以上保留（未設觀察區間）。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
+    '從目錄批次匯入 VRM／VRMA 時套用（共用同一設定）。目前門檻：分數低於 {reject} 淘汰、{keep} 分觀察、高於 {keep} 分保留。VRMA 檢查時長、關鍵幀、突波與循環接縫；VRM 檢查擴充、humanoid、mesh、體積與粗估三角面。可寫入 Markdown 報告。啟發式僅供參考，請以即時預覽為準。',
   'actions.qualityGateMode': '把關模式',
   'actions.qualityGate.report': '分析並寫報告（全部匯入）',
   'actions.qualityGate.strict': '嚴格：略過評為「淘汰」的檔案',
   'actions.qualityGate.off': '關閉分析（最快）',
   'actions.qualityRejectBelow': '淘汰分數門檻（低於此分）',
-  'actions.qualityKeepAtLeast': '保留分數門檻（達標且無高嚴重度）',
+  'actions.qualityKeepAtLeast': '保留分數門檻（必須高於此分，且無高嚴重度）',
   'actions.qualityScoreHint':
-    '預覽：< {reject} 淘汰；{reviewLow}–{reviewHigh} 觀察；≥ {keep} 保留。保留門檻不可低於淘汰門檻。',
+    '預覽：< {reject} 淘汰；{reviewLow}–{reviewHigh} 觀察；> {keep} 保留。保留門檻不可低於淘汰門檻。',
   'actions.qualityScoreHintNoReview':
-    '預覽：< {reject} 淘汰；≥ {keep} 保留；目前未設觀察區間。保留門檻不可低於淘汰門檻。',
+    '預覽：< {reject} 淘汰；{keep} 觀察；> {keep} 保留。保留門檻不可低於淘汰門檻。',
   'actions.reportDirTitle': '報告儲存位置',
   'actions.reportDirDesc':
     '預設寫入你選的掃描目錄（VRM：voxavatar-vrm-report.md；VRMA：voxavatar-vrma-report.md）。也可指定固定資料夾。',
@@ -870,7 +870,7 @@ const EN: MessageDictionary = {
 
   'actions.idleGuideTitle': 'Richer idle motions',
   'actions.idleGuideDesc':
-    'No Idle clips ship in the installer. Download official or BOOTH .vrma files and add them to Idle (and optionally Greeting / Happy). While idle, VoxAvatar randomly plays non-talk clips when available.',
+    'The installer includes a license-cleared, quality-reviewed Idle clip. To add variety, import .vrma files you have the right to use and add them to Idle; VoxAvatar randomly selects among available clips.',
   'actions.idleGuideStep1Prefix':
     'Get VRoid’s free Photo Booth set from',
   'actions.idleGuideStep1Suffix':
@@ -925,19 +925,19 @@ const EN: MessageDictionary = {
   'actions.addClipsFolder': '+ Add from folder',
   'actions.qualityGateTitle': 'Folder-import quality gate',
   'actions.qualityGateDesc':
-    'Applied when importing VRM or VRMA from a folder (one shared setting). Current thresholds: reject below {reject}, review {reviewLow}–{reviewHigh}, keep at {keep}+. VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
+    'Applied when importing VRM or VRMA from a folder (one shared setting). Current thresholds: reject below {reject}, review {reviewLow}–{reviewHigh}, keep above {keep}. VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
   'actions.qualityGateDescNoReview':
-    'Applied when importing VRM or VRMA from a folder (one shared setting). Current thresholds: reject below {reject}, keep at {keep}+ (no review range). VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
+    'Applied when importing VRM or VRMA from a folder (one shared setting). Current thresholds: reject below {reject}, review at {keep}, keep above {keep}. VRMA checks duration, keyframes, spikes, and loop seams; VRM checks extensions, humanoid coverage, meshes, size, and estimated triangles. Can write a Markdown report. Heuristic only — trust the live preview.',
   'actions.qualityGateMode': 'Gate mode',
   'actions.qualityGate.report': 'Analyze and write report (import all)',
   'actions.qualityGate.strict': 'Strict: skip clips judged “reject”',
   'actions.qualityGate.off': 'Disable analysis (fastest)',
   'actions.qualityRejectBelow': 'Reject score threshold (below)',
-  'actions.qualityKeepAtLeast': 'Keep score threshold (and no high severity)',
+  'actions.qualityKeepAtLeast': 'Keep score threshold (must exceed, with no high severity)',
   'actions.qualityScoreHint':
-    'Preview: < {reject} reject; {reviewLow}–{reviewHigh} review; ≥ {keep} keep. Keep threshold cannot be lower than reject.',
+    'Preview: < {reject} reject; {reviewLow}–{reviewHigh} review; > {keep} keep. Keep threshold cannot be lower than reject.',
   'actions.qualityScoreHintNoReview':
-    'Preview: < {reject} reject; ≥ {keep} keep; no review range is configured. Keep threshold cannot be lower than reject.',
+    'Preview: < {reject} reject; {keep} review; > {keep} keep. Keep threshold cannot be lower than reject.',
   'actions.reportDirTitle': 'Report save location',
   'actions.reportDirDesc':
     'By default the report is written into the folder you scanned (VRM: voxavatar-vrm-report.md; VRMA: voxavatar-vrma-report.md). You can also pick a fixed folder.',

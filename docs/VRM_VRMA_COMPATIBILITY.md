@@ -11,14 +11,14 @@
 
 ## 判定語意
 
-品質分析輸出 `keep`（保留）、`review`（觀察）、`reject`（淘汰）三種判定，並附 0–100 分數與 issue code。目錄匯入時依設定頁的 `report`／`strict`／`off` 門檻決定是否略過檔案；分數門檻可由 Settings 調整（預設淘汰 < 60、保留 ≥ 75，VRM／VRMA 共用）。本矩陣只記 **分析器預期**，不含 UI 行為。
+品質分析輸出 `keep`（保留）、`review`（觀察）、`reject`（淘汰）三種判定，並附 0–100 分數與 issue code。目錄匯入時依設定頁的 `report`／`strict`／`off` 門檻決定是否略過檔案；分數門檻可由 Settings 調整（預設淘汰 < 60、觀察 60–75、保留 > 75，VRM／VRMA 共用）。本矩陣只記 **分析器預期**，不含 UI 行為。
 
 ## VRM 合成案例
 
 | 案例 id | 描述 | 建構方式 | 預期判定 | 預期分數／issue | 對應測試 |
 | --- | --- | --- | --- | --- | --- |
 | `vrm-complete` | VRM 1.0 完整 humanoid＋mesh＋expression | `buildVrmGlb()` | keep 或 review | score ≥ 70；非 reject | `complete VRM scores as keep or mild review` |
-| `vrm0-array-bones` | VRM 0.x `humanBones` 陣列格式 | `buildVrmGlb({ vrm0ArrayHumanoid: true })` | keep | score ≥ 75；無 `low_bone_coverage` | `VRM0 array humanBones is parsed for coverage (not false low_bone_coverage)` |
+| `vrm0-array-bones` | VRM 0.x `humanBones` 陣列格式 | `buildVrmGlb({ vrm0ArrayHumanoid: true })` | keep | score > 75；無 `low_bone_coverage` | `VRM0 array humanBones is parsed for coverage (not false low_bone_coverage)` |
 | `vrm-missing-extension` | 無 VRM／VRMC_vrm extension | `buildVrmGlb({ includeExtension: false })` | reject | `missing_vrm_extension` | `missing VRM extension is rejected` |
 | `vrm-missing-humanoid` | 有 extension 但缺 humanoid | `buildVrmGlb({ includeHumanoid: false })` | review 或 reject | `missing_humanoid` | `missing humanoid is review or reject` |
 | `vrm-no-mesh` | 有 extension 但無 mesh | `buildVrmGlb({ includeMesh: false })` | reject | `no_meshes` | `VRM without meshes is rejected` |

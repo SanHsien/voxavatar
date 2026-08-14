@@ -1,6 +1,6 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-08-10
+最後修訂：2026-08-14
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
@@ -89,7 +89,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 | #14 → `a72292f` | **不合併** | 維持根目錄 `ASSET_LICENSES.md`；不引入 `demo.jpg`；不搬到 `public/assets/LICENSES.md` |
 | #15 → `cf27d12` | **不合併** | 僅調整上游 `demo.jpg` 顯示 |
 | #16 → `9287ea3` | **不合併**（範圍外） | macOS Core Audio worker churn 修正；共用 JS 也只服務 darwin capture key，Windows sticky-root listener 不適用 |
-| #17 → `bb7ef24` | **不合併** | 內建 `AvatarSample_A.vrm` 與多個 speaking VRMA，並把授權敘述放進 `public/assets/LICENSES.md`；違反「預設安裝包不內建未確認再散布權媒體」與根目錄 `ASSET_LICENSES.md` 政策。模組化 speaking 排序可日後當概念參考，**不**整包合入媒體與 Developer gated 設定。 |
+| #17 → `bb7ef24` | **部分採用（僅模型）** | 2026-08-14 重新逐項查核：官方 VRoid Hub 與 sample-model 條款明列 `AvatarSample_A` 可免費再配布、改作與商用，因此只複製 hash 固定的官方 sample VRM，授權仍集中於根目錄 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。上游 idle＋17 個 speaking VRMA 的 metadata 無作者／授權／原始公開來源，上游自身也明載未另授予 reuse license，故全部不收；模組化 speaking 程式與 Developer gated 設定亦不整包合入。 |
 | #10、`5bd380e` 等語音／lighting 基線 | **已在 fork** | 語音來源、per-model lighting 等已落地為 VoxAvatar 行為 |
 | #1–#7、#9 等早期 PR | **不重併** | 對應殘留分支政策：已 squash 進上游 `main` 者不再整包合併 |
 
@@ -105,7 +105,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 
 #### 本輪結論
 
-- **無須從上游 PR／issue 引進程式合併。** #17 因內建媒體／授權路徑政策不合併。
+- **不從上游 PR／issue 整包合併程式。** #17 僅依原始官方條款採用 `AvatarSample_A`；VRMA 與附帶程式仍不合併。
 - Commit 水位推進至 `bb7ef24`；目前無 open PR，#11 文件需求已由 VoxAvatar 涵蓋。下次從此水位後的新 commit 接續評估。
 
 ## 2. 音訊與本機整合
@@ -117,7 +117,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 
 ## 3. 媒體與角色表現
 
-- 安裝包預設不內建角色或動作。使用者本機匯入不代表專案具有再散布權；打包媒體須通過 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
+- 安裝包只內建同時通過原始來源、再配布條款、VoxAvatar 品質 `keep` 與 SHA-256 查核的媒體；預設 `keep` 是分數 **> 75** 且沒有高嚴重度問題，75 分仍屬 `review`。目前為 4 個 VRM 與 13 個 CC0 VRMA。使用者本機匯入或品質 `review` 不代表可進 repo；逐檔結論見 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)。
 - 匯入先在 app-controlled 暫存檔完成有界 GLB／VRM／VRMA 驗證，再 atomic rename；失敗不得污染既有 catalog。
 - 目錄品質報告是啟發式輔助，不能取代人工預覽或授權審查。VRM 與 VRMA 共用既有 quality-gate 設定鍵與分數門檻（淘汰／保留），避免平行設定漂移。
 - Idle、Speaking、自訂動作與後續狀態／氣泡契約集中在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)。

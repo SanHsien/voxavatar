@@ -2,12 +2,26 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const nodeCrypto = require("node:crypto");
 const { readPackagedLibrary } = require("../electron/library-catalog.cjs");
+const { analyzeVrmFile } = require("../electron/vrm-quality.cjs");
+const { analyzeVrmaFile } = require("../electron/vrma-quality.cjs");
 
 const PROJECT_ROOT = path.join(__dirname, "..");
 const ASSET_ROOT = path.join(PROJECT_ROOT, "public", "assets");
 const LIBRARY_PATH = path.join(ASSET_ROOT, "library.json");
 const MANIFEST_PATH = path.join(ASSET_ROOT, "manifest.json");
+const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
+
+function sha256File(filePath) {
+  return nodeCrypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+}
+
+function analyzePackagedAsset(filePath, role) {
+  return role === "model"
+    ? analyzeVrmFile(filePath)
+    : analyzeVrmaFile(filePath);
+}
 
 function listRuntimeAssets(directory = ASSET_ROOT, prefix = "") {
   if (!fs.existsSync(directory)) return [];
@@ -50,6 +64,7 @@ function validateAssets({
   assetRoot = ASSET_ROOT,
   libraryPath = LIBRARY_PATH,
   manifestPath = MANIFEST_PATH,
+  analyzeAsset = analyzePackagedAsset,
 } = {}) {
   const errors = [];
   let contract;
@@ -97,21 +112,57 @@ function validateAssets({
     }
   }
 
+  for (const asset of manifest.assets ?? []) {
+    const absolute = path.join(assetRoot, asset.path ?? "");
+    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) continue;
+    if (!SHA256_PATTERN.test(asset.sha256 ?? "")) {
+      if (release) {
+        errors.push(`Incomplete release digest metadata: ${asset.path ?? "unknown asset"}`);
+      }
+      continue;
+    }
+    const actualSha256 = sha256File(absolute);
+    if (actualSha256.toLowerCase() !== asset.sha256.toLowerCase()) {
+      errors.push(`SHA-256 mismatch for ${asset.path}.`);
+    }
+  }
+
   if (release) {
     if (manifest.distributionAllowed !== true) {
       errors.push(
         "Asset distribution is disabled. Replace the test-only files and set distributionAllowed to true.",
       );
     }
+    const requiredMetadata = [
+      "creator",
+      "license",
+      "licenseUrl",
+      "source",
+      "attribution",
+      "restrictions",
+    ];
     for (const asset of manifest.assets ?? []) {
-      if (
-        typeof asset.license !== "string" ||
-        asset.license.trim() === "" ||
-        typeof asset.source !== "string" ||
-        asset.source.trim() === "" ||
-        asset.source === "local-test-only"
-      ) {
+      if (requiredMetadata.some((field) =>
+        typeof asset[field] !== "string" || asset[field].trim() === ""
+      ) || asset.source === "local-test-only") {
         errors.push(`Incomplete release license metadata: ${asset.path ?? "unknown asset"}`);
+      }
+      if (!SHA256_PATTERN.test(asset.sha256 ?? "")) {
+        errors.push(`Incomplete release digest metadata: ${asset.path ?? "unknown asset"}`);
+      }
+      const absolute = path.join(assetRoot, asset.path ?? "");
+      if (fs.existsSync(absolute) && fs.statSync(absolute).isFile()) {
+        try {
+          const quality = analyzeAsset(absolute, asset.role);
+          if (quality?.verdict !== "keep") {
+            errors.push(
+              `Release asset quality is not keep: ${asset.path} ` +
+              `(${quality?.verdict ?? "unknown"}, score ${quality?.score ?? "unknown"}).`,
+            );
+          }
+        } catch (error) {
+          errors.push(`Cannot analyze release asset quality: ${asset.path}: ${error.message}`);
+        }
       }
     }
   }
@@ -139,5 +190,7 @@ module.exports = {
   MANIFEST_PATH,
   listRuntimeAssets,
   readAssetContract,
+  analyzePackagedAsset,
+  sha256File,
   validateAssets,
 };

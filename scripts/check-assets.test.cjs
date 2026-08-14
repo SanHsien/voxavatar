@@ -7,6 +7,7 @@ const path = require("node:path");
 const test = require("node:test");
 const {
   readAssetContract,
+  sha256File,
   validateAssets,
 } = require("./check-assets.cjs");
 
@@ -82,6 +83,38 @@ test("development accepts an empty catalog and ignored local media", (context) =
   assert.deepEqual(validateAssets(fixture), []);
 });
 
+test("shipping assets have complete provenance and an exact digest", () => {
+  assert.deepEqual(validateAssets({ release: true }), []);
+  const assetRoot = path.join(__dirname, "..", "public", "assets");
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(assetRoot, "manifest.json"), "utf8"),
+  );
+  assert.equal(
+    manifest.assets.filter((asset) => asset.role === "model").length,
+    4,
+  );
+  assert.equal(
+    manifest.assets.filter((asset) => asset.role === "animation").length,
+    13,
+  );
+  assert.ok(
+    manifest.assets.every(
+      (asset) => sha256File(path.join(assetRoot, asset.path)) === asset.sha256,
+    ),
+  );
+  const model = manifest.assets.find(
+    (asset) => asset.path === "models/AvatarSample_A.vrm",
+  );
+  assert.ok(model);
+  assert.equal(model.role, "model");
+  assert.match(model.licenseUrl, /^https:\/\/vroid\.pixiv\.help\//);
+  assert.match(model.source, /^https:\/\/hub\.vroid\.com\//);
+  assert.equal(
+    sha256File(path.join(assetRoot, model.path)),
+    model.sha256,
+  );
+});
+
 test("manifest assigns every catalog asset its intended generic role", () => {
   const assetRoot = path.join(__dirname, "..", "public", "assets");
   const manifest = JSON.parse(
@@ -133,4 +166,51 @@ test("test-only assets are rejected by the release gate", (context) => {
   configureFixtureAssets(fixture);
   const errors = validateAssets({ ...fixture, release: true });
   assert.ok(errors.some((error) => error.includes("distribution is disabled")));
+  assert.ok(
+    errors.some((error) => error.includes("Incomplete release license metadata")),
+  );
+  assert.ok(
+    errors.some((error) => error.includes("Incomplete release digest metadata")),
+  );
+});
+
+test("release gate detects a changed binary after review", (context) => {
+  const fixture = createFixture(context);
+  const modelPath = path.join(
+    fixture.assetRoot,
+    "models",
+    "AvatarSample_A.vrm",
+  );
+  fs.mkdirSync(path.dirname(modelPath), { recursive: true });
+  fs.copyFileSync(
+    path.join(
+      __dirname,
+      "..",
+      "public",
+      "assets",
+      "models",
+      "AvatarSample_A.vrm",
+    ),
+    modelPath,
+  );
+  fs.appendFileSync(modelPath, "tampered");
+
+  assert.ok(
+    validateAssets({ ...fixture, release: true }).some((error) =>
+      error.includes("SHA-256 mismatch for models/AvatarSample_A.vrm"),
+    ),
+  );
+});
+
+test("release gate rejects licensed media that is only review quality", () => {
+  const errors = validateAssets({
+    release: true,
+    analyzeAsset: () => ({ score: 75, verdict: "review" }),
+  });
+
+  assert.ok(
+    errors.some((error) =>
+      error.includes("Release asset quality is not keep: models/AvatarSample_A.vrm"),
+    ),
+  );
 });

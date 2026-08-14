@@ -1,6 +1,194 @@
 {
   "schemaVersion": 1,
   "distributionAllowed": true,
-  "notice": "No packaged VRM models or Idle VRMA clips. Users import their own .vrm / .vrma. Official VRoid BOOTH motions are local-import only (see ASSET_LICENSES.md).",
-  "assets": []
+  "notice": "Bundled VRM and VRMA files are third-party media governed by their own terms, not VoxAvatar's MIT source-code license. Exact provenance, restrictions, and review decisions are documented in ASSET_LICENSES.md.",
+  "assets": [
+    {
+      "path": "models/AvatarSample_A.vrm",
+      "role": "model",
+      "creator": "VRoid Project / pixiv Inc.",
+      "license": "VRoid sample-model conditions of use (updated 2024-12-26)",
+      "licenseUrl": "https://vroid.pixiv.help/hc/en-us/articles/4402394424089-VRoidPreset-A-Z",
+      "source": "https://hub.vroid.com/en/characters/2843975675147313744/models/5644550979324015604",
+      "attribution": "AvatarSample_A by VRoid Project / pixiv Inc. (voluntary; attribution is not required by the terms)",
+      "restrictions": "Not CC0; do not sell or otherwise redistribute the model or contained data for a fee, use its data to develop or supply a character-creation service, or imply pixiv endorsement. Follow all prohibited conduct in the linked terms.",
+      "sha256": "2a0ccd84880b03d7b65503d8b6287f7a97f3bb4fab70a5fd0a47b433c97827f5"
+    },
+    {
+      "path": "models/AvatarSample_B.vrm",
+      "role": "model",
+      "creator": "VRoid Project / pixiv Inc.",
+      "license": "VRoid sample-model conditions of use (updated 2024-12-26)",
+      "licenseUrl": "https://vroid.pixiv.help/hc/en-us/articles/4402394424089-VRoidPreset-A-Z",
+      "source": "https://hub.vroid.com/en/characters/7939147878897061040/models/2292219474373673889",
+      "attribution": "AvatarSample_B by VRoid Project / pixiv Inc. (voluntary; attribution is not required by the terms)",
+      "restrictions": "Not CC0; do not sell or otherwise redistribute the model or contained data for a fee, use its data to develop or supply a character-creation service, or imply pixiv endorsement. Follow all prohibited conduct in the linked terms.",
+      "sha256": "7fca4a77fdc60ab2c78a9907430744562626180125fa386eb74fb2ea15c2e518"
+    },
+    {
+      "path": "models/AvatarSample_C.vrm",
+      "role": "model",
+      "creator": "VRoid Project / pixiv Inc.",
+      "license": "VRoid sample-model conditions of use (updated 2024-12-26)",
+      "licenseUrl": "https://vroid.pixiv.help/hc/en-us/articles/4402394424089-VRoidPreset-A-Z",
+      "source": "https://hub.vroid.com/en/characters/1248981995540129234/models/8640547963669442173",
+      "attribution": "AvatarSample_C by VRoid Project / pixiv Inc. (voluntary; attribution is not required by the terms)",
+      "restrictions": "Not CC0; do not sell or otherwise redistribute the model or contained data for a fee, use its data to develop or supply a character-creation service, or imply pixiv endorsement. Follow all prohibited conduct in the linked terms.",
+      "sha256": "6ad4acb74c2ea91b46a2c6755243efd9da4e0857635b659acd55d0de5832330a"
+    },
+    {
+      "path": "models/Tsukuyomi-chan_Type-A.vrm",
+      "role": "model",
+      "creator": "夢前黎 / Rei Yumesaki",
+      "license": "つくよみちゃん公式3Dモデル タイプA 利用規約 and つくよみちゃんキャラクターライセンス",
+      "licenseUrl": "https://tyc.rei-yumesaki.net/material/avatar/3d-a/",
+      "source": "https://tyc.rei-yumesaki.net/material/avatar/3d-a/",
+      "attribution": "つくよみちゃん公式3Dモデル タイプA © Rei Yumesaki",
+      "restrictions": "Credit and character-license inheritance are required. Do not present Tsukuyomi-chan as an original VoxAvatar character, use her for attacks or advocacy of a political, religious, or ideological position, or publicly redistribute through VRoid Hub. The unmodified model may be bundled with software; it must remain free rather than sold as a standalone asset. Follow the linked current terms.",
+      "sha256": "cd81161a86671cef6ede99b05498ea6e689a995f987a1bfb0c8ae45acecec5a9"
+    },
+    {
+      "path": "animations/airplane-02.vrma",
+      "role": "animation",
+      "creator": "sashii",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/6412084",
+      "attribution": "Sachi VRMA 1 by sashii (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "6a8dd04f6a0b4f071d881df1fce68e116dc4c5c1d651f5a5585a91cfa4037ccd"
+    },
+    {
+      "path": "animations/airplane-05.vrma",
+      "role": "animation",
+      "creator": "sashii",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/6412084",
+      "attribution": "Sachi VRMA 1 by sashii (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "efcb583b0548cdf76e4c4a623f10875204dcba8a2d06f978321b5b4d4a1221b8"
+    },
+    {
+      "path": "animations/drink-water.vrma",
+      "role": "animation",
+      "creator": "へすい / rerofumi",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/5527394",
+      "attribution": "VRMA animation pack by へすい / rerofumi (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "ba56122fecb5014f019096dcd014c0c35f1d560dcb0f6b1d55d3d66e5d69740c"
+    },
+    {
+      "path": "animations/exercise-step.vrma",
+      "role": "animation",
+      "creator": "へすい / rerofumi",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/5527394",
+      "attribution": "VRMA animation pack by へすい / rerofumi (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "62c3f543c0386feadf475d81f5d6a77f7dd21cd638892d1e0fed811cd9dedd5f"
+    },
+    {
+      "path": "animations/failed-apology.vrma",
+      "role": "animation",
+      "creator": "へすい / rerofumi",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/5527394",
+      "attribution": "VRMA animation pack by へすい / rerofumi (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "fdc0cdeca81c8130c8fd4c257cae4392c58f48e3b016fe2db696b6d40823f504"
+    },
+    {
+      "path": "animations/idle-01.vrma",
+      "role": "animation",
+      "creator": "sashii",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/6412084",
+      "attribution": "Sachi VRMA 1 by sashii (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "5ed6c016df035b21daaefe64751e1356387c6a33693d31366b0912ac7566ea92"
+    },
+    {
+      "path": "animations/pose-motion.vrma",
+      "role": "animation",
+      "creator": "へすい / rerofumi",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/5527394",
+      "attribution": "VRMA animation pack by へすい / rerofumi (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "e3b06f78b21df2fe1f26d80dd1826fd47941a891d44b46a6197f8a87de05ff2c"
+    },
+    {
+      "path": "animations/reaction-startle.vrma",
+      "role": "animation",
+      "creator": "へすい / rerofumi",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/5527394",
+      "attribution": "VRMA animation pack by へすい / rerofumi (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "ad2a5118837bfa6789cb89383d4e0bd98bed7685158b692bbfb6662ee42ae6c9"
+    },
+    {
+      "path": "animations/review-phone.vrma",
+      "role": "animation",
+      "creator": "へすい / rerofumi",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/5527394",
+      "attribution": "VRMA animation pack by へすい / rerofumi (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "54a37ca48a1d4ffb60cfc539013f59fecd48d93375b2069c6c35b5e9f416b726"
+    },
+    {
+      "path": "animations/run-slow.vrma",
+      "role": "animation",
+      "creator": "sashii (retarget); original Josie animation by JenJell",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/7861818",
+      "attribution": "CC0 Josie animation retarget by sashii (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "54fff21bbbbbe6364dc812f39dd849eadb61de3888b556580143d386592d17e5"
+    },
+    {
+      "path": "animations/speaking-01.vrma",
+      "role": "animation",
+      "creator": "sashii",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/6412084",
+      "attribution": "Sachi VRMA 1 by sashii (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "ba0339d2d9755fc2e0dab06e96a0d91303d0a508c9f89f07dc17a07dc0e2535c"
+    },
+    {
+      "path": "animations/success-cheer.vrma",
+      "role": "animation",
+      "creator": "へすい / rerofumi",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/5527394",
+      "attribution": "VRMA animation pack by へすい / rerofumi (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "88123be97c20633b926b911c1904aae3cdc790c5416b39788b753749ba087afb"
+    },
+    {
+      "path": "animations/walk.vrma",
+      "role": "animation",
+      "creator": "sashii (retarget); original Josie animation by JenJell",
+      "license": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://booth.pm/ja/items/7861818",
+      "attribution": "CC0 Josie animation retarget by sashii (credit not required; retained for provenance)",
+      "restrictions": "CC0 1.0; provided as-is without warranty.",
+      "sha256": "51c4158488a86a6bb99b978fb4d269e1798f9749bceaf0420473bae413fc3271"
+    }
+  ]
 }

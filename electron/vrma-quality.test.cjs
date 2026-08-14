@@ -32,7 +32,7 @@ test("normalizeQualityGate defaults to report", () => {
   assert.equal(normalizeQualityGate("nope"), QUALITY_GATE.REPORT);
 });
 
-test("normalizeQualityScoreThresholds clamps and enforces keep >= reject", () => {
+test("normalizeQualityScoreThresholds clamps and keeps the boundary at or above reject", () => {
   assert.deepEqual(normalizeQualityScoreThresholds({}), {
     rejectBelow: 60,
     keepAtLeast: 75,
@@ -78,8 +78,24 @@ test("custom thresholds are applied to reports and markdown", (context) => {
     keepAtLeast: 90,
   });
   assert.match(markdown, /淘汰 < 40/);
-  assert.match(markdown, /保留 ≥ 90/);
-  assert.match(markdown, /觀察 40–89/);
+  assert.match(markdown, /保留 > 90/);
+  assert.match(markdown, /觀察 40–90/);
+});
+
+test("a score equal to the keep threshold remains review", (context) => {
+  const { filePath } = writeTempVrma(context, buildRotationVrma());
+  const baseline = analyzeVrmaFile(filePath);
+  const atBoundary = analyzeVrmaFile(filePath, {
+    rejectBelow: 0,
+    keepAtLeast: baseline.score,
+  });
+  const aboveBoundary = analyzeVrmaFile(filePath, {
+    rejectBelow: 0,
+    keepAtLeast: baseline.score - 1,
+  });
+
+  assert.equal(atBoundary.verdict, VERDICT.REVIEW);
+  assert.equal(aboveBoundary.verdict, VERDICT.KEEP);
 });
 
 test("velocity spike VRMA is marked review or reject", (context) => {

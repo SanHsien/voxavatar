@@ -31,32 +31,55 @@ test("keeps permanent system actions in the packaged library", () => {
   const committed = validatePackagedLibrary(JSON.parse(committedJson));
   const disk = validatePackagedLibrary(JSON.parse(diskJson));
 
-  assert.equal(disk.default_model_id, null);
-  assert.deepEqual(disk.models, []);
+  assert.equal(disk.default_model_id, "avatar-sample-a");
+  assert.deepEqual(disk.models, [
+    {
+      id: "avatar-sample-a",
+      model_name: "AvatarSample_A",
+      asset_path: "models/AvatarSample_A.vrm",
+    },
+    {
+      id: "avatar-sample-b",
+      model_name: "AvatarSample_B",
+      asset_path: "models/AvatarSample_B.vrm",
+    },
+    {
+      id: "avatar-sample-c",
+      model_name: "AvatarSample_C",
+      asset_path: "models/AvatarSample_C.vrm",
+    },
+    {
+      id: "tsukuyomi-chan-type-a",
+      model_name: "つくよみちゃん公式3Dモデル タイプA",
+      asset_path: "models/Tsukuyomi-chan_Type-A.vrm",
+    },
+  ]);
   // Prefer disk for the shipping catalog shape; HEAD may lag until the change is committed.
+  assert.equal(disk.animations.length, 12);
   assert.deepEqual(
-    disk.animations.map(
-      ({ id, animation_name, animation_type, asset_paths }) => ({
-        id,
-        animation_name,
-        animation_type,
-        asset_paths,
-      }),
-    ),
+    disk.animations.find(({ id }) => id === "system-idle").asset_paths,
+    ["animations/idle-01.vrma"],
+  );
+  assert.deepEqual(
+    disk.animations.find(({ id }) => id === "system-speaking").asset_paths,
+    ["animations/speaking-01.vrma"],
+  );
+  assert.deepEqual(
+    disk.animations
+      .filter(({ animation_type }) => animation_type !== null)
+      .map(({ animation_name, animation_type }) => [animation_name, animation_type]),
     [
-      {
-        id: "system-idle",
-        animation_name: "idle",
-        animation_type: "IDLE",
-        asset_paths: [],
-      },
-      {
-        id: "system-speaking",
-        animation_name: "speaking",
-        animation_type: "TALK",
-        asset_paths: [],
-      },
+      ["idle", "IDLE"],
+      ["speaking", "TALK"],
+      ["happy", "HAPPY"],
     ],
+  );
+  assert.equal(
+    disk.animations.reduce(
+      (count, animation) => count + animation.asset_paths.length,
+      0,
+    ),
+    13,
   );
   void committed;
 });

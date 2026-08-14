@@ -282,7 +282,7 @@ function scoreReport(filePath, parsed, options = {}) {
   ) {
     verdict = VERDICT.REJECT;
   } else if (
-    score < keepAtLeast ||
+    score <= keepAtLeast ||
     issues.some((issue) => issue.severity === "high")
   ) {
     verdict = VERDICT.REVIEW;
@@ -361,7 +361,7 @@ function formatMarkdownReport(reports, options = {}) {
   const { rejectBelow, keepAtLeast } = resolveScoreThresholds(options);
   const sorted = [...reports].sort((a, b) => a.score - b.score);
   const counts = summarizeReports(sorted);
-  const reviewUpper = Math.max(rejectBelow, keepAtLeast - 1);
+  const reviewUpper = Math.max(rejectBelow, keepAtLeast);
 
   const lines = [
     "# VoxAvatar VRM 品質報告",
@@ -369,7 +369,7 @@ function formatMarkdownReport(reports, options = {}) {
     `- 產生時間：\`${generatedAt}\``,
     sourceDir ? `- 掃描目錄：\`${sourceDir}\`` : null,
     `- 把關模式：\`${gate}\`（report＝全部匯入並寫報告；strict＝略過淘汰；off＝不分析）`,
-    `- 分數門檻：淘汰 < ${rejectBelow}；觀察 ${rejectBelow}–${reviewUpper}；保留 ≥ ${keepAtLeast}`,
+    `- 分數門檻：淘汰 < ${rejectBelow}；觀察 ${rejectBelow}–${reviewUpper}；保留 > ${keepAtLeast}`,
     `- 檔案數：${sorted.length}（保留 ${counts.keep}／觀察 ${counts.review}／淘汰 ${counts.reject}）`,
     "",
     "> 本報告為啟發式自動判斷，僅供參考。最終請以 VoxAvatar 設定頁的即時預覽為準。",
@@ -378,7 +378,7 @@ function formatMarkdownReport(reports, options = {}) {
     "",
     "| 結果 | 條件概要 |",
     "| --- | --- |",
-    `| 保留 | 分數 ≥ ${keepAtLeast}，且無高嚴重度問題 |`,
+    `| 保留 | 分數 > ${keepAtLeast}，且無高嚴重度問題 |`,
     `| 觀察 | 分數 ${rejectBelow}–${reviewUpper}，或有高嚴重度問題 |`,
     `| 淘汰 | 分數 < ${rejectBelow}，或無法解析／缺 VRM 擴充／無 mesh |`,
     "",

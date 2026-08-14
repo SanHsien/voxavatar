@@ -128,7 +128,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 
 ## 專案狀態與路線圖
 
-`main` 目前版本為 **`1.0.5`**（尚未 Release）；目前正式穩定版仍為 **[`v1.0.4`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.4)**。Windows-only、local-first 的產品與整合契約已穩定；`1.0.5` 將已停止支援且帶入高風險 `extract-zip` 的 Electron 39 升級至仍受支援的 Electron 43.4.0，舊 extractor 已從 lockfile 移除，完整 dependency audit 與防回流測試納入日常 gate。`v1.0.4` 內建經逐檔授權、品質 `keep` 與 digest 查核的 4 個 VRM／13 個 VRMA；正式 runner、digest 與 checksum 證據仍見版本化紀錄。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`；未取得證據的 DPI／SmartScreen／簽署／exporter 子項仍明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
+`main` 目前版本為 **`1.0.5`**，正式穩定版為 **[`v1.0.5`](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.5)**。本版將已停止支援且帶入高風險 `extract-zip` 的 Electron 39 升級至仍受支援的 Electron 43.4.0；舊 extractor 已從 lockfile 移除，完整 dependency audit 與防回流測試納入日常 gate。正式 runner 完成授權資產 gate、Node 24 check、Windows native build／self-test 與 NSIS；installer 的 GitHub digest、checksum 與本機 SHA-256 一致。Windows 11、225% DPI 的乾淨 per-user 安裝另確認 AvatarSample_A 預設、0 個自訂模型／動作，以及 Settings MCP 線上／就緒、6 工具／12 動作。內建的 4 個 VRM／13 個 VRMA 均經逐檔授權、品質 `keep` 與 digest 查核。GitHub repo 已解除 fork network，仍保留上游 credit 與 `upstream` remote。公開安裝包維持 Authenticode `NotSigned`；未取得證據的完整 DPI／SmartScreen／簽署／exporter 子項仍明確標示未驗。原 `REVIEW.md` 已併入 [`ROADMAP.md`](ROADMAP.md)「目前健康」。上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1。
 
 版本順序、接下來工作與目前健康狀態見 [`ROADMAP.md`](ROADMAP.md)。
 

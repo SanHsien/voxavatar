@@ -7,6 +7,9 @@
 - 將已停止支援且透過 `extract-zip@2.0.1` 暴露 symlink path traversal（GHSA-jmr9-qjv8-65gv）的 Electron 39 升級至仍受支援的 Electron 43.4.0；lockfile 改用 Electron 維護的 `@electron-internal/extract-zip`，舊 `extract-zip` 完全移除。
 - 同步更新受影響的 `brace-expansion` 與 `nanoid` transitive 鎖定；完整 `npm audit` 由 4 個 high 降為 0，不只檢查 production dependencies。
 - `npm run check` 與 Windows CI 改為執行全部 dependencies 的 high-severity audit；新增 lockfile 回歸測試，禁止舊 extractor 回流，並要求 Electron install-script allowlist 與實際鎖定版本一致。
+- 正式 Release workflow `31800788259` 在精確 SHA `c9ad440d1c933f038b71e0fd895ed7d041a71d12` 完成授權資產 gate、Node 24 check、完整 dependency audit、Windows native build／self-test、NSIS 打包與發布；installer 的 GitHub digest、`SHA256SUMS.txt` 與本機 SHA-256 三路一致（`49dad09d623247d95394991472702400bf9b21aec99d324db703563e7877074e`，`177143840` bytes），並以 PowerShell／PE Certificate Table 雙軌確認 `NotSigned`。
+- 以正式下載 installer 移除既有 1.0.2 與舊 userData 後完成乾淨 current-user 安裝；Windows 11／225% DPI 首次啟動顯示 AvatarSample_A、0 個自訂模型／動作，Settings MCP 與獨立 client 均確認線上／就緒、6 工具／12 動作。未驗矩陣保留於 `docs/release-evidence/v1.0.5/`。
+- `v1.0.5` 成為唯一 Latest Release／tag；成功後移除 `v1.0.4` Release／tag。發布後證據屬同版本收尾，版號不另行增加。
 
 ## 1.0.4 - 2026-08-14
 

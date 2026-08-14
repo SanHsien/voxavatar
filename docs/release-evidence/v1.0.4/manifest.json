@@ -104,7 +104,7 @@
         "note": "無 WIN_CSC_* 密鑰；未宣稱 SmartScreen 或具名 publisher。"
       }
     ],
-    "notes": "v1.0.4 is the only Latest release/tag. The formal GitHub asset digest, SHA256SUMS.txt, local SHA-256, size, signing state, immutable tag, workflow, licensed-media gate, native build, and NSIS packaging were verified. Formal desktop install/upgrade was not executed and remains explicitly unverified."
+    "notes": "Historical snapshot: v1.0.4 was the only Latest release/tag when reviewed. It was superseded by v1.0.5, after which the public v1.0.4 Release/tag were removed under the latest-only policy. The recorded digest, checksum, size, signing, workflow, licensed-media, native-build, and NSIS evidence remains the result from that release; formal desktop install/upgrade was not executed."
   },
   "mediaReferences": [
     "ASSET_LICENSES.md",

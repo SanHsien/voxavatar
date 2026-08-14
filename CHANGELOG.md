@@ -7,6 +7,9 @@
 - 待機不再只從舊的 Idle／Happy 等硬編碼類型取片：所有可播放、未被排除的非說話動作預設進入待機池，內建 catalog 因此可輪播 11 種非說話動作、共 12 支 VRMA。
 - Settings 動作頁新增獨立「待機池」，逐一列出動作種類並讓使用者勾選或取消；`TALK`、Speaking 槽及其綁定動作固定不可勾，若要改作待機用途須先解除 Speaking 綁定或重新分類。
 - Settings schema 升至 12，持久化使用者明確排除的動作 ID；migration、sanitize、store、IPC、preload、renderer 與中英 UI 契約均有回歸測試。
+- 正式 Release workflow `31809770616` 在精確 SHA `448e505e2ce7d436660c339ddb4b5b908f471bbe` 完成授權資產 gate、Node 24 check、完整 dependency audit、Windows native build／self-test、NSIS 打包與發布；installer 的 GitHub digest、`SHA256SUMS.txt` 與本機 SHA-256 三路一致（`ad65ec5be450fe98f02beb880c511a2a7c7bee2d14c01c2ab309b1993587faf7`，`177145660` bytes），PE Certificate Table 為空故確認 `NotSigned`。
+- 本輪無 Windows 桌面，未重跑安裝／升級／系統匣／DPI／真實語音；未驗矩陣見 `docs/release-evidence/v1.0.6/`。
+- `v1.0.6` 成為唯一 Latest Release／tag；成功後移除 `v1.0.5` Release／tag。發布後證據屬同版本收尾，版號不另行增加。
 
 ## 1.0.5 - 2026-08-14
 

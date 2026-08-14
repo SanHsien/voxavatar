@@ -5,7 +5,7 @@
 ## Release
 
 - version: `1.0.5`
-- tag／Latest／唯一 Release：`v1.0.5`
+- tag（歷史紀錄，已被 `v1.0.6` 取代）：`v1.0.5`
 - commit: `c9ad440d1c933f038b71e0fd895ed7d041a71d12`
 - Release: <https://github.com/SanHsien/voxavatar/releases/tag/v1.0.5>
 - Actions: <https://github.com/SanHsien/voxavatar/actions/runs/31800788259>
@@ -44,6 +44,6 @@
 
 - 乾淨安裝前，1.0.2 的程式與解除安裝登錄已移除；uninstaller 不刪除每使用者資料，因此依本輪要求另將 `userData` 送資源回收筒。1.0.5 首次啟動前原路徑不存在。
 - 首次啟動顯示 AvatarSample_A；模型頁列出 4 個內建模型，0 個自訂模型／動作。MCP 頁穩定後與獨立 client 一致顯示線上／就緒、6 工具與 12 個可播放動作。
-- `v1.0.5` 成功後刪除 `v1.0.4` Release／tag；遠端與本機只保留最新版。
+- `v1.0.5` 當時成功後刪除 `v1.0.4` Release／tag。此目錄僅作歷史紀錄；公開 Latest 已改為 `v1.0.6`，對應 Release／tag 已刪。
 
 驗證流程見 [`docs/RELEASING.md`](../../RELEASING.md)。

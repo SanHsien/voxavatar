@@ -104,7 +104,7 @@
         "note": "無 WIN_CSC_* 密鑰；未測 SmartScreen 或具名 publisher。"
       }
     ],
-    "notes": "v1.0.5 is the only Latest release/tag. Formal asset integrity, clean current-user installation, fresh default library, 225% model/MCP UI, and live local MCP were verified; the unchecked lifecycle rows remain explicit, so smokeExecuted stays false."
+    "notes": "Historical v1.0.5 evidence. Superseded by v1.0.6; the v1.0.5 GitHub Release/tag was deleted after the new Latest succeeded. Do not treat this folder as a currently downloadable installer."
   },
   "mediaReferences": [
     "ASSET_LICENSES.md",

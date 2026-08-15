@@ -1,7 +1,7 @@
 {
   "name": "voxavatar",
   "version": "1.0.6",
-  "description": "Windows desktop VRM avatar companion for voice experiences.",
+  "description": "Windows-only local-first VRM desktop companion with playback-driven lip sync, animations, and MCP controls.",
   "author": {
     "name": "SanHsien",
     "email": "SanHsien@users.noreply.github.com"

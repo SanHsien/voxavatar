@@ -1,64 +1,79 @@
 # AGENTS.md
 
-本檔是 **所有** AI coding agents（Claude、Cursor、Codex、其他）在 **SanHsien/voxavatar** 工作時的單一真相源。薄入口 [`CLAUDE.md`](CLAUDE.md)、[`SKILL.md`](SKILL.md) 只指向本檔；衝突時以本檔為準。
+本檔是 **SanHsien/voxavatar** 的 AI coding agent 主要維護規則。[`CLAUDE.md`](CLAUDE.md) 與 [`SKILL.md`](SKILL.md) 只作薄入口；若有衝突，以本檔為準。
 
-## 工作流程（所有 agent）
+## 專案定位
 
-1. 讀本檔、[`README.md`](README.md) 與本次工作相關文件。
-2. Checkout／fetch `origin/main` 與 tags，保留使用者既有修改；**禁止另開 feature／cursor 分支**。
-3. 在 `main` 上完成需求，至少執行 `npm run check`；原生相關再跑 `native:build`／`native:test`，發行資產再跑 `assets:release`／`dist:windows`。
-4. 檢討 README、ROADMAP（含「目前健康」）、SECURITY、CHANGELOG 與受影響文件。
-5. 依本檔更新版號、提交並 `git push origin main`；tag／Release 依 [`docs/RELEASING.md`](docs/RELEASING.md) 批次處理。
-6. 已併入 `main` 的殘餘分支（遠端與本機／雲端主機）確認後刪除，只留 `main`。
+**VoxAvatar** 是 Windows-only、local-first 的 VRM 桌面角色陪伴：量測指定應用程式的播放輸出音量來驅動口型與 Speaking 狀態，並提供 loopback-only MCP／HTTP 控制介面。
 
-## 回覆與工作方式
-
-- 以繁體中文回答。
-- 直接處理需求，不用冗長背景、技術選型或表演式推理拖延簡單工作。
-- 主人交代的要求（含執行中補充）必須做完；自行拆分的階段計畫可在合理關卡暫停。
-- **中斷後必須自動接續**：對話壓縮、session 重開、工具中斷或主人再說「繼續」時，先還原上一輪已計劃／進行中／未驗證的工作，立刻做完，**禁止**等主人再次提醒「繼續未完成工作」。接續順序：查 git／CI／Release／todo 現況 → 從中斷點執行 → 驗證 → 依本檔交付。
-
-## 完成、推送與發行
-
-主人指示（2026-08-01；分支規則 2026-08-02；批次流程見 [`docs/RELEASING.md`](docs/RELEASING.md)）：
-
-1. **直接在 `main` 工作**：完成後 commit 並 `git push origin main`。**不要開 feature／cursor 分支，不要預設開 PR。**
-2. 每個有新產品／程式內容的可交付工作段落在 push 前 bump `package.json` 版號、同步 lockfile 並更新 `CHANGELOG.md`。**不必每次 bump 都 Release／tag**；`main` 可累積多個版本再批次發布。發布後的正式證據回填、公開文件狀態同步與本機來源整理屬於剛發布版本的同一工作項，**不得只為這些收尾另 bump patch 版號**。
-3. **批次 Release 時**：建立並推送 `v{version}` tag（指向 `main` tip）；**先推 tag、再推 `main`**，由「main tip 已 tagged」觸發打包，或依 [`docs/RELEASING.md`](docs/RELEASING.md) 手動 dispatch。驗證公開 Release、Latest、target commit 與資產。禁止空轉或無實質變更的 Release。
-4. 新版 Release **成功後**才刪除其餘舊 GitHub Release 與對應 tag，只保留最新版；新版失敗則不動舊版。
-5. **同一發布工作必須收尾**：下載正式資產核對 digest／checksum／簽署狀態，補 `docs/release-evidence/v{version}/`、README／ROADMAP／CHANGELOG 的實際狀態；若本輪使用本機素材來源，也要依本輪結果整理來源目錄並重驗數量／hash／報告。這些動作不得遺留到下一個版本。
-6. **Windows 實機驗證**（GUI smoke、簽署、native capture 矩陣）在無 Windows 桌面或密鑰時**不得阻塞** v0.3+ 路線圖；應停止實機步驟、回報缺口，繼續可驗證的開發。
-7. 只有密鑰、未授權破壞性操作或互相矛盾的需求才停下詢問。
-
-### 每次 push 前的文件檢討（必做）
-
-每次準備 commit／push（含 release bump）前，必須檢討並視需要更新相關文件，不可只改程式：
-
-| 檔案 | 檢討重點 |
-| --- | --- |
-| `CHANGELOG.md` | 使用者可觀察變更是否已寫入對應版本 |
-| `ROADMAP.md`／`ROADMAP.en.md` | 完成項勾選、規劃基準、「目前健康」、接下來三件事、SemVer 節奏是否仍正確 |
-| `README.md`／`README.en.md` | 產品敘述、能力、安全邊界、安裝／開發指引是否與現況一致 |
-| `SECURITY.md`／`SECURITY.en.md` | 隱私／IPC／MCP／語音模式邊界是否跟上 |
-| `docs/CHARACTER_BEHAVIOR.md` | 動作輪播／狀態槽／口型／氣泡的行為契約是否與實作一致 |
-| `docs/DECISIONS.md` | 新取捨、上游評估水位是否需更新 |
-| `CONTRIBUTING*`／`docs/DEVELOPMENT.md`／`docs/RELEASING.md` | 流程或指令是否漂移（含 Windows 實機驗收專節） |
-| `AGENTS.md`／`.cursorrules`／`CLAUDE.md`／`SKILL.md` | agent 行為規則與薄入口是否需同步 |
-
-雙語公開文件成對修改。無使用者可見變更時可在 CHANGELOG 略過，但仍須在 commit 說明或工作紀錄確認「已檢討、無需改」。
-
-## 產品
-
-VoxAvatar 是 Windows-only Electron VRM 桌面角色陪伴：監聽指定應用程式的語音播放輸出，驅動口型與動作，並提供本機 MCP。上游為 [`xikhar/persona`](https://github.com/xikhar/persona)。
+專案衍生自 [`xikhar/persona`](https://github.com/xikhar/persona)，必須保留上游 MIT License、copyright 與 attribution。現行產品由 `SanHsien/voxavatar` 獨立維護 Windows 方向。
 
 ## 硬性邊界
 
-- 不擷取麥克風、不保存／傳送音訊、不轉錄。
-- 不提交未驗證再散布權或品質未判定為 `keep` 的 VRM／VRMA；預設 `keep` 必須高於 75 分且沒有高嚴重度問題，75 分仍是 `review`。目前只內建通過官方來源、條款、品質與 SHA-256 查核的 4 個 VRM／13 個 CC0 VRMA，完整清單見 `ASSET_LICENSES.md`。
-- 不移除上游 MIT 與 `xikhar` attribution。
-- MCP／bridge 維持 loopback-only，不加入任意命令或任意檔案存取。
-- 不恢復 PipeWire、Hyprland、macOS native、`dist:linux` 或 `dist:mac`。
-- 不再合併上游殘留分支 `docs/contribution`、`feat/settings`、`feat/ui-theme`、`fix/mcp-update`。
+- 不擷取麥克風、不錄音、不轉錄、不保存或傳送音訊。
+- MCP／HTTP 維持 loopback-only；不得加入任意命令執行或任意檔案讀取。
+- 不把連接埠預設暴露到 LAN／Internet。
+- 不提交未確認再散布權的 VRM／VRMA；內建素材必須通過來源、授權與資產 gate。
+- 不移除 `xikhar/persona` 的上游 attribution。
+- 不恢復 PipeWire、Hyprland、macOS native、`dist:linux` 或 `dist:mac`；VoxAvatar 現行產品是 Windows-only。
+- 使用者匯入的第三方素材屬本機資料，不代表專案取得再散布權。
+
+## 架構地圖
+
+- `electron/`：Electron main、preload、設定、系統匣、MCP／HTTP、Node tests
+- `src/`：React + Three.js / VRM renderer、角色與動作邏輯、Vitest
+- `native/windows/`：WASAPI process-loopback C++ helper
+- `public/assets/`：UI 圖示、已審查 VRM／VRMA、manifest／library
+- `scripts/`：build、資產、文件、版本、checksum 與 release gates
+- `docs/`：整合、角色行為、開發、決策、發行與 release evidence
+
+## 開發原則
+
+- 一般變更走 branch → PR → CI → merge；不要直接改 `main`。
+- 修 bug 優先補對應測試，不因為能重構就做大型無關重構。
+- UI／MCP／角色狀態若共享行為，避免在 main／renderer 重複實作兩套規則。
+- 修改安全、音訊監聽、資產、MCP schema 或 installer 時，先讀對應專門文件。
+- 不為了「更完整」主動增加新的 governance workflow；現有 CI、CodeQL、Dependabot 與 Release gate 已足夠。
+- 版本號只在有明確 release／產品版本需求時調整；純文件、維護規則或內部整理不需要機械式 bump。
+
+## 文件分工
+
+- `README.md` / `README.en.md`：產品入口、下載、常用功能與必要安全摘要
+- `ROADMAP.md` / `ROADMAP.en.md`：未來工作與目前健康狀態
+- `CHANGELOG.md`：正式版本的使用者可見變更
+- `SECURITY.md` / `SECURITY.en.md`：完整隱私與安全模型
+- `ASSET_LICENSES.md`：內建素材來源、限制與再散布條件
+- `docs/INTEGRATIONS.md`：MCP、HTTP event API、URL protocol
+- `docs/CHARACTER_BEHAVIOR.md`：角色狀態、動作、口型與氣泡行為
+- `docs/DEVELOPMENT.md`：架構、環境與驗證矩陣
+- `docs/RELEASING.md`：Windows 發行、簽署、checksum 與實機驗證
+- `docs/DECISIONS.md`：耐久性的架構／產品取捨與上游 provenance
+
+只更新**真正受本次變更影響**的文件；不要要求每次 commit 都重寫 README、ROADMAP、SECURITY、CHANGELOG 全套。
+
+## 驗證
+
+一般 JavaScript／TypeScript、UI、MCP 或文件相關變更至少執行：
+
+```powershell
+npm run check
+```
+
+`npm run check` 包含 lint、Markdown check、Node／renderer tests、資產 contract、dependency audit 與 production build。
+
+變更範圍需要時再加：
+
+```powershell
+npm run native:build
+npm run native:test
+npm run assets:release
+npm run dist:windows
+```
+
+- 修改 C++ helper 或完整 WASAPI 路徑：跑 `native:build` / `native:test`。
+- 修改內建素材：跑 `assets:release`，並檢查 `ASSET_LICENSES.md` 與 manifest。
+- 修改 installer／發行流程：跑 `dist:windows`，並依 `docs/RELEASING.md` 檢查 Release evidence。
+- 沒有 Windows 桌面或簽署密鑰時，不得宣稱已完成 GUI smoke、DPI、SmartScreen 或 Authenticode 實機驗證；自動測試與實機驗證要分開陳述。
 
 ## 識別字串
 
@@ -71,12 +86,11 @@ VoxAvatar 是 Windows-only Electron VRM 桌面角色陪伴：監聽指定應用�
 | 資產 scheme | `voxavatar-asset:` |
 | 原生 helper | `voxavatar-audio-listener.exe` |
 
-## 文件與驗證
+## 完成條件
 
-- 公開文件：`README`、`ROADMAP`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁中為預設，附 `*.en.md`。
-- `ROADMAP` 管未來與「目前健康」、`CHANGELOG` 管已完成；不另建平行計畫檔或獨立覆核檔。
-- 其餘維護文件使用繁中；規則與路線圖都可隨專案現況修正，但硬性產品邊界的變更必須寫入 `docs/DECISIONS.md`。
-- 所有修改至少跑 `npm run check`；原生相關再跑 `npm run native:build` 與 `npm run native:test`。一般 UI、MCP、文件與 TypeScript 開發不要求本機安裝 Visual Studio Build Tools。
-- 資產或發行相關另跑 `npm run assets:release`；安裝相關跑 `npm run dist:windows`。
-- 若本機沒有 C++ toolchain，以 GitHub Windows runner 的 native build／self-test／installer 為正式 gate。Windows GUI smoke 與簽署驗收在可取得桌面／密鑰時補做，不阻塞其他可自動驗證的路線圖工作。
-- 不接受「應該可用」；以測試、build、Git／GitHub 與實際 Release 狀態收尾。
+提交前確認：
+
+1. 變更範圍符合 Windows-only、local-first 與上游 attribution 邊界。
+2. 對應自動測試／build 已通過；未能做的 Windows 實機驗證明確標示。
+3. 只有受影響的文件被更新。
+4. PR 說明清楚列出使用者可見影響、驗證結果與未驗證範圍。

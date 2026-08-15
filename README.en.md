@@ -24,7 +24,7 @@ It is **not another chatbot and does not run a language model**. VoxAvatar focus
 
 ## Download and first run
 
-The current stable release is **[v1.0.6](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.6)**.
+The current package version is `1.0.6`, corresponding to stable release **[v1.0.6](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.6)**.
 
 1. Download `VoxAvatar-*-windows-x64-setup.exe` from the [Latest Release](https://github.com/SanHsien/voxavatar/releases/latest).
 2. Public installers are currently **NotSigned** (no Authenticode signature), so Windows SmartScreen may show an unknown-publisher warning. Verify the installer against `SHA256SUMS.txt` from the same Release.

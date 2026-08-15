@@ -24,10 +24,10 @@ It is **not another chatbot and does not run a language model**. VoxAvatar focus
 
 ## Download and first run
 
-The current package version is `1.0.6`, corresponding to stable release **[v1.0.6](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.6)**.
+The source tree currently declares package version `1.0.6`; the authoritative downloadable version, signing status, and checksums are on the [Latest Release](https://github.com/SanHsien/voxavatar/releases/latest).
 
-1. Download `VoxAvatar-*-windows-x64-setup.exe` from the [Latest Release](https://github.com/SanHsien/voxavatar/releases/latest).
-2. Public installers are currently **NotSigned** (no Authenticode signature), so Windows SmartScreen may show an unknown-publisher warning. Verify the installer against `SHA256SUMS.txt` from the same Release.
+1. Download `VoxAvatar-*-windows-x64-setup.exe` from the Latest Release.
+2. If that Release or installer is marked **NotSigned**, Windows SmartScreen may show an unknown-publisher warning. Verify the installer against `SHA256SUMS.txt` from the same Release.
 3. Install and launch VoxAvatar; a bundled avatar appears on first run.
 4. Under **Voice**, select the application that plays assistant audio.
 5. Connect MCP only if you want agent control.

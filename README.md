@@ -24,10 +24,10 @@
 
 ## 下載與第一次使用
 
-目前 package version 為 `1.0.6`，對應穩定版 **[v1.0.6](https://github.com/SanHsien/voxavatar/releases/tag/v1.0.6)**。
+目前原始碼的 package version 為 `1.0.6`；實際可下載版本、簽署狀態與 checksum 以 [Latest Release](https://github.com/SanHsien/voxavatar/releases/latest) 為準。
 
-1. 從 [Latest Release](https://github.com/SanHsien/voxavatar/releases/latest) 下載 `VoxAvatar-*-windows-x64-setup.exe`。
-2. 公開安裝包目前為 **NotSigned**（未做 Authenticode 簽章），Windows SmartScreen 可能顯示未知發行者；可用同一 Release 的 `SHA256SUMS.txt` 核對檔案。
+1. 從 Latest Release 下載 `VoxAvatar-*-windows-x64-setup.exe`。
+2. 若該 Release／installer 標示 **NotSigned**，Windows SmartScreen 可能顯示未知發行者；請用同一 Release 的 `SHA256SUMS.txt` 核對檔案。
 3. 安裝並啟動；首次會直接顯示內建角色。
 4. 到「語音」選擇會播放助理聲音的應用程式。
 5. 需要 Agent 控制時，再依下方方式連接 MCP。

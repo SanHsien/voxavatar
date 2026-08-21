@@ -1,0 +1,87 @@
+name: Upstream check
+
+# This fork tracks xikhar/persona by watermark in docs/DECISIONS.md section 1.
+# Keeping that watermark honest used to depend on someone remembering to fetch;
+# upstream shipped a whole TypeScript migration between two such reminders.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/check-upstream-updates.cjs
+      - scripts/upstream-baseline.json
+      - .github/workflows/upstream-check.yml
+  schedule:
+    # Weekly on Monday at 11:07 Asia/Taipei.
+    - cron: "7 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          # The checker fetches upstream itself; full history keeps
+          # `git log reviewed..upstream` valid.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+
+      - name: Check upstream for unreviewed commits
+        id: upstream
+        run: |
+          node scripts/check-upstream-updates.cjs \
+            --github-output \
+            --output upstream-review-report.md
+          cat upstream-review-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the upstream review issue
+        if: steps.upstream.outputs.needs_attention == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One long-lived issue, not a new one every week.
+          issue_json="$(gh issue list \
+            --state all \
+            --search 'Upstream review in:title' \
+            --json number,state \
+            --jq '.[0] // {}')"
+          issue="$(jq -r '.number // empty' <<< "$issue_json")"
+          if [ -n "$issue" ]; then
+            if [ "$(jq -r '.state' <<< "$issue_json")" = "CLOSED" ]; then
+              gh issue reopen "$issue"
+            fi
+            gh issue edit "$issue" --body-file upstream-review-report.md
+          else
+            gh issue create \
+              --title "Upstream review: commits past the watermark" \
+              --body-file upstream-review-report.md \
+              --assignee "$GITHUB_REPOSITORY_OWNER"
+          fi
+
+      - name: Close the upstream review issue once the watermark catches up
+        if: steps.upstream.outputs.needs_attention == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          issue="$(gh issue list --state open --search 'Upstream review in:title' --json number --jq '.[0].number // empty')"
+          if [ -n "$issue" ]; then
+            gh issue close "$issue" --comment "This scheduled run found no upstream commits past the recorded watermark."
+          fi

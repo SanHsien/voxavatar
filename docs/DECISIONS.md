@@ -32,11 +32,12 @@
 | 項目 | 值 |
 | --- | --- |
 | `upstream/main` tip（commit 水位，已評估） | `152b1b4`（#42，2026-08-08） |
-| 下次接續 | `152b1b4` 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次 |
+| 下次接續 | `152b1b4` 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次（2026-08-21 排程首跑：其後已累積 12 個 commit，含 #51 全面 TypeScript 遷移） |
 | Open PR／issue 本輪掃描 | 2026-08-10（0.16.22）；`bb7ef24..upstream/main`＝`152b1b4`，共 12 個新 commit；open PR #45–#48，open issue #18／#35／#43／#44 |
 
 #### 評估流程
 
+0. 不必自己記得開始：`.github/workflows/upstream-check.yml` 每週一 11:07（Asia/Taipei）跑 `scripts/check-upstream-updates.cjs`，比對上游 `main` 與`scripts/upstream-baseline.json` 的 `reviewedThrough`（＝本節水位的完整 SHA），把水位之後的 commit 與其變動檔案寫進一張長期存在的 issue；水位追上就自動關閉。本機執行 `npm run upstream:check`。
 1. `git fetch upstream main`，列出水位之後的 commit。
 2. `gh pr list`／`gh issue list` 掃 open（必要時對照近期 merged／closed）。
 3. 對每一項標 **採用／部分採用／不合併／已涵蓋／範圍外**，並寫理由。只重掃清單而未讀 diff 時標 **待評估**，不得先寫結論。

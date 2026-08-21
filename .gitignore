@@ -75,3 +75,7 @@ INSTRUCTIONS.md
 # Local third-party unpack (do not commit full packs)
 _vendor/
 .tmp-booth/
+
+# Maintenance reports (regenerated on every run; not tracked)
+dependency-freshness-report.md
+upstream-review-report.md

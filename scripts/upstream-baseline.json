@@ -1,0 +1,7 @@
+{
+  "repo": "https://github.com/xikhar/persona.git",
+  "branch": "main",
+  "reviewedThrough": "152b1b453899972ef3bbc4018f709ce0ccf28d09",
+  "reviewedDate": "2026-08-10",
+  "notes": "Watermark 152b1b4 (#42). The 12 commits from bb7ef24 to this point, plus open PRs #45-#48 and issues #11/#18/#35/#43/#44, were judged in docs/DECISIONS.md section 1. Advance this file only after the next round is recorded there."
+}

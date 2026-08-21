@@ -122,6 +122,8 @@ npm run baseline:startup
 
 Dependabot 每週檢查 npm 與 GitHub Actions。`scripts/dependabot-policy.cjs` 只允許 CI 直接覆蓋的開發工具與 workflow-only Actions minor／patch 自動合併；runtime、Electron／打包、React／Three.js／VRM、major 或範圍不明更新一律人工審查。`npm run check` 與 Windows CI 另執行完整 high-severity audit；Electron 安裝／打包鏈的 dev-only 漏洞同樣必須修正，不得只以 production audit 為綠便略過。
 
+`.github/workflows/dependency-freshness.yml` 每月 1 日另跑一次 `scripts/check-dependency-freshness.cjs`：把所有直接依賴的已安裝版、範圍內可用版與 dist-tag latest 併同 `npm audit` 與 open Dependabot PR 寫進一張長期存在的 issue，全部乾淨時自動關閉。Dependabot 一次只回答一個套件有沒有新版，這支回答「整體落後多少」。已安裝版反而超前 dist-tag（例如 pin 過的 pre-release）不算維護項目，不會被誤報。本機執行 `npm run deps:freshness`。
+
 ## 修改原則
 
 - 行為變更先補回歸測試，再做最小實作。

@@ -36,6 +36,8 @@
     "test:renderer": "vitest run",
     "lint": "eslint .",
     "docs:check": "node scripts/check-docs.cjs",
+    "deps:freshness": "node scripts/check-dependency-freshness.cjs",
+    "upstream:check": "node scripts/check-upstream-updates.cjs",
     "evidence:manifest": "node scripts/write-release-evidence-manifest.cjs",
     "evidence:verify": "node scripts/verify-release-evidence.cjs",
     "evidence:pe": "node scripts/pe-authenticode-presence.cjs",

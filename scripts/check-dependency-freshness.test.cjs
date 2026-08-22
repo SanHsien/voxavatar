@@ -6,8 +6,10 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 const {
+  applyDeferrals,
   checkDependencies,
   isNewer,
+  loadDeferrals,
   needsMaintenance,
   normalizeAudit,
   normalizeOutdated,
@@ -149,4 +151,57 @@ test("writes the status fields the workflow branches on", () => {
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
+});
+
+test("a deferral applies only to the exact version it was judged against", () => {
+  const rows = [
+    { name: "typescript", current: "5.9.3", wanted: "5.9.3", latest: "7.0.2" },
+    { name: "three", current: "0.182.0", wanted: "0.182.0", latest: "0.186.0" },
+  ];
+  const deferrals = {
+    typescript: { deferredLatest: "7.0.2", reason: "typescript-eslint rejects TS 7.0" },
+    three: { deferredLatest: "0.185.1", reason: "needs a desktop verification round" },
+  };
+
+  const [typescriptRow, threeRow] = applyDeferrals(rows, deferrals);
+
+  assert.match(typescriptRow.deferredReason, /typescript-eslint/u);
+  assert.equal(needsMaintenance(typescriptRow), false);
+  // three moved past the version the deferral was approved for, so it comes back.
+  assert.equal(threeRow.deferredReason, undefined);
+  assert.equal(needsMaintenance(threeRow), true);
+});
+
+test("a deferral without a reason is not a deferral", () => {
+  const rows = [{ name: "vite", current: "7.3.6", wanted: "7.3.6", latest: "8.2.2" }];
+
+  const [row] = applyDeferrals(rows, { vite: { deferredLatest: "8.2.2", reason: "  " } });
+
+  assert.equal(row.deferredReason, undefined);
+  assert.equal(needsMaintenance(row), true);
+});
+
+test("a deferral does not hide an in-range update", () => {
+  const rows = [{ name: "three", current: "0.182.0", wanted: "0.184.0", latest: "0.185.1" }];
+
+  const [row] = applyDeferrals(rows, {
+    three: { deferredLatest: "0.185.1", reason: "needs a desktop verification round" },
+  });
+
+  assert.equal(row.deferredReason, undefined);
+  assert.equal(needsMaintenance(row), true);
+});
+
+test("the committed deferrals name a version and a reason", () => {
+  const deferrals = loadDeferrals();
+
+  assert.ok(Object.keys(deferrals).length > 0);
+  for (const [name, entry] of Object.entries(deferrals)) {
+    assert.equal(typeof entry.deferredLatest, "string", `${name} must record the version judged`);
+    assert.ok(entry.reason && entry.reason.trim().length > 20, `${name} must explain itself`);
+  }
+});
+
+test("a missing deferrals file is not an error", () => {
+  assert.deepEqual(loadDeferrals("./no-such-deferrals.json"), {});
 });

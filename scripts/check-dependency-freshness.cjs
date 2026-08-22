@@ -62,21 +62,59 @@ function isNewer(candidate, reference) {
   return false;
 }
 
-function statusFor({ current, wanted, latest }) {
+const DEFERRALS_PATH = path.join(REPO_ROOT, ".github", "dependency-deferrals.json");
+
+function loadDeferrals(deferralsPath = DEFERRALS_PATH) {
+  try {
+    return JSON.parse(fs.readFileSync(deferralsPath, "utf8"));
+  } catch (error) {
+    if (error.code === "ENOENT") return {};
+    throw error;
+  }
+}
+
+/**
+ * Attach an approved deferral to the row it was approved for.
+ *
+ * A deferral names the exact version it was judged against. When upstream
+ * publishes something newer the deferral stops applying and the row reappears,
+ * so "we looked at this and decided not yet" cannot quietly become "we stopped
+ * looking".
+ */
+function applyDeferrals(rows, deferrals = {}) {
+  return rows.map((row) => {
+    const deferral = deferrals[row.name];
+    const applies = Boolean(
+      deferral
+        && typeof deferral.reason === "string"
+        && deferral.reason.trim()
+        && deferral.deferredLatest === row.latest
+        && row.current === row.wanted,
+    );
+    return applies ? { ...row, deferredReason: deferral.reason } : row;
+  });
+}
+
+function statusFor({
+  current, wanted, latest, deferredReason,
+}) {
   if (current !== wanted) {
     return wanted === latest
       ? "In-range update available"
       : "In-range update, newer major to assess";
   }
   if (current === latest) return "OK";
+  if (deferredReason) return "Deferred by review";
   // A pinned pre-release or a since-unpublished version can leave the installed
   // copy ahead of the dist-tag. That is not maintenance work, so it must not be
   // reported as such.
   return isNewer(latest, current) ? "Newer release to assess" : "Ahead of dist-tag latest";
 }
 
+const QUIET_STATUSES = new Set(["OK", "Ahead of dist-tag latest", "Deferred by review"]);
+
 function needsMaintenance(row) {
-  return statusFor(row) !== "OK" && statusFor(row) !== "Ahead of dist-tag latest";
+  return !QUIET_STATUSES.has(statusFor(row));
 }
 
 function runNpm(args, { cwd = REPO_ROOT } = {}) {
@@ -143,9 +181,12 @@ function renderMarkdown(rows, { audit = EMPTY_AUDIT, checkError = "" } = {}) {
   ];
 
   for (const row of rows) {
+    const status = row.deferredReason
+      ? `Deferred by review: ${row.deferredReason}`
+      : statusFor(row);
     lines.push(
       `| \`${row.name}\` | \`${row.type}\` | \`${row.current}\` | \`${row.wanted}\` | `
-      + `\`${row.latest}\` | ${statusFor(row)} |`,
+      + `\`${row.latest}\` | ${status} |`,
     );
   }
   if (rows.length === 0 && !checkError) {
@@ -171,6 +212,9 @@ function renderMarkdown(rows, { audit = EMPTY_AUDIT, checkError = "" } = {}) {
     "In-range updates are Dependabot's job. A newer major needs the release notes,",
     "`npm run check`, and a real Windows run of the packaged app before it lands --",
     "Electron, three.js, and the VRM stack all break in ways CI cannot see.",
+    "",
+    "Rows marked *Deferred by review* were judged against the exact version shown in",
+    "`.github/dependency-deferrals.json`. Publish anything newer and they come back.",
     "",
   );
   return `${lines.join("\n")}\n`;
@@ -210,7 +254,8 @@ function parseArgs(args) {
 
 function main(args = process.argv.slice(2)) {
   const options = parseArgs(args);
-  const { rows, audit, checkError } = checkDependencies();
+  const { rows: rawRows, audit, checkError } = checkDependencies();
+  const rows = applyDeferrals(rawRows, loadDeferrals());
   const report = renderMarkdown(rows, { audit, checkError });
   fs.writeFileSync(options.output, report, "utf8");
   process.stdout.write(report);
@@ -231,8 +276,10 @@ if (require.main === module) {
 
 module.exports = {
   EMPTY_AUDIT,
+  applyDeferrals,
   checkDependencies,
   isNewer,
+  loadDeferrals,
   needsMaintenance,
   normalizeAudit,
   normalizeOutdated,

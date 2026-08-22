@@ -29,7 +29,7 @@
 
 ## 開發原則
 
-- 一般變更走 branch → PR → CI → merge；不要直接改 `main`。
+- 一般變更直接推 `origin/main`，不開功能分支、不開維護 PR（主人 2026-08-22 指示）。只有在需要他人審查、或改動風險高到值得先讓 CI 在 PR 上跑一輪時，才退回 **branch → PR → CI → merge**。
 - 修 bug 優先補對應測試，不因為能重構就做大型無關重構。
 - UI／MCP／角色狀態若共享行為，避免在 main／renderer 重複實作兩套規則。
 - 修改安全、音訊監聽、資產、MCP schema 或 installer 時，先讀對應專門文件。
@@ -95,3 +95,15 @@ npm run dist:windows
 2. 對應自動測試／build 已通過；未能做的 Windows 實機驗證明確標示。
 3. 只有受影響的文件被更新。
 4. PR 說明清楚列出使用者可見影響、驗證結果與未驗證範圍。
+
+## 對外邊界：PR 只打本 fork
+
+- **PR、push、release 一律指向 `SanHsien/voxavatar`。** 對上游 `xikhar/persona` 開 PR、push 或發 release
+  需要主人在當次對話明確同意回貢；「fork 一份」「建開發環境」「比照其他 repo」都不是同意。
+- 根因是機制不是粗心：`gh` 在 fork clone 的**預設 repo 就是上游**（`gh repo set-default --view` 會回
+  `xikhar/persona`），裸跑 `gh pr create` 必然打上去。每個 clone 先跑一次
+  `gh repo set-default SanHsien/voxavatar`。
+- 開 PR 仍明寫 `gh pr create --repo SanHsien/voxavatar --base <分支> --head <分支>`，並**讀輸出的 URL**，
+  owner 必須是 `SanHsien`。不是就立刻 `gh pr close` 留言道歉說明，再對 origin 重開。
+- 2026-08-22 一天內兩個工作階段各誤開一個上游 PR（`lidge-jun/opencodex#2373`、
+  `hamanpaul/paulsha-cortex#787`）。批次跑多個 repo 時最容易略過確認，而那正是兩次出事的場合。

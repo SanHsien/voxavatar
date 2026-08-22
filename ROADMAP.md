@@ -18,7 +18,8 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 - 正式 Release：`v1.0.6`（Release workflow `31809770616` 的授權資產 gate、Node 24 check、完整 dependency audit、Windows native build／self-test、NSIS 打包與發布全綠；runner installer digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經 PE Certificate Table 確認）。本輪無 Windows 桌面，未重跑安裝／升級／系統匣／DPI／真實語音；1.0.5 乾淨 per-user 安裝與 MCP 部分驗證仍見版本化歷史證據。成功後僅保留 `v1.0.6` Latest Release／tag。
 - 安全基線：Electron 39.8.10 升級至仍受支援的 43.4.0；GHSA-jmr9-qjv8-65gv 的 `extract-zip@2.0.1` 已由 lockfile 移除，改用 Electron 維護的 extractor。完整 dependency audit 為 0，且日常／CI gate 不再只檢查 production dependencies。
 - 內建資產：VRoid Sample A／B／C、つくよみちゃん Type A 與 13 個 CC0 VRMA；全部同時通過原始來源、再配布、品質 `keep`（預設 >75；75 為 `review`）與 SHA-256 查核。Idle／Speaking 與 10 個自訂動作可直接使用；`assets:release` 會重算每個 digest。
-- 上游：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
+- 上游：commit 水位 `7ca65a3`（2026-08-22，已評估）。`152b1b4..7ca65a3` 的 13 個 commit 逐項判定：已涵蓋 2（#48 settings IPC 註冊點把關、#61 click-through，本 fork 皆已有且 #48 更嚴）、範圍外 3（VRoid Hub #47／#53、macOS 發行 #58）、不合併 4（#51 TypeScript 遷移、#56 eol-last plugin、#59／#60 Settings UI 拆分）、**候選 4**（#46／#49／#50／#54 動作綁定 VRM 表情——本 fork 目前只把 expression 用在 lip-sync 與眨眼，缺使用者可設定的動作↔表情綁定與 hold／release 事件，屬 fork 端實作而非 cherry-pick）。詳見 `docs/DECISIONS.md` §1。
+- 上游（前輪）：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
 - MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
 - 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
 - 1.0.6 的待機池預設納入所有非說話動作，可在 Settings 依動作種類取消；`TALK`、Speaking 槽及其綁定動作強制排除。schema 12、store／IPC／preload 與 renderer 互動均有契約測。

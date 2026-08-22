@@ -31,9 +31,26 @@
 
 | 項目 | 值 |
 | --- | --- |
-| `upstream/main` tip（commit 水位，已評估） | `152b1b4`（#42，2026-08-08） |
-| 下次接續 | `152b1b4` 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次（2026-08-21 排程首跑：其後已累積 12 個 commit，含 #51 全面 TypeScript 遷移） |
+| `upstream/main` tip（commit 水位，已評估） | `7ca65a3`（#61，2026-08-22） |
+| 前次水位 | `152b1b4`（#42，2026-08-08） |
+| 下次接續 | `7ca65a3` 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次 |
 | Open PR／issue 本輪掃描 | 2026-08-10（0.16.22）；`bb7ef24..upstream/main`＝`152b1b4`，共 12 個新 commit；open PR #45–#48，open issue #18／#35／#43／#44 |
+
+#### `152b1b4..7ca65a3` 新 commit（2026-08-22 評估完成）
+
+排程檢查首跑列出的 13 個 commit，逐項判定如下。本輪只有文件決策，沒有程式變更。
+
+| Commit | 上游 PR | 判定 | 理由 |
+| --- | --- | --- | --- |
+| `6c309bc` | #48 gate privileged IPC to the Settings window | **已涵蓋** | 上游的根因是「~20 個 settings channel 各自檢查 sender、漏了一批」，改法是在註冊點包一層。本 fork 的 `handleTrustedSettingsIpc` 早就這麼做，而且同時驗 renderer URL（`rendererUrl("settings")`）與 webContents 身分，比上游只驗 webContents 嚴；全 repo 只有 3 個 `ipcMain.handle` 呼叫點（trusted／settings／avatar 三個包裝器），結構上不存在「忘記加 guard」的漏洞。 |
+| `ce4feff` | #47 VRoid Hub session refresh | **範圍外** | VRoid Hub 帳號整合，本 fork 已決定不採（見本節先前的四個 VRoid Hub account commits 判定）。 |
+| `0bdbc58` `30bb8e7` `f7605ca` `7592e77` | #46／#49／#50／#54 動作綁定 VRM 表情 | **候選（未實作）** | 真實的功能缺口：本 fork 目前只把 VRM expression 用在 lip-sync（`useAmplitudeLipSync`）與眨眼（`useBlink`），沒有使用者可設定的「動作↔表情」綁定，也沒有 hold／release 整合事件。與本 fork 邊界不衝突，值得做；但 renderer 已是各自演進的 TypeScript 實作與不同的 settings schema，這是一次 fork 端的功能實作而非 cherry-pick。列入 ROADMAP 候選，不在本輪動手。 |
+| `e60081b` | #51 migrate Persona codebase to TypeScript | **不合併** | 上游在追上本 fork 早就在的位置：renderer 本來就是 TypeScript，Electron 主行程刻意維持 `.cjs`（與 `node --test` 的 `electron/*.test.cjs` 契約一致）。合併 90+ 檔的遷移只會製造大量衝突而無所得。 |
+| `19abd0b` | #53 VRoid Hub picker 分組 | **範圍外** | 同 #47，VRoid Hub。 |
+| `3673a9c` | #56 以 `@stylistic/eol-last` 強制檔尾換行 | **不採** | 本 fork 的 eslint 設定未引入 `@stylistic`；為單一格式規則新增一個 plugin 依賴不划算，且 `npm run check` 已有 lint 與 docs 檢查。 |
+| `937034e` | #58 允許未簽署的 macOS release build | **範圍外** | 本 fork 是 Windows-only 產品，發行流程只走 NSIS／Authenticode。 |
+| `59dbf92` `aec8a3d` | #59／#60 Settings 頁面拆分與介面美化 | **不合併** | Settings 已由本 fork 自行重構，含中英雙語字串、動作／待機池、MCP 與素材授權等上游沒有的區塊；上游的拆分方式與樣式無法直接套用。 |
+| `7ca65a3` | #61 desktop-pet click-through | **已涵蓋** | 本 fork 早有 click-through：tray 開關、`setIgnoreMouseEvents(next, { forward: true })` 與 alpha hit-test（`Scene.tsx`／`main.cjs`）。上游 PR #45 當初就是因為「含麥克風擷取」被拒、並註明 click-through 本 fork 已有。 |
 
 #### 評估流程
 

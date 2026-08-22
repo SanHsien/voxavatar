@@ -20,10 +20,9 @@
     "node": ">=24"
   },
   "allowScripts": {
-    "@swc/core@1.15.46": true,
-    "electron@43.4.0": true,
+    "@swc/core@1.16.1": true,
     "electron-winstaller@5.4.0": true,
-    "esbuild@0.28.1": true,
+    "electron@43.4.1": true,
     "fsevents@2.3.3": true
   },
   "main": "electron/main.cjs",
@@ -72,7 +71,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.182.0",
     "@vitejs/plugin-react-swc": "^4.2.2",
-    "concurrently": "^9.2.1",
+    "concurrently": "^10.0.5",
     "cross-env": "^10.1.0",
     "electron": "^43.4.0",
     "electron-builder": "^26.15.7",
@@ -86,7 +85,7 @@
     "three": "^0.182.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.5",
+    "vite": "^8.2.2",
     "vitest": "^4.0.14",
     "wait-on": "^9.0.3"
   },

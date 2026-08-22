@@ -233,3 +233,16 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 - JS／Settings／MCP 使用獨立碼 `native_helper_event_error`；**不再**把 exit 13 摺進 `native_helper_wasapi_error`。
 - `--emit-error 10|11|12|13` 僅供契約／self-test，**不**等同真實 HRESULT 或裝置失敗已驗。
 - 真實 COM／WASAPI／Device／Event 失敗仍須有環境證據；見 ROADMAP「仍待／未驗」。
+
+### 附：上游分支（2026-08-22 一併比對）
+
+上游 15 個分支、14 個不是 PR head。有實質內容的兩個都已在本 fork：
+
+- `fix/mcp-update`（ahead 2）：動畫優先序與名稱更新（新增 `animation-action.ts`、
+  `animation-priority.ts`，`CELEBRATE` 換成 `HAPPY`／`FINGER_GUN`）。本 fork 已有同名模組，
+  `src/animation-catalog.ts` 也已是新的名稱集合，另外還多一層 `animation-playback-guard.ts`。
+- `feat/modular-speaking`（ahead 7）：`electron/audio-activity-gate.cjs`、`library-catalog.test.cjs`
+  等檔案本 fork 皆已存在。
+
+其餘分支（`chore/*`、`docs/*`、`feat/settings`、`feat/ui-theme`、`codex/*`）落後 2–36 個 commit，
+內容不是已進上游 `main`、就是 macOS 打包／文件，本 fork 不適用。

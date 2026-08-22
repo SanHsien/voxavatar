@@ -3,5 +3,7 @@
   "branch": "main",
   "reviewedThrough": "7ca65a3d878bb82268c2e7229a25234ffcb5d376",
   "reviewedDate": "2026-08-22",
-  "notes": "Watermark 7ca65a3 (#61). The 13 commits from 152b1b4 to this point were judged one by one on 2026-08-22 and recorded in docs/DECISIONS.md section 1: two already covered (IPC gating, click-through), four out of scope (VRoid Hub, macOS release), three declined (TypeScript migration, eol-last plugin, Settings UI split), and the expression cluster (#46/#49/#50/#54) shortlisted as fork work rather than a cherry-pick. Advance this file only after the next round is recorded there."
+  "notes": "Watermark 7ca65a3 (#61). The 13 commits from 152b1b4 to this point were judged one by one on 2026-08-22 and recorded in docs/DECISIONS.md section 1: two already covered (IPC gating, click-through), four out of scope (VRoid Hub, macOS release), three declined (TypeScript migration, eol-last plugin, Settings UI split), and the expression cluster (#46/#49/#50/#54) shortlisted as fork work rather than a cherry-pick. Advance this file only after the next round is recorded there.",
+  "reviewedPrThrough": 45,
+  "reviewedIssueThrough": 18
 }

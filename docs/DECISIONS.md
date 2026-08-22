@@ -4,6 +4,22 @@
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
+## 2026-08-22：上游 PR／issue 盤點——本 fork 已涵蓋，不引用
+
+**決定**：盤點上游 `xikhar/persona` 當時的 **1 個 open PR、1 個 open issue、15 個分支**，沒有引用。
+水位記進 `scripts/upstream-baseline.json`（PR #45、issue #18）。
+
+**理由**：
+
+- PR [#45](https://github.com/xikhar/persona/pull/45)（desktop-pet 點擊穿透 + renderer 內唇形同步）：
+  兩項本 fork 都已有，而且做得更完整。點擊穿透在 `electron/main.cjs:172` 與
+  `electron/renderer-windows.cjs:117` 已用 `setIgnoreMouseEvents(…, { forward: true })`；唇形同步是
+  `src/hooks/useAmplitudeLipSync.ts` 搭配可測試的 `computeLipSyncOpen`（`src/lip-sync-gain.test.ts`），
+  系統音來源走原生 helper `voxavatar-audio-listener.exe` 的 loopback，而不是在 renderer 裡抓。
+  引用只會把兩套實作疊在一起。
+- issue [#18](https://github.com/xikhar/persona/issues/18)（提案改用 PocketJS-native VRM renderer）：
+  上游的架構提案，與本 fork 目前的 three-vrm + Electron 路線衝突，不追。
+
 ## 1. 產品與上游
 
 - 顯示名為 **VoxAvatar**，識別字串為 `voxavatar`；產品只維護 Windows Electron、WASAPI 與 NSIS。

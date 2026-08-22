@@ -35,6 +35,7 @@
 - 修改安全、音訊監聽、資產、MCP schema 或 installer 時，先讀對應專門文件。
 - 不為了「更完整」主動增加新的 governance workflow；現有 CI、CodeQL、Dependabot 與 Release gate 已足夠。
 - 版本號只在有明確 release／產品版本需求時調整；純文件、維護規則或內部整理不需要機械式 bump。
+- **合併任何 PR 前先讀 diff**（包含 Dependabot 開的）：`gh pr diff <編號>`。CI 綠燈證明的是「測試沒紅」，不是「改了什麼、該不該進 main」——lockfile 的連鎖升級、transitive major、跨出宣告範圍的變更，只有讀 diff 看得到。核准或合併訊息要寫出讀到什麼、為什麼可接受。`dependabot-merge.yml` 依政策自動核准的低風險類別是唯一例外——那條路徑的把關是分類器與必要 checks；只要是人或 agent 手動按下 merge，就適用本條。
 
 ## 文件分工
 

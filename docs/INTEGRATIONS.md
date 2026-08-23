@@ -96,6 +96,11 @@ MCP 用戶端會讀取工具 schema 與每個自訂動作的描述／觸發情�
 
 建議先呼叫 `list_animations`，再把回傳的小寫連字號名稱傳給 `play_animation`。
 
+動作目錄只出現在 `play_animation` 的**工具描述**，不重複放在 `animation` 參數的描述上。工具定義
+會在每一次 API 呼叫時進入 prompt，重複一份等於每次呼叫都被計費並佔用 context。參數名稱刻意不用
+enum 限制：真正的把關是呼叫當下的存在檢查（不存在時回 `animation_not_playable`），而 enum 會在
+catalog 變動時給出過期的封閉清單。取自上游 PR #62。
+
 ### Streamable HTTP 用戶端 sketch
 
 VoxAvatar bridge 使用 MCP **Streamable HTTP**（非 stdio）。端點：`POST http://127.0.0.1:<port>/mcp`，初始化後後續請求需帶 `Mcp-Session-Id` header。

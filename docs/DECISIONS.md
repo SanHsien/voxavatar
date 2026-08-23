@@ -4,6 +4,37 @@
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
+## 2026-08-23：`--state all` 補查，引用上游 PR #62，並補一道 Electron 安裝守衛
+
+**決定**：`reviewedPrThrough` 45 → 62、`reviewedIssueThrough` 18 → 57。引用上游
+[PR #62](https://github.com/xikhar/persona/pull/62)；另依上游 [issue #36](https://github.com/xikhar/persona/issues/36)
+的建議補一道本地守衛。
+
+**查法先修**：上一輪查 PR／issue 用 `--state open`，看不到已關閉的項目——而未合併就關閉的 PR
+永遠不會經由 commit 路徑抵達。改用 `--state all` 後，水位之上多出 PR #46–#62 與 issue #19–#57。
+其中 #46–#61 全部已合併，正是上一輪逐條判過的那 13 個 commit；issue #19–#57 也都是那些 PR 關掉
+的。真正新的只有 **PR #62（open）**。
+
+**引用 PR #62——本 fork 實查中招**：`electron/mcp-server.cjs` 的第 49 行與第 61 行各呼叫一次
+`describeAnimations(animations)`，於是動作目錄在每一次 `tools/list` 都被送出**兩份**：一份在工具
+描述、一份在 `animation` 參數描述。工具定義會在每次 API 呼叫時進入 prompt，所以那份複本是**每次
+呼叫都被計費、每次都佔 context**。上游量到 `play_animation` 定義 2,150 → 1,412 bytes。
+
+移植的是**做法不是 diff**：上游已遷移到 TypeScript（`.cts`），而本 fork 在上一輪明確不採用該遷移。
+本 fork 改成模組層級的 `ANIMATION_INPUT_SCHEMA` 常數。參數名稱刻意維持不加 enum——真正的把關是
+呼叫當下的存在檢查（回 `animation_not_playable`），enum 只會在 catalog 變動時給出過期的封閉清單。
+三條既有測試同步改成「目錄只在工具描述出現」，含 session 中途 catalog 更新那條。
+
+**issue #36（npm ci 靜默裝出壞掉的 Electron）**：症狀本身是 macOS 專屬（缺 `Electron.app`、
+用 `ditto` 解壓），本機實查 `node_modules/electron/dist/` 與 `path.txt` 都完整，本 fork 未中。
+但該 issue 另外提的一點與平台無關且成立：**npm 會以 exit 0 結束並留下一棵不能跑的樹**，第一個
+症狀出現在 `npm run dev` 失敗時，訊息還指向別的地方。因此補 `scripts/check-electron-install.cjs`
+並接上 `predev`／`prestart`：只驗不變式（`path.txt` 存在、非空、指到的檔案真的在），只回報不修復
+——對一棵已經壞掉的樹亂修只會讓它更難懂。6 條測試涵蓋「只剩授權檔的 dist」等實際形狀。
+
+**驗證**：`npm run test:node` 341 pass、`npm test` 155 renderer tests pass、`npm run lint` 0 errors、
+`npm run docs:check` 通過。
+
 ## 2026-08-22：上游 PR／issue 盤點——本 fork 已涵蓋，不引用
 
 **決定**：盤點上游 `xikhar/persona` 當時的 **1 個 open PR、1 個 open issue、15 個分支**，沒有引用。

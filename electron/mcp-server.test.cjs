@@ -102,7 +102,16 @@ test("VoxAvatar MCP exposes and executes the local character tools", async (cont
   ).inputSchema.properties.animation;
   assert.equal(animationInput.type, "string");
   assert.equal(animationInput.enum, undefined);
-  assert.match(animationInput.description, /wave-hello/);
+  // The catalog is shipped once, on the tool description. Repeating it on the
+  // argument sent the same paragraph to the model twice on every API call.
+  assert.equal(
+    animationInput.description,
+    "The installed character action to play.",
+  );
+  assert.match(
+    tools.tools.find((tool) => tool.name === "play_animation").description,
+    /wave-hello/,
+  );
   assert.deepEqual(
     tools.tools
       .find((tool) => tool.name === "control_window")
@@ -194,9 +203,9 @@ test("VoxAvatar MCP exposes custom animation metadata in its tool contract", asy
   );
 
   assert.equal(tool.inputSchema.properties.animation.enum, undefined);
-  assert.match(
+  assert.equal(
     tool.inputSchema.properties.animation.description,
-    /wave-hello/,
+    "The installed character action to play.",
   );
   assert.match(tool.description, /A small friendly wave/);
   assert.match(tool.description, /Use when greeting the user/);
@@ -273,9 +282,9 @@ test("VoxAvatar MCP refreshes animation actions inside an active client session"
     (tool) => tool.name === "play_animation",
   );
   assert.match(refreshedTool.description, /finger-gun/);
-  assert.match(
+  assert.equal(
     refreshedTool.inputSchema.properties.animation.description,
-    /finger-gun/,
+    "The installed character action to play.",
   );
 });
 

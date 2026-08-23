@@ -50,17 +50,19 @@ function animationToolDescription(animations) {
   ].join("\n");
 }
 
-function animationInputSchema(animations) {
-  return z
-    .string()
-    .regex(
-      ANIMATION_NAME_PATTERN,
-      "Animation names use lowercase letters, numbers, and single hyphens.",
-    )
-    .describe(
-      `The installed character action to play.\n${describeAnimations(animations)}`,
-    );
-}
+// The catalog belongs to the tool description and only there. Repeating it on the
+// argument shipped the same paragraph to the model twice in every `tools/list`,
+// and tool definitions sit in the prompt on every API call -- so the copy was
+// billed and occupied context each time. The name stays deliberately
+// unconstrained: the live check at call time is the gate, not an enum.
+// Taken from upstream PR #62 (xikhar/persona).
+const ANIMATION_INPUT_SCHEMA = z
+  .string()
+  .regex(
+    ANIMATION_NAME_PATTERN,
+    "Animation names use lowercase letters, numbers, and single hyphens.",
+  )
+  .describe("The installed character action to play.");
 
 function createVoxAvatarMcpServer({
   onAnimation,
@@ -88,7 +90,7 @@ function createVoxAvatarMcpServer({
       title: "Play VoxAvatar animation",
       description: animationToolDescription(animations),
       inputSchema: {
-        animation: animationInputSchema(animations),
+        animation: ANIMATION_INPUT_SCHEMA,
       },
       annotations: {
         readOnlyHint: false,
@@ -285,7 +287,7 @@ function createVoxAvatarMcpServer({
     animationTool.update({
       description: animationToolDescription(currentAnimations),
       paramsSchema: {
-        animation: animationInputSchema(currentAnimations),
+        animation: ANIMATION_INPUT_SCHEMA,
       },
     });
   };

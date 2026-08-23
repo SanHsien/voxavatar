@@ -85,6 +85,22 @@ test("a missing electron package is reported", () => {
   }
 });
 
-test("the checked-in tree passes its own guard", () => {
-  assert.equal(describeElectronInstallProblem(ELECTRON_ROOT), null);
-});
+// The five tests above build their own trees, so they pin the logic anywhere.
+// This one reads the real `node_modules`, and it only means something where the
+// Electron binary was actually downloaded. CI installs with `npm ci` in about
+// twenty seconds and never fetches it -- the node and renderer suites do not
+// launch Electron, so nothing there needs the binary. Asserting on the real tree
+// under CI reports that deliberate absence as a broken install, which is the
+// opposite of what this guard is for. It runs on developer machines, where
+// `npm run dev` does need the binary and a false positive would be real news.
+test(
+  "the checked-in tree passes its own guard",
+  {
+    skip: process.env.CI
+      ? "CI does not download the Electron binary; there is no real install to check"
+      : false,
+  },
+  () => {
+    assert.equal(describeElectronInstallProblem(ELECTRON_ROOT), null);
+  },
+);

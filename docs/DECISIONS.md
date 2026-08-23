@@ -32,8 +32,16 @@
 並接上 `predev`／`prestart`：只驗不變式（`path.txt` 存在、非空、指到的檔案真的在），只回報不修復
 ——對一棵已經壞掉的樹亂修只會讓它更難懂。6 條測試涵蓋「只剩授權檔的 dist」等實際形狀。
 
+**其中一條測試只在開發機跑**：`check-electron-install.test.cjs` 有五條自己造樹的測試，那五條到哪
+都成立；第六條「已簽入的樹通過自己的守衛」讀的是真的 `node_modules`，只有在 Electron 二進位真的
+被下載過的地方才有意義。CI 的 `npm ci` 二十秒就結束、從不抓那顆二進位——node 與 renderer 兩組測試
+都不啟動 Electron，沒有人需要它。在 CI 對真實的樹下斷言，等於把這個**刻意的缺席**報成壞掉的安裝，
+正好和守衛的用途相反。因此該條在 `process.env.CI` 有值時 skip，開發機照跑——那裡 `npm run dev`
+確實需要二進位，誤報才是真新聞。
+
 **驗證**：`npm run test:node` 341 pass、`npm test` 155 renderer tests pass、`npm run lint` 0 errors、
-`npm run docs:check` 通過。
+`npm run docs:check` 通過；`CI=true node --test scripts/check-electron-install.test.cjs` 5 pass /
+1 skipped，未設 `CI` 時 6 pass。
 
 ## 2026-08-22：上游 PR／issue 盤點——本 fork 已涵蓋，不引用
 

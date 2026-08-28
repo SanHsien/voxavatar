@@ -1,0 +1,9 @@
+{
+  "repo": "https://github.com/xikhar/persona.git",
+  "branch": "main",
+  "reviewedThrough": "7ca65a3d878bb82268c2e7229a25234ffcb5d376",
+  "reviewedDate": "2026-08-23",
+  "notes": "Watermark 7ca65a3 (#61). The 13 commits from 152b1b4 to this point were judged one by one on 2026-08-22 and recorded in docs/DECISIONS.md section 1: two already covered (IPC gating, click-through), four out of scope (VRoid Hub, macOS release), three declined (TypeScript migration, eol-last plugin, Settings UI split), and the expression cluster (#46/#49/#50/#54) shortlisted as fork work rather than a cherry-pick. Advance this file only after the next round is recorded there. 2026-08-23: re-queried PRs/issues with --state all (the previous pass used --state open and could not see closed items). Adopted upstream PR #62: this fork's electron/mcp-server.cjs called describeAnimations() twice, shipping the action catalog in both the tool description and the animation argument on every tools/list -- billed on every API call. Ported as the idea, not the diff (upstream is .cts after a TypeScript migration this fork declined). Issues #19-#57 above the old watermark are all closed and correspond to the merged PRs already judged; #36 (npm ci on Node >= 24.16.0) checked against this fork's pinned toolchain. Per-item reasoning in docs/DECISIONS.md.",
+  "reviewedPrThrough": 62,
+  "reviewedIssueThrough": 57
+}

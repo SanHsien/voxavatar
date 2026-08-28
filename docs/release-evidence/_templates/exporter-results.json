@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Real exporter sample results. Rows stay pending-human-sample until an authorized public sample is verified. Do not store VRM/VRMA binaries here.",
+  "updatedAt": "2026-08-02",
+  "samples": [
+    {
+      "exporter": "VRoid Studio",
+      "toolVersion": null,
+      "sourceUrl": null,
+      "licenseSummary": null,
+      "importVerdict": "未驗",
+      "threeJsPlayback": "未驗",
+      "evidenceLink": "docs/VRM_VRMA_COMPATIBILITY.md",
+      "status": "pending-human-sample",
+      "notes": "Awaiting a redistributable-clear public sample citation."
+    },
+    {
+      "exporter": "UniVRM",
+      "toolVersion": null,
+      "sourceUrl": null,
+      "licenseSummary": null,
+      "importVerdict": "未驗",
+      "threeJsPlayback": "未驗",
+      "evidenceLink": "docs/VRM_VRMA_COMPATIBILITY.md",
+      "status": "pending-human-sample",
+      "notes": null
+    },
+    {
+      "exporter": "Blender VRM Add-on",
+      "toolVersion": null,
+      "sourceUrl": null,
+      "licenseSummary": null,
+      "importVerdict": "未驗",
+      "threeJsPlayback": "未驗",
+      "evidenceLink": "docs/VRM_VRMA_COMPATIBILITY.md",
+      "status": "pending-human-sample",
+      "notes": null
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-02T12:22:20.235Z",
+  "release": {
+    "version": "0.16.12",
+    "tag": "v0.16.12",
+    "commitSha": "c24aa10f611c5557c18031750981dc190250d1a8",
+    "releaseUrl": null,
+    "githubActionsRunUrl": null,
+    "hasInstaller": true
+  },
+  "assets": {
+    "installerFilename": "VoxAvatar-0.16.12-windows-x64-setup.exe",
+    "installerSha256": "1892aa950d4e9ead7b991a4eee92482ec93218e0db0dc7b441550fd18420101a",
+    "installerSizeBytes": 105131217,
+    "checksumsFile": "SHA256SUMS.txt",
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned"
+  },
+  "environment": {
+    "windowsEdition": null,
+    "windowsVersion": null,
+    "windowsBuild": null,
+    "architecture": "x64",
+    "displayScalingPercent": null,
+    "gpu": null
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝與生命週期",
+      "核心桌面流程",
+      "語音與 MCP",
+      "簽署／SmartScreen"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "未驗",
+        "note": "以 GitHub Actions CI／Release 綠燈為準；本證據不重跑。"
+      },
+      {
+        "id": "install_lifecycle",
+        "section": "安裝與生命週期",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行安裝／升級／移除。"
+      },
+      {
+        "id": "desktop_core",
+        "section": "核心桌面流程",
+        "result": "未驗",
+        "note": "無 Windows 桌面；系統匣／DPI／30%／透明視窗未實測。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "未驗",
+        "note": "無 Windows 桌面；真實 WASAPI／系統匣 MCP 未實測。"
+      },
+      {
+        "id": "signing",
+        "section": "簽署／SmartScreen",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；Authenticode 狀態為 NotSigned。"
+      }
+    ],
+    "notes": "Honest record for Latest v0.16.12. GUI smoke and signing remain 未驗 (no Windows desktop / no WIN_CSC_*). Superseded: GitHub Release/tag v0.16.12 deleted after Latest v0.16.14; historical record only."
+  },
+  "mediaReferences": [],
+  "issues": [],
+  "reviewer": null,
+  "reviewedAt": null
+}

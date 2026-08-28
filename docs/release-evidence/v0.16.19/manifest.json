@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-02T22:55:26.155Z",
+  "release": {
+    "version": "0.16.19",
+    "tag": null,
+    "commitSha": "fa9f180f6b1dc2544b8363f7bd9c5d7f3c83665e",
+    "releaseUrl": null,
+    "githubActionsRunUrl": null,
+    "hasInstaller": false
+  },
+  "assets": {
+    "installerFilename": null,
+    "installerSha256": null,
+    "installerSizeBytes": null,
+    "checksumsFile": null,
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned",
+    "authenticodeEvidence": null
+  },
+  "environment": {
+    "windowsEdition": null,
+    "windowsVersion": null,
+    "windowsBuild": null,
+    "architecture": "x64",
+    "displayScalingPercent": null,
+    "gpu": null
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝",
+      "升級",
+      "移除",
+      "系統匣",
+      "DPI／縮放",
+      "角色尺寸 30%",
+      "語音與 MCP",
+      "簽署標示（NotSigned）",
+      "SmartScreen／publisher"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "pass",
+        "note": "GitHub Actions CI 綠燈（僅自動化 gate；不含 GUI smoke）。"
+      },
+      {
+        "id": "install",
+        "section": "安裝",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行全新安裝。"
+      },
+      {
+        "id": "upgrade",
+        "section": "升級",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行舊版→新版升級。"
+      },
+      {
+        "id": "uninstall",
+        "section": "移除",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行移除。"
+      },
+      {
+        "id": "tray",
+        "section": "系統匣",
+        "result": "未驗",
+        "note": "無 Windows 桌面；系統匣左右鍵未實測。"
+      },
+      {
+        "id": "dpi_scaling",
+        "section": "DPI／縮放",
+        "result": "未驗",
+        "note": "無 Windows 桌面；100%／150%／225% 未實測。"
+      },
+      {
+        "id": "size_30",
+        "section": "角色尺寸 30%",
+        "result": "未驗",
+        "note": "設定契約可自動測；多 DPI 實機可讀性未驗。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "未驗",
+        "note": "無 Windows 桌面；真實 WASAPI／系統匣 MCP 未實測。"
+      },
+      {
+        "id": "signing_label",
+        "section": "簽署標示（NotSigned）",
+        "result": "未驗",
+        "note": "可用 PE Certificate Table／evidence:verify 對照標示；≠ SmartScreen。"
+      },
+      {
+        "id": "smartscreen",
+        "section": "SmartScreen／publisher",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；需人工桌面觀察。"
+      }
+    ],
+    "notes": "tip evidence after 0.16.19; ci_gates=pass (CI only); no installer"
+  },
+  "mediaReferences": [],
+  "issues": [],
+  "reviewer": null,
+  "reviewedAt": null
+}

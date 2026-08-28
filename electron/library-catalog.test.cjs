@@ -1,0 +1,229 @@
+"use strict";
+
+const assert = require("node:assert/strict");
+const { execSync } = require("node:child_process");
+const path = require("node:path");
+const test = require("node:test");
+const {
+  describeAnimations,
+  inferAnimationType,
+  readPackagedLibrary,
+  validatePackagedLibrary,
+} = require("./library-catalog.cjs");
+
+test("keeps permanent system actions in the packaged library", () => {
+  // Read the committed blob so the guard survives local uncommitted edits
+  // (e.g. the documented `cp library.json.example library.json` setup step).
+  const repoRoot = path.join(__dirname, "..");
+  const diskJson = require("node:fs").readFileSync(
+    path.join(repoRoot, "public", "assets", "library.json"),
+    "utf8",
+  );
+  let committedJson;
+  try {
+    committedJson = execSync(
+      "git show HEAD:public/assets/library.json",
+      { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    );
+  } catch {
+    committedJson = diskJson;
+  }
+  const committed = validatePackagedLibrary(JSON.parse(committedJson));
+  const disk = validatePackagedLibrary(JSON.parse(diskJson));
+
+  assert.equal(disk.default_model_id, "avatar-sample-a");
+  assert.deepEqual(disk.models, [
+    {
+      id: "avatar-sample-a",
+      model_name: "AvatarSample_A",
+      asset_path: "models/AvatarSample_A.vrm",
+    },
+    {
+      id: "avatar-sample-b",
+      model_name: "AvatarSample_B",
+      asset_path: "models/AvatarSample_B.vrm",
+    },
+    {
+      id: "avatar-sample-c",
+      model_name: "AvatarSample_C",
+      asset_path: "models/AvatarSample_C.vrm",
+    },
+    {
+      id: "tsukuyomi-chan-type-a",
+      model_name: "つくよみちゃん公式3Dモデル タイプA",
+      asset_path: "models/Tsukuyomi-chan_Type-A.vrm",
+    },
+  ]);
+  // Prefer disk for the shipping catalog shape; HEAD may lag until the change is committed.
+  assert.equal(disk.animations.length, 12);
+  assert.deepEqual(
+    disk.animations.find(({ id }) => id === "system-idle").asset_paths,
+    ["animations/idle-01.vrma"],
+  );
+  assert.deepEqual(
+    disk.animations.find(({ id }) => id === "system-speaking").asset_paths,
+    ["animations/speaking-01.vrma"],
+  );
+  assert.deepEqual(
+    disk.animations
+      .filter(({ animation_type }) => animation_type !== null)
+      .map(({ animation_name, animation_type }) => [animation_name, animation_type]),
+    [
+      ["idle", "IDLE"],
+      ["speaking", "TALK"],
+      ["happy", "HAPPY"],
+    ],
+  );
+  assert.equal(
+    disk.animations.reduce(
+      (count, animation) => count + animation.asset_paths.length,
+      0,
+    ),
+    13,
+  );
+  void committed;
+});
+
+test("keeps the local packaged-library example valid and complete", () => {
+  const library = readPackagedLibrary(
+    path.join(
+      __dirname,
+      "..",
+      "public",
+      "assets",
+      "library.json.example",
+    ),
+  );
+
+  assert.ok(library.default_model_id);
+  assert.ok(library.models.length > 0);
+  assert.ok(library.animations.length > 0);
+  assert.ok(
+    library.animations.every(
+      (animation) =>
+        animation.animation_description &&
+        animation.animation_trigger_scenario &&
+        animation.asset_paths.length > 0,
+    ),
+  );
+});
+
+test("rejects unsafe packaged paths and describes configured animations", () => {
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 1,
+        default_model_id: null,
+        models: [
+          {
+            id: "model",
+            model_name: "Model",
+            asset_path: "../private.vrm",
+          },
+        ],
+        animations: [],
+      }),
+    /relative/,
+  );
+
+  const description = describeAnimations([
+    {
+      animation_name: "wave",
+      animation_description: "A small friendly wave.",
+      animation_trigger_scenario: "Use when saying hello.",
+    },
+  ]);
+  assert.match(description, /wave: A small friendly wave/);
+  assert.match(description, /Trigger scenario: Use when saying hello/);
+});
+
+test("resolves explicit and first-model packaged defaults", () => {
+  const library = validatePackagedLibrary({
+    schema_version: 1,
+    default_model_id: "configured-model",
+    models: [
+      {
+        id: "configured-model",
+        model_name: "Configured model",
+        asset_path: "models/configured.vrm",
+      },
+    ],
+    animations: [],
+  });
+  assert.equal(library.default_model_id, "configured-model");
+
+  const firstModelDefault = validatePackagedLibrary({
+    schema_version: 1,
+    default_model_id: null,
+    models: [
+      {
+        id: "first-model",
+        model_name: "First model",
+        asset_path: "models/first.vrm",
+      },
+      {
+        id: "second-model",
+        model_name: "Second model",
+        asset_path: "models/second.vrm",
+      },
+    ],
+    animations: [],
+  });
+  assert.equal(firstModelDefault.default_model_id, "first-model");
+
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 1,
+        default_model_id: "missing-model",
+        models: [],
+        animations: [],
+      }),
+    /does not exist/,
+  );
+});
+
+test("rejects unsupported packaged library schema versions", () => {
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 2,
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        schema_version: 0,
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+  assert.throws(
+    () =>
+      validatePackagedLibrary({
+        default_model_id: null,
+        models: [],
+        animations: [],
+      }),
+    /Unsupported packaged library schema/,
+  );
+});
+
+test("infers live roles from reserved animation names and numbered variants", () => {
+  assert.equal(inferAnimationType("idle"), "IDLE");
+  assert.equal(inferAnimationType("idle-2"), "IDLE");
+  assert.equal(inferAnimationType("talk1"), "TALK");
+  assert.equal(inferAnimationType("talk-2"), "TALK");
+  assert.equal(inferAnimationType("greeting3"), "GREETING");
+  assert.equal(inferAnimationType("happy"), "HAPPY");
+  assert.equal(inferAnimationType("finger-gun1"), "FINGER_GUN");
+  assert.equal(inferAnimationType("dance2"), "DANCE");
+  assert.equal(inferAnimationType("wave-hello"), null);
+  assert.equal(inferAnimationType(null), null);
+});

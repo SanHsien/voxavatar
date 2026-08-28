@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "default_model_id": "avatar-sample-a",
+  "models": [
+    {
+      "id": "avatar-sample-a",
+      "model_name": "AvatarSample_A",
+      "asset_path": "models/AvatarSample_A.vrm"
+    },
+    {
+      "id": "avatar-sample-b",
+      "model_name": "AvatarSample_B",
+      "asset_path": "models/AvatarSample_B.vrm"
+    },
+    {
+      "id": "avatar-sample-c",
+      "model_name": "AvatarSample_C",
+      "asset_path": "models/AvatarSample_C.vrm"
+    },
+    {
+      "id": "tsukuyomi-chan-type-a",
+      "model_name": "つくよみちゃん公式3Dモデル タイプA",
+      "asset_path": "models/Tsukuyomi-chan_Type-A.vrm"
+    }
+  ],
+  "animations": [
+    {
+      "id": "system-idle",
+      "animation_name": "idle",
+      "animation_description": "角色等待時的高品質 CC0 待機動作。",
+      "animation_trigger_scenario": "角色等待且未說話時自動使用；有多段素材會隨機抽播。",
+      "animation_type": "IDLE",
+      "asset_paths": ["animations/idle-01.vrma"]
+    },
+    {
+      "id": "system-speaking",
+      "animation_name": "speaking",
+      "animation_description": "說話時的 CC0 自然肢體動作；口型仍由即時音量驅動。",
+      "animation_trigger_scenario": "偵測到支援的語音輸出時自動使用。",
+      "animation_type": "TALK",
+      "asset_paths": ["animations/speaking-01.vrma"]
+    },
+    {
+      "id": "happy",
+      "animation_name": "happy",
+      "animation_description": "振奮、鼓勵或慶祝成功的動作。",
+      "animation_trigger_scenario": "完成工作、獲得好消息或需要鼓勵時播放。",
+      "animation_type": "HAPPY",
+      "asset_paths": ["animations/success-cheer.vrma"]
+    },
+    {
+      "id": "airplane",
+      "animation_name": "airplane",
+      "animation_description": "兩段張開雙臂模仿飛行的動作。",
+      "animation_trigger_scenario": "使用者提到飛行、飛機或要求活潑擺姿勢時播放。",
+      "animation_type": null,
+      "asset_paths": [
+        "animations/airplane-02.vrma",
+        "animations/airplane-05.vrma"
+      ]
+    },
+    {
+      "id": "pose-motion",
+      "animation_name": "pose-motion",
+      "animation_description": "帶有身體律動的展示姿勢。",
+      "animation_trigger_scenario": "使用者要求擺姿勢或展示角色時播放。",
+      "animation_type": null,
+      "asset_paths": ["animations/pose-motion.vrma"]
+    },
+    {
+      "id": "walk",
+      "animation_name": "walk",
+      "animation_description": "原地步行循環。",
+      "animation_trigger_scenario": "使用者要求走路或表現移動時播放。",
+      "animation_type": null,
+      "asset_paths": ["animations/walk.vrma"]
+    },
+    {
+      "id": "run-slow",
+      "animation_name": "run-slow",
+      "animation_description": "原地慢跑循環。",
+      "animation_trigger_scenario": "使用者要求跑步、運動或趕路時播放。",
+      "animation_type": null,
+      "asset_paths": ["animations/run-slow.vrma"]
+    },
+    {
+      "id": "exercise-step",
+      "animation_name": "exercise-step",
+      "animation_description": "踏台階般的短運動動作。",
+      "animation_trigger_scenario": "使用者提到運動或要求活動筋骨時播放。",
+      "animation_type": null,
+      "asset_paths": ["animations/exercise-step.vrma"]
+    },
+    {
+      "id": "review-phone",
+      "animation_name": "review-phone",
+      "animation_description": "低頭查看手機的動作。",
+      "animation_trigger_scenario": "等待、查看訊息或處理行動裝置相關內容時播放。",
+      "animation_type": null,
+      "asset_paths": ["animations/review-phone.vrma"]
+    },
+    {
+      "id": "drink-water",
+      "animation_name": "drink-water",
+      "animation_description": "拿起瓶子喝水的動作。",
+      "animation_trigger_scenario": "休息、補充水分或提醒使用者喝水時播放。",
+      "animation_type": null,
+      "asset_paths": ["animations/drink-water.vrma"]
+    },
+    {
+      "id": "failed-apology",
+      "animation_name": "failed-apology",
+      "animation_description": "伏地道歉的誇張失敗反應。",
+      "animation_trigger_scenario": "任務失敗或需要明確表達歉意時播放；不適合一般小錯誤。",
+      "animation_type": null,
+      "asset_paths": ["animations/failed-apology.vrma"]
+    },
+    {
+      "id": "reaction-startle",
+      "animation_name": "reaction-startle",
+      "animation_description": "突然起身又恢復鎮定的驚訝反應。",
+      "animation_trigger_scenario": "出現意外結果、驚訝消息或使用者要求反應時播放。",
+      "animation_type": null,
+      "asset_paths": ["animations/reaction-startle.vrma"]
+    }
+  ]
+}

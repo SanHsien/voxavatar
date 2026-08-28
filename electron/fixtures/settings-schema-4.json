@@ -1,0 +1,29 @@
+{
+  "schema_version": 4,
+  "default_model_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "character_size": 1.05,
+  "ui_locale": "zh-TW",
+  "models": [
+    {
+      "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "model_name": "Schema four model",
+      "stored_filename": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.vrm"
+    }
+  ],
+  "animations": [
+    {
+      "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "animation_name": "wave-hello",
+      "animation_description": "A wave from schema four.",
+      "animation_trigger_scenario": "Use when testing schema four migration.",
+      "stored_filename": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb.vrma"
+    }
+  ],
+  "voice_source": {
+    "mode": "default",
+    "process_pattern": null
+  },
+  "vrma_quality_gate": "strict",
+  "vrma_report_dir": null,
+  "idle_rest_ms": 8000
+}

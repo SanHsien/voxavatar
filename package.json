@@ -1,0 +1,145 @@
+{
+  "name": "voxavatar",
+  "version": "1.0.6",
+  "description": "Windows-only local-first VRM desktop companion with playback-driven lip sync, animations, and MCP controls.",
+  "author": {
+    "name": "SanHsien",
+    "email": "SanHsien@users.noreply.github.com"
+  },
+  "private": true,
+  "license": "MIT",
+  "homepage": "https://github.com/SanHsien/voxavatar#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SanHsien/voxavatar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SanHsien/voxavatar/issues"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "allowScripts": {
+    "@swc/core@1.16.1": true,
+    "electron-winstaller@5.4.0": true,
+    "electron@43.4.1": true,
+    "fsevents@2.3.3": true
+  },
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/check-electron-install.cjs",
+    "dev": "concurrently -k \"vite\" \"wait-on http://127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "build": "tsc -b && vite build",
+    "test": "npm run test:node && npm run test:renderer",
+    "test:node": "node --test electron/*.test.cjs scripts/*.test.cjs",
+    "test:renderer": "vitest run",
+    "lint": "eslint .",
+    "docs:check": "node scripts/check-docs.cjs",
+    "deps:freshness": "node scripts/check-dependency-freshness.cjs",
+    "upstream:check": "node scripts/check-upstream-updates.cjs",
+    "evidence:manifest": "node scripts/write-release-evidence-manifest.cjs",
+    "evidence:verify": "node scripts/verify-release-evidence.cjs",
+    "evidence:pe": "node scripts/pe-authenticode-presence.cjs",
+    "prestart": "node scripts/check-electron-install.cjs",
+    "start": "electron .",
+    "demo": "npm run build && electron .",
+    "assets:check": "node scripts/check-assets.cjs",
+    "assets:release": "node scripts/check-assets.cjs --release",
+    "native:build": "node scripts/build-native.cjs",
+    "native:test": "node scripts/test-native.cjs",
+    "vrma:curate": "node scripts/vrma-curation.cjs",
+    "audit:production": "npm audit --omit=dev --audit-level=high",
+    "audit:dependencies": "npm audit --audit-level=high",
+    "sbom": "node scripts/generate-sbom.cjs",
+    "baseline:bundle": "node scripts/bundle-baseline.cjs",
+    "baseline:startup": "node scripts/startup-baseline.cjs",
+    "check": "npm run lint && npm run docs:check && npm test && npm run assets:check && npm run audit:dependencies && npm run build",
+    "dist": "npm run dist:windows",
+    "dist:windows": "npm run native:build && npm run native:test && npm run build && electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@pixiv/three-vrm": "^3.4.4",
+    "@pixiv/three-vrm-animation": "^3.4.4",
+    "@pmndrs/assets": "^1.7.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.182.0",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0",
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.7",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.8.0",
+    "jsdom": "^30.0.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "three": "^0.182.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^8.2.2",
+    "vitest": "^4.0.14",
+    "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.sanhsien.voxavatar",
+    "productName": "VoxAvatar",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "protocols": [
+      {
+        "name": "VoxAvatar",
+        "schemes": [
+          "voxavatar"
+        ]
+      }
+    ],
+    "files": [
+      "dist/**/*",
+      "electron/**/*.cjs",
+      "!electron/**/*.test.cjs",
+      "LICENSE",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "VoxAvatar-${version}-windows-${arch}-setup.${ext}",
+      "icon": "public/assets/avatar.png",
+      "requestedExecutionLevel": "asInvoker",
+      "signExts": [
+        "voxavatar-audio-listener.exe"
+      ],
+      "extraResources": [
+        {
+          "from": "native/bin/win32/voxavatar-audio-listener.exe",
+          "to": "native/win32/voxavatar-audio-listener.exe"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "VoxAvatar"
+    }
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
+  }
+}

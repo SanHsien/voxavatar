@@ -1,9 +1,9 @@
 {
   "repo": "https://github.com/xikhar/persona.git",
   "branch": "main",
-  "reviewedThrough": "5f0ab502f48bb380f80f2699c8cefa5a319abcaa",
+  "reviewedThrough": "da2545bd0218f7eadcf2bfa2791ff45fa30232f7",
   "reviewedDate": "2026-08-28",
-  "notes": "Watermark 7ca65a3 (#61). The 13 commits from 152b1b4 to this point were judged one by one on 2026-08-22 and recorded in docs/DECISIONS.md section 1: two already covered (IPC gating, click-through), four out of scope (VRoid Hub, macOS release), three declined (TypeScript migration, eol-last plugin, Settings UI split), and the expression cluster (#46/#49/#50/#54) shortlisted as fork work rather than a cherry-pick. Advance this file only after the next round is recorded there. 2026-08-23: re-queried PRs/issues with --state all (the previous pass used --state open and could not see closed items). Adopted upstream PR #62: this fork's electron/mcp-server.cjs called describeAnimations() twice, shipping the action catalog in both the tool description and the animation argument on every tools/list -- billed on every API call. Ported as the idea, not the diff (upstream is .cts after a TypeScript migration this fork declined). Issues #19-#57 above the old watermark are all closed and correspond to the merged PRs already judged; #36 (npm ci on Node >= 24.16.0) checked against this fork's pinned toolchain. Per-item reasoning in docs/DECISIONS.md. 2026-08-28: watermark advanced to 5f0ab50 -- that commit is upstream's own merge of PR #62, which this fork had already adopted (as the idea, not the diff: upstream is .cts after a TypeScript migration this fork declined). Nothing further to take from it; see docs/DECISIONS.md 2026-08-23.",
-  "reviewedPrThrough": 62,
+  "notes": "Watermark da2545b (#65, 2026-08-28). 5f0ab50 (#62) was already adopted as the idea (not the .cts diff) on 2026-08-23; issue #10 was stale against that. da2545b is upstream PR #65 (VRoid Hub portrait hover zoom) and is out of scope: this fork declined VRoid Hub account integration. Store the watermark as a full 40-character SHA; the 2026-08-28 abbreviation 5f0ab50 made check-upstream-updates.cjs reject the baseline. Historical: 7ca65a3 (#61). The 13 commits from 152b1b4 to that point were judged on 2026-08-22 in docs/DECISIONS.md section 1. 2026-08-23: adopted PR #62 as the idea. Open upstream PR #64 and issues #63/#66/#67 left 待評估; #18 remains out of scope. Per-item reasoning in docs/DECISIONS.md.",
+  "reviewedPrThrough": 65,
   "reviewedIssueThrough": 57
 }

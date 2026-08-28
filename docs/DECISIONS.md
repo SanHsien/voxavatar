@@ -1,16 +1,20 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-08-14
+最後修訂：2026-08-28
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
-## 2026-08-28：水位推進到 `5f0ab50`
+## 2026-08-28：水位 `5f0ab50` 已涵蓋；`da2545b` 範圍外
 
-**決定**：`reviewedThrough` 推進到 `5f0ab502f48bb380f80f2699c8cefa5a319abcaa`，不另外引用內容。
+**決定**：`reviewedThrough` 推進到 `da2545b`（完整 SHA）。沒有產品程式可取。
 
-**理由**：那一筆是上游自己合併 PR #62 的 commit，而本 fork 已於 2026-08-23 引用過該 PR——
-移植的是做法而不是 diff（上游已遷移到 `.cts`，本 fork 在上一輪明確不採用該遷移），
-`electron/mcp-server.cjs:59` 的 `ANIMATION_INPUT_SCHEMA` 就是那次的產物。沒有其他可取用的內容。
+Issue [`SanHsien/voxavatar#10`](https://github.com/SanHsien/voxavatar/issues/10) 內文仍停在 `7ca65a3`、未審 `5f0ab50`，但 `scripts/upstream-baseline.json` 已於同日寫入 `5f0ab50`。該 commit 即上游合併 [PR #62](https://github.com/xikhar/persona/pull/62)，本 fork 已於 2026-08-23 記為**已涵蓋**（移植做法而非 `.cts` diff）。無需再合程式。
+
+核對時發現水位之後還有 `da2545b`（[PR #65](https://github.com/xikhar/persona/pull/65)）：Settings 裡 VRoid Hub 角色卡 hover 放大頭像。本 fork 不做 VRoid Hub 帳號連線與應用程式內瀏覽（見本節先前 #24／#28／#31／#34／#47／#53），無此元件路徑，判定**範圍外**。
+
+2026-08-28 那次只把 `reviewedThrough` 寫成 7 字縮寫，會讓 `scripts/check-upstream-updates.cjs` 拒絕讀取（必須 40 字元 SHA）。本次一併改存完整 SHA。
+
+Open 項目未在本輪讀 diff：上游 PR #64、issue #63／#66／#67；#18 維持範圍外。下次接續這些與 `da2545b` 之後的新 commit。
 
 ## 2026-08-23：`--state all` 補查，引用上游 PR #62，並補一道 Electron 安裝守衛
 
@@ -84,7 +88,7 @@
 
 ### 上游評估紀錄（xikhar/persona）
 
-最後評估：2026-08-10（水位 `bb7ef24`→`152b1b4` 的 12 個 commit 與全部 open PR／issue 已逐項判定）
+最後評估：2026-08-28（水位 `7ca65a3`→`da2545b`：`5f0ab50` 已涵蓋、`da2545b` 範圍外）
 
 遠端：`https://github.com/xikhar/persona.git`（`upstream`）
 
@@ -94,10 +98,19 @@
 
 | 項目 | 值 |
 | --- | --- |
-| `upstream/main` tip（commit 水位，已評估） | `7ca65a3`（#61，2026-08-22） |
-| 前次水位 | `152b1b4`（#42，2026-08-08） |
-| 下次接續 | `7ca65a3` 之後的新 commit；以及仍為 open 的 issue／PR 再掃一次 |
-| Open PR／issue 本輪掃描 | 2026-08-10（0.16.22）；`bb7ef24..upstream/main`＝`152b1b4`，共 12 個新 commit；open PR #45–#48，open issue #18／#35／#43／#44 |
+| `upstream/main` tip（commit 水位，已評估） | `da2545b`（#65，2026-08-28） |
+| 前次水位 | `5f0ab50`（#62，2026-08-23 已涵蓋；2026-08-28 記進 baseline） |
+| 下次接續 | `da2545b` 之後的新 commit；open PR #64；open issue #63／#66／#67／#18 |
+| Open PR／issue 本輪掃描 | 2026-08-28：merged #65＝`da2545b` 範圍外；open PR #64 與 issue #63／#66／#67 未讀 diff，標**待評估**。#18 維持範圍外。 |
+
+#### `7ca65a3..da2545b` 新 commit（2026-08-28 評估完成）
+
+兩個 commit，沒有產品程式可取。`5f0ab50` 的做法已於 2026-08-23 移植。
+
+| Commit | 上游 PR | 判定 | 理由 |
+| --- | --- | --- | --- |
+| `5f0ab50` | #62 list the action catalog once in the play_animation contract | **已涵蓋** | 上游自己合併 PR #62 的那一筆。本 fork 已於 2026-08-23 移植做法而非 diff（上游已轉 `.cts`，本 fork 不採用該遷移），見本檔 2026-08-23 節。 |
+| `da2545b` | #65 enlarge a VRoid Hub portrait on hover | **範圍外** | 變更全在 `VroidCharacters`／portrait zoom，依附本 fork 已否決的 VRoid Hub 帳號整合與應用程式內瀏覽。無此元件路徑。 |
 
 #### `152b1b4..7ca65a3` 新 commit（2026-08-22 評估完成）
 

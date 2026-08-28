@@ -4,6 +4,14 @@
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
+## 2026-08-28：水位推進到 `5f0ab50`
+
+**決定**：`reviewedThrough` 推進到 `5f0ab502f48bb380f80f2699c8cefa5a319abcaa`，不另外引用內容。
+
+**理由**：那一筆是上游自己合併 PR #62 的 commit，而本 fork 已於 2026-08-23 引用過該 PR——
+移植的是做法而不是 diff（上游已遷移到 `.cts`，本 fork 在上一輪明確不採用該遷移），
+`electron/mcp-server.cjs:59` 的 `ANIMATION_INPUT_SCHEMA` 就是那次的產物。沒有其他可取用的內容。
+
 ## 2026-08-23：`--state all` 補查，引用上游 PR #62，並補一道 Electron 安裝守衛
 
 **決定**：`reviewedPrThrough` 45 → 62、`reviewedIssueThrough` 18 → 57。引用上游

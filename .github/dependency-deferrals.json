@@ -15,8 +15,13 @@
     "reason": "Types must describe the three.js actually installed. Moves together with three, not before it."
   },
   "@types/node": {
-    "deferredLatest": "26.2.0",
-    "reviewed": "2026-08-22",
-    "reason": "Node type definitions track the runtime the project builds on, not the newest published. CI runs Node 24 and package.json requires >=24; typing against Node 26 would surface APIs the build environment does not have."
+    "deferredLatest": "26.4.0",
+    "reviewed": "2026-08-29",
+    "reason": "Node type definitions track the runtime the project builds on, not the newest published. CI runs Node 24 and package.json requires >=24; typing against Node 26 would surface APIs the build environment does not have. Re-confirmed 2026-08-29 against 26.4.0: the reasoning is unchanged, only the version the deferral is pinned to."
+  },
+  "electron": {
+    "deferredLatest": "44.0.0",
+    "reviewed": "2026-08-29",
+    "reason": "Electron 44 is a major. This repo requires the release notes, npm run check, and a real Windows run of the packaged app before a major lands, and the packaged-app half cannot be judged from CI: the avatar, VRM/VRMA playback and the tray/DPI behaviour only show up on a real desktop. npm run check passes on 43.4.1; this is verification debt, not a known incompatibility. Pair it with the same desktop verification round that three.js is waiting on."
   }
 }

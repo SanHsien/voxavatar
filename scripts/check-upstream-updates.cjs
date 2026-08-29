@@ -95,6 +95,97 @@ function collectNewCommits(baseline, ref, { cwd = REPO_ROOT, git = runGit } = {}
     });
 }
 
+function upstreamSlug(repoUrl) {
+  const match = /github\.com[:/]([^/]+)\/([^/]+?)(?:\.git)?$/.exec(String(repoUrl));
+  return match ? `${match[1]}/${match[2]}` : null;
+}
+
+// Returns null -- not [] -- when `gh` cannot answer. "Not checked" and "nothing
+// to review" look identical in a green report, and only one of them is true;
+// conflating them is how a fork stops noticing upstream without anybody
+// deciding to.
+//
+// `--state all` is deliberate: an item opened and closed between two scheduled
+// runs was still never triaged here, and a pull request closed *without*
+// merging never reaches the commit axis at all -- which is exactly the class of
+// "upstream declined it, this fork might still want it".
+function collectNewTickets(baseline, kind, { gh = runGh } = {}) {
+  const slug = upstreamSlug(baseline.repo);
+  if (!slug) return null;
+  const field = kind === "pr" ? "reviewedPrThrough" : "reviewedIssueThrough";
+  const reviewedThrough = Number(baseline[field] || 0);
+  let raw;
+  try {
+    raw = gh([
+      kind,
+      "list",
+      "--repo",
+      slug,
+      "--state",
+      "all",
+      "--limit",
+      "1000",
+      "--json",
+      "number,title",
+    ]);
+  } catch {
+    return null;
+  }
+  if (raw === null) return null;
+  let items;
+  try {
+    items = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(items)) return null;
+  return items
+    .filter((item) => Number(item.number) > reviewedThrough)
+    .sort((left, right) => Number(left.number) - Number(right.number));
+}
+
+function runGh(args) {
+  const result = spawnSync("gh", args, { cwd: REPO_ROOT, encoding: "utf8" });
+  if (result.error || result.status !== 0) return null;
+  return result.stdout;
+}
+
+function renderTicketSection(title, reviewedThrough, tickets, kind) {
+  const lines = [`## ${title}`, "", `Triaged through \`#${reviewedThrough}\`.`, ""];
+  if (tickets === null) {
+    lines.push(
+      "Not checked: `gh` was unavailable, unauthenticated, or the baseline does",
+      'not name a GitHub repository. Reported as such rather than as "nothing to',
+      'review" -- the difference matters.',
+      "",
+    );
+    return lines;
+  }
+  if (tickets.length === 0) {
+    lines.push("No new items above that number.", "");
+    return lines;
+  }
+  lines.push(`${tickets.length} new item(s) to triage.`, "", "| Item | Title |", "| --- | --- |");
+  for (const ticket of tickets) {
+    lines.push(`| #${ticket.number} | ${escapeCell(ticket.title)} |`);
+  }
+  lines.push(
+    "",
+    "Record the verdict in `docs/DECISIONS.md`, then raise",
+    `\`${kind === "pr" ? "reviewedPrThrough" : "reviewedIssueThrough"}\` so the same`,
+    "item is never re-triaged.",
+    "",
+  );
+  return lines;
+}
+
+function renderTicketMarkdown(baseline, prs, issues) {
+  return [
+    ...renderTicketSection("Upstream pull requests", Number(baseline.reviewedPrThrough || 0), prs, "pr"),
+    ...renderTicketSection("Upstream issues", Number(baseline.reviewedIssueThrough || 0), issues, "issue"),
+  ].join("\n");
+}
+
 function escapeCell(value) {
   return String(value).replaceAll("|", "\\|");
 }
@@ -189,6 +280,8 @@ function main(args = process.argv.slice(2)) {
   };
   let commits = [];
   let checkError = "";
+  let prs = null;
+  let issues = null;
 
   try {
     baseline = loadBaseline();
@@ -198,20 +291,42 @@ function main(args = process.argv.slice(2)) {
     checkError = error.message;
   }
 
-  const report = renderMarkdown(baseline, commits, { checkError });
+  if (!checkError) {
+    // The baseline has carried reviewedPrThrough and reviewedIssueThrough all
+    // along with nothing reading them, so those two axes were never "checked
+    // and clear" -- they were never checked, and the report was green for the
+    // same reason it was green before they existed.
+    prs = collectNewTickets(baseline, "pr");
+    issues = collectNewTickets(baseline, "issue");
+  }
+
+  let report = renderMarkdown(baseline, commits, { checkError });
+  if (!checkError) {
+    report = `${report.trimEnd()}\n\n${renderTicketMarkdown(baseline, prs, issues)}`;
+  }
   fs.writeFileSync(options.output, report, "utf8");
   process.stdout.write(report);
 
+  // Fail closed: a run that could not enumerate tickets must not read as a
+  // clean bill of health just because the commit axis was quiet.
+  const ticketsUnavailable = !checkError && (prs === null || issues === null);
+  const ticketCount = (prs || []).length + (issues || []).length;
+
   if (options.githubOutput) {
     writeGithubOutput({
-      needsAttention: commits.length > 0 || Boolean(checkError),
-      checkFailed: Boolean(checkError),
+      needsAttention:
+        commits.length > 0 || ticketCount > 0 || Boolean(checkError) || ticketsUnavailable,
+      checkFailed: Boolean(checkError) || ticketsUnavailable,
       reportPath: options.output,
     });
   }
 
   if (checkError) return 2;
-  if (options.strict && commits.length > 0) return 1;
+  if (ticketsUnavailable) {
+    process.stderr.write("ERROR: gh could not enumerate the upstream pull requests or issues.\n");
+    return 2;
+  }
+  if (options.strict && (commits.length > 0 || ticketCount > 0)) return 1;
   return 0;
 }
 
@@ -222,10 +337,13 @@ if (require.main === module) {
 module.exports = {
   UpstreamCheckError,
   collectNewCommits,
+  collectNewTickets,
   fetchUpstream,
   loadBaseline,
   renderMarkdown,
+  renderTicketMarkdown,
   runGit,
+  upstreamSlug,
   writeGithubOutput,
   main,
 };

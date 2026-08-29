@@ -46,6 +46,12 @@ jobs:
 
       - name: Check upstream for unreviewed commits
         id: upstream
+        env:
+          # The checker shells out to `gh` for the upstream PR and issue lists,
+          # and `gh` has no credentials in Actions unless one is handed to it.
+          # Without this it cannot enumerate them and fails closed, which reads
+          # as "upstream check broken" rather than "token missing".
+          GH_TOKEN: ${{ github.token }}
         run: |
           node scripts/check-upstream-updates.cjs \
             --github-output \

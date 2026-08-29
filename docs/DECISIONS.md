@@ -306,3 +306,31 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 
 其餘分支（`chore/*`、`docs/*`、`feat/settings`、`feat/ui-theme`、`codex/*`）落後 2–36 個 commit，
 內容不是已進上游 `main`、就是 macOS 打包／文件，本 fork 不適用。
+
+
+## 2026-08-29：上游檢查真的看 PR 與 issue 兩個面向
+
+**決定**：`scripts/check-upstream-updates.cjs` 補上以 `gh <pr|issue> list --state all` 收集上游
+PR 與 issue，結果併進報告、`needs_attention` 與 exit code；新增
+`scripts/check-upstream-tickets.test.cjs`；workflow 的檢查步驟補 `GH_TOKEN`。baseline 既有的
+`reviewedPrThrough` / `reviewedIssueThrough` 不動。
+
+**理由**：那兩個欄位早就寫在 `scripts/upstream-baseline.json` 裡，但**沒有任何程式讀它們**——
+檢查器只比對 `reviewedThrough`。PR 與 issue 不是「查過沒發現」，是根本沒查，而每週的排程報告
+長得跟查過一樣綠。艦隊層級問題，見 `SanHsien/repo-fleet-ops` 的 `docs/INCIDENTS.md` 第十條
+（24 個 fork 裡 21 個都這樣）。
+
+三個性質，缺一不可：
+
+- **`--state all`**：只查 open 看不到「開了又關、沒有合併」的項目。已合併的遲早會經由 commit
+  抵達，被關掉的永遠不會——而那正是「上游拒收、但可能對本 fork 有價值」的一類。
+- **`gh` 失敗時回 `null` 不回 `[]`**，報告寫 Not checked，並讓 `needs_attention` / exit 2
+  **fail closed**。「沒查到」和「沒有」在綠色報告裡長得一樣，只有一個是真的。
+- **`GH_TOKEN`**：`gh` 在 Actions 裡沒有憑證就列舉不到，配上 fail closed 會讓紅燈的意思變成
+  「檢查器壞了」而不是「上游有東西」。
+
+**證據**：`npm run test:node` → 350 passed（新增 10 條契約測試）；`npm run lint` 0 errors；
+實跑檢查器 exit 0，報告多出兩節——PR 停在 `#65` 之後有 **2 筆**、issue 停在 `#57` 之後有 **3 筆**
+待 triage。移植前那 5 筆一律不會出現在報告裡。
+
+**觸發條件**：逐筆讀完那 5 筆並把理由寫進本檔之後，才推進 baseline 的兩個數字。

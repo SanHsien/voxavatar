@@ -334,3 +334,58 @@ PR 與 issue，結果併進報告、`needs_attention` 與 exit code；新增
 待 triage。移植前那 5 筆一律不會出現在報告裡。
 
 **觸發條件**：逐筆讀完那 5 筆並把理由寫進本檔之後，才推進 baseline 的兩個數字。
+
+
+## 2026-08-30：上游三個 commit／兩個 PR／三個 issue 的逐筆判定
+
+commit 水位 `da2545b` → `507ad14`；PR 水位 65 → 69；issue 水位 57 → 67。
+
+### 採用（移植做法）：視窗被拖出畫面就回不來（上游 `1dcb08e` / PR #64 / issue #63）
+
+**本 fork 的實際缺陷**：`electron/main.cjs` 的 `voxavatar:move-window` handler 直接把 renderer
+傳來的座標交給 `setPosition`，**沒有任何夾限**；而 `positionWindow()` 只在 `ready-to-show`
+時呼叫一次，本 fork 也**不持久化視窗位置**。所以把角色拖到所有螢幕之外，畫面上就沒有東西
+可以再瞄準，唯一的救回方式是重開程式。
+
+**移植的是演算法不是 diff**：上游新增 `electron/window-bounds.cts`，而本 fork 明確不採用上游的
+TypeScript／`.cts` 遷移（見本檔 2026-08-23 節）。改寫成 `electron/window-bounds.cjs`，
+`clampWindowPosition()` 的邏輯照採：每個工作區都納入判斷（住在第二台螢幕的視窗用它所在那台
+衡量，不會被夾回主螢幕）、比邊界還小的視窗不要求整條邊重疊、拿不到任何工作區時照原樣移動
+（寧可移到要求的位置，也不要在無法推理的螢幕拓撲上把拖曳吞掉）。
+
+**測試**：`electron/window-bounds.test.cjs` 八條，每一條釘一種「拖不出去」的情況，含雙螢幕與
+小於邊界的視窗。`npm run test:node` 全過。
+
+**已知限制（照抄上游的註解）**：留下的那條邊不保證拖得回來——剪影穿透模式下它可能是透明像素、
+按下去會穿透過去，那種情況要靠系統匣。
+
+### 已涵蓋：角色大小下限（上游 `6204ec6` / PR #68 / issue #66）
+
+上游把 `MIN_CHARACTER_SIZE` 從 `0.7` 降到 `0.4`。**本 fork 的
+`electron/settings-store.cjs:53` 已經是 `0.3`**，比上游的新下限更寬。沒有可引用的內容。
+
+**觸發條件**：上游若之後把下限降到 0.3 以下，再回來比對。
+
+### 候選（未實作）：游標互動（上游 `507ad14` / PR #69 / issue #67）
+
+上游加了兩件事：**抓取游標**（滑到視窗上變成張開的手、手勢中變成握拳；用 `grab` 而不是
+`pointer`，因為拖曳是轉鏡頭、Alt+拖曳才是移動視窗，兩者都不是點擊）與**視線跟隨**
+（眼睛追游標，頭部部分跟隨，游標移動快的時候轉幅更大）。
+
+**本 fork 確實缺這兩項**（實查）：`grep -rn "cursor" src/components/Scene.tsx src/App.tsx` 0 命中；
+`lookAt` 只出現在 `Scene.tsx:136` 的 `camera.lookAt(framing.target)`，是鏡頭構圖不是角色視線。
+本 fork 的 VRM 表情目前只用在 lip-sync 與眨眼。
+
+**為什麼這輪不做**：這是一次 fork 端的功能實作，不是 cherry-pick——上游動的是
+`electron/*.cts`（本 fork 不採用該遷移）加上它自己的 renderer 結構，而本 fork 的
+`Scene.tsx` 已經有自己的 raycaster／drag／passthrough 實作，兩邊的 pointer 事件流程不同。
+與本 fork 邊界（Windows-only／本機優先／不外傳）不衝突，值得做。列入候選，與先前
+`#46／#49／#50／#54` 的「動作↔表情綁定」同一類。
+
+**觸發條件**：安排 fork 端 UX 工作時一併實作；上游若之後把這段抽成與 renderer 無關的模組，
+再評估直接移植。
+
+### issue 面向
+
+`#63` 與 `#66` 已由上述兩筆處置（前者採用、後者已涵蓋），兩個 issue 上游都已關閉。
+`#67` 仍 OPEN，對應上面的候選項。issue 水位推進到 67。

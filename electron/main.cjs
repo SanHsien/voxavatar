@@ -25,6 +25,7 @@ const {
 const { createSettingsStore } = require("./settings-store.cjs");
 const { createAudioListener } = require("./audio-listener.cjs");
 const { isAllowedRendererNavigation } = require("./navigation-policy.cjs");
+const { clampWindowPosition } = require("./window-bounds.cjs");
 const {
   assertTrustedIpcSender,
   assertTrustedIpcSenderContents,
@@ -1155,7 +1156,14 @@ if (!app.requestSingleInstanceLock()) {
       const x = Number(payload?.x);
       const y = Number(payload?.y);
       if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-      avatarWindow.setPosition(Math.round(x), Math.round(y));
+      // 夾住目的地：這個視窗無邊框、位置不持久化，一次拖到所有螢幕之外就沒有東西
+      // 可以再瞄準，只能重開程式。至少留一條邊在某個工作區內。
+      const { width, height } = avatarWindow.getBounds();
+      const target = clampWindowPosition(
+        { x, y, width, height },
+        screen.getAllDisplays().map((display) => display.workArea),
+      );
+      avatarWindow.setPosition(target.x, target.y);
     });
     ipcMain.on("voxavatar:avatar-context-menu", (event) => {
       if (!avatarWindow || avatarWindow.isDestroyed()) return;

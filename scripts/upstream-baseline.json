@@ -1,9 +1,9 @@
 {
   "repo": "https://github.com/xikhar/persona.git",
   "branch": "main",
-  "reviewedThrough": "da2545bd0218f7eadcf2bfa2791ff45fa30232f7",
-  "reviewedDate": "2026-08-28",
-  "notes": "Watermark da2545b (#65, 2026-08-28). 5f0ab50 (#62) was already adopted as the idea (not the .cts diff) on 2026-08-23; issue #10 was stale against that. da2545b is upstream PR #65 (VRoid Hub portrait hover zoom) and is out of scope: this fork declined VRoid Hub account integration. Store the watermark as a full 40-character SHA; the 2026-08-28 abbreviation 5f0ab50 made check-upstream-updates.cjs reject the baseline. Historical: 7ca65a3 (#61). The 13 commits from 152b1b4 to that point were judged on 2026-08-22 in docs/DECISIONS.md section 1. 2026-08-23: adopted PR #62 as the idea. Open upstream PR #64 and issues #63/#66/#67 left 待評估; #18 remains out of scope. Per-item reasoning in docs/DECISIONS.md.",
-  "reviewedPrThrough": 65,
-  "reviewedIssueThrough": 57
+  "reviewedThrough": "507ad14335ddf553e464609135f8c42d1a100f22",
+  "reviewedDate": "2026-08-30",
+  "notes": "Watermark da2545b (#65, 2026-08-28). 5f0ab50 (#62) was already adopted as the idea (not the .cts diff) on 2026-08-23; issue #10 was stale against that. da2545b is upstream PR #65 (VRoid Hub portrait hover zoom) and is out of scope: this fork declined VRoid Hub account integration. Store the watermark as a full 40-character SHA; the 2026-08-28 abbreviation 5f0ab50 made check-upstream-updates.cjs reject the baseline. Historical: 7ca65a3 (#61). The 13 commits from 152b1b4 to that point were judged on 2026-08-22 in docs/DECISIONS.md section 1. 2026-08-23: adopted PR #62 as the idea. Open upstream PR #64 and issues #63/#66/#67 left 待評估; #18 remains out of scope. Per-item reasoning in docs/DECISIONS.md. 2026-08-30：commit 水位 da2545b → 507ad14、PR 65 → 69、issue 57 → 67。#64 視窗夾限採用（移植演算法成 CJS，本 fork 不採用上游的 .cts 遷移）；#68 角色大小下限已涵蓋（本 fork 是 0.3，比上游新的 0.4 更寬）；#69 游標互動列為候選未實作（本 fork 確實缺，但那是 fork 端的功能實作不是 cherry-pick）。逐項證據見 docs/DECISIONS.md 同日條目。",
+  "reviewedPrThrough": 69,
+  "reviewedIssueThrough": 67
 }

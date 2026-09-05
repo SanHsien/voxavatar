@@ -4,16 +4,7 @@
     "reviewed": "2026-08-22",
     "reason": "tsc -b passes on 7.0.2, but typescript-eslint refuses to load against it (\"typescript-eslint does not support TS 7.0\", peer range >=4.8.4 <6.1.0, tracking issue typescript-eslint#10940), so npm run check cannot lint. TS 6.0.x is inside that peer range and is the realistic next step; revisit when typescript-eslint ships TS >=7.1 support."
   },
-  "three": {
-    "deferredLatest": "0.185.1",
-    "reviewed": "2026-08-22",
-    "reason": "Nothing blocks it on paper -- @pixiv/three-vrm peers on three >=0.137, @react-three/fiber on >=0.156, drei on >=0.159. three.js still changes rendering behaviour across minors, and the VRM, VRMA and lip-sync paths can only be judged by looking at the avatar on a real Windows desktop. This is verification debt, not a compatibility block: pair it with a desktop verification round."
-  },
-  "@types/three": {
-    "deferredLatest": "0.185.4",
-    "reviewed": "2026-08-22",
-    "reason": "Types must describe the three.js actually installed. Moves together with three, not before it."
-  },
+  "_note_three": "three 0.185.1 and @types/three 0.185.4 landed on 2026-09-04 without the desktop verification round their deferrals were waiting on -- an explicit maintainer decision to take the upgrade first and pay the verification debt afterwards. The outstanding check is tracked in docs/VRM_VRMA_COMPATIBILITY.md and docs/DECISIONS.md (2026-09-04 entry), not here: a deferral means 'reviewed, not installed', and these are installed. Do not re-add them here to represent the pending check.",
   "@types/node": {
     "deferredLatest": "26.4.0",
     "reviewed": "2026-08-29",

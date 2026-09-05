@@ -71,7 +71,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.182.0",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-react-swc": "^4.2.2",
     "concurrently": "^10.0.5",
     "cross-env": "^10.1.0",

@@ -2,6 +2,24 @@
 
 本文件記錄 VoxAvatar 品質閘門的 **合成** 相容性案例，對應現有 Node 品質測試。真實 exporter 實測矩陣 **尚未建立**；下方「Exporter 備註」僅整理公開文件中的常見假設與已知限制，**不代表**已用真實樣本驗證。
 
+## 待實機驗收（2026-09-04 起未完成）
+
+`three` 已於 2026-09-04 升到 `^0.185.1`（`@types/three` `^0.185.4`），**未先做實機目視驗收**——
+這是維護者明示的取捨：先落地、驗收後補，不通過就 revert 版本。判斷依據與證據見
+[`DECISIONS.md`](DECISIONS.md) 的 2026-09-04 條目。
+
+打包後的 app 在真機（Windows 桌面）上要確認的三件事，全部 CI 看不到：
+
+| # | 要確認什麼 | 通過條件 | 狀態 |
+| --- | --- | --- | --- |
+| 1 | VRM 模型載入與外觀 | 模型完整載入，材質／貼圖／輪廓與升版前無可見差異 | ☐ 未驗 |
+| 2 | VRMA 動作播放 | 動作片段能播、能循環、切換不卡住或抽動 | ☐ 未驗 |
+| 3 | 嘴形同步（lip-sync） | 說話時 viseme／BlendShape 對得上音訊，無延遲或卡在張嘴 | ☐ 未驗 |
+
+`electron` 44 的 major 升級在等同一輪驗收（見 `.github/dependency-deferrals.json` 的 `electron` 條目），
+**兩者併在同一次做**，不要各跑一輪。三項全過就把上表勾掉並在 `DECISIONS.md` 補一條結案；
+任一項不過就 revert `three`／`@types/three` 回 `^0.182.0`，並把兩筆 deferral 加回去、寫明實測到什麼。
+
 ## 範圍與邊界
 
 - **已覆蓋**：`electron/vrm-quality.test.cjs`、`electron/vrma-quality.test.cjs` 中的 synthetic GLB 案例。

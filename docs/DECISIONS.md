@@ -1,8 +1,33 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-08-28
+最後修訂：2026-09-04
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-09-04：three.js 先升版，實機驗收改為後補的待辦
+
+**決定**：`three` `^0.182.0` → `^0.185.1`、`@types/three` `^0.182.0` → `^0.185.4` 直接合併進 `main`，
+**不等**兩者 deferral 原本要求的實機目視驗收。驗收改列為明確的待辦（見下方「待驗收」），
+若驗收不通過就 revert 這兩個版本，不是就地補丁。
+
+**理由**：這兩筆 deferral 的理由寫的是「verification debt, not a compatibility block」——
+紙面上沒有任何相容性阻擋（`@pixiv/three-vrm` peer `three >=0.137`、`@react-three/fiber >=0.156`、
+`drei >=0.159`），擋著的只是「還沒有人在真機上看過畫面」。維護者判斷：與其讓版本無限期停在
+0.182 累積落差，不如先落地、把驗收變成一筆有主的待辦。同一批一起合併的 `globals`
+`^17.8.0`→`^17.12.0` 與 `typescript-eslint` `^8.46.4`→`^8.69.0` 都只作用於 lint 期，不進打包產物。
+
+**證據（2026-09-04 本機 Windows，合併後）**：`npm run build`（`tsc -b` + vite）exit 0；
+`npm run lint` 0 error（1 個既有的 react-refresh warning，與本次無關）；
+`npm test` 43 個測試檔、155 項全數通過；`npm run deps:freshness` npm audit 0 項。
+**這些都是 CI 看得到的那一半**；看不到的那一半就是下面這筆待辦。
+
+**待驗收（未完成，不是已完成）**：在真機打包後的 app 上目視確認三件事——
+VRM 模型載入與外觀無退化、VRMA 動作播放正常、嘴形同步（lip-sync）對得上。
+`electron` 44 的 major 升級原本就在等同一輪實機驗收，**兩者併在同一次做**。
+細節與勾選欄位見 [`VRM_VRMA_COMPATIBILITY.md`](VRM_VRMA_COMPATIBILITY.md) 的「待實機驗收」一節。
+
+**限制**：`.github/dependency-deferrals.json` 已移除 `three` 與 `@types/three` 兩筆——deferral 的語意是
+「審過但尚未安裝」，這兩個已經安裝了，留在那裡會讓新鮮度報告說謊。待辦記在文件不記在 deferral 檔。
 
 ## 2026-08-28：水位 `5f0ab50` 已涵蓋；`da2545b` 範圍外
 

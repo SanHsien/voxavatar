@@ -4,15 +4,14 @@
     "reviewed": "2026-08-22",
     "reason": "tsc -b passes on 7.0.2, but typescript-eslint refuses to load against it (\"typescript-eslint does not support TS 7.0\", peer range >=4.8.4 <6.1.0, tracking issue typescript-eslint#10940), so npm run check cannot lint. TS 6.0.x is inside that peer range and is the realistic next step; revisit when typescript-eslint ships TS >=7.1 support."
   },
-  "_note_three": "three 0.185.1 and @types/three 0.185.4 landed on 2026-09-04 without the desktop verification round their deferrals were waiting on -- an explicit maintainer decision to take the upgrade first and pay the verification debt afterwards. The outstanding check is tracked in docs/VRM_VRMA_COMPATIBILITY.md and docs/DECISIONS.md (2026-09-04 entry), not here: a deferral means 'reviewed, not installed', and these are installed. Do not re-add them here to represent the pending check.",
   "@types/node": {
-    "deferredLatest": "26.4.0",
-    "reviewed": "2026-08-29",
-    "reason": "Node type definitions track the runtime the project builds on, not the newest published. CI runs Node 24 and package.json requires >=24; typing against Node 26 would surface APIs the build environment does not have. Re-confirmed 2026-08-29 against 26.4.0: the reasoning is unchanged, only the version the deferral is pinned to."
+    "deferredLatest": "26.4.1",
+    "reviewed": "2026-09-04",
+    "reason": "Node type definitions track the runtime the project builds on, not the newest published. CI runs Node 24 and package.json requires >=24; typing against Node 26 would surface APIs the build environment does not have. Re-confirmed 2026-09-04 against 26.4.1 (26.4.0 -> 26.4.1 is a definitions patch and does not change which runtime this project builds on): the reasoning is unchanged, only the version the deferral is pinned to. The trigger to lift this is the project moving to Node 26, not a newer @types/node release."
   },
   "electron": {
-    "deferredLatest": "44.0.0",
-    "reviewed": "2026-08-29",
-    "reason": "Electron 44 is a major. This repo requires the release notes, npm run check, and a real Windows run of the packaged app before a major lands, and the packaged-app half cannot be judged from CI: the avatar, VRM/VRMA playback and the tray/DPI behaviour only show up on a real desktop. npm run check passes on 43.4.1; this is verification debt, not a known incompatibility. Pair it with the same desktop verification round that three.js is waiting on."
+    "deferredLatest": "44.2.0",
+    "reviewed": "2026-09-04",
+    "reason": "Electron 44 is a major. This repo requires the release notes, npm run check, and a real Windows run of the packaged app before a major lands, and the packaged-app half cannot be judged from CI: the avatar, VRM/VRMA playback and the tray/DPI behaviour only show up on a real desktop. npm run check passes on 43.6.0; this is verification debt, not a known incompatibility. Re-confirmed 2026-09-04 against 44.2.0 (44.0.0 -> 44.2.0 does not change what has to be verified, only the version it would be verified at). The desktop round this is waiting on is the one now tracked in docs/VRM_VRMA_COMPATIBILITY.md, which three.js 0.185.1 also needs -- do them together, not separately."
   }
 }

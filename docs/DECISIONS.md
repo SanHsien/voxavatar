@@ -4,6 +4,48 @@
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
+## 2026-09-04：清掉依賴新鮮度追蹤 issue，vitest 升 5，兩筆 deferral 重新對版
+
+**決定**：
+
+- `vitest` `^4.0.14` → `^5.0.0`。純測試執行器，不進打包產物。
+- 套用所有 in-range 更新（`@testing-library/user-event`、`@types/react-dom`、`eslint`、
+  `eslint-plugin-react-refresh`、`zod`、`electron` 43.4.1→43.6.0、`electron-builder` →26.16.0）。
+- `@types/node` 的 deferral 重新對到 26.4.1、`electron` 的重新對到 44.2.0，理由不變。
+- `package.json` 的 `allowScripts` 由 `electron@43.4.1`／`@swc/core@1.16.1` 改為
+  `electron@43.6.0`／`@swc/core@1.16.2`。
+
+**理由**：追蹤 issue [#11](https://github.com/SanHsien/voxavatar/issues/11) 的關閉條件是
+`scripts/check-dependency-freshness.cjs` 的每一列都落在 `OK`／`Ahead of dist-tag latest`／
+`Deferred by review`。in-range 更新雖然「是 Dependabot 的工作」，在這支檢查裡一樣算需要維護，
+所以只補 major 的判斷不會讓 issue 關掉。
+
+- vitest 5：先用 `--no-save` 裝 5.0.0 實跑 `npm run test:renderer`，43 個測試檔、155 項全過，
+  才寫進 `package.json`。
+- `@types/node` 26.4.0→26.4.1 是定義檔的 patch，不改變本專案建置的 runtime（CI 跑 Node 24、
+  `package.json` 要求 >=24），所以只推進 deferral 釘住的版本，理由原封不動。解除條件是本專案
+  改用 Node 26，不是 `@types/node` 出新版。
+- `electron` 44.0.0→44.2.0 同理：要驗的東西沒變，只是要驗的版本變了。它等的就是 three.js 那一輪
+  實機驗收，兩件一起做。
+- `electron-builder`：npm 的 `latest` dist-tag 停在 `26.15.3`，而 `26.16.0` 掛在 `v26` tag 上
+  （`npm view electron-builder dist-tags` 可查）。所以升到 26.16.0 之後檢查會顯示
+  `Ahead of dist-tag latest`——那是 npm 的標籤狀態，不是本專案落後。
+
+**限制／踩到的坑**：
+
+- `allowScripts` 沒跟著 electron 版本一起改，`npm ci` 就不會執行 electron 的 postinstall，
+  `node_modules/electron/path.txt` 不會產生。npm 這時仍回報成功——正是
+  `scripts/check-electron-install.cjs` 這道守衛存在的理由（上游 `xikhar/persona#36`）。
+  **升 electron 版本時務必同步改 `allowScripts` 的鍵**，否則本機會處在「裝好了但沒有執行檔」的狀態。
+- `.github/dependency-deferrals.json` 只能放 deferral 物件。曾在其中放一行說明用的字串鍵
+  `_note_three`，被契約測試「the committed deferrals name a version and a reason」擋下——
+  該測試要求每個鍵都是帶 `deferredLatest` 與 `reason` 的物件。說明文字要寫在本檔，不要塞進那個 JSON。
+
+**驗證（本機 Windows）**：`npm run build` exit 0；`npm run lint` 0 error；`npm test`
+（node ＋ renderer）全過 exit 0；`npm run docs:check` 通過；`npm run audit:dependencies`
+0 vulnerabilities；`node scripts/check-dependency-freshness.cjs` 只剩 3 筆 Deferred 與 1 筆
+Ahead of dist-tag latest，沒有任何一列需要維護。
+
 ## 2026-09-04：three.js 先升版，實機驗收改為後補的待辦
 
 **決定**：`three` `^0.182.0` → `^0.185.1`、`@types/three` `^0.182.0` → `^0.185.4` 直接合併進 `main`，

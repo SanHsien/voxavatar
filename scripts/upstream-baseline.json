@@ -1,0 +1,9 @@
+{
+  "repo": "https://github.com/xikhar/persona.git",
+  "branch": "main",
+  "reviewedThrough": "ffd5cb0e4857b355586d5eb205fc8dfc9b90ba4b",
+  "reviewedDate": "2026-09-10",
+  "notes": "Watermark da2545b (#65, 2026-08-28). 5f0ab50 (#62) was already adopted as the idea (not the .cts diff) on 2026-08-23; issue #10 was stale against that. da2545b is upstream PR #65 (VRoid Hub portrait hover zoom) and is out of scope: this fork declined VRoid Hub account integration. Store the watermark as a full 40-character SHA; the 2026-08-28 abbreviation 5f0ab50 made check-upstream-updates.cjs reject the baseline. Historical: 7ca65a3 (#61). The 13 commits from 152b1b4 to that point were judged on 2026-08-22 in docs/DECISIONS.md section 1. 2026-08-23: adopted PR #62 as the idea. Open upstream PR #64 and issues #63/#66/#67 left 待評估; #18 remains out of scope. Per-item reasoning in docs/DECISIONS.md. 2026-08-30：commit 水位 da2545b → 507ad14、PR 65 → 69、issue 57 → 67。#64 視窗夾限採用（移植演算法成 CJS，本 fork 不採用上游的 .cts 遷移）；#68 角色大小下限已涵蓋（本 fork 是 0.3，比上游新的 0.4 更寬）；#69 游標互動列為候選未實作（本 fork 確實缺，但那是 fork 端的功能實作不是 cherry-pick）。逐項證據見 docs/DECISIONS.md 同日條目。2026-09-10：commit 水位 507ad14 → ffd5cb0、PR 69 → 72、issue 維持 67（--state all 無 #67 之後的新 issue）。ffd5cb0（#70 Kimodo 動作生成，+7061/−240、49 檔）不合併：引入 prerelease runtime 依賴 gltf-validator@2.0.0-dev.3.10、主行程改動全在本 fork 不採用的 .cts、新增 MCP 工具會改動 docs/INTEGRATIONS.md 契約、要本機 Kimodo 服務才驗得到；列為 fork 端候選功能。#71（closed）／#72（open）是外部帳號送的個人 Codex 工具設定，不合併。逐項見 docs/DECISIONS.md〈507ad14..ffd5cb0〉。",
+  "reviewedPrThrough": 72,
+  "reviewedIssueThrough": 67
+}

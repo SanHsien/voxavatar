@@ -1,0 +1,33 @@
+# 安全政策
+
+> English: [`SECURITY.en.md`](SECURITY.en.md)
+
+## 支援版本
+
+僅支援 [最新 GitHub Release](https://github.com/SanHsien/voxavatar/releases/latest) 與目前 `main`。舊 pre-1.0 版本不會另行維護安全修補。
+
+## 私下回報
+
+請使用 [GitHub Private Vulnerability Reporting](https://github.com/SanHsien/voxavatar/security/advisories/new)。請附版本、影響、重現步驟與已移除敏感資料的診斷資訊；完成修補前不要公開 issue 或 PoC。
+
+## 安全模型
+
+- 預設語音監聽只在記憶體中計算指定應用程式的播放音量；可選的「系統輸出」模式改為本機 loopback 監聽目前輸出裝置混音，仍不擷取麥克風、不保存、不轉錄、不傳送音訊。系統輸出模式為明確 opt-in，設定頁會顯示隱私邊界警告。
+- MCP 與 HTTP bridge 只綁定 `127.0.0.1`，驗證 loopback `Host`、來源、內容型別、請求大小與輸入 schema；MCP session 有 idle TTL 與容量上限。
+- MCP 工具結果為版本化 JSON（`status_schema_version`／`tools_schema_version`）；agent 應讀結構化欄位，見 [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)。`get_status` 與 Settings 語音來源清單會遮罩 `listener.error`／`source`（及 catalog `error`）中的路徑／使用者名；請優先使用 `helper_error`／`state`。
+- 本機 MCP 無登入驗證；同一 Windows 帳號下的其他行程可操作角色視窗與動作。不要把連接埠轉發到區域網路或 Internet。
+- MCP 只提供動畫、視窗、呈現狀態與（需 Settings opt-in 的）短訊息氣泡工具，不執行任意命令、不讀取任意檔案；`show_message` 預設關閉，不保存訊息歷史；`set_character_state` 只設定有界 TTL 的呈現狀態，不推測聊天內容。
+- avatar 與 settings preload 分權；設定寫入 IPC 綁定 settings 視窗。
+- Electron renderer 啟用 sandbox 與 context isolation，停用 Node integration；avatar／settings 使用不同 preload allowlist，privileged handler 會驗證 sender URL，設定寫入另驗 settings 視窗 webContents。
+- 自訂 process matcher 限制為有界安全子集，拒絕明顯易 ReDoS 的 pattern。
+- 使用者匯入媒體會複製到每使用者應用資料，renderer 只能以已登記 ID 經 `voxavatar-asset:` 讀取。
+- `npm run check` 與 Windows CI 會對 production 與 development dependencies 執行 high-severity audit；Electron／打包鏈的漏洞不得因「只在開發時使用」而忽略。lockfile 回歸測試禁止重新引入 GHSA-jmr9-qjv8-65gv 的 `extract-zip`，且安全修補可直接升級至仍受支援的 Electron major，不等待已停更 transitive 套件。
+
+### 安裝包完整性與簽署
+
+- 每個 GitHub Release 附 `SHA256SUMS.txt`；下載後請核對 installer 雜湊。
+- 在提供 `WIN_CSC_*` 簽署密鑰前，公開安裝包標示為 **NotSigned**；About 對話框與 Release notes 也會寫明。SmartScreen 可能提示未知發行者——這不代表通過完整 Windows 桌面驗收。
+- 可用 `npm run evidence:verify -- --manifest docs/release-evidence/v{ver}/manifest.json [--online]` 對照 GitHub digest／SHA256SUMS／NotSigned 標示；`npm run evidence:pe` 可對 installer 讀 PE Certificate Table（空＝機器可證無 Authenticode 區塊）。兩者皆**不能**取代 SmartScreen／publisher 人工驗收。
+- 缺少簽署密鑰時**不得**宣稱已 Authenticode 簽署或已通過 SmartScreen。實機 smoke／簽署狀態證據見 [`docs/release-evidence/`](docs/release-evidence/) 與 [`docs/RELEASING.md`](docs/RELEASING.md)。
+
+安全邊界的變更必須附測試與威脅說明。一般錯誤請用 issue template，不要透過漏洞管道回報。

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test on Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Validate Markdown
+        run: npm run docs:check
+
+      - name: Test JavaScript and renderer behavior
+        run: npm test
+
+      - name: Validate the asset contract
+        run: npm run assets:check
+
+      - name: Audit all dependencies
+        run: npm run audit:dependencies
+
+      - name: Compile the native listener
+        run: npm run native:build
+
+      - name: Run the native listener self-test
+        run: npm run native:test
+
+      - name: Build the renderer
+        run: npm run build

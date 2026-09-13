@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Machine-readable metadata for the published v1.0.6 release. Formal installer integrity and NotSigned are verified; the Windows desktop lifecycle matrix was not rerun this round.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-14T14:37:22.987Z",
+  "release": {
+    "version": "1.0.6",
+    "tag": "v1.0.6",
+    "commitSha": "448e505e2ce7d436660c339ddb4b5b908f471bbe",
+    "releaseUrl": "https://github.com/SanHsien/voxavatar/releases/tag/v1.0.6",
+    "githubActionsRunUrl": "https://github.com/SanHsien/voxavatar/actions/runs/31809770616",
+    "hasInstaller": true
+  },
+  "assets": {
+    "installerFilename": "VoxAvatar-1.0.6-windows-x64-setup.exe",
+    "installerSha256": "ad65ec5be450fe98f02beb880c511a2a7c7bee2d14c01c2ab309b1993587faf7",
+    "installerSizeBytes": 177145660,
+    "checksumsFile": "SHA256SUMS.txt",
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned",
+    "authenticodeEvidence": "pe-certificate-table-empty"
+  },
+  "environment": {
+    "windowsEdition": null,
+    "windowsVersion": null,
+    "windowsBuild": null,
+    "architecture": "x64",
+    "displayScalingPercent": null,
+    "gpu": null
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝",
+      "升級",
+      "移除",
+      "系統匣",
+      "DPI／縮放",
+      "角色尺寸 30%",
+      "語音與 MCP",
+      "簽署標示（NotSigned）",
+      "SmartScreen／publisher"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "pass",
+        "note": "Release workflow 31809770616 在精確 tag SHA 448e505e2ce7d436660c339ddb4b5b908f471bbe 完成授權資產 gate、Node 24 check、完整 dependency audit、Windows native build／self-test、NSIS 打包與發布。"
+      },
+      {
+        "id": "install",
+        "section": "安裝",
+        "result": "未驗",
+        "note": "本輪無 Windows 桌面；未執行 1.0.6 正式 installer 的全新安裝。1.0.5 乾淨 current-user 安裝證據仍見 docs/release-evidence/v1.0.5/。"
+      },
+      {
+        "id": "upgrade",
+        "section": "升級",
+        "result": "未驗",
+        "note": "本輪無 Windows 桌面；未驗證 1.0.5→1.0.6 保留資料升級。"
+      },
+      {
+        "id": "uninstall",
+        "section": "移除",
+        "result": "未驗",
+        "note": "本輪無 Windows 桌面；未執行 1.0.6 移除。"
+      },
+      {
+        "id": "tray",
+        "section": "系統匣",
+        "result": "未驗",
+        "note": "本輪無 Windows 桌面；系統匣左右鍵未實測。"
+      },
+      {
+        "id": "dpi_scaling",
+        "section": "DPI／縮放",
+        "result": "未驗",
+        "note": "本輪無 Windows 桌面；未重跑 100%／150%／225%。先前 1.0.5 僅部分驗證 225%。"
+      },
+      {
+        "id": "size_30",
+        "section": "角色尺寸 30%",
+        "result": "未驗",
+        "note": "設定契約可自動測；本輪未操作 30% 實機可讀性。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "未驗",
+        "note": "本輪無 Windows 桌面；未重跑真實 WASAPI／系統匣 MCP。1.0.5 曾部分驗證 MCP 線上／就緒、6 工具／12 動作。"
+      },
+      {
+        "id": "signing_label",
+        "section": "簽署標示（NotSigned）",
+        "result": "pass",
+        "note": "GitHub digest、SHA256SUMS.txt 與本機 SHA-256 三路一致；PE Certificate Table 為空，機器可證 NotSigned。≠ SmartScreen。"
+      },
+      {
+        "id": "smartscreen",
+        "section": "SmartScreen／publisher",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；未測 SmartScreen 或具名 publisher。"
+      }
+    ],
+    "notes": "v1.0.6 is the only Latest release/tag. Formal runner assets, triple SHA-256, and empty PE Certificate Table (NotSigned) are verified; GUI smoke/SmartScreen remain 未驗, so smokeExecuted stays false."
+  },
+  "mediaReferences": [
+    "ASSET_LICENSES.md",
+    "public/assets/manifest.json"
+  ],
+  "issues": [],
+  "reviewer": "Cursor cloud agent",
+  "reviewedAt": "2026-08-14T14:38:00.000Z"
+}

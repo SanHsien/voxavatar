@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "name": "my-action-pack",
+  "description": "與同資料夾的 .vrma 一併使用。在設定 → 動作 → 系統狀態動作槽按「匯入 action-pack…」選本檔；仍走既有 GLB／路徑／catalog gate。",
+  "actions": [
+    {
+      "animation_name": "idle-breathe",
+      "purpose": "loop",
+      "state_slot": "idle",
+      "files": ["idle-breathe.vrma"],
+      "animation_description": "安靜待機循環",
+      "animation_trigger_scenario": "待機或聆聽時"
+    },
+    {
+      "animation_name": "talk-soft",
+      "purpose": "loop",
+      "state_slot": "speaking",
+      "files": ["talk-soft.vrma"],
+      "animation_description": "說話時身體微動",
+      "animation_trigger_scenario": "語音輸出播放中"
+    },
+    {
+      "animation_name": "work-nod",
+      "purpose": "one-shot",
+      "state_slot": "working",
+      "files": ["work-nod.vrma"],
+      "animation_description": "開始長任務時點頭",
+      "animation_trigger_scenario": "MCP set_character_state working"
+    },
+    {
+      "animation_name": "success-pose",
+      "purpose": "pose",
+      "state_slot": "success",
+      "files": ["success-pose.vrma"],
+      "animation_description": "任務成功短姿勢",
+      "animation_trigger_scenario": "MCP set_character_state success"
+    }
+  ]
+}

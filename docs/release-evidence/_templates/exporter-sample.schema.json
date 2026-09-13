@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SanHsien/voxavatar/docs/release-evidence/_templates/exporter-sample.schema.json",
+  "title": "VoxAvatar exporter sample evidence row",
+  "description": "Machine-readable row for real VRoid/UniVRM/Blender sample results. Do not attach binary VRM/VRMA. status pending-human-sample means no authorized sample yet.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "exporter",
+    "toolVersion",
+    "sourceUrl",
+    "licenseSummary",
+    "importVerdict",
+    "threeJsPlayback",
+    "evidenceLink",
+    "status"
+  ],
+  "properties": {
+    "exporter": {
+      "type": "string",
+      "enum": ["VRoid Studio", "UniVRM", "Blender VRM Add-on", "Other"]
+    },
+    "toolVersion": {
+      "type": ["string", "null"],
+      "description": "Exporter / toolchain version string, or null when unverified."
+    },
+    "sourceUrl": {
+      "type": ["string", "null"],
+      "description": "Public URL of the licensed sample; null when pending."
+    },
+    "licenseSummary": {
+      "type": ["string", "null"]
+    },
+    "importVerdict": {
+      "type": "string",
+      "enum": ["pass", "fail", "未驗"]
+    },
+    "threeJsPlayback": {
+      "type": "string",
+      "enum": ["pass", "fail", "未驗"]
+    },
+    "evidenceLink": {
+      "type": "string",
+      "description": "Relative docs path or URL for the written evidence note."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending-human-sample", "pass", "fail", "synthetic-covered"]
+    },
+    "notes": {
+      "type": ["string", "null"]
+    }
+  }
+}

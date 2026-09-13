@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-10T23:08:51.778Z",
+  "release": {
+    "version": "0.16.23",
+    "tag": "v0.16.23",
+    "commitSha": "d9b468bcb383849286051f9a944c0ac1a4a53379",
+    "releaseUrl": "https://github.com/SanHsien/voxavatar/releases/tag/v0.16.23",
+    "githubActionsRunUrl": null,
+    "hasInstaller": true
+  },
+  "assets": {
+    "installerFilename": "VoxAvatar-0.16.23-windows-x64-setup.exe",
+    "installerSha256": "6f222548173804c0169e385d7dc6c94a8dd962951b76054daf88ad9e8dac420a",
+    "installerSizeBytes": 105138561,
+    "checksumsFile": "SHA256SUMS.txt",
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned",
+    "authenticodeEvidence": "pe-certificate-table-empty"
+  },
+  "environment": {
+    "windowsEdition": null,
+    "windowsVersion": null,
+    "windowsBuild": null,
+    "architecture": "x64",
+    "displayScalingPercent": null,
+    "gpu": null
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝",
+      "升級",
+      "移除",
+      "系統匣",
+      "DPI／縮放",
+      "角色尺寸 30%",
+      "語音與 MCP",
+      "簽署標示（NotSigned）",
+      "SmartScreen／publisher"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "pass",
+        "note": "GitHub Actions CI 綠燈（僅自動化 gate；不含 GUI smoke）。"
+      },
+      {
+        "id": "install",
+        "section": "安裝",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行全新安裝。"
+      },
+      {
+        "id": "upgrade",
+        "section": "升級",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行舊版→新版升級。"
+      },
+      {
+        "id": "uninstall",
+        "section": "移除",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行移除。"
+      },
+      {
+        "id": "tray",
+        "section": "系統匣",
+        "result": "未驗",
+        "note": "無 Windows 桌面；系統匣左右鍵未實測。"
+      },
+      {
+        "id": "dpi_scaling",
+        "section": "DPI／縮放",
+        "result": "未驗",
+        "note": "無 Windows 桌面；100%／150%／225% 未實測。"
+      },
+      {
+        "id": "size_30",
+        "section": "角色尺寸 30%",
+        "result": "未驗",
+        "note": "設定契約可自動測；多 DPI 實機可讀性未驗。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "未驗",
+        "note": "無 Windows 桌面；真實 WASAPI／系統匣 MCP 未實測。"
+      },
+      {
+        "id": "signing_label",
+        "section": "簽署標示（NotSigned）",
+        "result": "未驗",
+        "note": "可用 PE Certificate Table／evidence:verify 對照標示；≠ SmartScreen。"
+      },
+      {
+        "id": "smartscreen",
+        "section": "SmartScreen／publisher",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；需人工桌面觀察。"
+      }
+    ],
+    "notes": "installer Release v0.16.23（動作洗牌輪播）; SHA-256 已下載比對相符; Authenticode NotSigned（PowerShell 與 PE Certificate Table 兩路一致）; 輪播實機 smoke 未驗"
+  },
+  "mediaReferences": [],
+  "issues": [],
+  "reviewer": null,
+  "reviewedAt": null
+}

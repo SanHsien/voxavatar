@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+
+# Generated application and installer output
+dist/
+release/
+native/bin/
+coverage/
+.vite/
+.cache/
+.eslintcache
+.nyc_output/
+*.tsbuildinfo
+*.tgz
+
+# Local character media
+*.vrm
+*.vrma
+!public/assets/models/AvatarSample_A.vrm
+!public/assets/models/AvatarSample_B.vrm
+!public/assets/models/AvatarSample_C.vrm
+!public/assets/models/Tsukuyomi-chan_Type-A.vrm
+!public/assets/animations/airplane-02.vrma
+!public/assets/animations/airplane-05.vrma
+!public/assets/animations/drink-water.vrma
+!public/assets/animations/exercise-step.vrma
+!public/assets/animations/failed-apology.vrma
+!public/assets/animations/idle-01.vrma
+!public/assets/animations/pose-motion.vrma
+!public/assets/animations/reaction-startle.vrma
+!public/assets/animations/review-phone.vrma
+!public/assets/animations/run-slow.vrma
+!public/assets/animations/speaking-01.vrma
+!public/assets/animations/success-cheer.vrma
+!public/assets/animations/walk.vrma
+
+# Native compiler output
+*.dSYM/
+*.exp
+*.ilk
+*.lib
+*.obj
+*.pdb
+core
+core.*
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.key
+*.p12
+*.pfx
+*.pem
+
+# Logs and package-manager diagnostics
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+
+# Original local implementation brief
+INSTRUCTIONS.md
+
+# Local third-party unpack (do not commit full packs)
+_vendor/
+.tmp-booth/
+
+# Maintenance reports (regenerated on every run; not tracked)
+dependency-freshness-report.md
+upstream-review-report.md

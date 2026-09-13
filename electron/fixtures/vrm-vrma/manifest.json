@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic VRM/VRMA compatibility cases mapped to electron quality tests. No binary media is committed; builders generate GLB at test time.",
+  "syntheticOnly": true,
+  "realExporterMatrixDeferred": true,
+  "cases": [
+    {
+      "id": "vrm-complete",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": {},
+      "expectedVerdict": ["keep", "review"],
+      "expectedScoreMin": 70,
+      "expectedIssueCodes": [],
+      "tests": ["complete VRM scores as keep or mild review"]
+    },
+    {
+      "id": "vrm0-array-bones",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "vrm0ArrayHumanoid": true },
+      "expectedVerdict": ["keep"],
+      "expectedScoreMin": 75,
+      "expectedIssueCodes": [],
+      "mustNotIncludeIssueCodes": ["low_bone_coverage"],
+      "tests": [
+        "VRM0 array humanBones is parsed for coverage (not false low_bone_coverage)"
+      ]
+    },
+    {
+      "id": "vrm-missing-extension",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeExtension": false },
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["missing_vrm_extension"],
+      "tests": ["missing VRM extension is rejected"]
+    },
+    {
+      "id": "vrm-missing-humanoid",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeHumanoid": false },
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodes": ["missing_humanoid"],
+      "tests": ["missing humanoid is review or reject"]
+    },
+    {
+      "id": "vrm-no-mesh",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeMesh": false },
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["no_meshes"],
+      "tests": ["VRM without meshes is rejected"]
+    },
+    {
+      "id": "vrm-sparse-humanoid",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "sparseHumanoidBones": true },
+      "expectedVerdict": ["review"],
+      "expectedIssueCodes": ["low_bone_coverage"],
+      "tests": ["sparse humanoid bone coverage is marked review"]
+    },
+    {
+      "id": "vrm-no-textures",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeTextures": false },
+      "expectedVerdict": ["keep", "review"],
+      "expectedIssueCodes": ["no_textures"],
+      "tests": ["VRM without textures is flagged"]
+    },
+    {
+      "id": "vrm-no-expressions",
+      "kind": "vrm",
+      "builder": "buildVrmGlb",
+      "builderOptions": { "includeExpressions": false },
+      "expectedVerdict": ["keep", "review"],
+      "expectedIssueCodes": ["missing_expressions"],
+      "tests": ["VRM without expressions is flagged"]
+    },
+    {
+      "id": "vrm-broken",
+      "kind": "vrm",
+      "builder": null,
+      "builderOptions": null,
+      "notes": "Uses raw bytes 'not-a-glb' instead of builder output.",
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["parse_error"],
+      "tests": ["broken file is rejected"]
+    },
+    {
+      "id": "vrma-smooth-loop",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": {},
+      "expectedVerdict": ["keep", "review"],
+      "expectedScoreMin": 70,
+      "expectedIssueCodes": [],
+      "tests": ["smooth looping VRMA scores as keep or mild review"]
+    },
+    {
+      "id": "vrma-velocity-spike",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "spike": true, "angle": 0.15 },
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodePrefix": "velocity",
+      "tests": ["velocity spike VRMA is marked review or reject"]
+    },
+    {
+      "id": "vrma-too-short",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "duration": 0.25, "frames": 6 },
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodes": ["too_short"],
+      "tests": ["too-short VRMA clip is marked review or reject"]
+    },
+    {
+      "id": "vrma-no-animation",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "includeAnimation": false },
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["no_animation"],
+      "tests": ["VRMA without animation tracks is rejected"]
+    },
+    {
+      "id": "vrma-loop-seam",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": {
+        "loopSeam": true,
+        "angle": 0.2,
+        "loopSeamDelta": 0.35
+      },
+      "purpose": "loop",
+      "expectedVerdict": ["review", "reject"],
+      "expectedIssueCodePrefix": "loop_seam",
+      "mustNotIncludeIssueCodes": ["velocity_spike"],
+      "tests": ["loop seam VRMA is marked review or reject"]
+    },
+    {
+      "id": "vrma-one-shot-seam",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": {
+        "loopSeam": true,
+        "angle": 0.2,
+        "loopSeamDelta": 0.35
+      },
+      "purpose": "one-shot",
+      "expectedVerdict": ["keep", "review"],
+      "mustNotIncludeIssueCodes": ["loop_seam", "loop_seam_mild"],
+      "tests": ["one-shot purpose does not reject for loop seam alone"]
+    },
+    {
+      "id": "vrma-pose-static",
+      "kind": "vrma",
+      "builder": "buildRotationVrma",
+      "builderOptions": { "angle": 0, "duration": 1.5, "frames": 31 },
+      "purpose": "pose",
+      "expectedVerdict": ["keep", "review"],
+      "mustNotIncludeIssueCodes": ["dead_motion"],
+      "tests": ["pose purpose skips dead-motion rejection for near-static clips"]
+    },
+    {
+      "id": "vrma-broken",
+      "kind": "vrma",
+      "builder": null,
+      "builderOptions": null,
+      "notes": "Uses raw bytes 'not-a-glb' instead of builder output.",
+      "expectedVerdict": ["reject"],
+      "expectedIssueCodes": ["parse_error"],
+      "tests": ["broken file is rejected"]
+    }
+  ]
+}

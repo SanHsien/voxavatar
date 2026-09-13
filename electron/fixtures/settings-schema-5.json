@@ -1,0 +1,38 @@
+{
+  "schema_version": 5,
+  "default_model_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  "character_size": 0.95,
+  "ui_locale": "en",
+  "models": [
+    {
+      "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "model_name": "Schema five model",
+      "stored_filename": "cccccccc-cccc-4ccc-8ccc-cccccccccccc.vrm"
+    }
+  ],
+  "animations": [
+    {
+      "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "animation_name": "nod-yes",
+      "animation_description": "A nod from schema five.",
+      "animation_trigger_scenario": "Use when testing schema five migration."
+    }
+  ],
+  "animation_clips": {
+    "dddddddd-dddd-4ddd-8ddd-dddddddddddd": [
+      {
+        "id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+        "stored_filename": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee.vrma",
+        "clip_name": "nod-yes1"
+      }
+    ]
+  },
+  "model_lighting": {},
+  "voice_source": {
+    "mode": "output",
+    "process_pattern": null
+  },
+  "vrma_quality_gate": "report",
+  "vrma_report_dir": null,
+  "idle_rest_ms": 12000
+}

@@ -1,0 +1,115 @@
+name: Dependency freshness
+
+# Dependabot proposes upgrades one pull request at a time. Once a month this asks
+# the other question: across every direct dependency, how much is behind, and is
+# anything vulnerable? Read-only -- it installs nothing and merges nothing.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+      - scripts/check-dependency-freshness.cjs
+      - .github/workflows/dependency-freshness.yml
+  schedule:
+    # Monthly on day 1 at 11:07 Asia/Taipei.
+    - cron: "7 3 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: dependency-freshness
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Check dependency freshness
+        id: deps
+        run: |
+          node scripts/check-dependency-freshness.cjs \
+            --github-output \
+            --output dependency-freshness-report.md
+
+      - name: Append open Dependabot pull requests
+        id: tracker
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECKER_NEEDS_ATTENTION: ${{ steps.deps.outputs.needs_attention }}
+        run: |
+          open_prs="$(gh pr list \
+            --state open \
+            --author app/dependabot \
+            --json number,title,url)"
+          open_pr_count="$(jq 'length' <<< "$open_prs")"
+          needs_attention="$CHECKER_NEEDS_ATTENTION"
+          {
+            echo
+            echo "## Open Dependabot pull requests"
+            echo
+            if [ "$open_pr_count" -eq 0 ]; then
+              echo "- None"
+            else
+              jq -r '.[] | "- [#\(.number) \(.title)](\(.url))"' <<< "$open_prs"
+              needs_attention="true"
+            fi
+          } >> dependency-freshness-report.md
+          echo "needs_attention=$needs_attention" >> "$GITHUB_OUTPUT"
+          cat dependency-freshness-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the maintenance issue
+        if: steps.tracker.outputs.needs_attention == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One long-lived issue, not a new one every month.
+          issue_json="$(gh issue list \
+            --state all \
+            --search 'Dependency freshness in:title' \
+            --json number,state \
+            --jq '.[0] // {}')"
+          issue="$(jq -r '.number // empty' <<< "$issue_json")"
+          if [ -n "$issue" ]; then
+            if [ "$(jq -r '.state' <<< "$issue_json")" = "CLOSED" ]; then
+              gh issue reopen "$issue"
+            fi
+            gh issue edit "$issue" --body-file dependency-freshness-report.md
+          else
+            gh issue create \
+              --title "Dependency freshness: maintenance required" \
+              --body-file dependency-freshness-report.md \
+              --assignee "$GITHUB_REPOSITORY_OWNER"
+          fi
+
+      - name: Close the maintenance issue once it is resolved
+        if: steps.tracker.outputs.needs_attention == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          issue="$(gh issue list --state open --search 'Dependency freshness in:title' --json number --jq '.[0].number // empty')"
+          if [ -n "$issue" ]; then
+            gh issue close "$issue" --comment "This scheduled run found every direct dependency current, npm audit clean, and no open Dependabot pull requests."
+          fi

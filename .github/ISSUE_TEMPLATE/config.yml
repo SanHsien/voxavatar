@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞回報
+    url: https://github.com/SanHsien/voxavatar/security/advisories/new
+    about: 請勿公開揭露疑似安全漏洞，改用 GitHub 私人漏洞回報。
+  - name: 使用與整合文件
+    url: https://github.com/SanHsien/voxavatar/blob/main/docs/INTEGRATIONS.md
+    about: MCP、HTTP、URL protocol 與語音來源設定請先查閱整合文件。

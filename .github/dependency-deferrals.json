@@ -1,17 +1,37 @@
 {
   "typescript": {
     "deferredLatest": "7.0.2",
-    "reviewed": "2026-08-22",
-    "reason": "tsc -b passes on 7.0.2, but typescript-eslint refuses to load against it (\"typescript-eslint does not support TS 7.0\", peer range >=4.8.4 <6.1.0, tracking issue typescript-eslint#10940), so npm run check cannot lint. TS 6.0.x is inside that peer range and is the realistic next step; revisit when typescript-eslint ships TS >=7.1 support."
+    "reviewed": "2026-09-14",
+    "reason": "tsc -b passes on 7.0.2, but typescript-eslint refuses to load against it (\"typescript-eslint does not support TS 7.0\", peer range >=4.8.4 <6.1.0, tracking issue typescript-eslint#10940), so npm run check cannot lint. TS 6.0.x is inside that peer range and is the realistic next step; revisit when typescript-eslint ships TS >=7.1 support. Re-confirmed 2026-09-14: typescript-eslint 8.70.0 still declares peer typescript >=4.8.4 <6.1.0, so TS 7 still cannot be linted."
   },
   "@types/node": {
-    "deferredLatest": "26.4.1",
-    "reviewed": "2026-09-04",
-    "reason": "Node type definitions track the runtime the project builds on, not the newest published. CI runs Node 24 and package.json requires >=24; typing against Node 26 would surface APIs the build environment does not have. Re-confirmed 2026-09-04 against 26.4.1 (26.4.0 -> 26.4.1 is a definitions patch and does not change which runtime this project builds on): the reasoning is unchanged, only the version the deferral is pinned to. The trigger to lift this is the project moving to Node 26, not a newer @types/node release."
+    "deferredLatest": "26.5.1",
+    "reviewed": "2026-09-14",
+    "reason": "Node type definitions track the runtime the project builds on, not the newest published. CI runs Node 24 and package.json requires >=24; typing against Node 26 would surface APIs the build environment does not have. Re-confirmed 2026-09-14 against 26.5.1 (26.4.1 -> 26.5.1 is a definitions bump and does not change which runtime this project builds on): the reasoning is unchanged, only the version the deferral is pinned to. The trigger to lift this is the project moving to Node 26, not a newer @types/node release."
   },
   "electron": {
-    "deferredLatest": "44.2.0",
-    "reviewed": "2026-09-04",
-    "reason": "Electron 44 is a major. This repo requires the release notes, npm run check, and a real Windows run of the packaged app before a major lands, and the packaged-app half cannot be judged from CI: the avatar, VRM/VRMA playback and the tray/DPI behaviour only show up on a real desktop. npm run check passes on 43.6.0; this is verification debt, not a known incompatibility. Re-confirmed 2026-09-04 against 44.2.0 (44.0.0 -> 44.2.0 does not change what has to be verified, only the version it would be verified at). The desktop round this is waiting on is the one now tracked in docs/VRM_VRMA_COMPATIBILITY.md, which three.js 0.185.1 also needs -- do them together, not separately."
+    "deferredLatest": "44.3.0",
+    "reviewed": "2026-09-14",
+    "reason": "Electron 44 is a major. This repo requires the release notes, npm run check, and a real Windows run of the packaged app before a major lands, and the packaged-app half cannot be judged from CI: the avatar, VRM/VRMA playback and the tray/DPI behaviour only show up on a real desktop. npm run check passes on 43.6.0; this is verification debt, not a known incompatibility. Re-confirmed 2026-09-04 against 44.2.0 (44.0.0 -> 44.2.0 does not change what has to be verified, only the version it would be verified at). The desktop round this is waiting on is the one now tracked in docs/VRM_VRMA_COMPATIBILITY.md, which three.js 0.185.1 also needs -- do them together, not separately. Re-confirmed 2026-09-14 against 44.3.0: still a major this repo has not run on a real Windows desktop, so the verification debt is unchanged."
+  },
+  "react": {
+    "deferredLatest": "19.3.0",
+    "reviewed": "2026-09-14",
+    "reason": "@react-three/fiber declares peer react/react-dom >=19 <19.3, and 9.7.0 (its latest) has not widened it, so npm ci fails with ERESOLVE on react 19.3 -- the avatar renderer is this app's core, not an optional extra. Lift this when @react-three/fiber ships a release whose peer range accepts 19.3."
+  },
+  "react-dom": {
+    "deferredLatest": "19.3.0",
+    "reviewed": "2026-09-14",
+    "reason": "@react-three/fiber declares peer react/react-dom >=19 <19.3, and 9.7.0 (its latest) has not widened it, so npm ci fails with ERESOLVE on react 19.3 -- the avatar renderer is this app's core, not an optional extra. Lift this when @react-three/fiber ships a release whose peer range accepts 19.3."
+  },
+  "@types/react": {
+    "deferredLatest": "19.3.0",
+    "reviewed": "2026-09-14",
+    "reason": "Typing against a React the app cannot install would describe APIs the runtime does not have. Held to the same boundary as the react/react-dom deferral above; both lift together when @react-three/fiber accepts react 19.3."
+  },
+  "@types/react-dom": {
+    "deferredLatest": "19.3.0",
+    "reviewed": "2026-09-14",
+    "reason": "Typing against a React the app cannot install would describe APIs the runtime does not have. Held to the same boundary as the react/react-dom deferral above; both lift together when @react-three/fiber accepts react 19.3."
   }
 }

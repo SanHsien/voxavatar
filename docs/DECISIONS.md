@@ -1,8 +1,41 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-09-04
+最後修訂：2026-09-14
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-09-14：react 停在 19.2，讓其餘 in-range 更新能繼續前進
+
+**決定**：
+
+- `react`／`react-dom` 的宣告由 `^19.2.0` 收斂為 `>=19.2.0 <19.3.0`，`@types/react`／
+  `@types/react-dom` 同步收到 `<19.3.0`。
+- 四者都寫進 `.github/dependency-deferrals.json`，解除條件是 `@react-three/fiber` 放寬 peer 範圍。
+- `.github/dependabot.yml` 對這四個套件加 `ignore: versions [">=19.3"]`。
+- `@types/node` 的 deferral 重新對到 26.5.1、`electron` 的重新對到 44.3.0、`typescript` 重新確認，
+  三者理由不變。
+
+**理由**：`@react-three/fiber` 宣告 peer `react/react-dom >=19 <19.3`，而 9.7.0（目前最新）沒有放寬。
+Dependabot 的 development-minor-and-patch 群組（PR #28）把 react 升到 19.3.0，`npm ci` 直接 ERESOLVE
+失敗——群組是全有全無，所以同組的另外六筆（`three`、`vite`、`typescript-eslint`、`electron-builder`、
+`@testing-library/*`）也跟著卡住。avatar 渲染是這個 app 的核心，不是可選套件，所以退的是 react 不是 fiber。
+
+**為什麼要動宣告範圍，而不是只寫 deferral**：`scripts/check-dependency-freshness.cjs` 只在
+`current === wanted` 時才套用 deferral。宣告維持 `^19.2.0` 時 19.3.0 仍落在範圍內，那四列會一直顯示
+「In-range update available」，deferral 的理由根本印不出來，等於沒有記錄。把上限寫進 `package.json` 之後，
+四列轉為 `Deferred by review` 並印出理由與解除條件；`react` 一旦發佈 19.3.0 以外的新版，deferral 因為
+版本對不上而自動失效，這一列就會重新回到待處理。
+
+**三道防線各管一件事**（缺一就會靜默）：
+
+| 位置 | 管什麼 |
+| --- | --- |
+| `package.json` 的 `<19.3.0` | npm 實際裝得起來 |
+| `dependabot.yml` 的 `ignore` | Dependabot 不再提議把範圍放寬到 19.3 |
+| `dependency-deferrals.json` | 為什麼退、什麼時候解除，並在上游發新版時自動恢復提醒 |
+
+**限制**：這是延後不是修好。react 19.3 的修補要等 `@react-three/fiber` 放寬 peer；在那之前本專案跑的是
+19.2.x。`npm run check` 全綠（lint、docs、測試、assets、audit、build）。
 
 ## 2026-09-04：清掉依賴新鮮度追蹤 issue，vitest 升 5，兩筆 deferral 重新對版
 

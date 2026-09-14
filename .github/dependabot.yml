@@ -24,6 +24,24 @@ updates:
         dependency-type: development
         update-types:
           - major
+    ignore:
+      # React 19.3 cannot be installed: @react-three/fiber declares
+      # peer react/react-dom ">=19 <19.3" and 9.7.0 has not widened it, so
+      # `npm ci` fails with ERESOLVE. Without these four lines the whole
+      # development-minor-and-patch group is red and the other six members
+      # (three, vite, typescript-eslint, electron-builder, ...) stay behind
+      # with it. The reasoning and the lift condition live in
+      # .github/dependency-deferrals.json, which the freshness check reads;
+      # that file also re-raises this automatically once npm's latest moves
+      # past the version recorded there.
+      - dependency-name: react
+        versions: [">=19.3"]
+      - dependency-name: react-dom
+        versions: [">=19.3"]
+      - dependency-name: "@types/react"
+        versions: [">=19.3"]
+      - dependency-name: "@types/react-dom"
+        versions: [">=19.3"]
 
   - package-ecosystem: github-actions
     directory: /

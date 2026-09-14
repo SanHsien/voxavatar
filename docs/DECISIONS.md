@@ -1,8 +1,25 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-09-14
+最後修訂：2026-09-15
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-09-15：清掉新鮮度追蹤 issue 上剩下的 in-range 更新
+
+**決定**：套用 `@testing-library/dom` 10.4.2、`@types/node` 24.13.4、`electron` 43.7.0、
+`eslint-plugin-react-refresh` 0.5.7、`zod` 4.6.5 五筆範圍內更新；`@types/three` 宣告由
+`^0.185.4` 提到 `^0.186.0`。
+
+**理由**：追蹤 issue [#11](https://github.com/SanHsien/voxavatar/issues/11) 的關閉條件是新鮮度報告
+每一列都落在 OK／Ahead／Deferred。react 那四列在前一輪已轉 Deferred，剩下的就是這幾筆。
+`@types/three` 不是範圍內更新，但 `three` 已在 #31 升到 0.186.0——型別跟著它走，不跟著發佈日走。
+
+**連帶必須一起改的**：`package.json` 的 `allowScripts` 鍵由 `electron@43.6.0` 改成 `43.7.0`。
+鍵沒跟上時 `npm ci` 不會執行 electron 的 postinstall，結果是「裝好了但沒有執行檔」——這一點
+D-18 已經記過，這次實際又碰到一次：本機 `npm ci` 之後 `path.txt` 仍不存在，手動跑
+`node node_modules/electron/install.js` 才補上。
+
+**驗證**：`npm run check` 全綠（lint、docs、測試、assets、audit、build）；新鮮度報告已無待維護的列。
 
 ## 2026-09-14：react 停在 19.2，讓其餘 in-range 更新能繼續前進
 

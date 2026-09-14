@@ -22,7 +22,7 @@
   "allowScripts": {
     "@swc/core@1.16.2": true,
     "electron-winstaller@5.4.0": true,
-    "electron@43.6.0": true,
+    "electron@43.7.0": true,
     "fsevents@2.3.3": true
   },
   "main": "electron/main.cjs",
@@ -71,7 +71,7 @@
     "@types/node": "^24.10.1",
     "@types/react": ">=19.2.5 <19.3.0",
     "@types/react-dom": ">=19.2.3 <19.3.0",
-    "@types/three": "^0.185.4",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react-swc": "^4.2.2",
     "concurrently": "^10.0.5",
     "cross-env": "^10.1.0",

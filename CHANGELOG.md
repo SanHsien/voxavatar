@@ -271,7 +271,7 @@
 - 設定 → 動作：建立區改到列表上方；文案改指「下方卡片」的「+ 加入 VRMA 檔案」。
 - 無片段時在卡片內以主按鈕顯示加入 VRMA；建立後反白並捲動到該動作。
 - 編輯改為卡片內聯表單，建立後可持續修改動作詳情與增刪片段。
-- Agent 入口修正：規則只在 [`AGENTS.md`](AGENTS.md)；恢復薄 [`SKILL.md`](SKILL.md)，[`CLAUDE.md`](CLAUDE.md) 只作指向，供各 AI／Cursor 技能載入器遵守同一真相源。
+- Agent 入口修正：規則只在 [`AGENTS.md`](AGENTS.md)；恢復薄 [`SKILL.md`](SKILL.md)，`CLAUDE.md` 只作指向，供各 AI／Cursor 技能載入器遵守同一真相源。
 
 ## 0.13.3 - 2026-08-02
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本檔是 **SanHsien/voxavatar** 的 AI coding agent 主要維護規則。[`CLAUDE.md`](CLAUDE.md) 與 [`SKILL.md`](SKILL.md) 只作薄入口；若有衝突，以本檔為準。
+本檔是 **SanHsien/voxavatar** 的 AI coding agent 主要維護規則。[`SKILL.md`](SKILL.md) 只作薄入口（Claude Code 在沒有 CLAUDE.md 時直接讀本檔）；若有衝突，以本檔為準。
 
 ## 專案定位
 

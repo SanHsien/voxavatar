@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本檔是 **SanHsien/voxavatar** 的 AI coding agent 主要維護規則。[`CLAUDE.md`](CLAUDE.md) 與 [`SKILL.md`](SKILL.md) 只作薄入口；若有衝突，以本檔為準。
+本檔是 **SanHsien/voxavatar** 的 AI coding agent 主要維護規則。[`SKILL.md`](SKILL.md) 只作薄入口（Claude Code 在沒有 CLAUDE.md 時直接讀本檔）；若有衝突，以本檔為準。
 
 ## 專案定位
 
@@ -60,7 +60,9 @@
 npm run check
 ```
 
-`npm run check` 包含 lint、Markdown check、Node／renderer tests、資產 contract、dependency audit 與 production build。
+`npm run check` 包含 lint、Markdown check、Node／renderer tests、資產 contract、dependency audit 與 production build。首次 clone 或依賴變動後先跑 `npm ci`。
+
+一般 UI、MCP、文件與 TypeScript 工作不需要 Visual Studio Build Tools；只有 C++ helper 或本機 installer 需要。
 
 變更範圍需要時再加：
 

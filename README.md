@@ -78,7 +78,7 @@ MCP 工具為 `list_animations`、`play_animation`、`control_window`、`get_sta
 | 用途 | 需求 |
 | --- | --- |
 | 使用正式版 | Windows 10 build 20348+ 或 Windows 11 x64；支援硬體加速的桌面環境 |
-| 一般原始碼開發 | Windows、Node.js 24、npm |
+| 一般原始碼開發 | Windows、Node.js 24.15+ 或 26+、npm |
 | 修改原生語音 listener／本機打包 | Visual Studio Build Tools，含「使用 C++ 的桌面開發」工作負載 |
 
 一般 UI、設定、MCP、文件與 TypeScript 開發不需要 Visual Studio Build Tools；正式 Windows native build 與安裝包由 GitHub Actions 驗證。

@@ -1,0 +1,46 @@
+{
+  "schema_version": 10,
+  "default_model_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "character_size": 1,
+  "ui_locale": "zh-TW",
+  "models": [
+    {
+      "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "model_name": "Schema ten model",
+      "stored_filename": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.vrm"
+    }
+  ],
+  "animations": [
+    {
+      "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "animation_name": "wave-soft",
+      "animation_description": "A soft wave from schema ten.",
+      "animation_trigger_scenario": "Use when testing schema ten migration."
+    }
+  ],
+  "animation_clips": {
+    "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb": [
+      {
+        "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "stored_filename": "cccccccc-cccc-4ccc-8ccc-cccccccccccc.vrma",
+        "clip_name": "wave-soft1",
+        "purpose": "one-shot",
+        "source_basename": "Wave Soft.vrma"
+      }
+    ]
+  },
+  "model_lighting": {},
+  "voice_source": {
+    "mode": "application",
+    "process_pattern": "chatgpt.exe"
+  },
+  "vrma_quality_gate": "strict",
+  "vrma_quality_reject_below": 60,
+  "vrma_quality_keep_at_least": 75,
+  "vrma_report_dir": null,
+  "idle_rest_ms": 15000,
+  "mcp_show_message_enabled": false,
+  "state_slot_bindings": {
+    "working": "wave-soft"
+  }
+}

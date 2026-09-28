@@ -1,0 +1,1476 @@
+"use strict";
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const test = require("node:test");
+const {
+  DEFAULT_MODEL_LIGHTING,
+  createSettingsStore,
+  safeReadState,
+  validateAnimationMetadata,
+  validateGlbFile,
+} = require("./settings-store.cjs");
+const { shortAssetId } = require("./clip-storage.cjs");
+const { readPackagedLibrary } = require("./library-catalog.cjs");
+
+function writeEmptyPackagedLibrary(root) {
+  const packagedLibraryPath = path.join(root, "library.json");
+  fs.writeFileSync(
+    packagedLibraryPath,
+    JSON.stringify({
+      schema_version: 1,
+      default_model_id: null,
+      models: [],
+      animations: [],
+    }),
+  );
+  return packagedLibraryPath;
+}
+
+function fixture(context) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-settings-"));
+  const userDataPath = path.join(root, "user-data");
+  const packagedLibraryPath = writeEmptyPackagedLibrary(root);
+  context.after(() => fs.rmSync(root, { force: true, recursive: true }));
+  return { root, userDataPath, packagedLibraryPath };
+}
+
+function writeGlb(filePath) {
+  const extension = path.extname(filePath).toLowerCase() === ".vrma"
+    ? "VRMC_vrm_animation"
+    : "VRMC_vrm";
+  const document = Buffer.from(
+    JSON.stringify({
+      asset: { version: "2.0" },
+      extensionsUsed: [extension],
+      extensions: { [extension]: { specVersion: "1.0" } },
+    }),
+  );
+  const jsonLength = Math.ceil(document.length / 4) * 4;
+  const contents = Buffer.alloc(20 + jsonLength, 0x20);
+  contents.write("glTF", 0, "ascii");
+  contents.writeUInt32LE(2, 4);
+  contents.writeUInt32LE(contents.length, 8);
+  contents.writeUInt32LE(jsonLength, 12);
+  contents.writeUInt32LE(0x4e4f534a, 16);
+  document.copy(contents, 20);
+  fs.writeFileSync(filePath, contents);
+}
+
+function writePackagedLibrary(root) {
+  const packagedLibraryPath = path.join(root, "library.json");
+  fs.writeFileSync(
+    packagedLibraryPath,
+    JSON.stringify({
+      schema_version: 1,
+      default_model_id: "configured-model",
+      models: [
+        {
+          id: "configured-model",
+          model_name: "Configured model",
+          asset_path: "models/configured.vrm",
+        },
+      ],
+      animations: [
+        {
+          id: "configured-motion",
+          animation_name: "configured-motion",
+          animation_description: "A configured packaged motion.",
+          animation_trigger_scenario: "Use when the configured motion is appropriate.",
+          animation_type: null,
+          asset_paths: ["animations/configured.vrma"],
+        },
+      ],
+    }),
+  );
+  return packagedLibraryPath;
+}
+
+test("starts with permanent empty Idle and Speaking actions", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
+
+  assert.equal(snapshot.character_size, 1);
+  assert.equal(snapshot.ui_locale, "zh-TW");
+  assert.equal(snapshot.packaged_animation_change_count, 0);
+  assert.equal(snapshot.default_model_id, null);
+  assert.deepEqual(snapshot.models, []);
+  assert.deepEqual(
+    snapshot.animations.map(
+      ({ animation_name, animation_type, removable, asset_urls }) => ({
+        animation_name,
+        animation_type,
+        removable,
+        asset_urls,
+      }),
+    ),
+    [
+      {
+        animation_name: "idle",
+        animation_type: "IDLE",
+        removable: false,
+        asset_urls: [],
+      },
+      {
+        animation_name: "speaking",
+        animation_type: "TALK",
+        removable: false,
+        asset_urls: [],
+      },
+    ],
+  );
+});
+
+test("ships the reviewed model and motion library with AvatarSample_A as default", (context) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-shipping-library-"));
+  const userDataPath = path.join(root, "user-data");
+  const packagedLibraryPath = path.join(
+    __dirname,
+    "..",
+    "public",
+    "assets",
+    "library.json",
+  );
+  context.after(() => fs.rmSync(root, { force: true, recursive: true }));
+
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.default_model_id, "avatar-sample-a");
+  assert.deepEqual(snapshot.models, [
+    {
+      id: "avatar-sample-a",
+      model_name: "AvatarSample_A",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/AvatarSample_A.vrm",
+    },
+    {
+      id: "avatar-sample-b",
+      model_name: "AvatarSample_B",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/AvatarSample_B.vrm",
+    },
+    {
+      id: "avatar-sample-c",
+      model_name: "AvatarSample_C",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/AvatarSample_C.vrm",
+    },
+    {
+      id: "tsukuyomi-chan-type-a",
+      model_name: "つくよみちゃん公式3Dモデル タイプA",
+      origin: "packaged",
+      removable: false,
+      asset_url: "./assets/models/Tsukuyomi-chan_Type-A.vrm",
+    },
+  ]);
+  assert.equal(snapshot.animations.length, 12);
+  assert.equal(
+    snapshot.animations.reduce(
+      (count, animation) => count + animation.asset_urls.length,
+      0,
+    ),
+    13,
+  );
+  assert.deepEqual(
+    snapshot.animations
+      .filter((animation) => animation.system)
+      .map((animation) => [animation.id, animation.asset_urls.length]),
+    [
+      ["system-idle", 1],
+      ["system-speaking", 1],
+    ],
+  );
+});
+
+test("imports, persists, resolves, and deletes user assets", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const sourceModel = path.join(root, "assistant.vrm");
+  const alternateModel = path.join(root, "alternate.vrm");
+  const sourceAnimation = path.join(root, "wave.vrma");
+  writeGlb(sourceModel);
+  writeGlb(alternateModel);
+  writeGlb(sourceAnimation);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+
+  let snapshot = store.importModel({
+    filePath: sourceModel,
+    model_name: "Studio Assistant",
+  });
+  const model = snapshot.models.find((candidate) => candidate.origin === "user");
+  assert.ok(model);
+  assert.equal(snapshot.default_model_id, model.id);
+  snapshot = store.importModel({
+    filePath: alternateModel,
+    model_name: "Alternate Assistant",
+  });
+  const alternate = snapshot.models.find(
+    (candidate) => candidate.model_name === "Alternate Assistant",
+  );
+  assert.ok(alternate);
+  assert.equal(snapshot.default_model_id, model.id);
+
+  snapshot = store.createAnimation({
+    animation_name: "wave-hello",
+    animation_description: "A friendly wave.",
+    animation_trigger_scenario: "Use when greeting the user.",
+  });
+  let animation = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "wave-hello",
+  );
+  assert.ok(animation);
+  assert.deepEqual(animation.asset_urls, []);
+  snapshot = store.addAnimationClips(animation.id, [sourceAnimation]);
+  animation = snapshot.animations.find(
+    (candidate) => candidate.id === animation.id,
+  );
+  assert.deepEqual(
+    animation.clips.map((clip) => clip.animation_name),
+    ["wave-hello1"],
+  );
+  assert.match(animation.asset_urls[0], /^voxavatar-asset:\/\/animation\//);
+  const storedAnimation = store.resolveAssetRequest(animation.asset_urls[0]);
+  assert.ok(storedAnimation);
+  assert.equal(fs.existsSync(storedAnimation), true);
+  assert.equal(
+    store.resolveAssetRequest("voxavatar-asset://animation/../settings.json"),
+    null,
+  );
+
+  snapshot = store.deleteAnimation(animation.id);
+  assert.equal(
+    snapshot.animations.some((candidate) => candidate.id === animation.id),
+    false,
+  );
+  assert.equal(fs.existsSync(storedAnimation), false);
+  snapshot = store.deleteModel(model.id);
+  assert.equal(snapshot.default_model_id, alternate.id);
+  snapshot = store.deleteModel(alternate.id);
+  assert.equal(snapshot.default_model_id, null);
+
+  const reloaded = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
+  assert.equal(
+    reloaded.models.some((candidate) => candidate.id === model.id),
+    false,
+  );
+});
+
+test("persists which action types are excluded from ambient idle rotation", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+
+  let snapshot = store.createAnimation({
+    animation_name: "context-only",
+    animation_description: "Only play for an explicit context.",
+    animation_trigger_scenario: "Use only when explicitly requested.",
+  });
+  const action = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "context-only",
+  );
+  assert.deepEqual(snapshot.idle_pool_excluded_animation_ids, []);
+
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled(action.id, "false"),
+    /must be a boolean/,
+  );
+  assert.deepEqual(
+    store.getSnapshot().idle_pool_excluded_animation_ids,
+    [],
+  );
+
+  snapshot = store.setIdlePoolAnimationEnabled(action.id, false);
+  assert.deepEqual(snapshot.idle_pool_excluded_animation_ids, [action.id]);
+
+  const reloaded = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.deepEqual(reloaded.idle_pool_excluded_animation_ids, [action.id]);
+  assert.deepEqual(
+    store.setIdlePoolAnimationEnabled(action.id, true)
+      .idle_pool_excluded_animation_ids,
+    [],
+  );
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled("system-speaking", true),
+    /Speaking\/TALK/,
+  );
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled("missing-action", true),
+    /not installed/,
+  );
+  store.setStateSlotBinding("speaking", action.animation_name);
+  assert.throws(
+    () => store.setIdlePoolAnimationEnabled(action.id, true),
+    /Speaking\/TALK/,
+  );
+});
+
+test("keeps user library records when migrating the earlier settings schema", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const modelId = "11111111-1111-4111-8111-111111111111";
+  const animationId = "22222222-2222-4222-8222-222222222222";
+  const modelDirectory = path.join(userDataPath, "assets", "models");
+  const animationDirectory = path.join(userDataPath, "assets", "animations");
+  fs.mkdirSync(modelDirectory, { recursive: true });
+  fs.mkdirSync(animationDirectory, { recursive: true });
+  writeGlb(path.join(modelDirectory, `${modelId}.vrm`));
+  writeGlb(path.join(animationDirectory, `${animationId}.vrma`));
+  fs.writeFileSync(
+    path.join(userDataPath, "settings.json"),
+    JSON.stringify({
+      schema_version: 1,
+      default_model_id: modelId,
+      character_size: 1.15,
+      models: [
+        {
+          id: modelId,
+          model_name: "Migrated model",
+          stored_filename: `${modelId}.vrm`,
+        },
+      ],
+      animations: [
+        {
+          id: animationId,
+          animation_name: "migrated-motion",
+          animation_description: "A retained user motion.",
+          animation_trigger_scenario: "Use when migration is being verified.",
+          stored_filename: `${animationId}.vrma`,
+        },
+      ],
+    }),
+  );
+
+  const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.default_model_id, modelId);
+  assert.equal(snapshot.character_size, 1.15);
+  assert.ok(snapshot.models.some((model) => model.id === modelId));
+  assert.ok(
+    snapshot.animations.some((animation) => animation.id === animationId),
+  );
+});
+
+test("uses copy-on-write packaged edits and resets only that layer", (context) => {
+  const { root, userDataPath } = fixture(context);
+  const packagedLibraryPath = writePackagedLibrary(root);
+  const sourceAnimation = path.join(root, "wave.vrma");
+  writeGlb(sourceAnimation);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const original = store
+    .getSnapshot()
+    .animations.find(
+      (animation) => animation.animation_name === "configured-motion",
+    );
+  assert.ok(original);
+  const originalCount = store.getSnapshot().animations.length;
+
+  let snapshot = store.updateAnimation(original.id, {
+    animation_name: original.animation_name,
+    animation_description: "A user-edited description.",
+    animation_trigger_scenario: "Use for a user-edited scenario.",
+  });
+  assert.equal(snapshot.packaged_animation_change_count, 1);
+  assert.equal(
+    snapshot.animations.find((animation) => animation.id === original.id)
+      .modified,
+    true,
+  );
+
+  snapshot = store.deleteAnimation(original.id);
+  assert.equal(snapshot.animations.length, originalCount - 1);
+  const created = store.createAnimation({
+    animation_name: "user-motion",
+    animation_description: "A user motion.",
+    animation_trigger_scenario: "Use when the user asks for it.",
+  });
+  const userMotion = created.animations.find(
+    (animation) => animation.animation_name === "user-motion",
+  );
+  store.addAnimationClips(userMotion.id, [sourceAnimation]);
+  snapshot = store.resetPackagedAnimations();
+  assert.equal(snapshot.packaged_animation_change_count, 0);
+  assert.equal(snapshot.animations.length, originalCount + 1);
+  assert.ok(
+    snapshot.animations.some(
+      (animation) => animation.animation_name === "user-motion",
+    ),
+  );
+  assert.equal(
+    snapshot.animations.find((animation) => animation.id === original.id)
+      .animation_description,
+    original.animation_description,
+  );
+
+  const reloaded = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(reloaded.packaged_animation_change_count, 0);
+  assert.ok(
+    reloaded.animations.some(
+      (animation) => animation.animation_name === "user-motion",
+    ),
+  );
+  assert.equal(
+    reloaded.animations.find((animation) => animation.id === original.id)
+      .animation_description,
+    original.animation_description,
+  );
+});
+
+test("validates custom metadata, files, duplicates, and character size", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const sourceAnimation = path.join(root, "wave.vrma");
+  writeGlb(sourceAnimation);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const metadata = {
+    animation_name: "user-wave",
+    animation_description: "A wave.",
+    animation_trigger_scenario: "Use when saying hello.",
+  };
+  store.createAnimation(metadata);
+
+  assert.throws(
+    () => store.createAnimation(metadata),
+    /already exists/,
+  );
+  assert.throws(
+    () =>
+      validateAnimationMetadata({
+        ...metadata,
+        animation_name: "Wave Hello",
+      }),
+    /lowercase letters/,
+  );
+  assert.throws(() => store.setCharacterSize(2), /between/);
+  assert.throws(() => store.setCharacterSize(0.29), /between/);
+  assert.equal(store.setCharacterSize(0.3).character_size, 0.3);
+  assert.equal(store.setCharacterSize(1.25).character_size, 1.25);
+  assert.equal(store.setIdleRestMs(500).idle_rest_ms, 2000);
+  assert.equal(store.setIdleRestMs(8000).idle_rest_ms, 8000);
+  assert.equal(store.setIdleRestMs(120000).idle_rest_ms, 60000);
+  assert.equal(store.setUiLocale("en").ui_locale, "en");
+  assert.equal(store.setUiLocale("nope").ui_locale, "zh-TW");
+
+  const invalidModel = path.join(root, "invalid.vrm");
+  fs.writeFileSync(invalidModel, "not glTF");
+  assert.throws(
+    () => validateGlbFile(invalidModel, ".vrm"),
+    /empty or invalid|glTF/,
+  );
+
+  const headerOnlyModel = path.join(root, "header-only.vrm");
+  const headerOnly = Buffer.alloc(12);
+  headerOnly.write("glTF", 0, "ascii");
+  headerOnly.writeUInt32LE(2, 4);
+  headerOnly.writeUInt32LE(headerOnly.length, 8);
+  fs.writeFileSync(headerOnlyModel, headerOnly);
+  assert.throws(
+    () => validateGlbFile(headerOnlyModel, ".vrm"),
+    /empty or invalid/,
+  );
+
+  const wrongExtensionModel = path.join(root, "wrong-extension.vrm");
+  writeGlb(wrongExtensionModel.replace(/\.vrm$/, ".vrma"));
+  fs.renameSync(
+    wrongExtensionModel.replace(/\.vrm$/, ".vrma"),
+    wrongExtensionModel,
+  );
+  assert.throws(
+    () => validateGlbFile(wrongExtensionModel, ".vrm"),
+    /required \.vrm extension/,
+  );
+});
+
+test("stores complete independent lighting profiles and enforces UI ranges", (context) => {
+  const { root, userDataPath } = fixture(context);
+  const packagedLibraryPath = writePackagedLibrary(root);
+  const sourceModel = path.join(root, "lighting-model.vrm");
+  writeGlb(sourceModel);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.importModel({
+    filePath: sourceModel,
+    model_name: "Lighting model",
+  });
+  const userModel = snapshot.models.find(
+    (model) => model.model_name === "Lighting model",
+  );
+  assert.ok(userModel);
+
+  snapshot = store.setModelLighting("configured-model", {
+    environment_intensity: 0.35,
+  });
+  assert.deepEqual(snapshot.model_lighting["configured-model"], {
+    ...DEFAULT_MODEL_LIGHTING,
+    environment_intensity: 0.35,
+  });
+
+  snapshot = store.setModelLighting(userModel.id, {
+    tone_mapping: "aces",
+    exposure: 1.4,
+  });
+  assert.deepEqual(snapshot.model_lighting[userModel.id], {
+    ...DEFAULT_MODEL_LIGHTING,
+    tone_mapping: "aces",
+    exposure: 1.4,
+  });
+  assert.equal(
+    snapshot.model_lighting["configured-model"].environment_intensity,
+    0.35,
+  );
+
+  for (const lighting of [
+    { exposure: 3.01 },
+    { environment_intensity: 2.01 },
+    { key_light_intensity: 4.01 },
+    { ambient_intensity: 4.01 },
+    { environment_enabled: "false" },
+  ]) {
+    assert.throws(
+      () => store.setModelLighting("configured-model", lighting),
+      /must be between|must be a boolean/,
+    );
+  }
+  assert.throws(
+    () => store.setModelLighting("missing-model", { exposure: 1 }),
+    /not installed/,
+  );
+
+  const reloadedStore = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  });
+  const reloaded = reloadedStore.getSnapshot();
+  assert.deepEqual(
+    reloaded.model_lighting["configured-model"],
+    snapshot.model_lighting["configured-model"],
+  );
+  assert.deepEqual(
+    reloaded.model_lighting[userModel.id],
+    snapshot.model_lighting[userModel.id],
+  );
+
+  snapshot = reloadedStore.deleteModel(userModel.id);
+  assert.equal(snapshot.model_lighting[userModel.id], undefined);
+  snapshot = reloadedStore.resetModelLighting("configured-model");
+  assert.deepEqual(snapshot.model_lighting, {});
+});
+
+test("sanitizes partial and invalid lighting records loaded from disk", (context) => {
+  const { root, userDataPath } = fixture(context);
+  const packagedLibraryPath = writePackagedLibrary(root);
+  fs.mkdirSync(userDataPath, { recursive: true });
+  fs.writeFileSync(
+    path.join(userDataPath, "settings.json"),
+    JSON.stringify({
+      schema_version: 3,
+      model_lighting: {
+        "configured-model": {
+          tone_mapping: "invalid",
+          exposure: 1.25,
+          environment_enabled: "true",
+          environment_intensity: 0.4,
+          key_light_intensity: 8,
+        },
+        "missing-model": {
+          exposure: 2,
+        },
+      },
+      models: [],
+      animations: [],
+    }),
+  );
+
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.deepEqual(snapshot.model_lighting, {
+    "configured-model": {
+      ...DEFAULT_MODEL_LIGHTING,
+      exposure: 1.25,
+      environment_intensity: 0.4,
+    },
+  });
+});
+
+test("migrates reserved legacy uploads into the permanent system actions", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const idleId = "33333333-3333-4333-8333-333333333333";
+  const speakingId = "44444444-4444-4444-8444-444444444444";
+  const animationDirectory = path.join(
+    userDataPath,
+    "assets",
+    "animations",
+  );
+  fs.mkdirSync(animationDirectory, { recursive: true });
+  writeGlb(path.join(animationDirectory, `${idleId}.vrma`));
+  writeGlb(path.join(animationDirectory, `${speakingId}.vrma`));
+  fs.writeFileSync(
+    path.join(userDataPath, "settings.json"),
+    JSON.stringify({
+      schema_version: 2,
+      animations: [
+        {
+          id: idleId,
+          animation_name: "idle",
+          animation_description: "A relaxed standing loop.",
+          animation_trigger_scenario: "Use while VoxAvatar is waiting.",
+          stored_filename: `${idleId}.vrma`,
+        },
+        {
+          id: speakingId,
+          animation_name: "talk1",
+          animation_description: "A conversational motion.",
+          animation_trigger_scenario: "Use while VoxAvatar is speaking.",
+          stored_filename: `${speakingId}.vrma`,
+        },
+      ],
+    }),
+  );
+
+  const snapshot = createSettingsStore({ userDataPath, packagedLibraryPath }).getSnapshot();
+
+  const idle = snapshot.animations.find(
+    (animation) => animation.animation_name === "idle",
+  );
+  const speaking = snapshot.animations.find(
+    (animation) => animation.animation_name === "speaking",
+  );
+  assert.equal(idle?.animation_type, "IDLE");
+  assert.deepEqual(
+    idle?.clips.map((clip) => clip.animation_name),
+    ["idle1"],
+  );
+  assert.equal(speaking?.animation_type, "TALK");
+  assert.deepEqual(
+    speaking?.clips.map((clip) => clip.animation_name),
+    ["speaking1"],
+  );
+});
+
+test("groups multiple uploaded clips under one action and removes them independently", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const firstSource = path.join(root, "first.vrma");
+  const secondSource = path.join(root, "second.vrma");
+  writeGlb(firstSource);
+  writeGlb(secondSource);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.createAnimation({
+    animation_name: "wave",
+    animation_description: "A friendly wave.",
+    animation_trigger_scenario: "Use when greeting the user.",
+  });
+  const actionId = snapshot.animations.find(
+    (animation) => animation.animation_name === "wave",
+  ).id;
+
+  snapshot = store.addAnimationClips(actionId, [firstSource, secondSource]);
+  let action = snapshot.animations.find(
+    (animation) => animation.id === actionId,
+  );
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["wave1", "wave2"],
+  );
+  assert.equal(action.asset_urls.length, 2);
+  const removedPath = store.resolveAssetRequest(action.clips[0].asset_url);
+
+  snapshot = store.deleteAnimationClip(actionId, action.clips[0].id);
+  action = snapshot.animations.find((animation) => animation.id === actionId);
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["wave2"],
+  );
+  assert.equal(fs.existsSync(removedPath), false);
+  assert.throws(() => store.deleteAnimation("system-idle"), /cannot be removed/);
+  assert.throws(
+    () => store.deleteAnimation("system-speaking"),
+    /cannot be removed/,
+  );
+});
+
+test("persists a custom voice source and migrates older settings to schema 6", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  assert.deepEqual(store.getSnapshot().voice_source, {
+    mode: "default",
+    process_pattern: null,
+    source_id: null,
+    source_name: null,
+  });
+
+  let snapshot = store.setVoiceSource({
+    mode: "custom",
+    process_pattern: "  local-tts|open-webui  ",
+  });
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.idle_rest_ms, 8000);
+  assert.deepEqual(snapshot.voice_source, {
+    mode: "custom",
+    process_pattern: "local-tts|open-webui",
+    source_id: null,
+    source_name: null,
+  });
+  assert.throws(
+    () => store.setVoiceSource({ mode: "custom", process_pattern: "[" }),
+    /valid regular expression/,
+  );
+
+  snapshot = store.setVoiceSource({ mode: "default", process_pattern: null });
+  assert.deepEqual(snapshot.voice_source, {
+    mode: "default",
+    process_pattern: null,
+    source_id: null,
+    source_name: null,
+  });
+
+  snapshot = store.setVoiceSource({ mode: "output" });
+  assert.deepEqual(snapshot.voice_source, {
+    mode: "output",
+    process_pattern: null,
+    source_id: null,
+    source_name: null,
+  });
+
+  fs.writeFileSync(
+    path.join(userDataPath, "settings.json"),
+    JSON.stringify({
+      schema_version: 3,
+      models: [],
+      animations: [],
+      animation_clips: {},
+      model_lighting: {},
+    }),
+  );
+  const migrated = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(migrated.schema_version, 12);
+  assert.equal(migrated.idle_rest_ms, 8000);
+  assert.deepEqual(migrated.voice_source, {
+    mode: "default",
+    process_pattern: null,
+    source_id: null,
+    source_name: null,
+  });
+  assert.equal(migrated.vrma_quality_gate, "report");
+  assert.equal(migrated.vrma_report_dir, null);
+});
+
+test("persists VRMA quality gate, score thresholds, and report directory", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  assert.equal(store.getSnapshot().vrma_quality_gate, "strict");
+  assert.equal(store.getSnapshot().vrma_quality_reject_below, 60);
+  assert.equal(store.getSnapshot().vrma_quality_keep_at_least, 75);
+  assert.equal(store.getSnapshot().vrma_report_dir, null);
+
+  let snapshot = store.setVrmaQualityGate("report");
+  assert.equal(snapshot.vrma_quality_gate, "report");
+  snapshot = store.setVrmaQualityGate("strict");
+  assert.equal(snapshot.vrma_quality_gate, "strict");
+  snapshot = store.setVrmaQualityGate("nope");
+  assert.equal(snapshot.vrma_quality_gate, "report");
+
+  snapshot = store.setVrmaQualityScoreThresholds({
+    reject_below: 50,
+    keep_at_least: 80,
+  });
+  assert.equal(snapshot.vrma_quality_reject_below, 50);
+  assert.equal(snapshot.vrma_quality_keep_at_least, 80);
+  snapshot = store.setVrmaQualityScoreThresholds({
+    reject_below: 90,
+    keep_at_least: 70,
+  });
+  assert.equal(snapshot.vrma_quality_reject_below, 90);
+  assert.equal(snapshot.vrma_quality_keep_at_least, 90);
+
+  const reportDir = path.join(userDataPath, "reports");
+  fs.mkdirSync(reportDir, { recursive: true });
+  snapshot = store.setVrmaReportDir(reportDir);
+  assert.equal(snapshot.vrma_report_dir, path.resolve(reportDir));
+  snapshot = store.setVrmaReportDir(null);
+  assert.equal(snapshot.vrma_report_dir, null);
+
+  const reloaded = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(reloaded.vrma_quality_gate, "report");
+  assert.equal(reloaded.vrma_quality_reject_below, 90);
+  assert.equal(reloaded.vrma_quality_keep_at_least, 90);
+});
+
+test("deletes all user models and all uploaded VRMA clips in one step", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const modelA = path.join(root, "a.vrm");
+  const modelB = path.join(root, "b.vrm");
+  const clipA = path.join(root, "a.vrma");
+  const clipB = path.join(root, "b.vrma");
+  for (const filePath of [modelA, modelB, clipA, clipB]) {
+    writeGlb(filePath);
+  }
+
+  store.importModel({ filePath: modelA, model_name: "Alpha" });
+  store.importModel({ filePath: modelB, model_name: "Beta" });
+  const idle = store
+    .getSnapshot()
+    .animations.find((animation) => animation.id === "system-idle");
+  assert.ok(idle);
+  store.addAnimationClips(idle.id, [clipA, clipB]);
+  assert.equal(
+    store.getSnapshot().models.filter((model) => model.origin === "user").length,
+    2,
+  );
+  assert.equal(
+    store
+      .getSnapshot()
+      .animations.find((animation) => animation.id === "system-idle")
+      .clips.filter((clip) => clip.origin === "user").length,
+    2,
+  );
+
+  let snapshot = store.deleteAllUserModels();
+  assert.equal(
+    snapshot.models.filter((model) => model.origin === "user").length,
+    0,
+  );
+  assert.equal(snapshot.default_model_id, null);
+  assert.equal(
+    fs.readdirSync(path.join(userDataPath, "assets", "models")).length,
+    0,
+  );
+
+  snapshot = store.deleteAllUserAnimationClips();
+  assert.equal(
+    snapshot.animations.find((animation) => animation.id === "system-idle")
+      .clips.length,
+    0,
+  );
+  assert.equal(
+    fs.readdirSync(path.join(userDataPath, "assets", "animations")).length,
+    0,
+  );
+  assert.ok(
+    snapshot.animations.some((animation) => animation.id === "system-idle"),
+  );
+});
+
+function installFixtureSettings(context, fixtureName) {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const fixturePath = path.join(
+    __dirname,
+    "fixtures",
+    fixtureName,
+  );
+  const legacy = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+  const modelDirectory = path.join(userDataPath, "assets", "models");
+  const animationDirectory = path.join(userDataPath, "assets", "animations");
+  fs.mkdirSync(modelDirectory, { recursive: true });
+  fs.mkdirSync(animationDirectory, { recursive: true });
+
+  for (const model of legacy.models ?? []) {
+    writeGlb(path.join(modelDirectory, model.stored_filename));
+  }
+  for (const animation of legacy.animations ?? []) {
+    if (animation.stored_filename) {
+      writeGlb(path.join(animationDirectory, animation.stored_filename));
+    }
+  }
+  for (const clips of Object.values(legacy.animation_clips ?? {})) {
+    for (const clip of clips) {
+      writeGlb(path.join(animationDirectory, clip.stored_filename));
+    }
+  }
+  for (const clip of legacy.unassigned_clips ?? []) {
+    writeGlb(path.join(animationDirectory, clip.stored_filename));
+  }
+
+  fs.writeFileSync(
+    path.join(userDataPath, "settings.json"),
+    JSON.stringify(legacy, null, 2),
+  );
+  return { userDataPath, packagedLibraryPath, legacy };
+}
+
+test("migrates schema 4 fixture through legacy animation clip grouping", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-4.json",
+  );
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.equal(snapshot.character_size, legacy.character_size);
+  assert.ok(snapshot.models.some((model) => model.id === legacy.models[0].id));
+  const animation = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "wave-hello",
+  );
+  assert.ok(animation);
+  assert.equal(animation.origin, "user");
+  assert.deepEqual(
+    animation.clips.map((clip) => clip.animation_name),
+    ["wave-hello1"],
+  );
+  assert.match(animation.clips[0].asset_url, /^voxavatar-asset:\/\/animation\//);
+});
+
+test("migrates schema 5 fixture while preserving split animation metadata and clips", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-5.json",
+  );
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.equal(snapshot.character_size, legacy.character_size);
+  assert.equal(snapshot.ui_locale, "en");
+  assert.equal(snapshot.idle_rest_ms, 12000);
+  assert.equal(snapshot.vrma_quality_gate, "report");
+  assert.deepEqual(snapshot.voice_source, {
+    mode: "output",
+    process_pattern: null,
+    source_id: null,
+    source_name: null,
+  });
+  const animation = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "nod-yes",
+  );
+  assert.ok(animation);
+  assert.deepEqual(
+    animation.clips.map((clip) => clip.animation_name),
+    ["nod-yes1"],
+  );
+});
+
+test("backs up unmigratable settings and falls back without blocking the store", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  fs.writeFileSync(
+    settingsPath,
+    JSON.stringify({
+      schema_version: 99,
+      models: [{ id: "bad", model_name: "Bad", stored_filename: "bad.vrm" }],
+    }),
+  );
+
+  const packagedLibrary = readPackagedLibrary(packagedLibraryPath);
+  const readResult = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(readResult.migration_error, "unsupported_schema");
+  assert.equal(readResult.migrated, false);
+  assert.equal(readResult.state.schema_version, 12);
+  assert.deepEqual(readResult.state.models, []);
+  assert.equal(
+    fs.existsSync(`${settingsPath}.unmigratable-backup`),
+    true,
+  );
+  assert.match(
+    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    /"schema_version"\s*:\s*99/,
+  );
+
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(snapshot.schema_version, 12);
+  assert.deepEqual(snapshot.models, []);
+});
+
+test("failed model import does not leave catalog records or asset files", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const invalidModel = path.join(root, "invalid.vrm");
+  fs.writeFileSync(invalidModel, Buffer.from("not-a-glb"));
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const beforeModels = store.getSnapshot().models.length;
+  const modelDirectory = path.join(userDataPath, "assets", "models");
+
+  assert.throws(
+    () =>
+      store.importModel({
+        filePath: invalidModel,
+        model_name: "Rejected model",
+      }),
+    /empty or invalid|glTF/,
+  );
+  assert.equal(store.getSnapshot().models.length, beforeModels);
+  assert.equal(fs.readdirSync(modelDirectory).length, 0);
+});
+
+test("addAnimationClips rolls back stored files when a later clip fails validation", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const goodClip = path.join(root, "good.vrma");
+  const badClip = path.join(root, "bad.vrma");
+  writeGlb(goodClip);
+  fs.writeFileSync(badClip, Buffer.from("not-a-glb"));
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.createAnimation({
+    animation_name: "rollback-test",
+    animation_description: "Rollback on invalid clip.",
+    animation_trigger_scenario: "Use when verifying reject-before-commit.",
+  });
+  const actionId = snapshot.animations.find(
+    (animation) => animation.animation_name === "rollback-test",
+  ).id;
+  const animationDirectory = path.join(userDataPath, "assets", "animations");
+
+  assert.throws(
+    () => store.addAnimationClips(actionId, [goodClip, badClip]),
+    /empty or invalid|glTF/,
+  );
+  const action = store
+    .getSnapshot()
+    .animations.find((candidate) => candidate.id === actionId);
+  assert.equal(action.clips.length, 0);
+  assert.equal(fs.readdirSync(animationDirectory).length, 0);
+});
+
+test("reorders uploaded clips within an action and persists the new order", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const firstSource = path.join(root, "first.vrma");
+  const secondSource = path.join(root, "second.vrma");
+  const thirdSource = path.join(root, "third.vrma");
+  writeGlb(firstSource);
+  writeGlb(secondSource);
+  writeGlb(thirdSource);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.createAnimation({
+    animation_name: "combo",
+    animation_description: "Combo clips.",
+    animation_trigger_scenario: "Use when testing reorder.",
+  });
+  const actionId = snapshot.animations.find(
+    (animation) => animation.animation_name === "combo",
+  ).id;
+  snapshot = store.addAnimationClips(actionId, [
+    firstSource,
+    secondSource,
+    thirdSource,
+  ]);
+  let action = snapshot.animations.find(
+    (animation) => animation.id === actionId,
+  );
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo2", "combo3"],
+  );
+
+  snapshot = store.reorderAnimationClip(actionId, action.clips[2].id, "up");
+  action = snapshot.animations.find((animation) => animation.id === actionId);
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo3", "combo2"],
+  );
+
+  snapshot = store.reorderAnimationClip(actionId, action.clips[0].id, "up");
+  action = snapshot.animations.find((animation) => animation.id === actionId);
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo3", "combo2"],
+  );
+
+  const reloaded = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  action = reloaded.animations.find((animation) => animation.id === actionId);
+  assert.deepEqual(
+    action.clips.map((clip) => clip.animation_name),
+    ["combo1", "combo3", "combo2"],
+  );
+
+  assert.throws(
+    () => store.reorderAnimationClip(actionId, action.clips[0].id, "sideways"),
+    /direction must be 'up' or 'down'/,
+  );
+});
+
+test("persists state_slot_bindings and migrates schema 8 with empty bindings", (context) => {
+  const { root, userDataPath } = fixture(context);
+  const packagedLibraryPath = writePackagedLibrary(root);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.getSnapshot();
+  assert.equal(snapshot.schema_version, 12);
+  assert.deepEqual(snapshot.state_slot_bindings, {});
+
+  snapshot = store.createAnimation({
+    animation_name: "work-loop",
+    animation_description: "Working motion.",
+    animation_trigger_scenario: "Use when the agent is busy.",
+  });
+  const source = path.join(root, "work.vrma");
+  writeGlb(source);
+  const actionId = snapshot.animations.find(
+    (animation) => animation.animation_name === "work-loop",
+  ).id;
+  store.addAnimationClips(actionId, [source]);
+  snapshot = store.setStateSlotBinding("working", "work-loop");
+  assert.equal(snapshot.state_slot_bindings.working, "work-loop");
+
+  snapshot = store.setStateSlotBindings({
+    working: "work-loop",
+    success: "missing-name",
+    failed: null,
+  });
+  assert.equal(snapshot.state_slot_bindings.working, "work-loop");
+  assert.equal(snapshot.state_slot_bindings.success, "missing-name");
+  assert.equal(snapshot.state_slot_bindings.failed, null);
+
+  const settingsPath = path.join(userDataPath, "settings.json");
+  const onDisk = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  onDisk.schema_version = 8;
+  delete onDisk.state_slot_bindings;
+  fs.writeFileSync(settingsPath, JSON.stringify(onDisk, null, 2));
+
+  const migrated = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(migrated.schema_version, 12);
+  assert.deepEqual(migrated.state_slot_bindings, {});
+});
+
+test("suggests default idle/speaking bindings when system clips become playable", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.getSnapshot();
+  assert.deepEqual(snapshot.state_slot_bindings, {});
+
+  const idle = snapshot.animations.find(
+    (animation) => animation.animation_name === "idle",
+  );
+  const speaking = snapshot.animations.find(
+    (animation) => animation.animation_name === "speaking",
+  );
+  assert.ok(idle);
+  assert.ok(speaking);
+
+  const idleSource = path.join(root, "idle.vrma");
+  const speakingSource = path.join(root, "speaking.vrma");
+  writeGlb(idleSource);
+  writeGlb(speakingSource);
+  store.addAnimationClips(idle.id, [idleSource]);
+  snapshot = store.addAnimationClips(speaking.id, [speakingSource]);
+
+  assert.equal(snapshot.state_slot_bindings.idle, "idle");
+  assert.equal(snapshot.state_slot_bindings.listening, "idle");
+  assert.equal(snapshot.state_slot_bindings.speaking, "speaking");
+
+  snapshot = store.setStateSlotBinding("idle", null);
+  assert.equal(snapshot.state_slot_bindings.idle, null);
+  assert.equal(snapshot.state_slot_bindings.listening, "idle");
+  assert.equal(snapshot.state_slot_bindings.speaking, "speaking");
+});
+
+test("addAnimationClips accepts purpose override from options", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.getSnapshot();
+  const speaking = snapshot.animations.find(
+    (animation) => animation.animation_name === "speaking",
+  );
+  assert.ok(speaking);
+  const source = path.join(root, "pose-clip.vrma");
+  writeGlb(source);
+  snapshot = store.addAnimationClips(speaking.id, [source], {
+    purpose: "pose",
+  });
+  const clips = snapshot.animations.find(
+    (animation) => animation.id === speaking.id,
+  )?.clips;
+  assert.ok(clips && clips.length > 0);
+  const userClip = clips.find((clip) => clip.origin === "user");
+  assert.ok(userClip);
+  assert.equal(userClip.purpose, "pose");
+});
+
+test("updateAnimationClip renames and sets purpose; moveAnimationClip reassigns", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  let snapshot = store.createAnimation({
+    animation_name: "wave",
+    animation_description: "Wave hello",
+    animation_trigger_scenario: "When greeting",
+  });
+  const wave = snapshot.animations.find(
+    (animation) => animation.animation_name === "wave",
+  );
+  const idle = snapshot.animations.find(
+    (animation) => animation.animation_name === "idle",
+  );
+  assert.ok(wave);
+  assert.ok(idle);
+  const source = path.join(root, "Hello Wave.vrma");
+  writeGlb(source);
+  snapshot = store.addAnimationClips(wave.id, [source]);
+  let clip = snapshot.animations
+    .find((animation) => animation.id === wave.id)
+    ?.clips.find((entry) => entry.origin === "user");
+  assert.ok(clip);
+  assert.equal(clip.source_basename, "Hello Wave.vrma");
+  const clipId = clip.id;
+
+  snapshot = store.updateAnimationClip(wave.id, clipId, {
+    clip_name: "Wave Soft",
+    purpose: "one-shot",
+  });
+  clip = snapshot.animations
+    .find((animation) => animation.id === wave.id)
+    ?.clips.find((entry) => entry.id === clipId);
+  assert.ok(clip);
+  assert.equal(clip.animation_name, "wave-soft");
+  assert.equal(clip.purpose, "one-shot");
+  assert.equal(clip.source_basename, "wave-soft.vrma");
+  const expectedDiskName = `wave-soft--${shortAssetId(clipId)}.vrma`;
+  assert.equal(clip.stored_filename, expectedDiskName);
+  assert.equal(
+    fs.existsSync(path.join(userDataPath, "assets", "animations", expectedDiskName)),
+    true,
+  );
+
+  snapshot = store.moveAnimationClip(wave.id, clipId, idle.id);
+  const idleClips = snapshot.animations.find(
+    (animation) => animation.id === idle.id,
+  )?.clips;
+  const waveClips = snapshot.animations.find(
+    (animation) => animation.id === wave.id,
+  )?.clips;
+  assert.ok(idleClips?.some((entry) => entry.id === clipId));
+  assert.ok(!waveClips?.some((entry) => entry.id === clipId));
+});
+
+test("adds unassigned clips to the pool and assigns them to actions", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const sourceA = path.join(root, "pool-wave.vrma");
+  const sourceB = path.join(root, "pool-nod.vrma");
+  writeGlb(sourceA);
+  writeGlb(sourceB);
+
+  let snapshot = store.addUnassignedClips([sourceA, sourceB]);
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.unassigned_clips.length, 2);
+  const poolClip = snapshot.unassigned_clips[0];
+  assert.ok(poolClip);
+  assert.match(poolClip.stored_filename, /^pool-[a-z0-9-]+--[0-9a-f]{8}\.vrma$/);
+  const resolved = store.resolveAssetRequest(poolClip.asset_url);
+  assert.ok(resolved);
+  assert.equal(fs.existsSync(resolved), true);
+
+  snapshot = store.createAnimation({
+    animation_name: "greet",
+    animation_description: "A greeting.",
+    animation_trigger_scenario: "When greeting.",
+  });
+  const greet = snapshot.animations.find(
+    (animation) => animation.animation_name === "greet",
+  );
+  assert.ok(greet);
+
+  snapshot = store.assignUnassignedClip(poolClip.id, greet.id);
+  assert.equal(snapshot.unassigned_clips.length, 1);
+  const assigned = snapshot.animations
+    .find((animation) => animation.id === greet.id)
+    ?.clips.find((clip) => clip.id === poolClip.id);
+  assert.ok(assigned);
+  assert.equal(assigned.animation_name, poolClip.animation_name);
+});
+
+test("updateClipsPurpose updates pool and assigned clips", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const poolSource = path.join(root, "pose-a.vrma");
+  const actionSource = path.join(root, "pose-b.vrma");
+  writeGlb(poolSource);
+  writeGlb(actionSource);
+
+  let snapshot = store.addUnassignedClips([poolSource]);
+  const poolClip = snapshot.unassigned_clips[0];
+  assert.ok(poolClip);
+  assert.equal(poolClip.purpose, "loop");
+
+  snapshot = store.createAnimation({
+    animation_name: "pose-action",
+    animation_description: "Pose action.",
+    animation_trigger_scenario: "When posing.",
+  });
+  const action = snapshot.animations.find(
+    (animation) => animation.animation_name === "pose-action",
+  );
+  assert.ok(action);
+  snapshot = store.addAnimationClips(action.id, [actionSource]);
+  const assignedClip = snapshot.animations
+    .find((candidate) => candidate.id === action.id)
+    ?.clips.find((clip) => clip.origin === "user");
+  assert.ok(assignedClip);
+
+  snapshot = store.updateClipsPurpose(
+    [
+      { clipId: poolClip.id, pool: true },
+      { clipId: assignedClip.id, animationId: action.id },
+    ],
+    "pose",
+  );
+  const updatedPool = snapshot.unassigned_clips.find(
+    (clip) => clip.id === poolClip.id,
+  );
+  const updatedAssigned = snapshot.animations
+    .find((candidate) => candidate.id === action.id)
+    ?.clips.find((clip) => clip.id === assignedClip.id);
+  assert.equal(updatedPool?.purpose, "pose");
+  assert.equal(updatedAssigned?.purpose, "pose");
+});
+
+test("updateUnassignedClip renames disk file; delete and move-to-pool round-trip", (context) => {
+  const { root, userDataPath, packagedLibraryPath } = fixture(context);
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const poolSource = path.join(root, "Pool Clip.vrma");
+  writeGlb(poolSource);
+
+  let snapshot = store.addUnassignedClips([poolSource]);
+  const poolClip = snapshot.unassigned_clips[0];
+  assert.ok(poolClip);
+  const clipId = poolClip.id;
+  const beforePath = path.join(
+    userDataPath,
+    "assets",
+    "animations",
+    poolClip.stored_filename,
+  );
+  assert.equal(fs.existsSync(beforePath), true);
+
+  snapshot = store.updateUnassignedClip(clipId, {
+    clip_name: "Pool Renamed",
+    purpose: "pose",
+  });
+  const renamed = snapshot.unassigned_clips.find((clip) => clip.id === clipId);
+  assert.ok(renamed);
+  assert.equal(renamed.animation_name, "pool-renamed");
+  assert.equal(renamed.purpose, "pose");
+  assert.equal(renamed.source_basename, "pool-renamed.vrma");
+  const expectedDisk = `pool-renamed--${shortAssetId(clipId)}.vrma`;
+  assert.equal(renamed.stored_filename, expectedDisk);
+  assert.equal(fs.existsSync(beforePath), false);
+  assert.equal(
+    fs.existsSync(path.join(userDataPath, "assets", "animations", expectedDisk)),
+    true,
+  );
+
+  snapshot = store.createAnimation({
+    animation_name: "temp-action",
+    animation_description: "Temporary.",
+    animation_trigger_scenario: "When testing pool move.",
+  });
+  const action = snapshot.animations.find(
+    (animation) => animation.animation_name === "temp-action",
+  );
+  assert.ok(action);
+  snapshot = store.assignUnassignedClip(clipId, action.id);
+  assert.equal(snapshot.unassigned_clips.length, 0);
+  assert.ok(
+    snapshot.animations
+      .find((candidate) => candidate.id === action.id)
+      ?.clips.some((clip) => clip.id === clipId),
+  );
+
+  snapshot = store.moveAnimationClipToUnassigned(action.id, clipId);
+  assert.equal(snapshot.unassigned_clips.length, 1);
+  assert.equal(snapshot.unassigned_clips[0].id, clipId);
+  assert.ok(
+    !snapshot.animations
+      .find((candidate) => candidate.id === action.id)
+      ?.clips.some((clip) => clip.id === clipId),
+  );
+
+  snapshot = store.deleteUnassignedClip(clipId);
+  assert.equal(snapshot.unassigned_clips.length, 0);
+  assert.equal(
+    fs.existsSync(path.join(userDataPath, "assets", "animations", expectedDisk)),
+    false,
+  );
+});
+
+test("migrates schema 10 fixture to schema 12 with empty unassigned pool", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-10.json",
+  );
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.deepEqual(snapshot.unassigned_clips, []);
+  assert.equal(snapshot.state_slot_bindings.working, "wave-soft");
+  const animation = snapshot.animations.find(
+    (candidate) => candidate.animation_name === "wave-soft",
+  );
+  assert.ok(animation);
+  assert.equal(animation.clips[0]?.purpose, "one-shot");
+  assert.equal(animation.clips[0]?.source_basename, "Wave Soft.vrma");
+});
+
+test("migrates populated schema 11 settings without losing existing data", (context) => {
+  const { userDataPath, packagedLibraryPath, legacy } = installFixtureSettings(
+    context,
+    "settings-schema-11.json",
+  );
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.getSnapshot();
+
+  assert.equal(snapshot.schema_version, 12);
+  assert.equal(snapshot.default_model_id, legacy.default_model_id);
+  assert.equal(snapshot.character_size, legacy.character_size);
+  assert.equal(snapshot.ui_locale, legacy.ui_locale);
+  assert.equal(snapshot.models[0]?.model_name, legacy.models[0].model_name);
+  assert.equal(snapshot.animations[0]?.animation_name, "idle");
+  const custom = snapshot.animations.find(
+    (animation) => animation.animation_name === "wave-soft",
+  );
+  assert.ok(custom);
+  assert.equal(custom?.clips[0]?.source_basename, "Wave Soft.vrma");
+  assert.equal(snapshot.unassigned_clips[0]?.animation_name, "pool-motion");
+  assert.equal(snapshot.unassigned_clips[0]?.purpose, "pose");
+  assert.equal(snapshot.model_lighting[legacy.default_model_id].exposure, 1.25);
+  assert.equal(snapshot.voice_source.mode, "external");
+  assert.equal(snapshot.vrma_quality_gate, "report");
+  assert.equal(snapshot.vrma_quality_reject_below, 62);
+  assert.equal(snapshot.vrma_quality_keep_at_least, 80);
+  assert.equal(snapshot.idle_rest_ms, 15000);
+  assert.equal(snapshot.mcp_show_message_enabled, true);
+  assert.equal(snapshot.state_slot_bindings.working, "wave-soft");
+  assert.deepEqual(snapshot.idle_pool_excluded_animation_ids, []);
+
+  const rewritten = JSON.parse(
+    fs.readFileSync(path.join(userDataPath, "settings.json"), "utf8"),
+  );
+  assert.equal(rewritten.schema_version, 12);
+  assert.equal(rewritten.models[0].model_name, legacy.models[0].model_name);
+  assert.equal(rewritten.animations[0].animation_name, "wave-soft");
+  assert.equal(rewritten.animation_clips[custom.id][0].purpose, "one-shot");
+  assert.equal(rewritten.unassigned_clips[0].clip_name, "pool-motion");
+  assert.equal(rewritten.mcp_show_message_enabled, true);
+  assert.deepEqual(rewritten.idle_pool_excluded_animation_ids, []);
+});

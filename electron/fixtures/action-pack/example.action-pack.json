@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "name": "example-action-pack",
+  "description": "Thin metadata example only. Files are relative basenames; import still goes through VoxAvatar settings gates.",
+  "actions": [
+    {
+      "animation_name": "idle-breathe",
+      "purpose": "loop",
+      "state_slot": "idle",
+      "files": ["idle-breathe.vrma"],
+      "animation_description": "Quiet idle loop",
+      "animation_trigger_scenario": "Default idle presence"
+    },
+    {
+      "animation_name": "talk-soft",
+      "purpose": "loop",
+      "state_slot": "speaking",
+      "files": ["talk-soft.vrma"],
+      "animation_description": "Soft speaking loop",
+      "animation_trigger_scenario": "While assistant audio is playing"
+    },
+    {
+      "animation_name": "work-nod",
+      "purpose": "one-shot",
+      "state_slot": "working",
+      "files": ["work-nod.vrma"],
+      "animation_description": "Short working acknowledgment",
+      "animation_trigger_scenario": "When an agent starts a long task"
+    },
+    {
+      "animation_name": "success-pose",
+      "purpose": "pose",
+      "state_slot": "success",
+      "files": ["success-pose.vrma"],
+      "animation_description": "Brief success pose",
+      "animation_trigger_scenario": "When a task finishes successfully"
+    }
+  ]
+}

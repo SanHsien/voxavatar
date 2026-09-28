@@ -1,0 +1,82 @@
+name: Dependabot guarded merge
+
+on:
+  workflow_run:
+    workflows: [CI, CodeQL]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  checks: read
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-merge-queue
+  cancel-in-progress: false
+
+jobs:
+  approve-and-merge:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Select first policy-approved PR
+        id: queue
+        run: |
+          pr_number="$(gh pr list --state open --author app/dependabot \
+            --label dependencies-auto-merge --json number --jq 'sort_by(.number) | .[0].number // empty')"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Require trusted policy and successful checks
+        id: gate
+        if: steps.queue.outputs.pr_number != ''
+        env:
+          PR_NUMBER: ${{ steps.queue.outputs.pr_number }}
+        run: |
+          pr_json="$(gh pr view "$PR_NUMBER" --json author,baseRefName,headRefOid,labels,mergeable,mergeStateStatus,state)"
+          test "$(jq -r '.author.login' <<< "$pr_json")" = "app/dependabot"
+          test "$(jq -r '.baseRefName' <<< "$pr_json")" = "main"
+          test "$(jq -r '.state' <<< "$pr_json")" = "OPEN"
+          head_sha="$(jq -r '.headRefOid' <<< "$pr_json")"
+          mergeable="$(jq -r '.mergeable' <<< "$pr_json")"
+          merge_state="$(jq -r '.mergeStateStatus' <<< "$pr_json")"
+          if [[ "$mergeable" == "CONFLICTING" || "$merge_state" == "DIRTY" || "$merge_state" == "BEHIND" ]]; then
+            labels="$(jq -r '.labels[].name' <<< "$pr_json")"
+            if ! grep -Fxq dependencies-rebase-requested <<< "$labels"; then
+              gh pr edit "$PR_NUMBER" --add-label dependencies-rebase-requested
+              gh pr comment "$PR_NUMBER" --body "@dependabot rebase"
+            fi
+            exit 0
+          fi
+          test "$mergeable" = "MERGEABLE"
+          policy="$(gh api "repos/$GITHUB_REPOSITORY/commits/$head_sha/check-runs?per_page=100" \
+            --jq '.check_runs | map(select(.name == "Dependabot policy" and .app.slug == "github-actions")) | sort_by(.started_at) | reverse | .[0].conclusion // "MISSING"')"
+          test "$policy" = "success"
+          checks="$(gh pr checks "$PR_NUMBER" --json name,state)"
+          for required in "Test on Windows x64" "Analyze JavaScript and TypeScript"; do
+            test "$(jq -r --arg name "$required" '[.[] | select(.name == $name)][0].state // "MISSING"' <<< "$checks")" = "SUCCESS"
+          done
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Approve update
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          PR_NUMBER: ${{ steps.queue.outputs.pr_number }}
+        run: gh pr review "$PR_NUMBER" --approve --body "低風險依賴更新已通過 VoxAvatar CI、CodeQL 與 head-bound policy gate。"
+
+      - name: Recheck head and squash merge
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          EXPECTED_HEAD: ${{ steps.gate.outputs.head_sha }}
+          PR_NUMBER: ${{ steps.queue.outputs.pr_number }}
+        run: |
+          test "$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)" = "$EXPECTED_HEAD"
+          gh pr merge "$PR_NUMBER" --squash --delete-branch --match-head-commit "$EXPECTED_HEAD"
+          test "$(gh pr view "$PR_NUMBER" --json state --jq .state)" = "MERGED"

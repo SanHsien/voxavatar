@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Windows release evidence record. smokeExecuted stays false until a human desktop run completes.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-02T16:38:24.124Z",
+  "release": {
+    "version": "0.16.18",
+    "tag": null,
+    "commitSha": null,
+    "releaseUrl": null,
+    "githubActionsRunUrl": null,
+    "hasInstaller": false
+  },
+  "assets": {
+    "installerFilename": null,
+    "installerSha256": null,
+    "installerSizeBytes": null,
+    "checksumsFile": null,
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned"
+  },
+  "environment": {
+    "windowsEdition": null,
+    "windowsVersion": null,
+    "windowsBuild": null,
+    "architecture": "x64",
+    "displayScalingPercent": null,
+    "gpu": null
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝與生命週期",
+      "核心桌面流程",
+      "語音與 MCP",
+      "簽署／SmartScreen"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "未驗",
+        "note": "以 GitHub Actions CI／Release 綠燈為準；本證據不重跑。"
+      },
+      {
+        "id": "install_lifecycle",
+        "section": "安裝與生命週期",
+        "result": "未驗",
+        "note": "無 Windows 桌面；未執行安裝／升級／移除。"
+      },
+      {
+        "id": "desktop_core",
+        "section": "核心桌面流程",
+        "result": "未驗",
+        "note": "無 Windows 桌面；系統匣／DPI／30%／透明視窗未實測。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "未驗",
+        "note": "無 Windows 桌面；真實 WASAPI／系統匣 MCP 未實測。"
+      },
+      {
+        "id": "signing",
+        "section": "簽署／SmartScreen",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；Authenticode 狀態為 NotSigned。"
+      }
+    ],
+    "notes": "Populate per-item pass/fail/未驗 after a real Windows smoke; do not pre-check."
+  },
+  "mediaReferences": [],
+  "issues": [],
+  "reviewer": null,
+  "reviewedAt": null
+}

@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Machine-readable metadata for the published v1.0.5 release and its partial Windows desktop clean-install smoke; the full lifecycle matrix remains incomplete.",
+  "smokeExecuted": false,
+  "generatedAt": "2026-08-14T12:52:22.230Z",
+  "release": {
+    "version": "1.0.5",
+    "tag": "v1.0.5",
+    "commitSha": "c9ad440d1c933f038b71e0fd895ed7d041a71d12",
+    "releaseUrl": "https://github.com/SanHsien/voxavatar/releases/tag/v1.0.5",
+    "githubActionsRunUrl": "https://github.com/SanHsien/voxavatar/actions/runs/31800788259",
+    "hasInstaller": true
+  },
+  "assets": {
+    "installerFilename": "VoxAvatar-1.0.5-windows-x64-setup.exe",
+    "installerSha256": "49dad09d623247d95394991472702400bf9b21aec99d324db703563e7877074e",
+    "installerSizeBytes": 177143840,
+    "checksumsFile": "SHA256SUMS.txt",
+    "unsigned": true,
+    "authenticodeStatus": "NotSigned",
+    "authenticodeEvidence": "pe-certificate-table-empty"
+  },
+  "environment": {
+    "windowsEdition": "Windows 11 Pro",
+    "windowsVersion": "10.0.26200",
+    "windowsBuild": "26200",
+    "architecture": "x64",
+    "displayScalingPercent": 225,
+    "gpu": "NVIDIA GeForce RTX 3060"
+  },
+  "smokeChecklist": {
+    "validationDoc": "docs/RELEASING.md",
+    "sections": [
+      "自動化前置 gate",
+      "安裝",
+      "升級",
+      "移除",
+      "系統匣",
+      "DPI／縮放",
+      "角色尺寸 30%",
+      "語音與 MCP",
+      "簽署標示（NotSigned）",
+      "SmartScreen／publisher"
+    ],
+    "items": [
+      {
+        "id": "ci_gates",
+        "section": "自動化前置 gate",
+        "result": "pass",
+        "note": "Release workflow 31800788259 在精確 tag SHA 完成授權資產 gate、Node 24 check、完整 dependency audit、Windows native build／self-test、NSIS 打包與發布。"
+      },
+      {
+        "id": "install",
+        "section": "安裝",
+        "result": "部分驗證",
+        "note": "正式 current-user installer 以一般使用者模式 exit 0；執行檔 ProductVersion 1.0.5.0。全新 userData 首次啟動顯示 AvatarSample_A，Settings 為 0 個自訂模型／0 個自訂動作；自訂位置與捷徑矩陣未驗。"
+      },
+      {
+        "id": "upgrade",
+        "section": "升級",
+        "result": "未驗",
+        "note": "本輪刻意清除 1.0.2 舊資料做乾淨安裝，未驗證保留資料的 1.0.2→1.0.5 升級。"
+      },
+      {
+        "id": "uninstall",
+        "section": "移除",
+        "result": "pass",
+        "note": "1.0.2 all-users uninstaller 移除程式檔與解除安裝登錄；uninstaller 保留的 Roaming userData 另送資源回收筒，原路徑歸零後才安裝 1.0.5。"
+      },
+      {
+        "id": "tray",
+        "section": "系統匣",
+        "result": "未驗",
+        "note": "Windows Computer Use 未暴露 notification area；本輪以產品支援的 --settings 第二實例入口開啟同一設定視窗，沒有宣稱系統匣左右鍵通過。"
+      },
+      {
+        "id": "dpi_scaling",
+        "section": "DPI／縮放",
+        "result": "部分驗證",
+        "note": "225% DPI 的角色 overlay、模型頁、AvatarSample_A 即時預覽與 MCP 頁可讀；100%／150% 未驗。"
+      },
+      {
+        "id": "size_30",
+        "section": "角色尺寸 30%",
+        "result": "未驗",
+        "note": "本輪未操作 30% 角色尺寸。"
+      },
+      {
+        "id": "voice_mcp",
+        "section": "語音與 MCP",
+        "result": "部分驗證",
+        "note": "正式 1.0.5 Settings 顯示線上／就緒、6 個工具與 12 個可播放動作；獨立 Streamable HTTP client 的 get_status 回報 readiness complete、listener no_output，list_animations 同為 12。未播放真實語音。"
+      },
+      {
+        "id": "signing_label",
+        "section": "簽署標示（NotSigned）",
+        "result": "pass",
+        "note": "GitHub digest、SHA256SUMS.txt 與本機 SHA-256 三路一致；PowerShell 與 PE Certificate Table 均確認 NotSigned。"
+      },
+      {
+        "id": "smartscreen",
+        "section": "SmartScreen／publisher",
+        "result": "未驗",
+        "note": "無 WIN_CSC_* 密鑰；未測 SmartScreen 或具名 publisher。"
+      }
+    ],
+    "notes": "Historical v1.0.5 evidence. Superseded by v1.0.6; the v1.0.5 GitHub Release/tag was deleted after the new Latest succeeded. Do not treat this folder as a currently downloadable installer."
+  },
+  "mediaReferences": [
+    "ASSET_LICENSES.md",
+    "public/assets/manifest.json"
+  ],
+  "issues": [],
+  "reviewer": "Codex desktop agent",
+  "reviewedAt": "2026-08-14T12:50:25.000Z"
+}

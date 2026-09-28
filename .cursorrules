@@ -1,0 +1,5 @@
+# VoxAvatar agent entrypoint
+
+Follow `AGENTS.md` as the single source of truth for every AI agent. Thin entry files `CLAUDE.md` and `SKILL.md` only point at `AGENTS.md`. Work autonomously on `main` only—do not create feature/cursor branches or default to PRs. Preserve existing user changes, finish all stated requirements, verify with `npm run check`, review affected documentation, update SemVer and CHANGELOG, then commit and `git push origin main`. Delete merged leftover branches on remote and on this host.
+
+Do not ask about routine decisions already covered by `AGENTS.md` or `docs/DECISIONS.md`. Never cross the Windows-only, audio-privacy, loopback-only, media-licensing, or upstream-attribution boundaries. Tags and Releases are batch-cut according to `docs/RELEASING.md`; do not create empty releases.

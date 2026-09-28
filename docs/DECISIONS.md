@@ -1,8 +1,16 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-09-15
+最後修訂：2026-09-28
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-09-28：處理依賴新鮮度 issue #11
+
+**決定**：`@react-three/fiber` 9.8.1 已接受 React 19.3，解除 React、React DOM 及兩份型別的暫緩，四者升至 19.3.0；同時更新 drei、electron-builder、jsdom、Vitest。CI 使用 Node 24，因此將 `@types/node` 對齊 24.x，繼續暫緩 26.x。
+
+`jsdom` 30.0.1 原本就只支援 Node `^22.22.2 || ^24.15.0 || >=26.0.0`，而 Vitest 也排除 Node 25；原來的 `node >=24` 宣告過寬。將開發環境宣告收斂為 `^24.15.0 || >=26.0.0`，再升 jsdom 30.1.1。這版帶入 CSS 解析等傳遞依賴的大版本更新，需由 Windows CI 驗證。
+
+這輪依賴檢查不能代替 Windows 桌面實機驗收；Electron、VRM 與安裝版仍依發行流程另行驗證。
 
 ## 2026-09-15：清掉新鮮度追蹤 issue 上剩下的 in-range 更新
 

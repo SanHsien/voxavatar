@@ -3,10 +3,10 @@
 ## 技術基線
 
 - Windows 10 build 20348+／Windows 11 x64
-- Node.js 24（CI 基準版本）與 npm
+- Node.js 24.15+（CI 基準版本）或 26+，以及 npm
 - Electron、Vite、React、TypeScript、Three.js、`@pixiv/three-vrm`
 
-**Node 25 的 Web Storage（已在測試層處理）**：Node 25 起內建的 Web Storage 全域會覆蓋 jsdom 的 `window.localStorage`——未給 `--localstorage-file` 時那是個 null-prototype 空物件，連 `setItem` 都沒有，`src/theme.test.ts` 因此在本機以 `TypeError: ... is not a function` 失敗，在 CI（Node 24）卻是綠的。`package.json` 宣告 `node >=24`，包含 25，所以 `src/test/setup.ts` 會偵測不可用的 storage 並補上一份記憶體版 `Storage`，不再需要退回 Node 24 才能跑 `npm run check`。與產品程式無關：renderer 在 Electron 裡用的是 Chromium 的真實 localStorage。
+**Node 25 不在支援範圍**：目前 jsdom 與 Vitest 都排除 Node 25。`src/test/setup.ts` 仍會處理 Node 25 Web Storage 覆蓋 jsdom `window.localStorage` 的情況，但這不等於 Node 25 已通過完整開發驗證。renderer 在 Electron 裡使用 Chromium 的 localStorage。
 
 Visual Studio Build Tools 與「使用 C++ 的桌面開發」工作負載只用於編譯 WASAPI helper 與本機安裝包。一般 UI、設定、MCP、文件與 JavaScript／TypeScript 工作不需要安裝；正式 native／installer gate 由 GitHub Windows runner 執行。
 

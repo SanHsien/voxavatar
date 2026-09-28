@@ -71,7 +71,7 @@ The MCP tools are `list_animations`, `play_animation`, `control_window`, `get_st
 | Use | Requirement |
 | --- | --- |
 | Installed release | Windows 10 build 20348+ or Windows 11 x64, with a hardware-accelerated desktop session |
-| Regular source development | Windows, Node.js 24, npm |
+| Regular source development | Windows, Node.js 24.15+ or 26+, npm |
 | Native listener changes or local packaging | Visual Studio Build Tools with the Desktop development with C++ workload |
 
 Visual Studio Build Tools is not required for normal UI, settings, MCP, documentation, or TypeScript work. GitHub Actions performs the canonical Windows native build and installer validation.

@@ -24,6 +24,14 @@ updates:
         dependency-type: development
         update-types:
           - major
+    ignore:
+      # CI builds with Node 24; revisit when that baseline moves.
+      - dependency-name: "@types/node"
+        versions: [">=25"]
+      # typescript-eslint 8.70.1 requires TypeScript <6.1; revisit when it
+      # supports TypeScript 7. The exact versions are in dependency-deferrals.json.
+      - dependency-name: typescript
+        versions: [">=7"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

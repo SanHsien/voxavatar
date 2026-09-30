@@ -24,7 +24,7 @@
 
 ## 下載與第一次使用
 
-目前原始碼的 package version 為 `1.0.6`；實際可下載版本、簽署狀態與 checksum 以 [Latest Release](https://github.com/SanHsien/voxavatar/releases/latest) 為準。
+目前原始碼的 package version 為 `1.0.7`；實際可下載版本、簽署狀態與 checksum 以 [Latest Release](https://github.com/SanHsien/voxavatar/releases/latest) 為準。
 
 1. 從 Latest Release 下載 `VoxAvatar-*-windows-x64-setup.exe`。
 2. 若該 Release／installer 標示 **NotSigned**，Windows SmartScreen 可能顯示未知發行者；請用同一 Release 的 `SHA256SUMS.txt` 核對檔案。

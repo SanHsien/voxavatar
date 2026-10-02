@@ -11,8 +11,8 @@
 
 | 角色 | 路徑／版本 |
 | --- | --- |
-| Latest installer 證據 | `v1.0.6/` |
-| 目前 tip（無 installer） | 無；`main` 與 Latest 均為 1.0.6，發布後證據屬同版本收尾 |
+| Latest installer 證據 | `v1.0.7/` |
+| 目前 tip（無 installer） | 無；`main` 的 package version 仍為 1.0.7，但 tag 後有依賴更新與發行證據提交，尚未另切安裝版 |
 
 ## 產生與驗證
 

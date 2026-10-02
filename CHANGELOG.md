@@ -8,6 +8,7 @@
 - MCP `play_animation` 的動作清單只放在工具描述，不在參數描述重複傳送；呼叫時仍依目前可播放清單驗證名稱。
 - 更新 Electron 44.5.1、React／React DOM 19.3、Three.js 0.186.1、MCP SDK 1.31.0 與相關依賴，並更新有安全公告的間接依賴。Windows 安裝包與桌面驗收結果另見 `docs/release-evidence/v1.0.7/`，未取得的項目標為未驗。
 - 開發環境的 Node 支援範圍明定為 24.15+ 或 26+；TypeScript 7 與 Node 25／26 型別仍依相容性條件暫緩。
+- 正式 v1.0.7 Release workflow `36738174882` 通過 Windows 打包；安裝包 GitHub digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，PE Certificate Table 為空（`NotSigned`）。桌面安裝／升級／移除、系統匣、DPI、真實語音與 SmartScreen 仍未驗；僅保留 v1.0.7 Release／tag。
 
 ## 1.0.6 - 2026-08-14
 

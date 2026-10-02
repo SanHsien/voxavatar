@@ -2,8 +2,8 @@
 
 繁體中文 · [English](ROADMAP.en.md)
 
-更新日期：2026-08-14
-規劃基準：`1.0.6`（`main`；GitHub Latest Release：`v1.0.6`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+更新日期：2026-10-02
+規劃基準：`1.0.7`（`main`；GitHub Latest Release：`v1.0.7`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
 
 VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
 
@@ -11,12 +11,12 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 
 ## 目前健康
 
-覆核基準：`1.0.6`／`main`；GitHub Latest Release：`v1.0.6`
+覆核基準：`1.0.7`／`main`；GitHub Latest Release：`v1.0.7`
 
 沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。`1.0.4` 在 `main` 納入 4 個可再配布且品質 100／`keep` 的 VRM，以及 13 個來源明示 CC0、品質 78–100／`keep` 的 VRMA；上游 18 個未授權 VRMA 與本機 10 個只有 `review` 的動作仍排除。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。一般上游程式評估水位仍為 `152b1b4`（2026-08-10；素材 #17 的重新判定見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
 
-- 正式 Release：`v1.0.6`（Release workflow `31809770616` 的授權資產 gate、Node 24 check、完整 dependency audit、Windows native build／self-test、NSIS 打包與發布全綠；runner installer digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經 PE Certificate Table 確認）。本輪無 Windows 桌面，未重跑安裝／升級／系統匣／DPI／真實語音；1.0.5 乾淨 per-user 安裝與 MCP 部分驗證仍見版本化歷史證據。成功後僅保留 `v1.0.6` Latest Release／tag。
-- 安全基線：Electron 39.8.10 升級至仍受支援的 43.4.0；GHSA-jmr9-qjv8-65gv 的 `extract-zip@2.0.1` 已由 lockfile 移除，改用 Electron 維護的 extractor。完整 dependency audit 為 0，且日常／CI gate 不再只檢查 production dependencies。
+- 正式 Release：`v1.0.7`（Release workflow `36738174882` 在 tag SHA `86f9ef8` 完成授權資產 gate、Node 24 check、完整依賴稽核、Windows native build／self-test、NSIS 打包與發布；安裝包 GitHub digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經 PE Certificate Table 確認）。本輪未做安裝／升級／移除／系統匣／DPI／真實語音桌面驗收；1.0.5 的部分桌面證據仍只作歷史紀錄。GitHub 僅保留 `v1.0.7` Release／tag，本機也僅保留此 tag。
+- 安全基線：Electron 已更新至 44.5.1；受 GHSA-jmr9-qjv8-65gv 影響的 `extract-zip@2.0.1` 已從 lockfile 移除，另更新有安全公告的間接依賴。完整 dependency audit 為 0，日常／CI gate 檢查全部 dependencies。
 - 內建資產：VRoid Sample A／B／C、つくよみちゃん Type A 與 13 個 CC0 VRMA；全部同時通過原始來源、再配布、品質 `keep`（預設 >75；75 為 `review`）與 SHA-256 查核。Idle／Speaking 與 10 個自訂動作可直接使用；`assets:release` 會重算每個 digest。
 - 上游：commit 水位 `7ca65a3`（2026-08-22，已評估）。`152b1b4..7ca65a3` 的 13 個 commit 逐項判定：已涵蓋 2（#48 settings IPC 註冊點把關、#61 click-through，本 fork 皆已有且 #48 更嚴）、範圍外 3（VRoid Hub #47／#53、macOS 發行 #58）、不合併 4（#51 TypeScript 遷移、#56 eol-last plugin、#59／#60 Settings UI 拆分）、**候選 4**（#46／#49／#50／#54 動作綁定 VRM 表情——本 fork 目前只把 expression 用在 lip-sync 與眨眼，缺使用者可設定的動作↔表情綁定與 hold／release 事件，屬 fork 端實作而非 cherry-pick）。詳見 `docs/DECISIONS.md` §1。
 - 上游（前輪）：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
@@ -34,7 +34,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **部分驗證** | 本機候選 0.16.23→1.0.0 與正式下載檔 1.0.0→1.0.2 升級均保留設定；225% DPI 設定／預覽／About、MCP／氣泡／視窗控制已驗；移除、系統匣與鍵盤矩陣待補 |
 | 30% 角色尺寸與多 DPI 實機可讀性 | **部分驗證** | 225% DPI、50% 角色尺寸可讀；30% 與 100%／150% 尚未驗 |
 | Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 本輪只做短時間 GUI 操作；`baseline:startup` 不含 GUI |
-| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 1.0.0–1.0.6 正式 runner 資產均證明 `NotSigned`（1.0.6 為 PE Certificate Table 空）；0.16.23→1.0.0 與 1.0.0→1.0.2 升級均保留資料，1.0.4 起正式升級未驗。SmartScreen 與 publisher 待補 |
+| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 1.0.0–1.0.7 正式 runner 資產均證明 `NotSigned`（1.0.7 為 PE Certificate Table 空）；0.16.23→1.0.0 與 1.0.0→1.0.2 升級均保留資料，1.0.4 起正式升級未驗。SmartScreen 與 publisher 待補 |
 | Native COM／WASAPI／Device／Event **真實**失敗路徑 | **未驗** | Usage=2 可由 runner 斷言；真實音訊／COM 失敗仍需環境 |
 | 真實 VRoid／UniVRM／Blender 樣本人工結果 | **部分驗證** | 4 個內建 VRM 自動品質分析皆 100／`keep`；13 個內建 VRMA 為 78–100／`keep`。Windows fresh-userData 已顯示 AvatarSample_A 並列出全部 4 模型／13 片段；另 3 模型切換、逐片段播放與其他 exporter 仍待補 |
 
@@ -75,6 +75,7 @@ VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安�
 | v1.0.4 | 4 個品質 `keep` 的已授權 VRM、13 個品質 `keep` 的 CC0 VRMA、逐檔 SHA-256 發行 gate；未授權與 `review` 媒體排除 |
 | v1.0.5 | 升級至受支援的 Electron 43；移除易受 symlink path traversal 影響的 `extract-zip`；完整 dependency audit 納入 CI；正式乾淨安裝與 MCP smoke |
 | v1.0.6 | 可設定的非說話待機池；Speaking／TALK 與其綁定動作強制排除；schema 12 持久化與 UI／IPC 契約 |
+| v1.0.7 | 視窗拖曳保留於螢幕工作區、MCP 動作描述去重、依賴與安全修補；正式安裝包完整性已驗，桌面生命週期仍未驗 |
 
 細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
 

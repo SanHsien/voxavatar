@@ -8,7 +8,7 @@
 
 **決定**：用 `npm audit fix --ignore-scripts` 重生 lockfile，涵蓋 9 筆 open 警示（critical 2、high 4、medium 3：`shell-quote`、`proxy-addr`、`follow-redirects`×2、`source-map-js`、`vite`×3、`hono`），以及 `npm audit` 另外報出、CI 的 `audit:dependencies`（`--audit-level=high`）一樣會擋的 `electron`、`zod`、`concurrently`、`undici`、`body-parser`。`package.json` 同步把 `concurrently`、`electron`、`vite`、`zod` 的下限抬到已修補版本，避免日後 lockfile 重生時退回有漏洞的範圍。
 
-同一輪併入 Dependabot #43–#52 的 minor／patch 更新（GitHub Actions 釘選 SHA、MCP SDK、fiber、react、jsdom、vitest、typescript-eslint 等）。Actions 的新 SHA 逐一對回上游 tag（`setup-node` v7.1.0、`upload-artifact` v7.0.2、`download-artifact` v8.0.2、`codeql-action` v4.38.3）。
+同一輪併入 Dependabot #43–#54 的 minor／patch 更新（GitHub Actions 釘選 SHA、MCP SDK、fiber、react、jsdom、vitest、typescript-eslint 等）。Actions 的新 SHA 逐一對回上游 tag（`setup-node` v7.1.0、`upload-artifact` v7.0.2、`download-artifact` v8.0.2、`codeql-action` v4.38.3）。
 
 **理由**：這些 PR 的 CI 全部紅在 `npm run audit:dependencies`——每個 PR 只修一筆警示，其餘 critical／high 仍在，所以單獨看哪一個都過不了。合成一個變更才會讓閘門轉綠。
 

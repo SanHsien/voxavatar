@@ -393,8 +393,8 @@ function createVoxAvatarMcpHandler(
         });
         transport.onclose = () => {
           const closedSessionId = transport.sessionId;
-          if (closedSessionId) {
-            sessions.delete(closedSessionId);
+          // closeSession 已先移除並通知；只有仍在表內的才由這裡通知，避免重複。
+          if (closedSessionId && sessions.delete(closedSessionId)) {
             controller.onSessionClosed?.(closedSessionId);
           }
         };

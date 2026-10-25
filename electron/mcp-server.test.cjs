@@ -742,3 +742,38 @@ test("show_message reports displayed, disabled, and invalid results", async () =
     await bridge.close().catch(() => {});
   }
 });
+
+test("VoxAvatar MCP reports each evicted session as closed exactly once", async (context) => {
+  const closed = [];
+  const mcpHandler = createVoxAvatarMcpHandler(
+    {
+      onAnimation: () => true,
+      onWindowAction: () => true,
+      getStatus: () => ({ ok: true }),
+      getAnimations: () => [],
+      onSessionClosed: (sessionId) => closed.push(sessionId),
+    },
+    { maxSessions: 1, sweepIntervalMs: 0 },
+  );
+  const bridge = createBridgeServer({ port: 0, onEvent: () => {}, mcpHandler });
+  const address = await bridge.listen();
+  context.after(async () => {
+    await bridge.close();
+  });
+  const connectClient = async (name) => {
+    const client = new Client({ name, version: "1.0.0" });
+    await client.connect(
+      new StreamableHTTPClientTransport(
+        new URL(`http://127.0.0.1:${address.port}/mcp`),
+      ),
+    );
+    return client;
+  };
+
+  const first = await connectClient("evict-first");
+  const second = await connectClient("evict-second");
+  assert.equal(closed.length, 1);
+  assert.equal(new Set(closed).size, closed.length);
+  await second.close().catch(() => {});
+  await first.close().catch(() => {});
+});

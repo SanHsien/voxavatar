@@ -21,3 +21,15 @@ test("maps window and configured animation URLs without accepting another scheme
   assert.equal(parseProtocolUrl("another-product://show"), null);
   assert.equal(parseProtocolUrl("not a URL"), null);
 });
+
+test("speaking without a level parameter emits no audio-level event", () => {
+  for (const url of [
+    "voxavatar://speaking",
+    "voxavatar://speaking?level=",
+    "voxavatar://speaking?level=%20",
+  ]) {
+    const commands = parseProtocolUrl(url);
+    assert.equal(commands.length, 1, url);
+    assert.equal(commands[0].event.state.activity, "speaking");
+  }
+});

@@ -27,7 +27,9 @@ function parseProtocolUrl(rawUrl, protocolScheme = "voxavatar") {
     }
     if (action === "speaking") {
       const commands = [{ type: "event", event: voiceState("speaking") }];
-      const level = Number(url.searchParams.get("level"));
+      // Number(null) 與 Number("") 都是 0；缺參數不能被當成音量 0。
+      const rawLevel = url.searchParams.get("level")?.trim() ?? "";
+      const level = rawLevel === "" ? Number.NaN : Number(rawLevel);
       if (Number.isFinite(level)) {
         commands.push({
           type: "event",

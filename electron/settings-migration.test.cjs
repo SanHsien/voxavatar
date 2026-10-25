@@ -122,3 +122,29 @@ test("safeReadState migrates schema 11 with an empty idle exclusion list", () =>
   assert.deepEqual(result.state.idle_pool_excluded_animation_ids, []);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test("safeReadState backs up an unparsable settings file before falling back", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-migration-"));
+  const settingsPath = path.join(dir, "settings.json");
+  const damaged = '{"schema_version": 12, "models": [';
+  fs.writeFileSync(settingsPath, damaged, "utf8");
+  const result = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(result.migrated, false);
+  assert.equal(result.migration_error, "unreadable");
+  assert.equal(result.state.schema_version, SETTINGS_SCHEMA_VERSION);
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    damaged,
+  );
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("safeReadState does not create a backup on first run without settings", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-migration-"));
+  const settingsPath = path.join(dir, "settings.json");
+  const result = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(result.migrated, false);
+  assert.equal(result.migration_error, undefined);
+  assert.equal(fs.existsSync(`${settingsPath}.unmigratable-backup`), false);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

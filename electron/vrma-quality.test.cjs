@@ -13,6 +13,7 @@ const {
   normalizeQualityGate,
   normalizeQualityScoreThresholds,
   normalizeReportDir,
+  readGlb,
   writeMarkdownReport,
 } = require("./vrma-quality.cjs");
 const { buildRotationVrma } = require("./fixtures/vrm-vrma/builders.cjs");
@@ -225,4 +226,27 @@ test("markdown report lists reject details and can be written", (context) => {
   assert.equal(path.basename(reportPath), "voxavatar-vrma-report.md");
   assert.ok(fs.existsSync(reportPath));
   assert.match(fs.readFileSync(reportPath, "utf8"), /把關模式：`strict`/);
+});
+
+test("readGlb rejects oversized files by size before reading them into memory", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-glb-size-"));
+  const filePath = path.join(dir, "huge.vrma");
+  try {
+    fs.writeFileSync(filePath, Buffer.alloc(0));
+    fs.truncateSync(filePath, 200 * 1024 * 1024 + 1);
+    const original = fs.readFileSync;
+    let readWholeFile = false;
+    fs.readFileSync = function (target, ...rest) {
+      if (target === filePath) readWholeFile = true;
+      return original.call(this, target, ...rest);
+    };
+    try {
+      assert.throws(() => readGlb(filePath), /200 MB|過大/);
+    } finally {
+      fs.readFileSync = original;
+    }
+    assert.equal(readWholeFile, false);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

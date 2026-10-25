@@ -130,7 +130,13 @@ function normalizeReportDir(value) {
   return path.resolve(trimmed);
 }
 
+// 與 settings-asset-validation 的匯入上限一致；超過者匯入必被拒，不必先整檔讀入分析。
+const MAX_GLB_ANALYSIS_BYTES = 200 * 1024 * 1024;
+
 function readGlb(filePath) {
+  if (fs.statSync(filePath).size > MAX_GLB_ANALYSIS_BYTES) {
+    throw new Error("檔案過大（超過 200 MB），略過品質分析。");
+  }
   const buffer = fs.readFileSync(filePath);
   if (buffer.length < 12) {
     throw new Error("檔案過短，不是有效的 GLB。");

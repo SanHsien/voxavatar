@@ -5,8 +5,8 @@
     "reason": "typescript-eslint 8.71.0 still requires TypeScript >=4.8.4 <6.1.0. TypeScript 7.0.2 is outside that peer range and breaks linting; keep TypeScript 6.0.3 until typescript-eslint supports 7."
   },
   "@types/node": {
-    "deferredLatest": "26.6.4",
-    "reviewed": "2026-10-03",
+    "deferredLatest": "26.6.5",
+    "reviewed": "2026-10-25",
     "reason": "CI builds with Node 24, so the installed types stay on the Node 24 line. Node 26 declarations could expose APIs missing from that build runtime. Revisit when CI and the supported runtime move to Node 26."
   }
 }

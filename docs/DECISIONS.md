@@ -1,8 +1,16 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-10-24
+最後修訂：2026-10-25
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-10-25：Electron 升到 45.0.0，`@types/node` 暫緩對到 26.6.5
+
+**決定**：`electron` 由 `^44.9.3` 升到 `^45.0.0`（lockfile 解析為 45.0.0），`allowScripts` 的 `electron@` 鍵同步改為 `45.0.0`。`@types/node` 的 deferral 由 26.6.4 重新對到 26.6.5，理由不變（CI 以 Node 24 建置）。這兩項是 issue #11 當時列出的待評估項目；`typescript` 7 的暫緩不變。
+
+**依據**：逐條對過 Electron 45.0 的 breaking changes——本 fork 的視窗皆為 `sandbox: true`、`nodeIntegration: false`，preload 與渲染端不用 Node shim／`Buffer`／`setImmediate`，也不用 `safeStorage`、`getUserMedia` desktop 來源、`contentTracing`，所以沒有需要改的程式。本機以 Electron 45.0.0 跑過 `npm run check`（lint、docs、Node 與 renderer 測試、assets、audit、build）全綠；`electron .` 在 Windows 上啟動並存活超過 10 秒、無錯誤輸出。
+
+**未驗**：打包安裝版的桌面驗收（VRM 外觀、VRMA 播放、嘴形、系統匣、DPI）仍依發行流程在下次 Release 前另做；本輪只證明啟動與自動化測試。
 
 ## 2026-10-24：一次清掉 Dependabot 安全警示與積壓的依賴 PR
 

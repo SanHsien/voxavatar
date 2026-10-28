@@ -54,9 +54,9 @@ npm run native:test
 每次準備送出變更前，檢討並視需要更新：
 
 - `CHANGELOG.md`（使用者可觀察變更）
-- `ROADMAP.md`／`ROADMAP.en.md`（完成項、基準版本、下一步）
+- `ROADMAP.md`／`ROADMAP.en.md`（現況快照、近期與中期工作；做完的項目刪列）
 - `README.md`／`README.en.md`（能力與指引是否仍正確）
-- 若邊界改變：`SECURITY*`、`docs/DECISIONS.md`；健康狀態寫在 `ROADMAP*`「目前健康」
+- 若邊界改變：`SECURITY*`、`docs/DECISIONS.md`；健康狀態寫在 `ROADMAP*`「現況」
 
 雙語公開文件請成對修改。細節見 [`AGENTS.md`](AGENTS.md)。
 

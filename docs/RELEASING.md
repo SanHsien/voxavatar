@@ -62,7 +62,7 @@ gh api repos/SanHsien/voxavatar/releases/latest
 發布工作尚未完成，直到以下收尾全部處理：
 
 - 下載正式 installer 與 `SHA256SUMS.txt`，核對 GitHub digest、本機 SHA-256、檔案大小與 Authenticode／PE Certificate Table。
-- 新增或更新 `docs/release-evidence/v{version}/`，同步 README、ROADMAP 與 CHANGELOG 的 Latest／已驗／未驗狀態。
+- 新增或更新 `docs/release-evidence/v{version}/`，同步 README 與 CHANGELOG 的 Latest／已驗／未驗狀態，並更新 [`ROADMAP.md`](../ROADMAP.md)（及其英文版）「現況」的快照（版號、日期、查證的 commit）、刪掉已完成的近期項目。
 - 本輪若使用本機 VRM／VRMA 來源，依實際策展結果整理來源目錄，並重新核對數量、SHA-256 與品質報告；不把私人絕對路徑或未授權媒體提交到 repo。
 - 完成上述項目後再宣告 Release 收尾；**發布後補證據與整理本機來源仍屬剛發布版本，不得只為這些動作另建下一個 patch 版號**。若 tag 已建立，必要的證據／文件修正可另 commit 到 `main`，但 `package.json` 維持該發布版號。
 
@@ -144,4 +144,4 @@ Get-AuthenticodeSignature .\VoxAvatar-*-windows-x64-setup.exe
 
 ### 完成判定
 
-只有自動 gate、下載資產 SHA-256 與本節相關實機項目都有證據時，才可在 [`ROADMAP.md`](../ROADMAP.md)「目前健康」或 Release notes 宣稱該版本完成 Windows 實機驗收。單獨的 workflow success、installer 存在或本機開發版 smoke 都不夠。
+只有自動 gate、下載資產 SHA-256 與本節相關實機項目都有證據時，才可在 [`ROADMAP.md`](../ROADMAP.md)「現況」或 Release notes 宣稱該版本完成 Windows 實機驗收。單獨的 workflow success、installer 存在或本機開發版 smoke 都不夠。

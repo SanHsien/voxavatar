@@ -1,141 +1,44 @@
-# VoxAvatar product roadmap
+# Roadmap
 
 [繁體中文](ROADMAP.md) · English
 
-Updated: 2026-10-02
-Planning baseline: `1.0.7` (`main`; GitHub Latest Release: `v1.0.7`; upstream eval in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1)
+> The single source of truth for this repo's upcoming work. When an item is done, delete its row in the same commit; new work is added only here.
+> The numbers in the Current State section are a snapshot taken on 2026-10-29 against `main` `5f342597e4b4`. Re-check GitHub before starting work.
+>
+> This file is a translation of [`ROADMAP.md`](ROADMAP.md), which is authoritative; if the two disagree, the Traditional Chinese file wins. Some quoted source locations (for example headings inside other documents) are given in English with the original Traditional Chinese heading in parentheses.
 
-VoxAvatar is a **local-first Windows desktop character presentation layer that AI agents can control through explicit, testable boundaries**. Versions express dependency order, not delivery dates. See [`CHANGELOG.md`](CHANGELOG.md) for completed work.
+## Current State
 
-> **Doc entry**: the former standalone `REVIEW.md` was merged into “Current health” in 0.13.3. Do not create a parallel review file. `CHANGELOG` covers finished work; this file covers health and open gaps.
+VoxAvatar: a Windows-only, local-first VRM desktop character whose lip-sync is driven by speech output level, controllable through a loopback-only MCP server; private (`AGENTS.md`, `docs/DECISIONS.md`). Health: the latest runs on `main` of CI, CodeQL, Release, Upstream check and Dependency freshness all succeeded (2026-10-25 to 10-28); 0 open issues, 0 open PRs, 0 Dependabot and Code scanning alerts; the latest release is v1.0.7 (2026-09-30), and `main` has since merged the Electron 45 upgrade and four deep-scan fixes that have not been released yet (checked with `gh`, 2026-10-29). What is blocking is verification that needs a Windows desktop, a signing certificate or a special environment, not a code defect; the known hardware-verification gaps (multiple DPI settings, 30% character size, the tray, uninstall, long Idle runs, SmartScreen, real COM/WASAPI failures, samples from other exporters) are all listed in the tables below, and anything not listed is treated as having no known gap. The upstream `xikhar/persona` watermark is at `ffd5cb0` (`scripts/upstream-baseline.json`), and the upstream check has nothing awaiting review.
 
-## Current health
+## Near Term: Ready to Start
 
-Review baseline: `1.0.7` / `main`; GitHub Latest Release: `v1.0.7`
+| Item | Why | Acceptance | Suggested executor | Evidence |
+| --- | --- | --- | --- | --- |
+| Windows hardware acceptance of the packaged Electron 45 build (a prerequisite for the next release) | The Electron 44 to 45 upgrade has only been shown to start and pass the automated tests; nobody has looked at the packaged installed app's VRM appearance, VRMA playback, mouth shapes, tray and DPI behavior, and CI cannot see them | Tick through the hardware section of `docs/RELEASING.md` item by item; add `docs/release-evidence/<version>/windows-smoke.md` recording the Windows build, DPI, and the install / launch / tray / MCP / lip-sync results with screenshots; if any item fails, open an issue and hold the release | Maintainer | `docs/DECISIONS.md`, the "Not verified" (未驗) paragraph of "2026-10-25: Electron upgraded to 45.0.0"; commit `b096e23`; `docs/release-evidence/v1.0.7/windows-smoke.md` (format of the previous release) |
+| Add tests for the MCP session-termination (HTTP `DELETE`) path | The deep scan found this path has no tests, while `electron/mcp-server.cjs` already has two paths, eviction and sweeping, that notify `onSessionClosed`, and a duplicate notification was just fixed | Add a test: after sending `DELETE` with a valid `mcp-session-id`, the session is removed, `onSessionClosed` is called exactly once, and sending the same ID again returns 404; `npm run check` green | Claude Sonnet | `electron/mcp-server.cjs:362-405` (`handler` has no `DELETE` branch; it is left to the transport); `electron/mcp-server.test.cjs` has no `DELETE` case; the deep-scan report (2026-10-26), "Deliberately not fixed / observation" (刻意不修／觀察) |
+| The two kinds of `settings.json` backup use different file names so they stop overwriting each other | Both the "schema version not recognized" path and the "file corrupt and unreadable" path write `settings.json.unmigratable-backup`, so the later one overwrites the earlier one and the user may lose the more valuable copy | Each case has a test, and when they occur back to back both backups exist; the existing assertions in `electron/settings-migration.test.cjs` and `electron/settings-store.test.cjs` still pass after being updated; `npm run check` green | Claude Sonnet | `electron/settings-migration.cjs:196-199`, `:311` (same file name); `electron/settings-migration.test.cjs:77,136,148`; `electron/settings-store.test.cjs:984-988` |
 
-No known open P0/P1. `1.0.0` stabilizes the existing Windows-only, local-first, loopback-only MCP, level-driven lip-sync, and no-microphone product boundaries. `1.0.4` on `main` adds four redistribution-cleared VRMs scoring 100 / `keep` and 13 explicitly CC0 VRMAs scoring 78–100 / `keep`; all 18 unlicensed upstream VRMAs and ten local `review` motions remain excluded. Real-machine testing on Windows 11 found and fixed mixed Big5/UTF-8 process JSON from Traditional Chinese Windows PowerShell 5.1: automatic voice discovery no longer enters `launch_failed`, and a system-output TTS pass again proved the `speaking` / `listening` path. The general upstream-code watermark remains `152b1b4` (2026-08-10; see the renewed asset decision for #17 in [`docs/DECISIONS.md`](docs/DECISIONS.md) §1).
+## Mid Term: Do Once the Condition Holds
 
-- Formal Release: `v1.0.7` (Release workflow `36738174882` at tag SHA `86f9ef8` completed the licensed-asset gate, Node 24 check, full dependency audit, Windows native build/self-test, NSIS packaging, and publishing; the installer GitHub digest, `SHA256SUMS.txt`, and local SHA-256 match, with Authenticode `NotSigned` confirmed by an empty PE Certificate Table). This round did not run desktop install/upgrade/uninstall/tray/DPI/live-voice checks; the partial 1.0.5 desktop evidence remains historical only. GitHub retains only the `v1.0.7` Release/tag, and the local clone retains only that tag.
-- Security baseline: Electron is updated to 44.5.1. `extract-zip@2.0.1`, affected by GHSA-jmr9-qjv8-65gv, remains absent from the lockfile, and transitive dependencies with security advisories were updated. The full dependency audit reports zero vulnerabilities; daily / CI gates inspect all dependencies.
-- Bundled assets: VRoid Sample A/B/C, Tsukuyomi-chan Type A, and 13 CC0 VRMAs all pass source, redistribution, quality-`keep` (default >75; 75 is `review`), and SHA-256 review. Idle, Speaking, and ten custom actions work out of the box; `assets:release` recomputes every digest.
-- Upstream: commit watermark `152b1b4` (2026-08-10, evaluated). Of the 12 commits: 6 rejected (the four VRoid Hub account commits and the #23 scheduler among them), 1 already covered, 1 not applicable, 4 shortlisted. Open PRs: #45 rejected (microphone capture crosses a hard boundary), #47 out of scope, #46 shortlisted, #48 partially adopted and shipped. Open issues: #43 already covered and further hardened, #44 / #18 out of scope, #35 shortlisted, #11 already covered.
-- MCP tools: 6; HTTP `character-state`; tray manual state; Speaking secondary head/torso cue shipped.
-- System state slots preselect when playable; Settings includes expandable action-pack help and a copyable example; optional “Assign by filename”. Setup progress panel hides after required items are done; clips support preview, rename, purpose, move, and an unassigned pool.
-- The 1.0.6 idle pool includes every non-speaking action by default and lets Settings exclude action types; `TALK`, the Speaking slot, and its bound action are forced out. Schema 12 and the store / IPC / preload / renderer paths have contract coverage.
+| Item | Trigger | Acceptance | Suggested executor | Evidence |
+| --- | --- | --- | --- | --- |
+| Publish the next release (v1.0.8 or as the maintainer sets it) | The near-term Electron 45 hardware acceptance has passed | Per `docs/RELEASING.md`: the `package.json` version matches the tag; the Release workflow succeeds; the downloaded installer and `SHA256SUMS.txt` are checked against the GitHub digest, the local SHA-256, the file size and the PE Certificate Table; add `docs/release-evidence/v<version>/`; the version mentions in `CHANGELOG.md` and README are synced (`npm run docs:check` checks this) | Maintainer | `package.json:3` (1.0.7); `gh release list -R SanHsien/voxavatar`; `docs/RELEASING.md:60-67,140-147` |
+| Complete the hardware matrix: 100%/150% DPI, 30% character size, tray, keyboard operation, uninstall, a long Idle run and a memory baseline when switching models, and clip IDs that make a full idle/speaking shuffle-playlist cycle observable | The maintainer has a block of full Windows desktop time, and the Electron 45 hardware acceptance is done | Each item has a result, screenshot or measured value in `docs/release-evidence/<version>/windows-smoke.md`; the shuffle playlist is shown, through observable clip IDs, not to repeat within a full cycle; anything that cannot be verified says "not verified" and why, with no fabricated completion | Maintainer | `npm run baseline:startup` (`scripts/startup-baseline.cjs:123,133`, which states it excludes GUI cold start, Idle and memory); `docs/release-evidence/v1.0.7/windows-smoke.md`; `docs/CHARACTER_BEHAVIOR.md:157` |
+| Signing the installer and SmartScreen / publisher acceptance | The maintainer obtains a code-signing certificate | The Authenticode signature on the official assets is valid and the publisher is correct; SmartScreen behavior and the upgrade path are recorded in `docs/release-evidence/`; `npm run evidence:verify` and the "unsigned" notices in README / SECURITY / About are rewritten together | Maintainer | `docs/release-evidence/v1.0.7/manifest.json` (official assets `NotSigned`); `docs/RELEASING.md` |
+| Manual results for real native COM / WASAPI / Device / Event failure paths and for samples from other exporters | A controllable COM/WASAPI failure environment is available (for example the audio service disabled, or a virtual device), or VRoid / UniVRM / Blender samples with clear licenses are obtained | Failure paths: the typed exit corresponding to the real HRESULT and the `native_helper_*` error codes show up as plain-language hints in Settings; exporters: results are filled in following the schema in `docs/release-evidence/_templates/`, with evidence of switching the 3 built-in VRMs and playing clip by clip; the sample licenses are recorded in `ASSET_LICENSES.md` first | Maintainer | `docs/release-evidence/_templates/exporter-results.json`; `docs/DECISIONS.md:451` |
+| When `settings.json` is temporarily locked (`EBUSY` / `EACCES`) and the backup fails too, later saves still overwrite the user's settings | The maintainer decides the policy: refuse to save and notify when the backup fails, or keep the current behavior | The decision is written into `docs/DECISIONS.md`; a test simulates a backup failure and confirms the behavior follows the decision (refuse to overwrite and report an identifiable error, or explicitly record that the risk is accepted); normal saves are unaffected | Claude Opus | `electron/settings-migration.cjs:196-205,311-315` (when the backup fails, `catch {}` is followed by a fall back to the default state); the deep-scan report (2026-10-26), "Deliberately not fixed / observation" (刻意不修／觀察) |
+| Pick the next feature from the candidate list in `docs/DECISIONS.md`: Alt+drag to move the window (#25), showing VRM meta license terms (#29), drag / orbit secondary motion (#39 / #42), motions bound to VRM expressions (#46 / #35) | The hardware-verification gaps above are closed or explicitly downgraded; for motion-bound expressions, first define which wins against the expression driven by lip-sync | After one is chosen, first write its spec and priority order in `docs/DECISIONS.md`; the implementation has contract tests; the local-first and loopback-only boundaries are not relaxed; `npm run check` green | Claude Opus | `docs/DECISIONS.md:329-331` (candidate list); `docs/DECISIONS.md:279` (#46 / #49 / #50 / #54 candidates, not implemented) |
 
-The 1.0.4 candidate used Node 24.19.0 for lint, 305 Node tests, 152 renderer tests, the production build, the release asset gate, and a local `electron-builder` NSIS package; the packaged app contains exactly four VRMs and 13 VRMAs. Release workflow `31795033665` then completed the licensed-asset gate, Node 24 check, Windows native build, NSIS packaging, and publishing; the downloaded SHA-256 and two independent `NotSigned` checks match. A Windows 11, 225% DPI fresh-userData smoke rendered AvatarSample_A and listed the complete catalog; no claim is expanded to formal install/upgrade, 100% / 150% DPI, switching the other three models, or per-clip playback.
+## Deliberately Not Doing
 
-### Verification gaps (marked unverified; never fabricate completion)
-
-| Item | Status | Reason |
+| What we will not do | Why | When to reconsider |
 | --- | --- | --- |
-| Real-desktop confirmation of the 0.16.21–0.16.23 idle and speaking shuffle-bag cycling | **Partially verified** | The 1.0 candidate plays Idle and Speaking with visible motion; a full no-repeat round still has only shuffle-bag contract tests because no clip ID is exposed for observation |
-| Windows GUI smoke (install/upgrade/uninstall/tray/MCP/DPI/keyboard) | **Partially verified** | Both the local candidate 0.16.23→1.0.0 and formal-download 1.0.0→1.0.2 upgrades preserved settings; Settings, preview, About, MCP/bubbles/window control passed at 225% DPI; uninstall, tray, and keyboard matrix remain open |
-| 30% character size and multi-DPI readability | **Partially verified** | 225% DPI at 50% character size is readable; 30% and 100%/150% remain unverified |
-| Idle long-run / model-switch memory (GUI residency) | **Unverified** | Only a short GUI session was run; `baseline:startup` excludes GUI |
-| Installer signing / publisher / SmartScreen / upgrade path | **Partially verified** | Formal runner assets from 1.0.0 through 1.0.7 are proven `NotSigned` (1.0.7 via an empty PE Certificate Table); the 0.16.23→1.0.0 and 1.0.0→1.0.2 upgrades preserved user data, while formal upgrades from 1.0.4 onward remain unverified. SmartScreen and publisher remain open |
-| Native COM/WASAPI/Device/Event **real** failure paths | **Unverified** | Usage=2 assertable on runner; real audio/COM failures need the environment |
-| Real VRoid/UniVRM/Blender sample results | **Partially verified** | All four bundled VRMs score 100 / `keep`; all 13 bundled VRMAs score 78–100 / `keep`. A Windows fresh-userData smoke rendered AvatarSample_A and listed all four models / 13 clips; switching the other three models, per-clip playback, and other exporters remain open |
+| Microphone capture, recording, transcription, or saving or uploading audio; opening the MCP / HTTP bridge to the LAN / Internet or adding arbitrary command / file access; inferring text or emotion from the chat screen or audio; running an LLM inside VoxAvatar or keeping chat history | These are hard product boundaries (local-first, loopback-only, level-driven lip-sync); upstream PR #45, which includes the microphone, is not merged for this reason | The maintainer explicitly changes the product positioning and rewrites `SECURITY.md` |
+| VRoid Hub account integration, macOS / Linux distribution, shipping VRM / VRMA files of unconfirmed license, and merging large upstream subsystems wholesale (Kimodo #70, the animation scheduler #23, the TypeScript migration #51) | They conflict with local-first and Windows-only, or have an unclear license, or duplicate this fork's already verified implementation (`docs/DECISIONS.md` section 1 judges each one) | Upstream changes shrink to something that can be evaluated individually, or the maintainer changes the scope; first read the corresponding row in `docs/DECISIONS.md` |
+| Upgrade `typescript` to 7 | The peer range of `typescript-eslint` 8.71.0 does not include TypeScript 7, so lint would break after the upgrade | `typescript-eslint` supports TypeScript 7 (`.github/dependency-deferrals.json` re-raises it automatically when the version changes) |
+| Upgrade `@types/node` to 26 | CI builds on Node 24, and the Node 26 types may expose APIs the build runtime does not have | CI and the supported runtime move to Node 26 |
 
-### Doc claims aligned / still open (not Windows-blocked)
+## Maintenance
 
-| Item | Status | Notes |
-| --- | --- | --- |
-| Lip-sync / head projection narrative | **Aligned** | Scene bone wiring shipped |
-| HTTP/env/external/MCP UI/TTL/message contract | **Shipped** | See 0.15.2 |
-| Bubble “source priority” | **Docs corrected** | Bounded queue without cross-source priority |
-| User manual state UI | **Shipped** | Tray/context; menu structure tested |
-| Native typed exit / NDJSON `code` | **Code + Usage=2 assert shipped** | JS/listener tests covered; real COM/WASAPI failures unverified |
-| Speaking secondary head/torso cue | **Shipped** | Pure logic + Avatar wiring; real-machine look unverified |
-
-Product remains **Windows-only**; do not restore Linux/macOS shipping.
-
-## Principles
-
-1. Privacy, security, licensing, and release correctness come first.
-2. Character reactions must be understandable and degradable without guessing chat content or emotion.
-3. Automate pure logic and contracts; keep real Windows evidence for desktop behavior, WASAPI, DPI, tray, and installers.
-4. Regular development does not require Visual Studio Build Tools; the GitHub Windows runner is the canonical native and installer gate.
-5. Do not compete on bundled characters, motions, or agent count; do not expand into a chat client.
-6. **Close existing gaps and doc/implementation drift before new features**; mark what cannot be verified as unverified.
-
-## Completed summary
-
-| Series | Highlights |
-| --- | --- |
-| v0.1–v0.13 | Windows-only fork baseline; `REVIEW` → Current health (details in CHANGELOG) |
-| v0.14–v0.15 | State slots / MCP / HTTP / head projection / manual state / typed exit |
-| v0.16.0–0.16.9 | Speaking secondary, tray, slot defaults, action-pack, clip pool/preview, UI spacing |
-| v0.16.10–0.16.23 | `vrma:curate`, contracts, NotSigned/evidence, helper/MCP redaction (incl. the 0.16.20 placeholder-tail fix), CodeQL, i18n/sanitize/IPC, evidence-path scaffolding, idle/speaking cycling fixes and the shuffle bag (0.16.21–0.16.23) |
-| v1.0.0 | Stable product contract; UTF-8 fix for Traditional Chinese Windows process discovery; candidate 225% DPI GUI/WASAPI/MCP real-machine smoke |
-| v1.0.1 | Post-release `v1.0.0` runner asset/workflow/Latest evidence and old-tag cleanup |
-| v1.0.2 | Formal installer desktop reinstall evidence; Settings MCP status reads live runtime state |
-| v1.0.3 | `v1.0.2` runner / Latest / formal upgrade and MCP-fix desktop evidence closeout |
-| v1.0.4 | Four licensed quality-`keep` VRMs, 13 CC0 quality-`keep` VRMAs, per-file SHA-256 release gate, and exclusion of unlicensed or `review` media |
-| v1.0.5 | Upgrade to supported Electron 43, remove symlink-path-traversal-affected `extract-zip`, enforce the full dependency audit in CI, and record the formal clean-install/MCP smoke |
-| v1.0.6 | Configurable non-speaking idle pool; forced Speaking / TALK exclusion; schema 12 persistence and UI / IPC contracts |
-| v1.0.7 | Keep drag positions within a display work area, remove repeated MCP action descriptions, refresh dependencies and security fixes; formal installer integrity verified, desktop lifecycle unverified |
-
-Per-version detail lives only in [`CHANGELOG.md`](CHANGELOG.md); this table stays collapsed.
-
-## Closing existing gaps
-
-### Automatable / evidence copy (done)
-
-- [x] State slots / MCP / HTTP / action-pack / head projection; jsdom / schema / env / external listener; manual state; typed exit + Usage=2.
-- [x] Speaking secondary, tray, `vrma:curate`, schema 10→11, IPC/Settings contracts, assign / show_message / secureRenderer.
-- [x] release-evidence (Latest SHA / NotSigned; `ci_gates` green); README / SECURITY / About unsigned labeling; helper_error copy and path redaction.
-- [x] Setup voice-code i18n; MCP/Settings voice-catalog path redaction; zh/en i18n key parity; helper state next-step hints; sanitize/migration/preload contracts.
-- [x] Settings notice redaction; tip evidence does not invent tags; dual-track redact fixtures; confirm-dialog / listener-pattern / TTL extraction; format / rate-limit / IPC channel contracts.
-- [x] `evidence:verify` / PE NotSigned; `--emit-error`; separate Event code; smoke sub-items; exporter schema; 30%/idle/theme contracts.
-- [x] Idle/speaking cycling: `shouldCycleRandomMotions`, `motionRestMsForAnimation`, `isSystemSlotFallbackMotion`, and the shuffle bag (round coverage / seam / pool change / random-source hardening) pure-logic contracts (real-desktop observation listed under verification gaps).
-- [x] Idle pool: every non-speaking action defaults in and user exclusions persist; Speaking / TALK and the bound action cannot be enabled, with static / interaction / migration / IPC contracts.
-
-### Still open / unverified (blocked on desktop, secrets, or licensed samples)
-
-- [~] Native COM/WASAPI/Device/Event **real** failure paths (HRESULT / device environment).
-- [~] Idle/DPI/30% real-machine readability / GUI smoke / installer signing & SmartScreen (see verification table).
-- [~] Real exporter manual results: four bundled VRMs and 13 VRMAs pass the automated quality gate; Windows fresh-userData rendered AvatarSample_A and read the complete packaged catalog. Switching the other three models, per-clip playback, and other exporter samples remain in the full matrix.
-
-### Evidence-path progress (automatable / Linux-safe; ≠ desktop complete)
-
-- [x] Usage=2 + JS typed-exit classification; `--emit-error` 10/11/12/13 contracts (real COM/WASAPI still unverified).
-- [x] Event exit **13** is `native_helper_event_error` (no longer folded into wasapi wording).
-- [x] `evidence:verify`: GitHub digest / SHA256SUMS / NotSigned label checks (≠ SmartScreen).
-- [x] Empty PE Certificate Table ⇒ machine-provable `NotSigned` (`evidence:pe`; ≠ publisher acceptance).
-- [x] Smoke checklist split into fillable sub-items; tip evidence can mark `ci_gates=pass` with tip SHA.
-- [x] Exporter evidence JSON schema / empty results table (`docs/release-evidence/_templates/`; no real results).
-- [x] Character size 30% / idle settings interaction contracts (multi-DPI readability unverified).
-
-## Full production-release assurance
-
-- [x] No known P0/P1; active operations report success or failure.
-- [~] Windows real-machine evidence. **Partially verified**; local candidate install/upgrade and 225% DPI smoke passed, while uninstall and the multi-DPI matrix remain open.
-- [~] Installer signing. **Unverified**; unsigned builds must be labelled explicitly.
-- [x] Settings/catalog/MCP schema version policies and tests.
-- [x] Failed imports do not lose data.
-- [~] Common exporters’ **real** compatibility results. **Partially verified**: the official VRoid sample passes the automated quality gate and AvatarSample_A passes a fresh-userData display smoke; the other three models and other exporters remain open.
-- [x] Privacy, loopback-only, media licensing, Windows-only, upstream attribution remain verifiable.
-
-### Completion gate
-
-- Every “unverified” row must gain evidence or an explicit downgrade note.
-- At least one published asset set has SHA-256, Windows smoke evidence, and recorded signing status.
-- `npm run check`, CI, CodeQL, and production audit have no unresolved high-risk findings.
-
-## Explicit non-goals
-
-- Microphone capture, recording, transcription, or retention/transmission of audio.
-- LAN/Internet exposure for MCP or the bridge, or arbitrary command/file access.
-- Inferring text, emotion, or work state from chat screens, audio, or other apps.
-- Redistributing unlicensed VRM/VRMA or restoring Linux/macOS releases.
-- Running an LLM, retaining chat history, or replacing a chat client inside VoxAvatar.
-- **No new feature tracks until existing gaps and unverified items are closed.**
-
-## Next three actions
-
-1. Fill the remaining real-machine matrix: 100% / 150% DPI, 30% character size, tray, keyboard, uninstall, idle residency, and a full shuffle round with observable clip IDs.
-2. When signing secrets, licensed samples, and a controllable COM-failure environment exist, add SmartScreen/publisher, real exporter, and true Native COM/WASAPI/Device/Event failure evidence.
-3. After those stability records mature, select the next explicit feature from [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 without expanding the established security boundary.
-
-Action↔VRMA auto-assignment policy is settled (pack / name preselect / whitelist confirm; no semantic guessing); see [`docs/DECISIONS.md`](docs/DECISIONS.md) §10. Do not open a semantic slotting track.
+The fork tracks `xikhar/persona`: the Upstream check compares against `reviewedThrough` in `scripts/upstream-baseline.json` every Monday at 11:07 (Asia/Taipei) and opens an issue only when there are new items; each item is judged as adopted, not merged, already covered, out of scope or pending evaluation, recorded in `docs/DECISIONS.md` section 1, and the watermark is advanced. A failure means upstream has unreviewed items, not that the tool is broken. Dependabot updates weekly; packages judged not to be upgraded for now are recorded in `.github/dependency-deferrals.json`, bound to the version at the time and invalidated automatically when the version changes; when upgrading Electron, always change the key of `allowScripts` too. To check the current state: `gh issue list -R SanHsien/voxavatar`, `gh api repos/SanHsien/voxavatar/dependabot/alerts?state=open`, `gh run list -R SanHsien/voxavatar -b main -L 8`.

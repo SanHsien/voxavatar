@@ -54,9 +54,9 @@ For native, installer, or protocol changes, also run `npm run dist:windows` and 
 Before sending a change, review and update as needed:
 
 - `CHANGELOG.md` (user-visible changes)
-- `ROADMAP.md` / `ROADMAP.en.md` (completed items, planning baseline, next actions)
+- `ROADMAP.md` / `ROADMAP.en.md` (current-state snapshot, near-term and mid-term work; delete a row once it is done)
 - `README.md` / `README.en.md` (capabilities and guidance still accurate)
-- Boundary changes: `SECURITY*`, `docs/DECISIONS.md`; current health lives under `ROADMAP*` “Current health”
+- Boundary changes: `SECURITY*`, `docs/DECISIONS.md`; current health lives under `ROADMAP*` “Current State”
 
 Keep bilingual public docs in pairs. See [`AGENTS.md`](AGENTS.md).
 

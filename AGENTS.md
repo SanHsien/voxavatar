@@ -40,7 +40,7 @@
 ## 文件分工
 
 - `README.md` / `README.en.md`：產品入口、下載、常用功能與必要安全摘要
-- `ROADMAP.md` / `ROADMAP.en.md`：未來工作與目前健康狀態
+- `ROADMAP.md` / `ROADMAP.en.md`：未來工作與現況快照（近期、中期、刻意不做）
 - `CHANGELOG.md`：正式版本的使用者可見變更
 - `SECURITY.md` / `SECURITY.en.md`：完整隱私與安全模型
 - `ASSET_LICENSES.md`：內建素材來源、限制與再散布條件
@@ -109,3 +109,7 @@ npm run dist:windows
   owner 必須是 `SanHsien`。不是就立刻 `gh pr close` 留言道歉說明，再對 origin 重開。
 - 2026-08-22 一天內兩個工作階段各誤開一個上游 PR（`lidge-jun/opencodex#2373`、
   `hamanpaul/paulsha-cortex#787`）。批次跑多個 repo 時最容易略過確認，而那正是兩次出事的場合。
+
+## 路線圖
+
+- `ROADMAP.md` 是本 repo 後續工作的單一真相源。完成或新增工作時，在同一個 commit 更新它：做完的列刪掉、新工作加進去。不要在其他文件另列待辦。

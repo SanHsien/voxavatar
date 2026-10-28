@@ -120,7 +120,7 @@ function buildStartupReport({
     appVersion: appVersion ?? null,
     scope: "node-main-modules",
     note:
-      "Measures Node require() cost for selected main-process modules only; Windows GUI cold-start, Idle residency, and memory baselines stay ROADMAP verification gaps until a desktop is available.",
+      "Measures Node require() cost for selected main-process modules only; Windows GUI cold-start, Idle residency, and memory baselines stay open in the ROADMAP mid-term real-device matrix until a desktop is available.",
     modules: moduleTimings,
     totals: {
       requireTotalMs,
@@ -130,7 +130,7 @@ function buildStartupReport({
       notes: [
         "Run on the same machine and Node version for comparable numbers.",
         "Use --include-build to optionally time npm run build (skipped by default).",
-        "Electron GUI cold-start and idle memory remain unverified without a Windows desktop (see ROADMAP verification gaps).",
+        "Electron GUI cold-start and idle memory remain unverified without a Windows desktop (see ROADMAP mid-term real-device matrix).",
       ],
     },
   };

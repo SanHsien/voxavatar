@@ -1,142 +1,36 @@
-# VoxAvatar 產品路線圖
+# 路線圖
 
-繁體中文 · [English](ROADMAP.en.md)
+> 本 repo 後續工作的單一真相源。做完一項，就在同一個 commit 刪掉那一列；新工作只加在這裡。
+> 現況段的數字是 2026-10-29 依 `main` `5f342597e4b4` 查的快照，開工前先重查 GitHub。
 
-更新日期：2026-10-02
-規劃基準：`1.0.7`（`main`；GitHub Latest Release：`v1.0.7`；上游評估見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）
+## 現況
 
-VoxAvatar 的定位是 **Windows 上本機優先、可由 AI agent 控制且安全邊界清楚的桌面角色呈現層**。版本表示依賴順序，不是日期承諾；已完成內容見 [`CHANGELOG.md`](CHANGELOG.md)。
+VoxAvatar：Windows-only、local-first 的 VRM 桌面角色，口型由語音輸出音量驅動，可經 loopback-only MCP 控制，私有（`AGENTS.md`、`docs/DECISIONS.md`）。健康：`main` 的 CI、CodeQL、Release、Upstream check、Dependency freshness 最近一次皆 success（2026-10-25～10-28）；open issue 0、open PR 0、Dependabot 與 Code scanning 告警 0；最新 release 是 v1.0.7（2026-09-30），`main` 之後已合併 Electron 45 升級與四項深掃修正但尚未發版（`gh` 實查，2026-10-29）。卡住的是需要 Windows 桌面、簽署憑證或特殊環境的驗證，不是程式缺陷；已知的實機驗證缺口（多 DPI、30% 角色、系統匣、移除、Idle 長跑、SmartScreen、真實 COM／WASAPI 失敗、其他 exporter 樣本）全部列在下方表格，未列入者視為沒有已知缺口。上游 `xikhar/persona` 的水位在 `ffd5cb0`（`scripts/upstream-baseline.json`），上游檢查沒有待審項目。
 
-> **文件入口**：原獨立 `REVIEW.md` 已於 0.13.3 併入本檔「目前健康」；不另建平行覆核檔。`CHANGELOG` 管已完成，本檔管健康狀態與未關閉缺口。
+## 近期：可以直接動手
+| 項目 | 為什麼 | 驗收方式 | 建議執行者 | 證據 |
+| --- | --- | --- | --- | --- |
+| Electron 45 打包版 Windows 實機驗收（發下一版之前的必要條件） | Electron 44→45 升級只證明了啟動與自動化測試，打包安裝版的 VRM 外觀、VRMA 播放、嘴形、系統匣與 DPI 沒人看過；CI 看不到 | 依 `docs/RELEASING.md` 實機章節逐項勾選；新增 `docs/release-evidence/<版本>/windows-smoke.md`，記錄 Windows build、DPI、安裝／啟動／系統匣／MCP／口型結果與截圖；任何一項失敗就開 issue 並暫緩發版 | 維護者 | `docs/DECISIONS.md`「2026-10-25：Electron 升到 45.0.0」之「未驗」段；commit `b096e23`；`docs/release-evidence/v1.0.7/windows-smoke.md`（上一版格式） |
+| 補 MCP 會話終止（HTTP `DELETE`）路徑的測試 | 深掃發現這條路徑沒有測試，而 `electron/mcp-server.cjs` 已有逐出、清掃兩條會通知 `onSessionClosed` 的路徑，剛修過重複通知 | 新增測試：以有效 `mcp-session-id` 送 `DELETE` 後會話被移除、`onSessionClosed` 恰好被呼叫一次、再送同 ID 回 404；`npm run check` 綠 | Claude Sonnet | `electron/mcp-server.cjs:362-405`（`handler` 沒有針對 `DELETE` 的分支，交給 transport）；`electron/mcp-server.test.cjs` 無 `DELETE` 案例；深掃報告（2026-10-26）「刻意不修／觀察」 |
+| `settings.json` 兩種備份使用不同檔名，不再互相覆蓋 | 「schema 版本不認得」與「檔案損毀讀不懂」兩條路徑都寫 `settings.json.unmigratable-backup`，後發生的蓋掉先發生的，使用者可能失去較有價值的那份 | 兩種情況各有測試，且連續發生時兩份備份都在；`electron/settings-migration.test.cjs` 與 `electron/settings-store.test.cjs` 原有斷言更新後仍綠；`npm run check` 綠 | Claude Sonnet | `electron/settings-migration.cjs:196-199`、`:311`（同一檔名）；`electron/settings-migration.test.cjs:77,136,148`；`electron/settings-store.test.cjs:984-988` |
 
-## 目前健康
+## 中期：等條件成立再做
+| 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |
+| --- | --- | --- | --- | --- |
+| 發佈下一版（v1.0.8 或維護者另訂） | 近期的 Electron 45 實機驗收通過 | 依 `docs/RELEASING.md`：`package.json` 版號與 tag 一致；Release workflow success；下載的 installer 與 `SHA256SUMS.txt` 核對 GitHub digest、本機 SHA-256、檔案大小與 PE Certificate Table；新增 `docs/release-evidence/v<版本>/`；`CHANGELOG.md` 與 README 的版本提及同步（`npm run docs:check` 會檢查） | 維護者 | `package.json:3`（1.0.7）；`gh release list -R SanHsien/voxavatar`；`docs/RELEASING.md:60-67,140-147` |
+| 補完實機矩陣：100%／150% DPI、30% 角色尺寸、系統匣、鍵盤操作、移除、Idle 長跑與切換模型的記憶體基準、待機／說話洗牌輪播整輪可觀察的 clip ID | 維護者有一段完整的 Windows 桌面時間，且 Electron 45 實機驗收已完成 | 每項在 `docs/release-evidence/<版本>/windows-smoke.md` 有結果、截圖或量測值；洗牌輪播以可觀察的 clip ID 證明整輪不重複；無法驗證者明寫「未驗」與原因，不虛構完成 | 維護者 | `npm run baseline:startup`（`scripts/startup-baseline.cjs:123,133`，明寫不含 GUI 冷啟動、Idle、記憶體）；`docs/release-evidence/v1.0.7/windows-smoke.md`；`docs/CHARACTER_BEHAVIOR.md:157` |
+| 安裝包簽署與 SmartScreen／publisher 驗收 | 維護者取得 code signing 憑證 | 正式資產 Authenticode 簽章有效、publisher 正確；SmartScreen 行為與升級路徑記入 `docs/release-evidence/`；`npm run evidence:verify` 與 README／SECURITY／About 的「未簽署」標示同步改寫 | 維護者 | `docs/release-evidence/v1.0.7/manifest.json`（正式資產 `NotSigned`）；`docs/RELEASING.md` |
+| 真實 Native COM／WASAPI／Device／Event 失敗路徑與其他 exporter 樣本的人工結果 | 取得可控的 COM／WASAPI 失敗環境（如停用音訊服務、虛擬裝置），或取得授權明確的 VRoid／UniVRM／Blender 樣本 | 失敗路徑：真實 HRESULT 對應的 typed exit 與 `native_helper_*` 錯誤碼出現在 Settings 的人話提示；exporter：結果依 `docs/release-evidence/_templates/` 的 schema 填寫，另 3 個內建 VRM 切換與逐片段播放有證據；樣本授權先記入 `ASSET_LICENSES.md` | 維護者 | `docs/release-evidence/_templates/exporter-results.json`；`docs/DECISIONS.md:451` |
+| `settings.json` 暫時被鎖（`EBUSY`／`EACCES`）導致備份也失敗時，後續存檔仍會覆蓋使用者設定 | 維護者決定策略：備份失敗就拒絕存檔並提示，或維持現狀 | 決定寫進 `docs/DECISIONS.md`；測試模擬備份失敗，確認依決定行為（拒絕覆蓋並回報可辨識的錯誤，或明確記錄接受風險）；不影響正常存檔 | Claude Opus | `electron/settings-migration.cjs:196-205,311-315`（備份失敗時 `catch {}` 後仍回退到預設狀態）；深掃報告（2026-10-26）「刻意不修／觀察」 |
+| 從 `docs/DECISIONS.md` 候選清單選下一個功能：Alt+drag 移動視窗（#25）、VRM meta 授權條款顯示（#29）、拖曳／環繞 secondary motion（#39／#42）、動作綁定 VRM 表情（#46／#35） | 上面的實機驗證缺口已關閉或明確降級；動作綁定表情須先定義與口型驅動的 expression 誰優先 | 選定一項後先在 `docs/DECISIONS.md` 寫規格與優先序；實作有契約測試；不放寬 local-first、loopback-only 邊界；`npm run check` 綠 | Claude Opus | `docs/DECISIONS.md:329-331`（候選清單）；`docs/DECISIONS.md:279`（#46／#49／#50／#54 候選，未實作） |
 
-覆核基準：`1.0.7`／`main`；GitHub Latest Release：`v1.0.7`
-
-沒有已知未解 P0／P1。`1.0.0` 將 Windows-only、local-first、loopback-only MCP、音量驅動口型與不擷取麥克風等既有產品邊界定為穩定契約。`1.0.4` 在 `main` 納入 4 個可再配布且品質 100／`keep` 的 VRM，以及 13 個來源明示 CC0、品質 78–100／`keep` 的 VRMA；上游 18 個未授權 VRMA 與本機 10 個只有 `review` 的動作仍排除。Windows 11 實機驗收發現並修正繁中 PowerShell 5.1 程序 JSON 的 Big5／UTF-8 混用：自動語音來源不再進入 `launch_failed`；系統輸出 TTS 亦再次證明 `speaking`／`listening` 鏈路。一般上游程式評估水位仍為 `152b1b4`（2026-08-10；素材 #17 的重新判定見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1）。
-
-- 正式 Release：`v1.0.7`（Release workflow `36738174882` 在 tag SHA `86f9ef8` 完成授權資產 gate、Node 24 check、完整依賴稽核、Windows native build／self-test、NSIS 打包與發布；安裝包 GitHub digest、`SHA256SUMS.txt` 與本機 SHA-256 一致，Authenticode `NotSigned` 經 PE Certificate Table 確認）。本輪未做安裝／升級／移除／系統匣／DPI／真實語音桌面驗收；1.0.5 的部分桌面證據仍只作歷史紀錄。GitHub 僅保留 `v1.0.7` Release／tag，本機也僅保留此 tag。
-- 安全基線：Electron 已更新至 44.5.1；受 GHSA-jmr9-qjv8-65gv 影響的 `extract-zip@2.0.1` 已從 lockfile 移除，另更新有安全公告的間接依賴。完整 dependency audit 為 0，日常／CI gate 檢查全部 dependencies。
-- 內建資產：VRoid Sample A／B／C、つくよみちゃん Type A 與 13 個 CC0 VRMA；全部同時通過原始來源、再配布、品質 `keep`（預設 >75；75 為 `review`）與 SHA-256 查核。Idle／Speaking 與 10 個自訂動作可直接使用；`assets:release` 會重算每個 digest。
-- 上游：commit 水位 `7ca65a3`（2026-08-22，已評估）。`152b1b4..7ca65a3` 的 13 個 commit 逐項判定：已涵蓋 2（#48 settings IPC 註冊點把關、#61 click-through，本 fork 皆已有且 #48 更嚴）、範圍外 3（VRoid Hub #47／#53、macOS 發行 #58）、不合併 4（#51 TypeScript 遷移、#56 eol-last plugin、#59／#60 Settings UI 拆分）、**候選 4**（#46／#49／#50／#54 動作綁定 VRM 表情——本 fork 目前只把 expression 用在 lip-sync 與眨眼，缺使用者可設定的動作↔表情綁定與 hold／release 事件，屬 fork 端實作而非 cherry-pick）。詳見 `docs/DECISIONS.md` §1。
-- 上游（前輪）：commit 水位 `152b1b4`（2026-08-10，已評估）。12 個 commit 判定為不合併 6（含 VRoid Hub 帳號連線四件與 #23 排程器）、已涵蓋 1、不適用 1、候選 4；open PR #45（含麥克風，撞硬性邊界）不合併、#47 範圍外、#46 候選、#48 部分採用已實作；open issue #43 已涵蓋＋已加固、#44／#18 範圍外、#35 候選、#11 已涵蓋。
-- MCP 工具：6 個；HTTP `character-state`；系統匣手動狀態；Speaking 第二層頭部／上身反應已落地。
-- 系統狀態動作槽有可播放時自動預選；Settings 可展開 action-pack 說明並複製範例；可選「依檔名建議分槽」。必要設定完成後不再顯示設定進度面板；動作片段可預覽／改名／改用途／搬移；未分類片段池可拖曳指定。
-- 1.0.6 的待機池預設納入所有非說話動作，可在 Settings 依動作種類取消；`TALK`、Speaking 槽及其綁定動作強制排除。schema 12、store／IPC／preload 與 renderer 互動均有契約測。
-
-1.0.4 候選曾以 Node 24.19.0 完成 lint、305 個 Node 測試、152 個 renderer 測試、production build、資產 release gate 與本機 `electron-builder` NSIS 打包；封裝內容為精確 4 個 VRM／13 個 VRMA。正式 Release workflow `31795033665` 後續完成授權資產 gate、Node 24 check、Windows native build、NSIS 打包與發布；下載檔 SHA-256 與兩路 `NotSigned` 證據已核對。Windows 11、225% DPI fresh-userData 已顯示 AvatarSample_A 並列出完整 catalog；正式安裝／升級、100%／150% DPI、另 3 模型切換與逐片段播放仍不擴大宣稱。
-
-### 驗證缺口（標未驗，不虛構完成）
-
-| 項目 | 狀態 | 原因 |
+## 刻意不做
+| 不做什麼 | 理由 | 什麼情況下重新考慮 |
 | --- | --- | --- |
-| 0.16.21–0.16.23 待機與說話洗牌輪播的實機確認 | **部分驗證** | 1.0 候選可播放 Idle／Speaking 且角色有動作；整輪不重複仍只有洗牌袋契約測，無可觀察 clip ID 的實機證據 |
-| Windows GUI smoke（安裝／升級／移除／系統匣／MCP／DPI／鍵盤） | **部分驗證** | 本機候選 0.16.23→1.0.0 與正式下載檔 1.0.0→1.0.2 升級均保留設定；225% DPI 設定／預覽／About、MCP／氣泡／視窗控制已驗；移除、系統匣與鍵盤矩陣待補 |
-| 30% 角色尺寸與多 DPI 實機可讀性 | **部分驗證** | 225% DPI、50% 角色尺寸可讀；30% 與 100%／150% 尚未驗 |
-| Idle 長跑／切換模型記憶體基準（GUI 長駐） | **未驗** | 本輪只做短時間 GUI 操作；`baseline:startup` 不含 GUI |
-| Installer 簽署／publisher／SmartScreen／升級路徑 | **部分驗證** | 1.0.0–1.0.7 正式 runner 資產均證明 `NotSigned`（1.0.7 為 PE Certificate Table 空）；0.16.23→1.0.0 與 1.0.0→1.0.2 升級均保留資料，1.0.4 起正式升級未驗。SmartScreen 與 publisher 待補 |
-| Native COM／WASAPI／Device／Event **真實**失敗路徑 | **未驗** | Usage=2 可由 runner 斷言；真實音訊／COM 失敗仍需環境 |
-| 真實 VRoid／UniVRM／Blender 樣本人工結果 | **部分驗證** | 4 個內建 VRM 自動品質分析皆 100／`keep`；13 個內建 VRMA 為 78–100／`keep`。Windows fresh-userData 已顯示 AvatarSample_A 並列出全部 4 模型／13 片段；另 3 模型切換、逐片段播放與其他 exporter 仍待補 |
+| 麥克風擷取、錄音、轉錄、音訊保存或上傳；將 MCP／HTTP bridge 開到 LAN／Internet 或加入任意命令／檔案存取；從聊天畫面或音訊推測文字、情緒；在 VoxAvatar 內執行 LLM 或保存聊天歷史 | 這是產品的硬性邊界（local-first、loopback-only、音量驅動口型），上游含麥克風的 PR #45 也因此不合併 | 維護者明確改變產品定位並重寫 `SECURITY.md` |
+| VRoid Hub 帳號整合、macOS／Linux 發行、散布未確認授權的 VRM／VRMA、整包併入上游的大型子系統（Kimodo #70、動畫排程器 #23、TypeScript 遷移 #51） | 牴觸 local-first 與 Windows-only，或授權不明，或與本 fork 已驗證的實作重複（`docs/DECISIONS.md` §1 逐項判定） | 上游變更縮小到可個別評估，或維護者改變範圍；先讀 `docs/DECISIONS.md` 對應列 |
+| 升級 `typescript` 到 7 | `typescript-eslint` 8.71.0 的 peer 範圍不含 TypeScript 7，升了 lint 會壞 | `typescript-eslint` 支援 TypeScript 7（`.github/dependency-deferrals.json` 會在版本變動時自動重新提醒） |
+| 升級 `@types/node` 到 26 | CI 以 Node 24 建置，Node 26 型別可能暴露建置 runtime 沒有的 API | CI 與支援的 runtime 升到 Node 26 |
 
-### 文件承諾已對齊／仍缺（非 Windows 阻塞）
-
-| 項目 | 狀態 | 說明 |
-| --- | --- | --- |
-| docs 口型／head 投影敘述 | **已對齊** | Scene bone 接線已落地 |
-| HTTP／env／external／MCP UI／TTL／訊息契約 | **已落地** | 見 0.15.2 |
-| 氣泡「來源優先序」 | **文件已改正** | 有界佇列、無跨來源優先 |
-| 使用者手動狀態 UI | **已落地** | 系統匣／右鍵；選單結構可測 |
-| Native 分型 exit／NDJSON `code` | **碼＋Usage=2 斷言已落地** | JS／listener 測齊；真實 COM／WASAPI 失敗未驗 |
-| Speaking 第二層頭部／上身反應 | **已落地** | 純邏輯＋Avatar 接線；實機觀感未驗 |
-
-產品維持 **Windows-only**，不恢復 Linux／macOS 發行。
-
-## 原則
-
-1. 隱私、安全、授權與發行正確性優先。
-2. 角色反應要可理解、可降級，不靠推測聊天或情緒。
-3. 純邏輯與契約盡量自動測試；Windows 桌面、WASAPI、DPI、系統匣與 installer 留實機證據。
-4. 一般開發不要求 Visual Studio Build Tools；原生與 installer 以 GitHub Windows runner 為正式 gate。
-5. 不以內建角色、動作或 agent 數量競賽；不擴張成聊天客戶端。
-6. **先關閉既有缺口與文件／實作漂移，不另開新功能**；無法驗證者只標未驗。
-
-## 已完成摘要
-
-| 系列 | 代表成果 |
-| --- | --- |
-| v0.1–v0.13 | Windows-only fork 基線；`REVIEW`→「目前健康」（細節見 CHANGELOG） |
-| v0.14–v0.15 | 狀態槽／MCP／HTTP／head 投影／手動狀態／typed exit |
-| v0.16.0–0.16.9 | Speaking 第二層、tray、狀態槽預設、action-pack、clip 池／預覽、UI 間距 |
-| v0.16.10–0.16.23 | `vrma:curate`、契約測、NotSigned／evidence、helper／MCP 遮罩（含 0.16.20 佔位符尾段修正）、CodeQL、i18n／sanitize／IPC、證據路徑腳手架、Idle／Speaking 輪播修正與洗牌袋（0.16.21–0.16.23） |
-| v1.0.0 | 穩定產品契約；繁中 Windows 程序列舉 UTF-8 修正；225% DPI GUI／WASAPI／MCP 候選實機驗收 |
-| v1.0.1 | `v1.0.0` 正式 runner 資產／workflow／Latest 證據與舊 tag 清理收尾 |
-| v1.0.2 | 正式 installer 桌面重裝證據；Settings MCP status 改讀 live runtime state |
-| v1.0.3 | `v1.0.2` runner／Latest／正式升級與 MCP 修正實機證據收尾 |
-| v1.0.4 | 4 個品質 `keep` 的已授權 VRM、13 個品質 `keep` 的 CC0 VRMA、逐檔 SHA-256 發行 gate；未授權與 `review` 媒體排除 |
-| v1.0.5 | 升級至受支援的 Electron 43；移除易受 symlink path traversal 影響的 `extract-zip`；完整 dependency audit 納入 CI；正式乾淨安裝與 MCP smoke |
-| v1.0.6 | 可設定的非說話待機池；Speaking／TALK 與其綁定動作強制排除；schema 12 持久化與 UI／IPC 契約 |
-| v1.0.7 | 視窗拖曳保留於螢幕工作區、MCP 動作描述去重、依賴與安全修補；正式安裝包完整性已驗，桌面生命週期仍未驗 |
-
-細部條目只保留在 [`CHANGELOG.md`](CHANGELOG.md)；本表不逐版展開。
-
-## 既有缺口收斂
-
-### 可自動驗證／證據說明（已完成）
-
-- [x] 狀態槽／MCP／HTTP／action-pack／head 投影；jsdom／schema／env／external listener；手動狀態；typed exit 與 Usage=2。
-- [x] Speaking 第二層、tray、`vrma:curate`、schema 10→11、IPC／Settings 互動契約、assign／show_message／secureRenderer。
-- [x] release-evidence（Latest SHA／NotSigned；`ci_gates` 綠）；README／SECURITY／About 未簽署標示；helper_error 人話與路徑遮罩。
-- [x] 設定進度語音碼人話；MCP／Settings 語音清單路徑遮罩；zh／en i18n 鍵對齊；helper 狀態下一步；sanitize／migration／preload 契約。
-- [x] Settings notice 遮罩；tip evidence 不虛構 tag；雙軌 redact fixture；確認對話／listener pattern／TTL 抽出；format／rate-limit／IPC 頻道窮舉契約。
-- [x] `evidence:verify`／PE NotSigned；`--emit-error`；Event 獨立碼；smoke 子項；exporter schema；30%／idle／theme 契約。
-- [x] Idle／Speaking 輪播：`shouldCycleRandomMotions`、`motionRestMsForAnimation`、`isSystemSlotFallbackMotion` 與洗牌袋（整輪覆蓋／跨輪接縫／池變動／亂數防禦）純邏輯契約（實機觀察見驗證缺口表）。
-- [x] 待機池：所有非說話動作預設納入、使用者排除可持久化；Speaking／TALK 與其綁定動作不可啟用，具 static／互動／migration／IPC 契約測。
-
-### 仍待／未驗（實機、密鑰或授權樣本阻塞）
-
-- [~] Native COM／WASAPI／Device／Event **真實**失敗路徑（HRESULT／裝置環境）。
-- [~] Idle／DPI／30% 實機可讀性／GUI smoke／Installer 簽署與 SmartScreen（見驗證缺口表）。
-- [~] 真實 exporter 人工結果：4 個內建 VRM 與 13 個 VRMA 已通過自動品質 gate；Windows fresh-userData 已顯示 AvatarSample_A 並讀出完整內建 catalog，另 3 模型切換、逐片段播放與其他 exporter 樣本仍待完整矩陣。
-
-### 證據路徑進度（可自動／可在 Linux 推進；≠ 實機完成）
-
-- [x] Usage=2＋JS typed-exit 分類；`--emit-error` 10／11／12／13 契約（真實 COM／WASAPI 仍未驗）。
-- [x] Event exit **13** 獨立為 `native_helper_event_error`（不再併入 wasapi 語彙）。
-- [x] `evidence:verify`：GitHub digest／SHA256SUMS／NotSigned 標示對照（≠ SmartScreen）。
-- [x] PE Certificate Table 空＝機器可證 `NotSigned`（`evidence:pe`；≠ publisher 驗收）。
-- [x] smoke checklist 拆成可分段填寫子項；tip evidence 可標 `ci_gates=pass` 並寫 tip SHA。
-- [x] exporter 證據 JSON schema／空結果表（`docs/release-evidence/_templates/`；無真實結果）。
-- [x] 角色尺寸 30%／idle 設定契約互動測（多 DPI 實機可讀性未驗）。
-
-## 正式發行完整驗收
-
-- [x] 沒有已知 P0／P1；主動操作有成功或失敗回饋。
-- [~] Windows 實機證據。**部分驗證**；本機候選安裝／升級與 225% DPI smoke 已完成，移除／多 DPI 矩陣仍待補。
-- [~] Installer 簽署。**未驗**；未簽署版本必須明確標示。
-- [x] settings／catalog／MCP schema 版本政策與測試。
-- [x] 匯入失敗不造成資料遺失。
-- [~] 常見 exporter **真實**相容結果。**部分驗證**：官方 VRoid sample 已通過自動品質 gate，AvatarSample_A 通過 fresh-userData 顯示 smoke；另 3 模型與其他 exporter 待補。
-- [x] 隱私、loopback-only、媒體授權、Windows-only、上游 attribution 可驗證。
-
-### 完成條件
-
-- 驗證缺口表所有「未驗」項取得證據或明確降級說明。
-- 至少一版正式資產有 SHA-256、Windows smoke 與簽章狀態紀錄。
-- `npm run check`、CI、CodeQL 與 production audit 無未處理高風險項。
-
-## 明確不做
-
-- 麥克風擷取、錄音、轉錄、音訊保存或上傳。
-- 將 MCP／HTTP bridge 開到 LAN／Internet，或加入任意命令／檔案存取。
-- 從聊天畫面、音訊或其他應用推測文字、情緒或工作狀態。
-- 散布未確認授權的 VRM／VRMA，或恢復 Linux／macOS 發行。
-- 在 VoxAvatar 內執行 LLM、保存聊天歷史或取代聊天客戶端。
-- **在既有缺口與未驗項關閉前，不另開新功能路線。**
-
-## 接下來三件事
-
-1. 補齊尚未覆蓋的實機矩陣：100%／150% DPI、30% 角色、系統匣、鍵盤、移除、Idle 長跑與可觀察 clip ID 的洗牌整輪證據。
-2. 等簽署密鑰／授權樣本／可控 COM 失敗環境：補 SmartScreen／publisher、真實 exporter 結果與 Native COM／WASAPI／Device／Event 真實失敗路徑。
-3. 上述穩定性證據成熟後，再從 [`docs/DECISIONS.md`](docs/DECISIONS.md) §1 候選清單選下一個明確功能，不擴張既有安全邊界。
-
-動作↔VRMA 自動對應政策已定（pack／同名預選／白名單確認；不做語意猜分），見 [`docs/DECISIONS.md`](docs/DECISIONS.md) §10；不再另開語意分槽路線。
+## 維護方式
+fork 追蹤 `xikhar/persona`：Upstream check 每週一 11:07（Asia/Taipei）比對 `scripts/upstream-baseline.json` 的 `reviewedThrough`，有新項目才開 issue；逐項判定為採用、不合併、已涵蓋、範圍外或待評估並寫進 `docs/DECISIONS.md` §1，推進水位。failure 代表上游有未審項目，不是工具壞。Dependabot 週更；判斷過暫不升的套件記在 `.github/dependency-deferrals.json`，綁定當時版本、版本變動自動失效；升 Electron 時務必同步改 `allowScripts` 的鍵。查現況：`gh issue list -R SanHsien/voxavatar`、`gh api repos/SanHsien/voxavatar/dependabot/alerts?state=open`、`gh run list -R SanHsien/voxavatar -b main -L 8`。

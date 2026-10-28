@@ -2,7 +2,7 @@
 
 最後修訂：2026-10-25
 
-本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與目前健康見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與現況見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
 ## 2026-10-25：Electron 升到 45.0.0，`@types/node` 暫緩對到 26.6.5
 
@@ -302,7 +302,7 @@ Open 項目未在本輪讀 diff：上游 PR #64、issue #63／#66／#67；#18 �
 | `22557aa` | #23 stateful animation scheduler | **不合併** | 3967＋／954－，含 `speech-signal`／`speaking-chunks` 等依附上游語音管線的子系統。本 fork 已於 0.16.21–0.16.23 以 `isSystemSlotFallbackMotion`＋`shouldCycleRandomMotions`＋洗牌袋解決實際缺陷，規模小且各有契約測。以外來大型子系統取代可用且已驗證的實作，代價高於效益。日後若要做「依語音分段排程」再回頭參考 |
 | `612fd7e` | #25 window size setting and Alt+drag | **部分採用（候選）** | 視窗尺寸設定與本 fork 角色縮放（下限 30%）重疊，不取；Alt+drag 提供「不必點中角色也能移動視窗」的路徑，對透明點穿視窗有實用價值，列候選 |
 | `cd09d68` `d95e006` `81b3a4c` `1e798fc` | #24／#28／#31／#34 VRoid Hub 帳號連線與瀏覽 | **不合併** | 引入外部服務 OAuth 帳號連線、token 保存與應用程式內線上瀏覽，牴觸 local-first 定位並新增憑證保存面（上游 plaintext storage 開關與 issue #44 皆由此線長出）。使用者仍可自 VRoid Hub 網站下載 VRM 再匯入，功能不缺 |
-| `0f0e1a4` | #29 extract VRM 1.0 conditions of use from vrm_meta | **部分採用（候選）** | 去除 VRoid Hub 相依後，「從 VRM meta 讀出授權條款並在 Settings 顯示」有助使用者遵循 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)，方向正確。屬新功能，依 ROADMAP 原則 6 先列候選 |
+| `0f0e1a4` | #29 extract VRM 1.0 conditions of use from vrm_meta | **部分採用（候選）** | 去除 VRoid Hub 相依後，「從 VRM meta 讀出授權條款並在 Settings 顯示」有助使用者遵循 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)，方向正確。屬新功能，依 ROADMAP「中期」的觸發條件先列候選 |
 | `49b185f` | #32 bump fast-uri and hono | **已涵蓋** | 本 fork 已由 Dependabot 於 0.16.20（fast-uri 3.1.5、GHSA-7p8r-x3mc-p8w7）與 0.16.22（hono 4.13.1）處理，lockfile 可核對 |
 | `582be3b` | #37 unbreak Electron install on Node.js 24.16.0+ | **不採用（不適用）** | 實測：本 fork 於 CI Node 24 與本機 Node 25.6.0 皆 `npm ci` 成功，`node_modules/electron/dist/electron.exe` 存在；雖仍解析到 `yauzl@2.10.0` 也未觸發。加 root `overrides` 會蓋住整棵相依樹的 yauzl，風險大於效益。日後真的安裝失敗再套 |
 | `6406641` `152b1b4` | #39／#42 drag／orbit secondary motion 與 lean 累加修正 | **部分採用（候選）** | 與本 fork Speaking 第二層是不同路徑（拖曳／環繞慣性與 spring bone），不衝突且觀感加分。屬新功能，列候選 |
@@ -326,7 +326,7 @@ Open 項目未在本輪讀 diff：上游 PR #64、issue #63／#66／#67；#18 �
 | [#35](https://github.com/xikhar/persona/issues/35) | Support VRM expressions in custom animation actions | **部分採用（候選）** | 同 PR #46，須先定 expression 優先序 |
 | [#18](https://github.com/xikhar/persona/issues/18) | Proposal: PocketJS-native VRM renderer and an Electron-free path | **範圍外** | 本 fork 明確維護 Windows Electron／WASAPI／NSIS 路線（§1） |
 
-#### 候選清單（已判定值得做，但依 ROADMAP 原則 6 排在既有缺口之後）
+#### 候選清單（已判定值得做，但依 ROADMAP「中期」的觸發條件排在既有實機驗證項之後）
 
 Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VRoid 相依）、drag／orbit secondary motion（#39／#42）、動作 VRM expression 並定義與口型的優先序（#46／#35）。
 | [#11](https://github.com/xikhar/persona/issues/11) | Docs: first-run guide for getting a VRM avatar and VRMA animations | **已涵蓋** | 需求為「首次如何取得／匯入 VRM／VRMA」。本 fork README「快速開始」＋ VRoid Hub／BOOTH／Studio 連結、[`ASSET_LICENSES.md`](../ASSET_LICENSES.md)、[`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md) 已覆蓋；追蹤 issue [`SanHsien/voxavatar#1`](https://github.com/SanHsien/voxavatar/issues/1) 已關閉。無需再合上游文件。 |
@@ -388,7 +388,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 
 - `AGENTS.md` 是**所有** AI agent 的單一真相源（含工作流程與硬性邊界）。`CLAUDE.md` 與 `SKILL.md` 只作薄入口並指向 `AGENTS.md`，不複製完整規則；Cursor 技能載入器讀 `SKILL.md`，Claude 讀 `CLAUDE.md`，其餘 agent 直接讀 `AGENTS.md`。
 - `README`、`ROADMAP`、`CONTRIBUTING`、`CODE_OF_CONDUCT`、`SECURITY` 以繁中為預設並提供英文版；內部維護文件只保留繁中（不另建英文平行檔，例如已刪除 `VRM_VRMA_COMPATIBILITY.en.md`）。
-- `ROADMAP` 管未來與「目前健康」、`CHANGELOG` 管已完成；不另建平行計畫檔或獨立 `REVIEW.md`。
+- `ROADMAP` 管未來與「現況」、`CHANGELOG` 管已完成；不另建平行計畫檔或獨立 `REVIEW.md`。
 - 來源／授權摘要與上游評估水位寫在本檔 §1；不另建 `NOTICE.md`／`UPSTREAM_EVAL.md`。
 - action-pack 契約寫在 [`CHARACTER_BEHAVIOR.md`](CHARACTER_BEHAVIOR.md)；Windows 實機驗收寫在 [`RELEASING.md`](RELEASING.md)。
 - Settings「系統狀態動作槽」：有可播放 Idle／Speaking（或同名）時對尚未設定的鍵自動預選——**listening 槽預選綁到 idle**（無獨立 listening 系統動作）；使用者明確選「未綁定」（存成 `null`）不覆寫。使用者面向的 action-pack 說明與範例在 Settings 面板與 [`docs/examples/action-pack.example.json`](examples/action-pack.example.json)。
@@ -448,7 +448,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 - C++ `HelperExit::Event = 13`（音訊 event callback 建立失敗）與 WASAPI／Device／COM 分開。
 - JS／Settings／MCP 使用獨立碼 `native_helper_event_error`；**不再**把 exit 13 摺進 `native_helper_wasapi_error`。
 - `--emit-error 10|11|12|13` 僅供契約／self-test，**不**等同真實 HRESULT 或裝置失敗已驗。
-- 真實 COM／WASAPI／Device／Event 失敗仍須有環境證據；見 ROADMAP「仍待／未驗」。
+- 真實 COM／WASAPI／Device／Event 失敗仍須有環境證據；見 ROADMAP「中期：等條件成立再做」。
 
 ### 附：上游分支（2026-08-22 一併比對）
 

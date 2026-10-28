@@ -250,3 +250,25 @@ test("readGlb rejects oversized files by size before reading them into memory", 
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("readGlb checks size on the opened descriptor, not by a separate stat of the path", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-glb-race-"));
+  const filePath = path.join(dir, "small.vrma");
+  try {
+    fs.writeFileSync(filePath, Buffer.from("not a glb"));
+    const original = fs.statSync;
+    let statByPath = false;
+    fs.statSync = function (target, ...rest) {
+      if (target === filePath) statByPath = true;
+      return original.call(this, target, ...rest);
+    };
+    try {
+      assert.throws(() => readGlb(filePath), /GLB|過短|魔術碼/);
+    } finally {
+      fs.statSync = original;
+    }
+    assert.equal(statByPath, false);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

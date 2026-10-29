@@ -777,3 +777,58 @@ test("VoxAvatar MCP reports each evicted session as closed exactly once", async 
   await second.close().catch(() => {});
   await first.close().catch(() => {});
 });
+
+test("VoxAvatar MCP terminates session on HTTP DELETE and reports closed once", async (context) => {
+  const closed = [];
+  const mcpHandler = createVoxAvatarMcpHandler({
+    onAnimation: () => true,
+    onWindowAction: () => true,
+    getStatus: () => ({ ok: true }),
+    getAnimations: () => [],
+    onSessionClosed: (sessionId) => closed.push(sessionId),
+  });
+  const bridge = createBridgeServer({ port: 0, onEvent: () => {}, mcpHandler });
+  const address = await bridge.listen();
+  context.after(async () => {
+    await mcpHandler.close().catch(() => {});
+    await bridge.close().catch(() => {});
+  });
+
+  const client = new Client({ name: "delete-test", version: "1.0.0" });
+  const transport = new StreamableHTTPClientTransport(
+    new URL(`http://127.0.0.1:${address.port}/mcp`),
+  );
+  await client.connect(transport);
+  const sessionId = transport.sessionId;
+  assert.ok(sessionId, "expected transport to have an initialized session ID");
+  assert.equal(mcpHandler.sessionCount(), 1);
+
+  const deleteResponse = await fetch(`http://127.0.0.1:${address.port}/mcp`, {
+    method: "DELETE",
+    headers: {
+      "mcp-session-id": sessionId,
+    },
+  });
+  assert.equal(deleteResponse.status, 200);
+
+  // 會話被移除
+  assert.equal(mcpHandler.sessionCount(), 0);
+
+  // onSessionClosed 恰好被呼叫一次
+  assert.deepEqual(closed, [sessionId]);
+
+  // 再送同 ID 回 404
+  const secondDeleteResponse = await fetch(`http://127.0.0.1:${address.port}/mcp`, {
+    method: "DELETE",
+    headers: {
+      "mcp-session-id": sessionId,
+    },
+  });
+  assert.equal(secondDeleteResponse.status, 404);
+  const secondError = await secondDeleteResponse.json();
+  assert.equal(secondError.error?.code, -32000);
+  assert.equal(secondError.error?.message, "MCP session not found");
+
+  assert.equal(closed.length, 1);
+  await client.close().catch(() => {});
+});

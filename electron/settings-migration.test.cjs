@@ -133,8 +133,43 @@ test("safeReadState backs up an unparsable settings file before falling back", (
   assert.equal(result.migration_error, "unreadable");
   assert.equal(result.state.schema_version, SETTINGS_SCHEMA_VERSION);
   assert.equal(
-    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    fs.readFileSync(`${settingsPath}.unreadable-backup`, "utf8"),
     damaged,
+  );
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("safeReadState preserves both unmigratable and unreadable backups when both occur", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-migration-"));
+  const settingsPath = path.join(dir, "settings.json");
+  const unsupportedContent = JSON.stringify({ schema_version: 99, models: [] });
+  const damagedContent = '{"schema_version": 12, "models": [';
+
+  fs.writeFileSync(settingsPath, unsupportedContent, "utf8");
+  const firstResult = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(firstResult.migrated, false);
+  assert.equal(firstResult.migration_error, "unsupported_schema");
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    unsupportedContent,
+  );
+
+  fs.writeFileSync(settingsPath, damagedContent, "utf8");
+  const secondResult = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(secondResult.migrated, false);
+  assert.equal(secondResult.migration_error, "unreadable");
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unreadable-backup`, "utf8"),
+    damagedContent,
+  );
+
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    unsupportedContent,
+  );
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unreadable-backup`, "utf8"),
+    damagedContent,
   );
   fs.rmSync(dir, { recursive: true, force: true });
 });
@@ -146,5 +181,6 @@ test("safeReadState does not create a backup on first run without settings", () 
   assert.equal(result.migrated, false);
   assert.equal(result.migration_error, undefined);
   assert.equal(fs.existsSync(`${settingsPath}.unmigratable-backup`), false);
+  assert.equal(fs.existsSync(`${settingsPath}.unreadable-backup`), false);
   fs.rmSync(dir, { recursive: true, force: true });
 });

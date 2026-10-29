@@ -997,6 +997,67 @@ test("backs up unmigratable settings and falls back without blocking the store",
   assert.deepEqual(snapshot.models, []);
 });
 
+test("backs up unreadable settings and falls back without blocking the store", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  const damaged = '{"schema_version": 12, "models": [';
+  fs.writeFileSync(settingsPath, damaged, "utf8");
+
+  const packagedLibrary = readPackagedLibrary(packagedLibraryPath);
+  const readResult = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(readResult.migration_error, "unreadable");
+  assert.equal(readResult.migrated, false);
+  assert.equal(readResult.state.schema_version, 12);
+  assert.deepEqual(readResult.state.models, []);
+  assert.equal(
+    fs.existsSync(`${settingsPath}.unreadable-backup`),
+    true,
+  );
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unreadable-backup`, "utf8"),
+    damaged,
+  );
+
+  const snapshot = createSettingsStore({
+    userDataPath,
+    packagedLibraryPath,
+  }).getSnapshot();
+  assert.equal(snapshot.schema_version, 12);
+  assert.deepEqual(snapshot.models, []);
+});
+
+test("preserves both unmigratable and unreadable backups when both occur sequentially", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+
+  // 1. Unsupported schema
+  const unsupportedContent = JSON.stringify({
+    schema_version: 99,
+    models: [{ id: "bad", model_name: "Bad", stored_filename: "bad.vrm" }],
+  });
+  fs.writeFileSync(settingsPath, unsupportedContent, "utf8");
+  createSettingsStore({ userDataPath, packagedLibraryPath });
+  assert.equal(fs.existsSync(`${settingsPath}.unmigratable-backup`), true);
+
+  // 2. Corrupt/unreadable file
+  const damagedContent = '{"schema_version": 12, "models": [';
+  fs.writeFileSync(settingsPath, damagedContent, "utf8");
+  createSettingsStore({ userDataPath, packagedLibraryPath });
+  assert.equal(fs.existsSync(`${settingsPath}.unreadable-backup`), true);
+
+  // Both backups exist without overwriting each other
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    unsupportedContent,
+  );
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unreadable-backup`, "utf8"),
+    damagedContent,
+  );
+});
+
 test("failed model import does not leave catalog records or asset files", (context) => {
   const { root, userDataPath, packagedLibraryPath } = fixture(context);
   const invalidModel = path.join(root, "invalid.vrm");

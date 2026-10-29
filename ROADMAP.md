@@ -11,8 +11,6 @@ VoxAvatar：Windows-only、local-first 的 VRM 桌面角色，口型由語音輸
 | 項目 | 為什麼 | 驗收方式 | 建議執行者 | 證據 |
 | --- | --- | --- | --- | --- |
 | Electron 45 打包版 Windows 實機驗收（發下一版之前的必要條件） | Electron 44→45 升級只證明了啟動與自動化測試，打包安裝版的 VRM 外觀、VRMA 播放、嘴形、系統匣與 DPI 沒人看過；CI 看不到 | 依 `docs/RELEASING.md` 實機章節逐項勾選；新增 `docs/release-evidence/<版本>/windows-smoke.md`，記錄 Windows build、DPI、安裝／啟動／系統匣／MCP／口型結果與截圖；任何一項失敗就開 issue 並暫緩發版 | 維護者 | `docs/DECISIONS.md`「2026-10-25：Electron 升到 45.0.0」之「未驗」段；commit `b096e23`；`docs/release-evidence/v1.0.7/windows-smoke.md`（上一版格式） |
-| 補 MCP 會話終止（HTTP `DELETE`）路徑的測試 | 深掃發現這條路徑沒有測試，而 `electron/mcp-server.cjs` 已有逐出、清掃兩條會通知 `onSessionClosed` 的路徑，剛修過重複通知 | 新增測試：以有效 `mcp-session-id` 送 `DELETE` 後會話被移除、`onSessionClosed` 恰好被呼叫一次、再送同 ID 回 404；`npm run check` 綠 | Claude Sonnet | `electron/mcp-server.cjs:362-405`（`handler` 沒有針對 `DELETE` 的分支，交給 transport）；`electron/mcp-server.test.cjs` 無 `DELETE` 案例；深掃報告（2026-10-26）「刻意不修／觀察」 |
-| `settings.json` 兩種備份使用不同檔名，不再互相覆蓋 | 「schema 版本不認得」與「檔案損毀讀不懂」兩條路徑都寫 `settings.json.unmigratable-backup`，後發生的蓋掉先發生的，使用者可能失去較有價值的那份 | 兩種情況各有測試，且連續發生時兩份備份都在；`electron/settings-migration.test.cjs` 與 `electron/settings-store.test.cjs` 原有斷言更新後仍綠；`npm run check` 綠 | Claude Sonnet | `electron/settings-migration.cjs:196-199`、`:311`（同一檔名）；`electron/settings-migration.test.cjs:77,136,148`；`electron/settings-store.test.cjs:984-988` |
 
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |

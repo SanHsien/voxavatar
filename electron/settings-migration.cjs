@@ -308,7 +308,7 @@ function safeReadState(settingsPath, packagedLibrary) {
     if (error?.code === "ENOENT") return { migrated: false, state: fallback };
     // 檔案存在卻讀不懂（截斷、損毀）：先留一份，否則下次存檔會蓋掉使用者資料。
     try {
-      fs.copyFileSync(settingsPath, `${settingsPath}.unmigratable-backup`);
+      fs.copyFileSync(settingsPath, `${settingsPath}.unreadable-backup`);
     } catch {
       // 無法備份時仍回退至預設狀態。
     }

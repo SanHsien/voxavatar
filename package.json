@@ -79,7 +79,7 @@
     "@vitejs/plugin-react-swc": "^4.2.2",
     "concurrently": "^10.0.6",
     "cross-env": "^10.1.0",
-    "electron": "^45.0.0",
+    "electron": "^45.1.0",
     "electron-builder": "^26.18.0",
     "eslint": "^10.13.0",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -90,7 +90,7 @@
     "react-dom": "^19.3.1",
     "three": "^0.186.1",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.71.2",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "vitest": "^5.0.5",
     "wait-on": "^9.5.1"

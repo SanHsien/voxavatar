@@ -1,8 +1,21 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-10-25
+最後修訂：2026-11-04
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與現況見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-11-04：Dependabot #29（minimatch，GHSA-g3hv-75wg-m249）延後
+
+**現況**：公告 `vulnerable_version_range` 為 `< 11.0.1`，唯一修補線是 11.0.1；lockfile 裡 3.1.5、5.1.9、9.0.9、10.2.6 全被算進去，必須每個消費者都跑在 11.0.1 才會關閉告警。
+
+**嘗試與結果**：`package.json` 加 `overrides: { "minimatch": "11.0.1" }` 並 `npm install --package-lock-only`，lockfile 收斂成單一 11.0.1、`npm audit` 為 0；但 `npm ci` 後實測：
+- `dir-compare@4.2.0`：`compareSync(dir, dir, { excludeFilter: "*.x" })` 丟 `(0 , minimatch_1.default) is not a function`。
+- `glob@7.2.3`：`glob.sync("*.json")` 丟 `Cannot read properties of undefined (reading 'charAt')`。
+
+原因：minimatch 11 的 CommonJS 匯出沒有 `default`，也不再是函式本身，舊消費者的 `require("minimatch")` 用法全壞。綁住舊版的消費者（皆經 `electron-builder` → `app-builder-lib`）：`@electron/asar@3.4.1` → `glob@7.2.3`／`minimatch@3.1.5`；`@electron/universal` → `dir-compare@4.2.0`（`minimatch@3.1.5`）與 `minimatch@9.0.9`；`ejs` → `jake` → `filelist` → `minimatch@5.1.9`。這些只在打包安裝檔時執行，不進 renderer／runtime。
+
+**決定**：已還原 override，不改 manifest／lock、不 dismiss，告警保持開啟（修了會讓 `npm run dist:windows` 的打包工具壞掉）。
+**重審條件**（任一成立）：`electron-builder`／`app-builder-lib` 升級後 `npm ls minimatch` 不再出現 < 11 的版本；`@electron/asar`、`dir-compare`、`glob`（7.x）的後繼版放寬到 minimatch ≥ 11；公告新增 3.x、5.x、9.x、10.x 的修補版。
 
 ## 2026-10-25：Electron 升到 45.0.0，`@types/node` 暫緩對到 26.6.5
 

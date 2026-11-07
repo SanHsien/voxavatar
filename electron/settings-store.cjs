@@ -69,7 +69,18 @@ function createSettingsStore({
   const initial = safeReadState(settingsPath, packagedLibrary);
   let state = initial.state;
 
+  const persistBlockedReason = initial.persist_blocked
+    ? (initial.persist_blocked_reason ?? "backup_failed")
+    : null;
+  if (persistBlockedReason) {
+    console.warn(
+      `[settings] settings.json 無法備份（${initial.persist_blocked_detail ?? "unknown"}），本次執行不會寫入設定：${persistBlockedReason}`,
+    );
+  }
+
   function writeState() {
+    // 原檔無法備份時不得取代它；設定只留在記憶體，重新啟動後再試。
+    if (persistBlockedReason) return;
     state.schema_version = SETTINGS_SCHEMA_VERSION;
     fs.mkdirSync(userDataPath, { recursive: true });
     const temporaryPath = `${settingsPath}.tmp`;
@@ -261,6 +272,8 @@ function createSettingsStore({
         ).filter((id) => animations.some((animation) => animation.id === id)),
       mcp_show_message_enabled: state.mcp_show_message_enabled === true,
       state_slot_bindings: effectiveStateSlotBindings(animations),
+      persist_blocked: persistBlockedReason != null,
+      persist_blocked_reason: persistBlockedReason,
     };
   }
 

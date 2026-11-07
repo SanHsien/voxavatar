@@ -430,7 +430,7 @@ Alt+drag 移動視窗（#25 部分）、VRM meta 授權條款顯示（#29 去 VR
 
 ## 9. Schema 版本政策
 
-- **Settings**（`settings-migration.cjs`）：目前 `schema_version`＝12。允許清單內舊版（1–11）讀取時遷移並寫回；不在清單者備份為 `settings.json.unmigratable-backup` 並回報 `unsupported_schema`。升版須加 migration 路徑與 fixture 測試。schema 10 起使用者 clip 可選存 `source_basename`，並支援更新顯示名稱／用途與跨動作搬移；schema 11 起新增 `unassigned_clips` 未分類片段池，磁碟檔名可為可讀 `{clip_name}--{id8}.vrma` 並與顯示名同步；schema 12 起保存待機池明確排除的動作 ID。
+- **Settings**（`settings-migration.cjs`）：目前 `schema_version`＝12。允許清單內舊版（1–11）讀取時遷移並寫回；不在清單者備份為 `settings.json.unmigratable-backup` 並回報 `unsupported_schema`。升版須加 migration 路徑與 fixture 測試。**備份失敗不得覆寫原檔**（2026-11-07）：不可遷移或讀不懂（損毀、被鎖定）的 `settings.json` 若連 `.unmigratable-backup`／`.unreadable-backup` 都寫不出來，`safeReadState` 回報 `persist_blocked`，settings-store 本次執行僅在記憶體運作、`writeState()` 不寫檔（連 `.tmp` 也不建），`getSnapshot()` 帶 `persist_blocked`／`persist_blocked_reason`、並在 log 留警告；下次啟動重新嘗試。取捨：變更在該次執行結束後會遺失，但使用者唯一一份資料不會被預設值取代。schema 10 起使用者 clip 可選存 `source_basename`，並支援更新顯示名稱／用途與跨動作搬移；schema 11 起新增 `unassigned_clips` 未分類片段池，磁碟檔名可為可讀 `{clip_name}--{id8}.vrma` 並與顯示名同步；schema 12 起保存待機池明確排除的動作 ID。
 - **MCP tools／status**（`mcp-schemas.cjs`）：`tools_schema_version`／`status_schema_version` 隨工具契約變更遞增；成功與失敗皆回結構化 JSON。政策與相容說明見 [`INTEGRATIONS.md`](INTEGRATIONS.md)。
 - **Packaged library／catalog**（`library-catalog.cjs`）：`schema_version` 必須精確等於 `PACKAGED_LIBRARY_SCHEMA_VERSION`（目前為 1）。不支援就地 migration；不匹配直接拒絕載入，避免半套 catalog 污染執行期。升版時改常數並同步 `library.json`／example／測試。
 - **action-pack.json**：獨立 `schema_version`（見 `action-pack.cjs`）；匯入仍走 GLB／路徑／catalog gate，失敗項不覆寫既有動作；`purpose` 寫入對應 clip。

@@ -183,6 +183,23 @@ function sanitizeClipsForState(parsedClips, packagedLibrary, userAnimations) {
   });
 }
 
+/**
+ * 備份原檔；成功回 {}。失敗時回 persist_blocked，讓 settings-store 在記憶體內照常運作，
+ * 但拒絕寫入 settings.json——使用者唯一的那份資料不能在沒有備份下被取代。
+ */
+function backupOrBlockPersist(settingsPath, suffix, blockedReason) {
+  try {
+    fs.copyFileSync(settingsPath, `${settingsPath}.${suffix}`);
+    return {};
+  } catch (error) {
+    return {
+      persist_blocked: true,
+      persist_blocked_reason: blockedReason,
+      persist_blocked_detail: error?.code ?? String(error?.message ?? error),
+    };
+  }
+}
+
 function safeReadState(settingsPath, packagedLibrary) {
   const fallback = defaultState(packagedLibrary);
   try {
@@ -192,18 +209,15 @@ function safeReadState(settingsPath, packagedLibrary) {
         parsed?.schema_version,
       )
     ) {
-      try {
-        fs.copyFileSync(
-          settingsPath,
-          `${settingsPath}.unmigratable-backup`,
-        );
-      } catch {
-        // 無法備份時仍回退至預設狀態。
-      }
       return {
         migrated: false,
         state: fallback,
         migration_error: "unsupported_schema",
+        ...backupOrBlockPersist(
+          settingsPath,
+          "unmigratable-backup",
+          "unsupported_schema_backup_failed",
+        ),
       };
     }
     const { hidden, overrides } = packagedUserLayers(parsed, packagedLibrary);
@@ -306,13 +320,17 @@ function safeReadState(settingsPath, packagedLibrary) {
     };
   } catch (error) {
     if (error?.code === "ENOENT") return { migrated: false, state: fallback };
-    // 檔案存在卻讀不懂（截斷、損毀）：先留一份，否則下次存檔會蓋掉使用者資料。
-    try {
-      fs.copyFileSync(settingsPath, `${settingsPath}.unreadable-backup`);
-    } catch {
-      // 無法備份時仍回退至預設狀態。
-    }
-    return { migrated: false, state: fallback, migration_error: "unreadable" };
+    // 檔案存在卻讀不懂（截斷、損毀、被鎖定）：先留一份，否則下次存檔會蓋掉使用者資料。
+    return {
+      migrated: false,
+      state: fallback,
+      migration_error: "unreadable",
+      ...backupOrBlockPersist(
+        settingsPath,
+        "unreadable-backup",
+        "unreadable_backup_failed",
+      ),
+    };
   }
 }
 

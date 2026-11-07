@@ -1058,6 +1058,88 @@ test("preserves both unmigratable and unreadable backups when both occur sequent
   );
 });
 
+function failCopyingSettings(context, settingsPath) {
+  const original = fs.copyFileSync;
+  context.mock.method(fs, "copyFileSync", (source, destination, ...rest) => {
+    if (String(source) === settingsPath) {
+      throw Object.assign(new Error("EBUSY: resource busy or locked"), {
+        code: "EBUSY",
+      });
+    }
+    return original(source, destination, ...rest);
+  });
+}
+
+test("keeps settings.json untouched when the unmigratable backup cannot be made", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  const original = JSON.stringify({ schema_version: 99, models: [] });
+  fs.writeFileSync(settingsPath, original, "utf8");
+  failCopyingSettings(context, settingsPath);
+
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.setCharacterSize(0.8);
+
+  assert.equal(snapshot.character_size, 0.8);
+  assert.equal(snapshot.persist_blocked, true);
+  assert.equal(snapshot.persist_blocked_reason, "unsupported_schema_backup_failed");
+  assert.equal(store.getSnapshot().character_size, 0.8);
+  assert.equal(fs.readFileSync(settingsPath, "utf8"), original);
+  assert.equal(fs.existsSync(`${settingsPath}.tmp`), false);
+  assert.equal(fs.existsSync(`${settingsPath}.unmigratable-backup`), false);
+});
+
+test("writes settings as usual once the unmigratable backup succeeds", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  const original = JSON.stringify({ schema_version: 99, models: [] });
+  fs.writeFileSync(settingsPath, original, "utf8");
+
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.setCharacterSize(0.8);
+
+  assert.equal(snapshot.persist_blocked, false);
+  assert.equal(snapshot.persist_blocked_reason, null);
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unmigratable-backup`, "utf8"),
+    original,
+  );
+  const written = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  assert.equal(written.schema_version, 12);
+  assert.equal(written.character_size, 0.8);
+});
+
+test("keeps corrupt settings.json untouched when the unreadable backup cannot be made", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  const damaged = '{"schema_version": 12, "models": [';
+  fs.writeFileSync(settingsPath, damaged, "utf8");
+  failCopyingSettings(context, settingsPath);
+
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.setUiLocale("en");
+
+  assert.equal(snapshot.persist_blocked, true);
+  assert.equal(snapshot.persist_blocked_reason, "unreadable_backup_failed");
+  assert.equal(fs.readFileSync(settingsPath, "utf8"), damaged);
+  assert.equal(fs.existsSync(`${settingsPath}.tmp`), false);
+});
+
+test("writes normally on first run when settings.json does not exist", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.setCharacterSize(0.8);
+
+  assert.equal(snapshot.persist_blocked, false);
+  assert.equal(snapshot.persist_blocked_reason, null);
+  assert.equal(JSON.parse(fs.readFileSync(settingsPath, "utf8")).character_size, 0.8);
+});
+
 test("failed model import does not leave catalog records or asset files", (context) => {
   const { root, userDataPath, packagedLibraryPath } = fixture(context);
   const invalidModel = path.join(root, "invalid.vrm");

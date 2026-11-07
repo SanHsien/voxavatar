@@ -166,6 +166,9 @@ type VoxAvatarSettingsSnapshot = {
   idle_pool_excluded_animation_ids: string[];
   mcp_show_message_enabled: boolean;
   state_slot_bindings: VoxAvatarStateSlotBindings;
+  /** settings.json 無法備份時為 true：本次執行的變更只留在記憶體，不寫入磁碟。 */
+  persist_blocked?: boolean;
+  persist_blocked_reason?: string | null;
 };
 
 type VoxAvatarDirectoryImportKind = 'model' | 'animation';

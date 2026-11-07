@@ -184,3 +184,41 @@ test("safeReadState does not create a backup on first run without settings", () 
   assert.equal(fs.existsSync(`${settingsPath}.unreadable-backup`), false);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test("safeReadState flags persist_blocked when the unsupported-schema backup fails", (context) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-migration-"));
+  context.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const settingsPath = path.join(dir, "settings.json");
+  fs.writeFileSync(settingsPath, JSON.stringify({ schema_version: 99 }), "utf8");
+  context.mock.method(fs, "copyFileSync", () => {
+    throw Object.assign(new Error("EPERM"), { code: "EPERM" });
+  });
+  const result = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(result.migration_error, "unsupported_schema");
+  assert.equal(result.persist_blocked, true);
+  assert.equal(result.persist_blocked_reason, "unsupported_schema_backup_failed");
+  assert.equal(result.state.schema_version, SETTINGS_SCHEMA_VERSION);
+});
+
+test("safeReadState flags persist_blocked when the unreadable backup fails", (context) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-migration-"));
+  context.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const settingsPath = path.join(dir, "settings.json");
+  fs.writeFileSync(settingsPath, '{"models": [', "utf8");
+  context.mock.method(fs, "copyFileSync", () => {
+    throw Object.assign(new Error("EPERM"), { code: "EPERM" });
+  });
+  const result = safeReadState(settingsPath, packagedLibrary);
+  assert.equal(result.migration_error, "unreadable");
+  assert.equal(result.persist_blocked, true);
+  assert.equal(result.persist_blocked_reason, "unreadable_backup_failed");
+});
+
+test("safeReadState does not flag persist_blocked for a missing file or a successful backup", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voxavatar-migration-"));
+  const settingsPath = path.join(dir, "settings.json");
+  assert.equal(safeReadState(settingsPath, packagedLibrary).persist_blocked, undefined);
+  fs.writeFileSync(settingsPath, JSON.stringify({ schema_version: 99 }), "utf8");
+  assert.equal(safeReadState(settingsPath, packagedLibrary).persist_blocked, undefined);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

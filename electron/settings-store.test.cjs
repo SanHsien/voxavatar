@@ -1128,6 +1128,57 @@ test("keeps corrupt settings.json untouched when the unreadable backup cannot be
   assert.equal(fs.existsSync(`${settingsPath}.tmp`), false);
 });
 
+function failReadingSettings(context, settingsPath) {
+  const original = fs.readFileSync;
+  context.mock.method(fs, "readFileSync", (target, ...rest) => {
+    if (String(target) === settingsPath) {
+      throw Object.assign(new Error("EBUSY: resource busy or locked"), {
+        code: "EBUSY",
+      });
+    }
+    return original(target, ...rest);
+  });
+}
+
+test("keeps settings.json untouched when reading it hits EBUSY and the backup also fails", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  const original = JSON.stringify({ schema_version: 12, character_size: 1.2 });
+  fs.writeFileSync(settingsPath, original, "utf8");
+  failReadingSettings(context, settingsPath);
+  failCopyingSettings(context, settingsPath);
+
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.setCharacterSize(0.8);
+
+  assert.equal(snapshot.persist_blocked, true);
+  assert.equal(snapshot.persist_blocked_reason, "unreadable_backup_failed");
+  context.mock.restoreAll();
+  assert.equal(fs.readFileSync(settingsPath, "utf8"), original);
+  assert.equal(fs.existsSync(`${settingsPath}.tmp`), false);
+});
+
+test("backs up and then writes as usual when reading hits EBUSY but the backup succeeds", (context) => {
+  const { userDataPath, packagedLibraryPath } = fixture(context);
+  const settingsPath = path.join(userDataPath, "settings.json");
+  fs.mkdirSync(userDataPath, { recursive: true });
+  const original = JSON.stringify({ schema_version: 12, character_size: 1.2 });
+  fs.writeFileSync(settingsPath, original, "utf8");
+  failReadingSettings(context, settingsPath);
+
+  const store = createSettingsStore({ userDataPath, packagedLibraryPath });
+  const snapshot = store.setCharacterSize(0.8);
+  context.mock.restoreAll();
+
+  assert.equal(snapshot.persist_blocked, false);
+  assert.equal(
+    fs.readFileSync(`${settingsPath}.unreadable-backup`, "utf8"),
+    original,
+  );
+  assert.equal(JSON.parse(fs.readFileSync(settingsPath, "utf8")).character_size, 0.8);
+});
+
 test("writes normally on first run when settings.json does not exist", (context) => {
   const { userDataPath, packagedLibraryPath } = fixture(context);
   const settingsPath = path.join(userDataPath, "settings.json");

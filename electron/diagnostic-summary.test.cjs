@@ -122,3 +122,18 @@ test("buildDiagnosticSummary reports setup complete with no next step", () => {
   assert.match(text, /setup_complete: yes/);
   assert.match(text, /next: none/);
 });
+
+test("buildDiagnosticSummary reports whether settings persistence is blocked", () => {
+  const readiness = { schema_version: 1, steps: [], next_step: null };
+  assert.match(
+    buildDiagnosticSummary({ readiness }),
+    /settings_persist: ok/,
+  );
+  assert.match(
+    buildDiagnosticSummary({
+      readiness,
+      persistBlockedReason: "unsupported_schema_backup_failed",
+    }),
+    /settings_persist: blocked \(unsupported_schema_backup_failed\)/,
+  );
+});

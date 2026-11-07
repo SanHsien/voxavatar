@@ -1006,6 +1006,8 @@ function getMcpStatus() {
 function getDiagnosticSummaryText() {
   return buildDiagnosticSummary({
     readiness: getAppReadinessSnapshot(),
+    persistBlockedReason:
+      settingsStore?.getSnapshot()?.persist_blocked_reason ?? null,
     appVersion: app.getVersion(),
     platform: process.platform,
   });

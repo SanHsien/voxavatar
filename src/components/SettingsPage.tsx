@@ -23,6 +23,7 @@ import {
   normalizeUiLocale,
   settingsT,
 } from '../settings-i18n';
+import { persistBlockedMessage } from '../settings-persist-blocked';
 import {
   directoryImportExtraParts,
   formatActionPackImportNotice,
@@ -216,6 +217,7 @@ export function SettingsPage() {
       settingsT(locale, key, vars),
     [locale],
   );
+  const persistBlockedText = persistBlockedMessage(locale, settings);
   const sections = useMemo(
     () =>
       (
@@ -1555,6 +1557,12 @@ export function SettingsPage() {
           </div>
           <span className="library-count">{headingSummary}</span>
         </header>
+
+        {persistBlockedText && (
+          <div className="settings-notice" role="alert">
+            <span>{persistBlockedText}</span>
+          </div>
+        )}
 
         {notice && (
           <div className="settings-notice" role="status">

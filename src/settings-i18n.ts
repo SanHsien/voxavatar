@@ -68,6 +68,12 @@ const ZH_TW: MessageDictionary = {
   'notice.copied': '已複製 {label}。',
   'notice.copyFailed': '無法複製 {label}。',
   'notice.diagnosticCopied': '已複製診斷摘要（路徑與素材檔名已遮罩）。',
+  'persistBlocked.unsupported_schema_backup_failed':
+    '設定無法儲存：設定檔版本不受支援且原檔無法備份，本次修改只在記憶體中，重新啟動後會重試。',
+  'persistBlocked.unreadable_backup_failed':
+    '設定無法儲存：設定檔讀不出來（損毀或被鎖定）且原檔無法備份，本次修改只在記憶體中，重新啟動後會重試。',
+  'persistBlocked.backup_failed':
+    '設定無法儲存：原檔無法備份，本次修改只在記憶體中，重新啟動後會重試。',
   'setup.checklistTitle': '設定進度',
   'setup.checklistDesc':
     '尚有必要項目未完成。完成後即可穩定使用口型與 MCP；動作片段為可選。完成後此區塊會自動隱藏。',
@@ -662,6 +668,12 @@ const EN: MessageDictionary = {
   'notice.copyFailed': 'Unable to copy {label}.',
   'notice.diagnosticCopied':
     'Diagnostic summary copied (paths and asset names redacted).',
+  'persistBlocked.unsupported_schema_backup_failed':
+    'Settings cannot be saved: the settings file has an unsupported version and could not be backed up. Changes stay in memory only and saving is retried after a restart.',
+  'persistBlocked.unreadable_backup_failed':
+    'Settings cannot be saved: the settings file is unreadable (corrupt or locked) and could not be backed up. Changes stay in memory only and saving is retried after a restart.',
+  'persistBlocked.backup_failed':
+    'Settings cannot be saved: the original file could not be backed up. Changes stay in memory only and saving is retried after a restart.',
   'setup.checklistTitle': 'Setup progress',
   'setup.checklistDesc':
     'Required items are still open. Finish them for stable lip-sync and MCP; animation clips are optional. This panel hides when required setup is complete.',

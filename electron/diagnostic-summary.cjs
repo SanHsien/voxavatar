@@ -79,6 +79,7 @@ function formatStepLine(step) {
 
 function buildDiagnosticSummary({
   readiness,
+  persistBlockedReason = null,
   appVersion = version,
   platform = process.platform,
   generatedAt = new Date().toISOString(),
@@ -97,6 +98,9 @@ function buildDiagnosticSummary({
     `window_visible: ${readiness.window_visible ? "yes" : "no"}`,
     `listener_state: ${readiness.listener_state ?? "inactive"}`,
     `mcp_health: ${readiness.mcp_health ?? "unavailable"}`,
+    `settings_persist: ${
+      persistBlockedReason ? `blocked (${persistBlockedReason})` : "ok"
+    }`,
     `playable_actions: ${readiness.playable_actions ?? 0}`,
     `voice_activity: ${readiness.voice_activity ?? "n/a"}`,
     "steps:",

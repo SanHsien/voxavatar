@@ -9,6 +9,8 @@ updates:
       timezone: Asia/Taipei
     versioning-strategy: increase
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
     labels:
       - dependencies
       - javascript
@@ -40,6 +42,8 @@ updates:
       time: "06:20"
       timezone: Asia/Taipei
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
     labels:
       - dependencies
       - github-actions

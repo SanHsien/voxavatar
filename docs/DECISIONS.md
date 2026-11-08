@@ -1,8 +1,14 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-11-04
+最後修訂：2026-11-08
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與現況見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-11-08：新版發布未滿 7 天不升級，Dependabot 同步設冷卻
+
+**決定**：依賴只升到「發布滿 7 天」的最新版；沒有這種版本就留原版，並在 `.github/dependency-deferrals.json` 記 `cooldownUntil`（該版滿 7 天的時間，UTC）。`scripts/check-dependency-freshness.cjs` 只在 `cooldownUntil` 之前隱藏該列，範圍內更新與大版本列都一樣；到期、或時間字串讀不出來，該列就回到報告。`.github/dependabot.yml` 兩個 `updates` 項目都加 `cooldown: default-days: 7`，讓 Dependabot 與這條規則一致；Dependabot 的安全性更新本來就不受冷卻影響。
+
+**依據**：本輪 electron 升到 45.2.1（45.2.2、45.2.3 未滿 7 天），concurrently、globals、vite、vitest、jsdom 的新版也都在冷卻內，維持原版。
 
 ## 2026-11-04：Dependabot #29（minimatch，GHSA-g3hv-75wg-m249）延後
 

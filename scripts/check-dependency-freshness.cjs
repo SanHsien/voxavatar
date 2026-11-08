@@ -83,8 +83,10 @@ function loadDeferrals(deferralsPath = DEFERRALS_PATH) {
  *
  * An in-range update is normally never hidden: that is Dependabot's job. The one
  * exception is a release cooldown. A deferral that carries `cooldownUntil` (an
- * ISO timestamp, the moment `latest` turns seven days old) covers the in-range
- * row until then, and only then; after it passes the row comes back by itself.
+ * ISO timestamp, the moment `latest` turns seven days old) covers the row until
+ * then, and only then, whether the row is an in-range update or a newer major.
+ * After it passes, or if the timestamp cannot be read, the row comes back by
+ * itself.
  */
 function applyDeferrals(rows, deferrals = {}, now = new Date()) {
   return rows.map((row) => {
@@ -96,10 +98,13 @@ function applyDeferrals(rows, deferrals = {}, now = new Date()) {
         && deferral.deferredLatest === row.latest,
     );
     if (!validDeferral) return row;
-    const cooldownEnd = Date.parse(deferral.cooldownUntil ?? "");
-    const inCooldown = Number.isFinite(cooldownEnd) && now.getTime() < cooldownEnd;
+    if (deferral.cooldownUntil !== undefined) {
+      const cooldownEnd = Date.parse(deferral.cooldownUntil);
+      const inCooldown = Number.isFinite(cooldownEnd) && now.getTime() < cooldownEnd;
+      return inCooldown ? { ...row, deferredReason: deferral.reason, inCooldown } : row;
+    }
     if (row.current === row.wanted) return { ...row, deferredReason: deferral.reason };
-    return inCooldown ? { ...row, deferredReason: deferral.reason, inCooldown } : row;
+    return row;
   });
 }
 

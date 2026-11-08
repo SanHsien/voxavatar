@@ -211,6 +211,25 @@ test("a release cooldown hides an in-range update only until it expires", () => 
   assert.equal(needsMaintenance(expired), true);
 });
 
+test("a newer major under a cooldown comes back once the cooldown expires", () => {
+  const rows = [{ name: "jsdom", current: "30.1.3", wanted: "30.1.3", latest: "31.0.0" }];
+  const deferrals = {
+    jsdom: {
+      deferredLatest: "31.0.0",
+      cooldownUntil: "2026-11-12T12:15:08Z",
+      reason: "31.0.0 is under the seven day release cooldown",
+    },
+  };
+
+  const [cooling] = applyDeferrals(rows, deferrals, new Date("2026-11-08T09:00:00Z"));
+  const [expired] = applyDeferrals(rows, deferrals, new Date("2026-12-31T00:00:00Z"));
+
+  assert.match(cooling.deferredReason, /cooldown/u);
+  assert.equal(needsMaintenance(cooling), false);
+  assert.equal(expired.deferredReason, undefined);
+  assert.equal(needsMaintenance(expired), true);
+});
+
 test("a cooldown does not cover a release newer than the one it was recorded for", () => {
   const rows = [{ name: "vite", current: "8.3.5", wanted: "8.3.7", latest: "8.3.7" }];
 

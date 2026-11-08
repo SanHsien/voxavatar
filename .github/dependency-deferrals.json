@@ -1,12 +1,58 @@
 {
+  "@types/node": {
+    "deferredLatest": "26.6.6",
+    "reviewed": "2026-11-08",
+    "reason": "CI builds with Node 24, so the installed types stay on the Node 24 line. Node 26 declarations could expose APIs missing from that build runtime. Revisit when CI and the supported runtime move to Node 26."
+  },
+  "@types/three": {
+    "deferredLatest": "0.187.0",
+    "reviewed": "2026-11-08",
+    "reason": "@types/three 0.187.0 describes three r187. The installed three is 0.186.1, so the types stay on 0.186.x and move together with three."
+  },
+  "concurrently": {
+    "deferredLatest": "10.0.7",
+    "reviewed": "2026-11-08",
+    "cooldownUntil": "2026-11-14T09:42:12Z",
+    "reason": "concurrently 10.0.7 was published 2026-11-07T09:42:12Z, so the seven day release cooldown ends 2026-11-14T09:42:12Z. 10.0.6 (2026-10-08) is the newest release older than seven days and stays installed."
+  },
+  "electron": {
+    "deferredLatest": "45.2.3",
+    "reviewed": "2026-11-08",
+    "cooldownUntil": "2026-11-11T21:39:17Z",
+    "reason": "electron 45.2.3 was published 2026-11-04T21:39:17Z, so the seven day release cooldown ends 2026-11-11T21:39:17Z. 45.2.1 (2026-10-31) is the newest 45.x release older than seven days and is installed; 45.2.2 (2026-11-03) is eligible from 2026-11-10. When electron moves, change the allowScripts key in package.json in the same commit."
+  },
+  "globals": {
+    "deferredLatest": "17.14.0",
+    "reviewed": "2026-11-08",
+    "cooldownUntil": "2026-11-08T11:01:01Z",
+    "reason": "globals 17.14.0 was published 2026-11-01T11:01:01Z, so the seven day release cooldown ends 2026-11-08T11:01:01Z. 17.13.0 (2026-10-01) is the newest release older than seven days and is installed."
+  },
+  "jsdom": {
+    "deferredLatest": "31.0.0",
+    "reviewed": "2026-11-08",
+    "cooldownUntil": "2026-11-12T12:15:08Z",
+    "reason": "jsdom 31.0.0 is a major release published 2026-11-05T12:15:08Z, inside the seven day release cooldown that ends 2026-11-12T12:15:08Z. Re-evaluate after that time by upgrading and running npm run check; land it only if there is no regression in the Vitest renderer tests."
+  },
+  "three": {
+    "deferredLatest": "0.187.0",
+    "reviewed": "2026-11-08",
+    "reason": "three r187 (published 2026-10-30) removes code deprecated in r177, replaces the PMREMGenerator CubeUV atlas with cube render targets and fixes the order of the color space conversion matrix (release notes https://github.com/mrdoob/three.js/releases/tag/r187, migration guide https://github.com/mrdoob/three.js/wiki/Migration-Guide#186--187). None of it has been run against VRM loading, VRMA playback, lip-sync or the performance baseline on a Windows desktop; revisit after that run."
+  },
   "typescript": {
     "deferredLatest": "7.0.2",
     "reviewed": "2026-10-03",
-    "reason": "typescript-eslint 8.71.0 still requires TypeScript >=4.8.4 <6.1.0. TypeScript 7.0.2 is outside that peer range and breaks linting; keep TypeScript 6.0.3 until typescript-eslint supports 7."
+    "reason": "typescript-eslint 8.72.1 still requires TypeScript >=4.8.4 <6.1.0. TypeScript 7.0.2 is outside that peer range and breaks linting; keep TypeScript 6.0.3 until typescript-eslint supports 7."
   },
-  "@types/node": {
-    "deferredLatest": "26.6.5",
-    "reviewed": "2026-10-25",
-    "reason": "CI builds with Node 24, so the installed types stay on the Node 24 line. Node 26 declarations could expose APIs missing from that build runtime. Revisit when CI and the supported runtime move to Node 26."
+  "vite": {
+    "deferredLatest": "8.3.6",
+    "reviewed": "2026-11-08",
+    "cooldownUntil": "2026-11-12T05:40:52Z",
+    "reason": "vite 8.3.6 was published 2026-11-05T05:40:52Z, so the seven day release cooldown ends 2026-11-12T05:40:52Z. 8.3.5 (2026-10-21) is the newest release older than seven days and stays installed."
+  },
+  "vitest": {
+    "deferredLatest": "5.1.0",
+    "reviewed": "2026-11-08",
+    "cooldownUntil": "2026-11-09T16:12:37Z",
+    "reason": "vitest 5.1.0 was published 2026-11-02T16:12:37Z, so the seven day release cooldown ends 2026-11-09T16:12:37Z. 5.0.5 (2026-10-15) is the newest release older than seven days and stays installed; @vitest/mocker moves with it."
   }
 }

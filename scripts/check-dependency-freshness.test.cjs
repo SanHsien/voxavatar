@@ -192,6 +192,51 @@ test("a deferral does not hide an in-range update", () => {
   assert.equal(needsMaintenance(row), true);
 });
 
+test("a release cooldown hides an in-range update only until it expires", () => {
+  const rows = [{ name: "vite", current: "8.3.5", wanted: "8.3.6", latest: "8.3.6" }];
+  const deferrals = {
+    vite: {
+      deferredLatest: "8.3.6",
+      cooldownUntil: "2026-11-12T05:40:52Z",
+      reason: "8.3.6 is under the seven day release cooldown",
+    },
+  };
+
+  const [cooling] = applyDeferrals(rows, deferrals, new Date("2026-11-08T09:00:00Z"));
+  const [expired] = applyDeferrals(rows, deferrals, new Date("2026-11-12T05:40:53Z"));
+
+  assert.match(cooling.deferredReason, /cooldown/u);
+  assert.equal(needsMaintenance(cooling), false);
+  assert.equal(expired.deferredReason, undefined);
+  assert.equal(needsMaintenance(expired), true);
+});
+
+test("a cooldown does not cover a release newer than the one it was recorded for", () => {
+  const rows = [{ name: "vite", current: "8.3.5", wanted: "8.3.7", latest: "8.3.7" }];
+
+  const [row] = applyDeferrals(rows, {
+    vite: {
+      deferredLatest: "8.3.6",
+      cooldownUntil: "2026-11-12T05:40:52Z",
+      reason: "8.3.6 is under the seven day release cooldown",
+    },
+  }, new Date("2026-11-08T09:00:00Z"));
+
+  assert.equal(row.deferredReason, undefined);
+  assert.equal(needsMaintenance(row), true);
+});
+
+test("an unparseable cooldownUntil never hides anything", () => {
+  const rows = [{ name: "vite", current: "8.3.5", wanted: "8.3.6", latest: "8.3.6" }];
+
+  const [row] = applyDeferrals(rows, {
+    vite: { deferredLatest: "8.3.6", cooldownUntil: "soon", reason: "cooldown with a bad date" },
+  }, new Date("2026-11-08T09:00:00Z"));
+
+  assert.equal(row.deferredReason, undefined);
+  assert.equal(needsMaintenance(row), true);
+});
+
 test("the committed deferrals name a version and a reason", () => {
   const deferrals = loadDeferrals();
 

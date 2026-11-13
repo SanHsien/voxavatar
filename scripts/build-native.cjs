@@ -8,7 +8,7 @@ const PROJECT_ROOT = path.join(__dirname, "..");
 
 function windowsBuildCommand(developerShell) {
   const compiler = [
-    "cl.exe /nologo /std:c++20 /EHsc /O2 /DUNICODE /D_UNICODE",
+    "cl.exe /nologo /utf-8 /std:c++20 /EHsc /O2 /DUNICODE /D_UNICODE",
     "native\\windows\\VoxAvatarAudioListener.cpp",
     "/Fe:native\\bin\\win32\\voxavatar-audio-listener.exe",
   ].join(" ");

@@ -10,7 +10,8 @@ VoxAvatar：Windows-only、local-first 的 VRM 桌面角色，口型由語音輸
 ## 近期：可以直接動手
 | 項目 | 為什麼 | 驗收方式 | 建議執行者 | 證據 |
 | --- | --- | --- | --- | --- |
-| Electron 45 打包版 Windows 實機驗收（發下一版之前的必要條件） | Electron 44→45 升級只證明了啟動與自動化測試，打包安裝版的 VRM 外觀、VRMA 播放、嘴形、系統匣與 DPI 沒人看過；CI 看不到 | 依 `docs/RELEASING.md` 實機章節逐項勾選；新增 `docs/release-evidence/<版本>/windows-smoke.md`，記錄 Windows build、DPI、安裝／啟動／系統匣／MCP／口型結果與截圖；任何一項失敗就開 issue 並暫緩發版 | 維護者 | `docs/DECISIONS.md`「2026-10-25：Electron 升到 45.0.0」之「未驗」段；commit `b096e23`；`docs/release-evidence/v1.0.7/windows-smoke.md`（上一版格式） |
+| Electron 45 打包版 Windows 實機驗收（發下一版之前的必要條件） | Electron 44→45 升級只證明了啟動與自動化測試，打包安裝版的 VRM 外觀、VRMA 播放、嘴形、系統匣與 DPI 沒人看過；CI 看不到。2026-11-14 已先驗一部分（本機打包、未簽署的候選檔，不能取代發版時對 Release 產物做的 `windows-smoke.md`）：從 1.0.6 升級成功、使用者資料與設定保留；VRM 外觀、VRMA 播放（MCP `play_animation`）正常；`/health`、`tools/list` 正常，並實際操作 `list_animations`、`play_animation`、`control_window`、`get_status` 四個工具；原生 listener 單獨執行可讀到行程音量。尚未驗：app 內口型（見下一列）、系統匣、DPI、移除、SmartScreen（`docs/DECISIONS.md`「2026-11-14」） | 依 `docs/RELEASING.md` 實機章節逐項勾選；新增 `docs/release-evidence/<版本>/windows-smoke.md`，記錄 Windows build、DPI、安裝／啟動／系統匣／MCP／口型結果與截圖；任何一項失敗就開 issue 並暫緩發版 | 維護者 | `docs/DECISIONS.md`「2026-10-25：Electron 升到 45.0.0」之「未驗」段；commit `b096e23`；`docs/release-evidence/v1.0.7/windows-smoke.md`（上一版格式） |
+| 查明 app 內口型沒反應：listener 一直回 `no_output` | 2026-11-14 實機：原生 helper 以 `--pid` 單獨擷取播放中的行程可讀到 0.7～0.8 的音量，但同一台機器上 app 的 `get_status` 一直是 `no_output`、`voiceState` 為 null；用 `VOXAVATAR_TARGET_PROCESS_PATTERN` 指向唯一名稱的播放行程，狀態仍從一開始就是 `no_output` 而不是找不到目標，覆寫看起來沒生效。可能是測試方法、行程挑選（sticky root）或覆寫讀取的問題，尚未定位 | 能重現或排除：寫出 app 實際挑到哪個 PID、為何沒收到音量；若是缺陷，修好並補測試；之後在實機播放 ChatGPT／Codex 朗讀時 `voiceState` 出現 speaking、停止後回到 idle | Codex | `docs/DECISIONS.md`「2026-11-14」；`electron/native-process-audio-listener.cjs:192-245`；`electron/voice-source.cjs:208` |
 
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |

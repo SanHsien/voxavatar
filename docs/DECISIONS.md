@@ -564,3 +564,13 @@ TypeScript／`.cts` 遷移（見本檔 2026-08-23 節）。改寫成 `electron/w
 
 `#63` 與 `#66` 已由上述兩筆處置（前者採用、後者已涵蓋），兩個 issue 上游都已關閉。
 `#67` 仍 OPEN，對應上面的候選項。issue 水位推進到 67。
+
+## 2026-11-14：原生 helper 改用 `/utf-8` 編譯；Electron 45 打包版部分實機驗收
+
+- **本機打包失敗的根因**：`native/windows/VoxAvatarAudioListener.cpp` 有中文註解（第 60、149 行），`cl.exe` 沒有 `/utf-8` 時用系統 ANSI 碼頁讀原始碼；繁中 Windows（CP950）上註解吃掉換行，從第 159 行起一連串 C2059／C2143，`npm run dist:windows` 失敗。CI 的英文 runner 不會遇到。`scripts/build-native.cjs` 加 `/utf-8`，`scripts/build-native.test.cjs` 新增一條測試釘住這個旗標（拿掉旗標時兩條測試都紅）。
+- **打包**：修正後 `npm run check`（44 個檔、159 項測試）、`npm run assets:release`、`npm run dist:windows` 全過；產出未簽署的候選安裝檔（`package.json` 仍是 1.0.7，所以檔名是 1.0.7）。
+- **實機（維護者主機，225% 縮放）**：以下是本機打包、未簽署候選檔的結果，不能取代正式資產的 `docs/release-evidence/v<版本>/windows-smoke.md`；發版時要對 Release 產物重驗。
+  - 一般使用者權限靜默安裝，覆蓋既有 1.0.6，exit 0；升級前後使用者資料夾的設定、模型與動作檔案逐檔比對相同。
+  - 啟動後顯示設定的預設模型 `avatar-sample-b`，Idle 動作播放中；MCP `/health` 回 `ok: true`；`tools/list` 列出六個工具；`list_animations` 回 12 個可播動作；`play_animation`（`happy`）畫面確實換成對應姿勢；`control_window` 隱藏後視窗清單沒有它，再顯示後回來；`get_status` 回模型已設定、視窗可見。
+  - 原生 listener 單獨以 `--pid` 擷取一個循環播放音效的行程，回報 0.7～0.8 的音量，代表用 `/utf-8` 編出來的 helper 能正常擷取。
+  - **未通過／未驗**：app 內口型一直是 `no_output`（另列 ROADMAP 追查）；系統匣、100%／150% DPI、移除、SmartScreen 本輪沒做。

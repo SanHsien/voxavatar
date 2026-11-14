@@ -642,3 +642,18 @@ helper 的打包位置維持 `resources/native/win32/voxavatar-audio-listener.ex
 - **做法**：225% 直接以系統縮放啟動。100%、150% 沒有改 Windows 顯示設定，改用 Electron／Chromium 的 `--force-device-scale-factor=1` 與 `=1.5` 啟動，再以第二實例 `--settings` 開設定頁，用 agent-desktop 截取設定視窗與角色視窗。
 - **結果**：三種倍率下設定頁的側欄、模型卡片、按鈕、下拉選單、輸入框與右側即時預覽都完整可見，內容區超出高度時出現捲軸，沒有阻擋操作的裁切；角色視窗的模型完整顯示在視窗內、沒有被切掉。設定視窗的實體尺寸依倍率縮放（100% 為 1180×780、150% 為 1770×1170）。
 - **限制**：旗標只改 Chromium 的裝置縮放比，不會觸發 Windows 的 DPI 變更事件，也不涵蓋執行中切換縮放、多螢幕不同縮放或視窗跨螢幕移動。這些情境歸 ROADMAP「補完實機矩陣」那列，不屬於發版檢查；發版時對正式資產重跑的只有 225% 實機與 100%／150% 旗標模擬。`RELEASING.md`「100%、150%、225% DPI 的設定頁與預覽沒有阻擋操作的裁切」是單一勾選項，本次不勾；發版時在 `windows-smoke.md` 把 DPI 記為「部分」（225% 實機、100%／150% 以旗標模擬，實際系統縮放 100%／150%、執行中切換與多螢幕未驗）。
+
+## 2026-11-14：暫不申請 SignPath Foundation 免費簽章
+
+**背景**：SmartScreen／publisher 驗收需要 code signing 憑證，維護者不打算付費購買。開源專案可申請 [SignPath Foundation](https://signpath.org/) 的免費簽章（憑證發給 SignPath Foundation，publisher 顯示為該基金會）。
+
+**盤點（對照 [signpath.org/terms](https://signpath.org/terms)，2026-11-14 讀取）**：
+
+- **元件授權**：條款要求「所有元件」採 OSI 認可授權、不得含專有元件。程式碼是 MIT；但安裝檔附帶的 4 個 VRM（VRoid AvatarSample A／B／C、つくよみちゃん公式3Dモデル タイプA）各依自己的使用條款，允許再散布但不是 OSI 授權（見 [`ASSET_LICENSES.md`](../ASSET_LICENSES.md)）。13 個 VRMA 是 CC0，風險較低但也不是 OSI 授權。
+- **聲望**：條款寫明可直接下載執行的程式需要「可查證的聲望」。`gh repo view` 當日為 2 star、0 fork。
+- **來源**：程式碼衍生自 `xikhar/persona`（MIT），repo 不是 GitHub fork；條款要求簽章團隊維護所有原始碼，審核方怎麼認定不確定。
+- 其他條件（公開 repo、OSI 授權的程式碼、Release workflow 由 CI 建置、有移除流程、本機優先不外傳資料）大致符合。
+
+**決定**：照現狀送件很可能被拒，而條款明說不接受爭論，所以暫不申請，也不為了符合條件而把 4 個 VRM 移出安裝檔（新使用者會沒有預設角色）。安裝檔維持未簽署，`docs/release-evidence/` 的 `NotSigned` 標示不變。
+
+**重新評估的條件**：專案聲望明顯提高（star、下載量或外部引用），或安裝檔改為不附非 OSI 授權的模型時。申請表在 [signpath.org/apply](https://signpath.org/apply)，送件與帳號（含 MFA）由維護者本人處理。

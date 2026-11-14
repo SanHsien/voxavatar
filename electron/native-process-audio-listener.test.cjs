@@ -17,6 +17,53 @@ function fakeChild() {
   return child;
 }
 
+test("environment target overrides output and external modes before helper launch", async (t) => {
+  const { createAudioListener } = require("./audio-listener.cjs");
+  const { discoverVoiceProcesses } = require("./process-discovery.cjs");
+  for (const mode of ["default", "custom", "application", "output", "external"]) {
+    await t.test(mode, async () => {
+      const launches = [];
+      const statuses = [];
+      const activities = [];
+      const child = fakeChild();
+      let processes = [];
+      const listener = createAudioListener({
+        platform: "win32", helperPath: __filename,
+        voiceSource: mode === "application"
+          ? { mode, source_id: "process:win32:dm9pY2UuZXhl", source_name: "Voice" }
+          : { mode, process_pattern: "settings-player" },
+        environment: { VOXAVATAR_TARGET_PROCESS_PATTERN: "unique-player" },
+        processDiscovery: (options) => discoverVoiceProcesses({
+          ...options, run: async () => ({ stdout: JSON.stringify(processes) }),
+        }),
+        spawnProcess: (file, args, options) => {
+          launches.push({ file, args, options });
+          return child;
+        },
+        onStatus: (status) => statuses.push(status),
+        onActivity: (activity) => activities.push(activity),
+      });
+      assert.ok(listener, "env target must enable process capture even in external mode");
+      t.after(() => listener.stop());
+      await listener.start();
+      assert.equal(statuses.at(-1).state, "target_missing");
+      assert.equal(launches.length, 0);
+      processes = [{ ProcessId: 20, ParentProcessId: 1, Name: "unique-player.exe" }];
+      await listener.poll();
+      assert.equal(launches[0].file, __filename);
+      assert.deepEqual(launches[0].args, ["--pid", "20"]);
+      assert.equal(launches[0].options.windowsHide, true);
+      child.stdout.emit("data", '{"type":"ready","source":"Windows process audio"}\r\n{"type":"lev');
+      assert.equal(statuses.at(-1).state, "no_output");
+      child.stdout.emit("data", 'el","level":0.800000}\r\n');
+      assert.equal(statuses.at(-1).state, "listening");
+      assert.equal(activities.at(-1), "speaking");
+      listener.endSession();
+      assert.equal(statuses.at(-1).state, "no_output");
+    });
+  }
+});
+
 test("NDJSON parser buffers partial messages and rejects malformed lines", () => {
   const messages = [];
   const invalid = [];

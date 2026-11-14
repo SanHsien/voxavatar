@@ -29,7 +29,7 @@ function parseWindowsProcessList(output) {
 function identityMatches(entry, pattern = DEFAULT_VOICE_APP_PATTERN) {
   pattern.lastIndex = 0;
   return pattern.test(
-    `${entry.name} ${entry.executable ?? ""} ${entry.command}`,
+    `${entry.name} ${entry.executable ?? ""}`,
   );
 }
 

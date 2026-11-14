@@ -142,6 +142,28 @@ Get-AuthenticodeSignature .\VoxAvatar-*-windows-x64-setup.exe
 - [ ] 新增／刪除動作後，既有 MCP session 的工具描述更新。
 - [ ] 非 loopback Host、未允許 origin、過大 body 與錯誤 schema 被拒絕。
 
+### 播放來源與口型追查
+
+1. 使用包含本次程式修改的安裝包，完整結束 app（含系統匣）。在同一個 PowerShell 設定
+   `$env:VOXAVATAR_DEBUG='1'` 與 `$env:VOXAVATAR_TARGET_PROCESS_PATTERN='unique-player'`，
+   再從該終端機啟動安裝目錄的 VoxAvatar.exe。不要用已開啟的 app 或另一個終端機測覆寫。
+2. 先不啟動唯一名稱的播放程式；即使儲存來源是系統輸出或外部整合，`get_status` 的
+   `listener.state` 應為 `target_missing`，不應啟動 `--output`。
+3. 啟動 `unique-player.exe`，讓啟動它的 PowerShell 命令列也含該名稱。從本機除錯輸出核對
+   `native listener target` 的 `selectedPid` 是播放程式 PID，而非 PowerShell PID；
+   `native listener launch` 使用安裝目錄下 `resources/native/win32/voxavatar-audio-listener.exe`
+   與同一個 `--pid`。保留必要欄位即可，不公開完整路徑或命令列。
+4. 尚未播放時允許 `no_output`。播放一次：`get_status` 的 `listener.state` 應變為
+   `listening`、`voiceState` 為 `speaking`，畫面口型有反應；停止後等待約 8 秒，
+   `voiceState` 回到 `idle`。若仍無反應，以同一個 helper 對同一 PID 單獨執行 `--pid N`，
+   核對是否有非零數字 `level`，分開判斷行程選擇與 WASAPI 擷取。
+5. 移除環境覆寫並完整重啟，以設定頁選定實際播放語音的 ChatGPT／Codex 應用程式，
+   各播放與停止一次，確認同樣的 speaking／idle 與口型變化。多個 root 並存時，
+   自動模式仍會保持原本選定的 root；不能用另一個 root 播放來判定該 root 的擷取失敗。
+
+只記錄實際選定 PID、helper 位置是否正確與狀態變化；不錄音、不保存音訊。
+完成上述對應項目後停止測試，結果依本檔的 release evidence 格式記錄。
+
 ### 完成判定
 
 只有自動 gate、下載資產 SHA-256 與本節相關實機項目都有證據時，才可在 [`ROADMAP.md`](../ROADMAP.md)「現況」或 Release notes 宣稱該版本完成 Windows 實機驗收。單獨的 workflow success、installer 存在或本機開發版 smoke 都不夠。

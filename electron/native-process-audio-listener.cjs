@@ -9,7 +9,7 @@ const {
   isPidAlive,
   selectStickyRootPid,
 } = require("./process-discovery.cjs");
-const { normalizeVoiceSource } = require("./voice-source.cjs");
+const { resolveListenerVoiceSource, resolveListenerProcessPattern } = require("./voice-source.cjs");
 const {
   LISTENER_STATE,
   withListenerState,
@@ -77,6 +77,7 @@ class NativeProcessAudioListener {
     speechReleaseMs = DEFAULT_SPEECH_RELEASE_MS,
     processPattern = null,
     voiceSource = null,
+    environment = process.env,
     now = () => Date.now(),
   } = {}) {
     this.platform = platform;
@@ -84,8 +85,12 @@ class NativeProcessAudioListener {
       helperPath ?? resolveNativeHelperPath({ platform, isPackaged, resourcesPath });
     this.processDiscovery = processDiscovery;
     this.pidAlive = pidAlive;
-    this.processPattern = processPattern;
-    this.voiceSource = normalizeVoiceSource(voiceSource);
+    this.environment = environment;
+    this.voiceSource = resolveListenerVoiceSource({ voiceSource, environment });
+    this.processPattern = resolveListenerProcessPattern({ voiceSource, environment });
+    if (!environment?.VOXAVATAR_TARGET_PROCESS_PATTERN?.trim() && processPattern) {
+      this.processPattern = processPattern;
+    }
     this.spawnProcess = spawnProcess;
     this.onActivity = onActivity;
     this.onDebug = onDebug;
@@ -209,6 +214,7 @@ class NativeProcessAudioListener {
 
       const processes = await this.processDiscovery({
         platform: this.platform,
+        environment: this.environment,
         voiceSource: this.voiceSource,
         ...(this.processPattern ? { pattern: this.processPattern } : {}),
       });
@@ -218,6 +224,12 @@ class NativeProcessAudioListener {
         processes.rootPids,
         this.activeRootPid,
       );
+      this.onDebug?.("native listener target", {
+        rootPids: processes.rootPids,
+        previousPid: this.activeRootPid,
+        selectedPid,
+        pattern: this.processPattern?.source ?? null,
+      });
       if (selectedPid == null) {
         this.activeRootPid = null;
         this.detach();
@@ -284,6 +296,7 @@ class NativeProcessAudioListener {
   }
 
   spawnCapture(args, key) {
+    this.onDebug?.("native listener launch", { helperPath: this.helperPath, args });
     const child = this.spawnProcess(this.helperPath, args, {
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,

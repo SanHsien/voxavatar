@@ -1,8 +1,30 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-11-08
+最後修訂：2026-11-14
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與現況見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-11-14：Hono 安全修補與 minimatch 延後條件
+
+**決定**：只將 lockfile 的傳遞依賴 `hono` 從 4.13.13 升到最早修補版 4.13.16。
+`@modelcontextprotocol/sdk` 的 `^4.11.4` 與 `@hono/node-server` 的 peer 範圍均允許此版本，
+不新增直接依賴或 override，也不升級無關套件。安全修補不受七天發布冷卻限制。
+
+此版本處理以下五筆公告：
+
+- [GHSA-4m76-xfj5-7975](https://github.com/advisories/GHSA-4m76-xfj5-7975)：掛載路徑可能繞過子路徑的中介處理。
+- [GHSA-h7mg-cq63-vhpq](https://github.com/advisories/GHSA-h7mg-cq63-vhpq)：RegExpRouter 在特定路由或編碼換行路徑下漏套萬用路徑的中介處理。
+- [GHSA-3gg2-335m-rxc6](https://github.com/advisories/GHSA-3gg2-335m-rxc6)：CSS helper 未完整跳脫跨插值的結束標籤，可造成 HTML 注入。
+- [GHSA-46wx-v44x-9hh2](https://github.com/advisories/GHSA-46wx-v44x-9hh2)：CSRF 防護未檢查 `text/ping` 請求。
+- [GHSA-4h7h-rv7c-7m2v](https://github.com/advisories/GHSA-4h7h-rv7c-7m2v)：帶額外參數的 multipart 表單可能略過驗證。
+
+**保留**：[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)
+目前影響 `minimatch >=7.0.0 <11.0.1`，本 repo 的 9.0.9 與 10.2.6 屬此範圍；
+3.1.5 與 5.1.9 不在目前公告範圍內。11.0.1 是修補版，但 ESLint、typescript-eslint、
+electron-builder 及其傳遞依賴的宣告只允許 9.x 或 10.x，沒有相容範圍內的修補版。
+這些用途限於 lint、型別分析與打包工具，不隨 production 依賴載入，也不接收 MCP／HTTP 請求中的 glob。
+保留原版本及告警，不強制跨主版覆寫；父套件支援 11.0.1 以上，或 9.x／10.x 有回補時重審。
+先前全域 override 的相容性問題見下方 2026-11-04 決策。
 
 ## 2026-11-08：新版發布未滿 7 天不升級，Dependabot 同步設冷卻
 
@@ -573,4 +595,30 @@ TypeScript／`.cts` 遷移（見本檔 2026-08-23 節）。改寫成 `electron/w
   - 一般使用者權限靜默安裝，覆蓋既有 1.0.6，exit 0；升級前後使用者資料夾的設定、模型與動作檔案逐檔比對相同。
   - 啟動後顯示設定的預設模型 `avatar-sample-b`，Idle 動作播放中；MCP `/health` 回 `ok: true`；`tools/list` 列出六個工具；`list_animations` 回 12 個可播動作；`play_animation`（`happy`）畫面確實換成對應姿勢；`control_window` 隱藏後視窗清單沒有它，再顯示後回來；`get_status` 回模型已設定、視窗可見。
   - 原生 listener 單獨以 `--pid` 擷取一個循環播放音效的行程，回報 0.7～0.8 的音量，代表用 `/utf-8` 編出來的 helper 能正常擷取。
-  - **未通過／未驗**：app 內口型一直是 `no_output`（另列 ROADMAP 追查）；系統匣、100%／150% DPI、移除、SmartScreen 本輪沒做。
+  - **未通過／未驗**：app 內口型一直是 `no_output`（歷史觀察；行程選擇規則見下節）；系統匣、100%／150% DPI、移除、SmartScreen 本輪沒做。
+
+## 2026-11-14：播放行程比對與環境覆寫的優先序
+
+**決定**：process pattern 只比對行程名稱與執行檔路徑，不比對命令列參數。
+`VOXAVATAR_TARGET_PROCESS_PATTERN` 在選擇 listener 前生效，優先於所有儲存的來源模式，
+包含 `output` 與 `external`；環境覆寫存在時改走指定行程擷取，不啟動 `--output`。
+相同的環境與 pattern 用於後續 discovery。helper 接收選定的 `--pid`，不負責解析 pattern。
+
+**理由**：啟動腳本、終端機或其他應用程式的命令列可能提到 Codex／ChatGPT 或自訂播放程式，
+但本身沒有播放音訊。把它們當成目標後，最小 root PID 與 sticky 選擇會持續監聽錯誤的行程。
+另外，只在 pattern 解析時處理覆寫，會被更早的 `output`／`external` 分流跳過。
+
+**限制**：多個真正符合的 root 仍先取最小 PID，之後保持原 PID，直到它離開候選集合；
+這不是依音量挑選來源。需鎖定特定播放程式時，使用設定頁的指定應用程式或唯一的執行檔 pattern。
+只出現在命令列參數的名稱不再作為來源識別，因此靠參數辨識的來源會失去自動偵測：
+例如瀏覽器 PWA 的 `msedge_proxy.exe --app=https://chatgpt.com`，以及共用 `node.exe` 的 CLI。
+瀏覽器／PWA 應在設定頁指定實際播放音訊的應用程式，或使用唯一的執行檔 pattern；
+共用 `node.exe` 的 CLI 也需指定播放應用程式，或改用可唯一辨識的執行檔路徑。
+相同執行檔承載多個網站、PWA 或 CLI 時，pattern 無法再用網址或命令列參數區分它們。
+`ready` 只表示擷取初始化，靜音時的 `no_output` 不代表覆寫失效；應核對除錯訊息中的選定 PID。
+已運行的 app 不會取得其他終端機後來設定的環境變數，測試前必須完整結束 app，再從設定變數的終端機啟動。
+
+helper 的打包位置維持 `resources/native/win32/voxavatar-audio-listener.exe`；
+音量維持逐行 JSON 的數字 `level`，由 main 解析後驅動角色狀態。
+`VOXAVATAR_DEBUG=1` 可在本機查看候選 root、選定 PID、pattern、helper 路徑與參數；
+這些詳細資料不加入 MCP 回傳。實機操作步驟見 [`RELEASING.md`](RELEASING.md)「播放來源與口型追查」。

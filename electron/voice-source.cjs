@@ -182,6 +182,17 @@ function normalizeVoiceSource(value) {
   }
 }
 
+function resolveListenerVoiceSource({
+  voiceSource,
+  environment = process.env,
+} = {}) {
+  const override = environment?.VOXAVATAR_TARGET_PROCESS_PATTERN;
+  // 覆寫必須先於 output／external 分流；pattern 由共用解析器處理。
+  return typeof override === "string" && override.trim()
+    ? emptyVoiceSource("default")
+    : normalizeVoiceSource(voiceSource);
+}
+
 function settingsPatternFromVoiceSource(voiceSource) {
   const normalized = normalizeVoiceSource(voiceSource);
   return normalized.mode === "custom" ? normalized.process_pattern : null;
@@ -303,6 +314,7 @@ module.exports = {
   processSourceId,
   resolveVoiceSourcePattern,
   resolveListenerProcessPattern,
+  resolveListenerVoiceSource,
   sanitizeVoiceSource,
   sanitizeVoiceSourcePattern,
   settingsPatternFromVoiceSource,

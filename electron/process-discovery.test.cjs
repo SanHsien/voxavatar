@@ -183,3 +183,16 @@ test("sticky root keeps the previous PID when it remains available", () => {
     false,
   );
 });
+
+test("command arguments mentioning the target cannot steal the sticky root from the player", () => {
+  for (const pattern of [configuredPattern({}), /unique-player/i]) {
+    const name = pattern.test("Codex") ? "Codex.exe" : "unique-player.exe";
+    const selected = selectVoiceProcessTree([
+      { pid: 10, parentId: 1, name: "powershell.exe", executable: "C:\\Windows\\powershell.exe",
+        command: `powershell -Command start ${name}` },
+      { pid: 20, parentId: 1, name, executable: `C:\\Apps\\${name}`, command: name },
+    ], { ownProcessId: 999, pattern });
+    assert.deepEqual(selected, { pids: [20], rootPids: [20] });
+    assert.equal(selectStickyRootPid(selected.rootPids, 10), 20);
+  }
+});

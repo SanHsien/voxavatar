@@ -115,7 +115,7 @@ npm run baseline:startup
 | 變數 | 用途 |
 | --- | --- |
 | `VOXAVATAR_BRIDGE_PORT` | 覆寫 loopback MCP／HTTP port，預設 `47831` |
-| `VOXAVATAR_TARGET_PROCESS_PATTERN` | 覆寫自動／設定頁的目標播放行程比對 |
+| `VOXAVATAR_TARGET_PROCESS_PATTERN` | 優先於所有儲存來源模式；只比對行程名稱與執行檔路徑，不比對命令列參數；需從設定變數的終端機重新啟動 app |
 | `VOXAVATAR_DEBUG=1` | 顯示 main process 診斷訊息；不得輸出音訊或敏感內容 |
 
 ## 依賴維護

@@ -60,7 +60,7 @@ const {
   createSettingsWindowPresentationGate,
 } = require("./settings-window-presentation.cjs");
 const {
-  normalizeVoiceSource,
+  resolveListenerVoiceSource,
   resolveListenerProcessPattern,
 } = require("./voice-source.cjs");
 const { listVoiceSources } = require("./voice-source-discovery.cjs");
@@ -534,7 +534,7 @@ function resolveListenerProcessPatternFromSettings(
 }
 
 function createConfiguredAudioListener(snapshot = settingsStore?.getSnapshot()) {
-  const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
+  const voiceSource = resolveListenerVoiceSource({ voiceSource: snapshot?.voice_source });
   return createAudioListener({
     isPackaged: app.isPackaged,
     resourcesPath: process.resourcesPath,
@@ -544,7 +544,7 @@ function createConfiguredAudioListener(snapshot = settingsStore?.getSnapshot()) 
       debugLog("listener activity", activity);
       handleBridgeEvent(voiceState(activity));
     },
-    onDebug: debugEnabled ? (nodes) => debugLog("listener output nodes", nodes) : null,
+    onDebug: debugEnabled ? (...details) => debugLog("listener output nodes", ...details) : null,
     onLevel: (level) => handleBridgeEvent({ type: "audio-level", level }),
     onSession: (active) => {
       debugLog("listener session", active);
@@ -558,7 +558,7 @@ function createConfiguredAudioListener(snapshot = settingsStore?.getSnapshot()) 
 }
 
 function reportInactiveListenerStatus(snapshot = settingsStore?.getSnapshot()) {
-  const voiceSource = normalizeVoiceSource(snapshot?.voice_source);
+  const voiceSource = resolveListenerVoiceSource({ voiceSource: snapshot?.voice_source });
   if (voiceSource.mode === "external") {
     handleListenerStatus({
       available: true,

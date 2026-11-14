@@ -9,23 +9,11 @@
     "reviewed": "2026-11-08",
     "reason": "@types/three 0.187.0 describes three r187. The installed three is 0.186.1, so the types stay on 0.186.x and move together with three."
   },
-  "concurrently": {
-    "deferredLatest": "10.0.7",
-    "reviewed": "2026-11-08",
-    "cooldownUntil": "2026-11-14T09:42:12Z",
-    "reason": "concurrently 10.0.7 was published 2026-11-07T09:42:12Z, so the seven day release cooldown ends 2026-11-14T09:42:12Z. 10.0.6 (2026-10-08) is the newest release older than seven days and stays installed."
-  },
   "electron": {
-    "deferredLatest": "45.2.3",
-    "reviewed": "2026-11-08",
-    "cooldownUntil": "2026-11-11T21:39:17Z",
-    "reason": "electron 45.2.3 was published 2026-11-04T21:39:17Z, so the seven day release cooldown ends 2026-11-11T21:39:17Z. 45.2.1 (2026-10-31) is the newest 45.x release older than seven days and is installed; 45.2.2 (2026-11-03) is eligible from 2026-11-10. When electron moves, change the allowScripts key in package.json in the same commit."
-  },
-  "globals": {
-    "deferredLatest": "17.14.0",
-    "reviewed": "2026-11-08",
-    "cooldownUntil": "2026-11-08T11:01:01Z",
-    "reason": "globals 17.14.0 was published 2026-11-01T11:01:01Z, so the seven day release cooldown ends 2026-11-08T11:01:01Z. 17.13.0 (2026-10-01) is the newest release older than seven days and is installed."
+    "deferredLatest": "45.3.2",
+    "reviewed": "2026-11-15",
+    "cooldownUntil": "2026-11-20T13:26:20Z",
+    "reason": "electron 45.3.2 was published 2026-11-13T13:26:20Z, so the seven day release cooldown ends 2026-11-20T13:26:20Z. 45.2.3 (2026-11-04) is the newest 45.x release older than seven days and is installed; 45.3.0 (2026-11-10) is eligible from 2026-11-17 and 45.3.1 (2026-11-12) from 2026-11-19. When electron moves, diff install.js and the dependencies against the installed version and change the allowScripts key in package.json in the same commit."
   },
   "jsdom": {
     "deferredLatest": "31.0.0",
@@ -44,15 +32,9 @@
     "reason": "typescript-eslint 8.72.1 still requires TypeScript >=4.8.4 <6.1.0. TypeScript 7.0.2 is outside that peer range and breaks linting; keep TypeScript 6.0.3 until typescript-eslint supports 7."
   },
   "vite": {
-    "deferredLatest": "8.3.6",
-    "reviewed": "2026-11-08",
-    "cooldownUntil": "2026-11-12T05:40:52Z",
-    "reason": "vite 8.3.6 was published 2026-11-05T05:40:52Z, so the seven day release cooldown ends 2026-11-12T05:40:52Z. 8.3.5 (2026-10-21) is the newest release older than seven days and stays installed."
-  },
-  "vitest": {
-    "deferredLatest": "5.1.0",
-    "reviewed": "2026-11-08",
-    "cooldownUntil": "2026-11-09T16:12:37Z",
-    "reason": "vitest 5.1.0 was published 2026-11-02T16:12:37Z, so the seven day release cooldown ends 2026-11-09T16:12:37Z. 5.0.5 (2026-10-15) is the newest release older than seven days and stays installed; @vitest/mocker moves with it."
+    "deferredLatest": "8.3.8",
+    "reviewed": "2026-11-15",
+    "cooldownUntil": "2026-11-18T02:49:46Z",
+    "reason": "vite 8.3.8 was published 2026-11-11T02:49:46Z, so the seven day release cooldown ends 2026-11-18T02:49:46Z. 8.3.6 (2026-11-05) is the newest release older than seven days and is installed; 8.3.7 (2026-11-09) is eligible from 2026-11-16."
   }
 }

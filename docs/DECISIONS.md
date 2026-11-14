@@ -1,8 +1,25 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-11-14
+最後修訂：2026-11-15
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與現況見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
+
+## 2026-11-15：Electron 升到 45.2.3，冷卻期滿的四個開發依賴一併升級（Dependabot #63）
+
+**決定**：`electron` 45.2.1→45.2.3、`concurrently` 10.0.6→10.0.7、`globals` 17.13.0→17.14.0、`vite` 8.3.5→8.3.6、`vitest` 5.0.5→5.1.0，`allowScripts` 的 `electron@` 鍵同步改為 `45.2.3`。五者的發布時間都已滿 7 天。#63 同一組裡的 `three`／`@types/three` 0.187.0 不升：延後理由不是冷卻，而是 r187 尚未在 Windows 桌面實跑（見 `.github/dependency-deferrals.json` 與 `ROADMAP.md`）。
+
+**Electron 安裝腳本的查核**（`allowScripts` 的鍵只釘版本，不釘內容，所以每次改鍵前人工比對）：以 `npm pack` 取得 45.2.1 與 45.2.3 的 tarball，只讀不執行。
+
+- tarball 的 sha512 與 registry 的 `dist.integrity`、lockfile 的 `integrity` 一致（`sha512-Vurzu5UO…nGDhyw==`）。
+- `install.js` 兩版逐位元相同（SHA-256 `3b9e0c3c9070edbdb732dc05ed23c6f1c6b7a404bd623033a2f0b71052534e93`）：經 `@electron/get` 下載、以套件內 `checksums.json` 驗證，再用 `@electron-internal/extract-zip` 解壓；沒有 `extract-zip`。
+- `dependencies` 兩版相同（`@electron-internal/extract-zip ^1.0.1`、`@electron/get ^5.0.0`、`@types/node ^24.9.0`），套件本身沒有 `scripts`。lockfile 的解壓套件仍是 `@electron-internal/extract-zip` 1.0.5，沒有 `node_modules/extract-zip`。
+- 兩版 tarball 的差異只有 `package.json` 的版本號、`checksums.json` 的各平台雜湊，以及 `electron.d.ts`（標頭版本與 11 處 `@experimental` 註記移除）。
+
+**傳遞依賴**：以 `npm install --before=2026-11-07T21:00:00Z` 解析，連帶變動的 `rolldown` 1.2.16、`@oxc-project/types` 0.156.0、`postcss` 8.5.32、`magic-string` 1.4.5、`@vitest/mocker`／`@vitest/spy` 5.1.0 也都滿 7 天。
+
+**仍在冷卻**：`electron` 45.3.2（到 2026-11-20T13:26:20Z）與 `vite` 8.3.8（到 2026-11-18T02:49:46Z）記在 deferrals；`concurrently`、`globals`、`vitest` 三筆已安裝，自 deferrals 移除。
+
+**未驗**：本輪只跑自動化閘門（Node 24 的 `npm ci`、`npm run check`、`native:build`、`native:test`）。Electron 45.2.3 的打包安裝版桌面驗收仍依發行流程在下次 Release 前另做。
 
 ## 2026-11-14：NSIS 只移除本次安裝持有的 URL Protocol
 

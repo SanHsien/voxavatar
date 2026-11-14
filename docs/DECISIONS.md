@@ -4,6 +4,19 @@
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與現況見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
+## 2026-11-14：NSIS 只移除本次安裝持有的 URL Protocol
+
+**決定**：由 `package.json` 的 `build.nsis.include` 載入 `build/installer.nsh`。
+`customUnInstall` 只讀取 HKCU 的 `Software\Classes\voxavatar\shell\open\command`；
+完整 command 等於帶引號的 `$INSTDIR\${APP_EXECUTABLE_FILENAME}` 與 `"%1"` 時，
+才刪除該使用者的 `voxavatar` 鍵。其他位置、程式或參數格式的註冊一律保留。
+不操作 HKLM／HKCR，也不刪除 userData。
+
+升級時以 electron-builder 的 `${isUpdated}` 略過移除，保留原註冊，避免升級中或回復舊檔時失去關聯；
+`customInstall` 在檔案安裝完成後寫入新位置的 URL Protocol 與 command，
+因此靜默升級或未勾選安裝完成後啟動 app，仍有註冊。打包版 app 每次啟動也會呼叫
+`app.setAsDefaultProtocolClient`。若日後改動 protocol 名稱、啟動參數或安裝範圍，須一併調整這兩個 macro。
+
 ## 2026-11-14：Hono 安全修補與 minimatch 延後條件
 
 **決定**：只將 lockfile 的傳遞依賴 `hono` 從 4.13.13 升到最早修補版 4.13.16。

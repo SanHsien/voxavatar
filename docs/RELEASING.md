@@ -122,6 +122,38 @@ Get-AuthenticodeSignature .\VoxAvatar-*-windows-x64-setup.exe
 - [ ] `voxavatar://show`、`hide`、`toggle` 的 protocol 註冊與移除符合預期。
 - [ ] 已簽署版本顯示正確 publisher，並記錄 SmartScreen 結果。
 
+### Protocol 移除與升級重驗
+
+使用包含 `build/installer.nsh` 修正的新建安裝檔，記錄 SHA-256；不能沿用原候選檔。
+在一般使用者帳戶測試 NSIS per-user，先完整結束 app（含系統匣）。
+
+1. 安裝後先不啟動 app，讀取
+   `HKCU\Software\Classes\voxavatar\shell\open\command` 的預設值，
+   應為 `"<安裝目錄>\VoxAvatar.exe" "%1"`；`URL Protocol` 字串值必須存在。
+   啟動一次後再次核對，並各執行一次 `voxavatar://show`、`voxavatar://hide`、`voxavatar://toggle`。
+2. 完整結束 app，以相同目錄覆蓋安裝（同版本及上一受支援版本各一次），取消完成頁的啟動選項；
+   另以 `/S` 測一次靜默覆蓋安裝。每次完成後、首次啟動前，確認上述 command 仍指向安裝目錄。
+   升級移除階段由 `${isUpdated}` 保留關聯，`customInstall` 完成時寫入新 command；
+   app 啟動另會重新註冊。userData 與設定應保留。
+3. 在自訂目錄（含空白）安裝並啟動，結束後執行：
+
+   ```powershell
+   $installDir = "<本次安裝目錄>"
+   Start-Process -FilePath (Join-Path $installDir "Uninstall VoxAvatar.exe") -ArgumentList "/S" -Wait
+   Test-Path -LiteralPath "Registry::HKEY_CURRENT_USER\Software\Classes\voxavatar"
+   ```
+
+   預期為 `False`；安裝目錄、對應 Uninstall 登錄、開始功能表捷徑也應移除，userData 保留。
+   以預設安裝目錄重複同一項，核對結果一致。
+4. 在專用測試帳戶重新安裝，先將該 protocol 鍵備份到測試帳戶的暫存目錄，
+   再將 command 改為另一安裝目錄，
+   執行本次安裝的 `/S` 移除，確認整個鍵與值原樣保留。以同目錄其他執行檔、
+   相同路徑前綴的其他目錄、額外命令列參數各測一次；缺少鍵時移除也應成功。
+   每次只建立本次測試所需的一筆註冊，完成後還原原值。
+
+結果記入對應 `windows-smoke.md`，包含一般移除、其他註冊保留與不啟動 app 的升級結果；
+達到上述條件即停止。
+
 ### 核心桌面流程
 
 - [ ] 4 個內建 VRM 都可載入；另匯入合法 VRM、切換預設模型，關閉再開仍能載入。

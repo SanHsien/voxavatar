@@ -11,6 +11,47 @@ const {
 
 const execFileAsync = promisify(execFile);
 
+// The CIM query took 2.8-11.9 s on a busy machine (2026-11-21 acceptance:
+// about 96% CPU, about 690 processes), so the budget must sit well above that.
+const PROCESS_QUERY_TIMEOUT_MS = 20_000;
+
+const DISCOVERY_ERROR = Object.freeze({
+  TIMEOUT: "process_discovery_timeout",
+  FAILED: "process_discovery_failed",
+  INVALID_OUTPUT: "process_discovery_invalid_output",
+});
+
+const DISCOVERY_ERROR_MESSAGE = Object.freeze({
+  [DISCOVERY_ERROR.TIMEOUT]: "Process discovery timed out.",
+  [DISCOVERY_ERROR.FAILED]: "Process discovery failed.",
+  [DISCOVERY_ERROR.INVALID_OUTPUT]: "Process discovery returned unreadable output.",
+});
+
+// execFile puts the whole command line in its error message, and a JSON parse
+// error quotes process output (other programs' command lines). Neither may
+// reach listener status, so callers only ever see these fixed messages.
+function discoveryError(code, cause) {
+  const error = new Error(DISCOVERY_ERROR_MESSAGE[code], { cause });
+  error.code = code;
+  return error;
+}
+
+function isQueryTimeout(error) {
+  return (
+    error?.code === "ETIMEDOUT" ||
+    (error?.killed === true &&
+      error?.code !== "ERR_CHILD_PROCESS_STDIO_MAXBUFFER")
+  );
+}
+
+/** Fixed, display-safe text for any error thrown by process discovery. */
+function describeDiscoveryError(error) {
+  return (
+    DISCOVERY_ERROR_MESSAGE[error?.code] ??
+    DISCOVERY_ERROR_MESSAGE[DISCOVERY_ERROR.FAILED]
+  );
+}
+
 function parseWindowsProcessList(output) {
   const trimmed = output.trim();
   if (!trimmed) return [];
@@ -86,17 +127,29 @@ async function listPlatformProcesses({
   if (platform !== "win32") return [];
   const command =
     "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new([bool]0); Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,ExecutablePath,CommandLine | ConvertTo-Json -Compress";
-  const { stdout } = await run(
-    "powershell.exe",
-    ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command],
-    {
-      encoding: "utf8",
-      maxBuffer: 8 * 1024 * 1024,
-      timeout: 5_000,
-      windowsHide: true,
-    },
-  );
-  return parseWindowsProcessList(stdout);
+  let stdout;
+  try {
+    ({ stdout } = await run(
+      "powershell.exe",
+      ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command],
+      {
+        encoding: "utf8",
+        maxBuffer: 8 * 1024 * 1024,
+        timeout: PROCESS_QUERY_TIMEOUT_MS,
+        windowsHide: true,
+      },
+    ));
+  } catch (error) {
+    throw discoveryError(
+      isQueryTimeout(error) ? DISCOVERY_ERROR.TIMEOUT : DISCOVERY_ERROR.FAILED,
+      error,
+    );
+  }
+  try {
+    return parseWindowsProcessList(stdout);
+  } catch (error) {
+    throw discoveryError(DISCOVERY_ERROR.INVALID_OUTPUT, error);
+  }
 }
 
 /**
@@ -159,7 +212,10 @@ async function discoverVoiceProcesses({
 
 module.exports = {
   DEFAULT_VOICE_APP_PATTERN,
+  DISCOVERY_ERROR,
+  PROCESS_QUERY_TIMEOUT_MS,
   configuredPattern,
+  describeDiscoveryError,
   discoverVoiceProcesses,
   identityMatches,
   isPidAlive,

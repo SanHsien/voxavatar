@@ -196,3 +196,83 @@ test("command arguments mentioning the target cannot steal the sticky root from 
     assert.equal(selectStickyRootPid(selected.rootPids, 10), 20);
   }
 });
+
+// Shape of the error execFile raises when its timeout kills PowerShell:
+// the message is "Command failed: " followed by the whole command line.
+function execTimeoutError(file, args) {
+  const error = new Error(`Command failed: ${file} ${args.join(" ")}\n`);
+  error.killed = true;
+  error.signal = "SIGTERM";
+  error.code = null;
+  error.cmd = `${file} ${args.join(" ")}`;
+  return error;
+}
+
+// A fake PowerShell that needs `durationMs` to answer and is killed when the
+// caller's timeout is shorter, as execFile does.
+function slowRun(durationMs, stdout = "[]") {
+  return async (file, args, options) => {
+    if (options.timeout > 0 && options.timeout < durationMs) {
+      throw execTimeoutError(file, args);
+    }
+    return { stdout };
+  };
+}
+
+test("process query survives the slowest run measured on a busy machine", async () => {
+  // 2026-11-21 acceptance: 2.8-11.9 s at ~96% CPU with ~690 processes.
+  const processes = await listPlatformProcesses({
+    platform: "win32",
+    run: slowRun(11_900, '{"ProcessId":7,"Name":"ChatGPT.exe"}'),
+  });
+  assert.equal(processes[0].pid, 7);
+});
+
+test("a timed-out process query reports a short error without the command line", async () => {
+  const { DISCOVERY_ERROR, describeDiscoveryError } = require("./process-discovery.cjs");
+  await assert.rejects(
+    listPlatformProcesses({ platform: "win32", run: slowRun(600_000) }),
+    (error) => {
+      assert.equal(error.message, "Process discovery timed out.");
+      assert.equal(error.code, DISCOVERY_ERROR.TIMEOUT);
+      assert.equal(describeDiscoveryError(error), "Process discovery timed out.");
+      assert.doesNotMatch(error.message, /powershell|Get-CimInstance|Command failed/i);
+      return true;
+    },
+  );
+});
+
+test("other process query failures never surface raw command or process text", async () => {
+  const { DISCOVERY_ERROR, describeDiscoveryError } = require("./process-discovery.cjs");
+  await assert.rejects(
+    listPlatformProcesses({
+      platform: "win32",
+      run: async (file, args) => {
+        const error = new Error(`Command failed: ${file} ${args.join(" ")}`);
+        error.code = 1;
+        throw error;
+      },
+    }),
+    (error) => {
+      assert.equal(error.message, "Process discovery failed.");
+      assert.equal(error.code, DISCOVERY_ERROR.FAILED);
+      return true;
+    },
+  );
+  await assert.rejects(
+    listPlatformProcesses({
+      platform: "win32",
+      run: async () => ({ stdout: '[{"CommandLine":"player.exe --token=secret-value"' }),
+    }),
+    (error) => {
+      assert.equal(error.message, "Process discovery returned unreadable output.");
+      assert.equal(error.code, DISCOVERY_ERROR.INVALID_OUTPUT);
+      assert.doesNotMatch(error.message, /secret-value/);
+      return true;
+    },
+  );
+  assert.equal(
+    describeDiscoveryError(new Error("Command failed: powershell.exe -Command Get-CimInstance")),
+    "Process discovery failed.",
+  );
+});

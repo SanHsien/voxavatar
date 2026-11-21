@@ -56,6 +56,7 @@ const {
 } = require("./message-rate-limit.cjs");
 const { randomUUID } = require("node:crypto");
 const { parseProtocolUrl, voiceState } = require("./protocol-actions.cjs");
+const { isQuitRequest } = require("./quit-request.cjs");
 const {
   createSettingsWindowPresentationGate,
 } = require("./settings-window-presentation.cjs");
@@ -1056,10 +1057,19 @@ function createTray() {
   tray.on("right-click", () => popupTrayMenu());
 }
 
-if (!app.requestSingleInstanceLock()) {
+// `--quit` only ever closes VoxAvatar. Requesting the lock is what forwards
+// argv to a running instance, which then exits; with nothing running, this
+// process holds the lock and exits without creating a window.
+const hasInstanceLock = app.requestSingleInstanceLock();
+if (!hasInstanceLock || isQuitRequest(process.argv, protocolScheme)) {
   app.quit();
 } else {
   app.on("second-instance", (_event, argv) => {
+    if (isQuitRequest(argv, protocolScheme)) {
+      isQuitting = true;
+      app.quit();
+      return;
+    }
     const handled = argv.some((value) => value.startsWith(`${protocolScheme}://`));
     handleProtocolArgv(argv);
     if (argv.includes("--settings")) showSettings();

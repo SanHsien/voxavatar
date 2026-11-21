@@ -78,6 +78,10 @@ function validateGlbFile(filePath, expectedExtension) {
 }
 
 function copyValidatedGlbFile(sourcePath, destinationPath, expectedExtension) {
+  // The temporary copy below always ends with the expected extension, so only
+  // this call sees the name the user picked. It also rejects oversized or
+  // invalid content before any bytes reach the library directory.
+  validateGlbFile(sourcePath, expectedExtension);
   const temporaryPath = `${destinationPath}.import-${nodeCrypto.randomUUID()}${expectedExtension}`;
   try {
     fs.copyFileSync(sourcePath, temporaryPath, fs.constants.COPYFILE_EXCL);

@@ -29,6 +29,8 @@ React + Three.js renderer ── VRM／VRMA／口型／視窗互動
 
 Windows process discovery 會呼叫 Windows PowerShell 5.1 的 CIM。命令必須先把 `[Console]::OutputEncoding` 設為無 BOM UTF-8；繁中系統預設 ANSI／Big5 在 pipe 中可能含 `0x5C` 尾位元組，若 Node 固定以 UTF-8 解碼會形成非法 JSON escape。修改 `electron/process-discovery.cjs` 時必須保留 `forces Windows PowerShell process JSON to UTF-8` 契約測，並在繁中 Windows 實跑 `listPlatformProcesses()`。
 
+這個查詢在忙碌的機器上很慢（2026-11-21 實測 2.8～11.9 秒；同日另一次同類 CIM 查詢 16～30 秒），所以時限是 20 秒（`PROCESS_QUERY_TIMEOUT_MS`）。查詢失敗時 `listPlatformProcesses()` 只丟出三種固定短句的錯誤（逾時、失敗、輸出無法解析），原始錯誤放在 `cause`：`execFile` 的錯誤訊息含整段命令列，JSON 解析錯誤會引用其他程式的命令列，兩者都不能進 listener 狀態。`NativeProcessAudioListener` 在查詢失敗時不拆掉任何東西：已在擷取的來源維持原狀態，沒有擷取時回報 `launch_failed` 與短句，之後每次輪詢都重試、間隔逐次拉長，第一次成功就回報真實狀態。改動這段時保留 `a discovery timeout keeps a running capture and its status, then carries on` 與 `without a capture, a discovery timeout reports a short error, backs off, and recovers` 兩條回歸測。
+
 `registerSettingsIpc()` 在 bridge 啟動前註冊。會變動的 MCP health／port／error 與 listener 必須透過 `getIntegrationRuntimeState()` 在 handler 呼叫當下取得；若改回傳 primitive，Settings 會永久閉包 `starting` 與初始 port。修改這條 seam 時保留 `runtime-dependent settings IPC reads bridge and listener state at call time` 回歸測。
 
 ## 目錄

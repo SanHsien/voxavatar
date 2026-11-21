@@ -145,11 +145,22 @@ Get-AuthenticodeSignature .\VoxAvatar-*-windows-x64-setup.exe
 
    預期為 `False`；安裝目錄、對應 Uninstall 登錄、開始功能表捷徑也應移除，userData 保留。
    以預設安裝目錄重複同一項，核對結果一致。
+
+   **不要用這個指令的結束碼判定成敗。** `Uninstall VoxAvatar.exe` 會把自己複製到
+   `%TEMP%\~nsu.tmp\Un_A.exe`、啟動那份複本後立刻以 0 結束；真正的移除在複本裡進行，
+   它失敗時（結束碼 2）原本的程序仍回傳 0。成敗一律看上面的登錄與目錄。
+   需要結束碼時，在啟動後取得 `Un_A` 行程並等它結束再讀 `ExitCode`。
 4. 在專用測試帳戶重新安裝，先將該 protocol 鍵備份到測試帳戶的暫存目錄，
    再將 command 改為另一安裝目錄，
    執行本次安裝的 `/S` 移除，確認整個鍵與值原樣保留。以同目錄其他執行檔、
    相同路徑前綴的其他目錄、額外命令列參數各測一次；缺少鍵時移除也應成功。
    每次只建立本次測試所需的一筆註冊，完成後還原原值。
+5. app 留在系統匣執行，再做一次第 3 步的 `/S` 移除，結果應與第 3 步相同。
+   安裝程式會先以 `VoxAvatar.exe --quit` 要求 app 結束，等 `VoxAvatar.exe` 與
+   `voxavatar-audio-listener.exe` 都從行程清單消失才動檔案；10 秒內沒結束改為強制關閉，
+   最多等 180 秒，仍關不掉時複本以結束碼 2 中止、不移除任何東西
+   （`build/installer.nsh` 的 `customCheckAppRunning`）。同樣在 app 執行中做一次 `/S` 覆蓋安裝，
+   完成後 app 應已結束、安裝目錄為新檔。
 
 結果記入對應 `windows-smoke.md`，包含一般移除、其他註冊保留與不啟動 app 的升級結果；
 達到上述條件即停止。

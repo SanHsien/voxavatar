@@ -5,6 +5,7 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { AudioActivityGate, DEFAULT_SPEECH_RELEASE_MS } = require("./audio-activity-gate.cjs");
 const {
+  describeDiscoveryError,
   discoverVoiceProcesses,
   isPidAlive,
   selectStickyRootPid,
@@ -212,12 +213,18 @@ class NativeProcessAudioListener {
         return;
       }
 
-      const processes = await this.processDiscovery({
-        platform: this.platform,
-        environment: this.environment,
-        voiceSource: this.voiceSource,
-        ...(this.processPattern ? { pattern: this.processPattern } : {}),
-      });
+      let processes;
+      try {
+        processes = await this.processDiscovery({
+          platform: this.platform,
+          environment: this.environment,
+          voiceSource: this.voiceSource,
+          ...(this.processPattern ? { pattern: this.processPattern } : {}),
+        });
+      } catch (error) {
+        if (!this.stopped) this.handleDiscoveryFailure(error);
+        return;
+      }
       if (this.stopped) return;
       this.lastFullDiscoveryAt = this.now();
       const selectedPid = selectStickyRootPid(
@@ -269,6 +276,34 @@ class NativeProcessAudioListener {
     } finally {
       this.pollInFlight = false;
     }
+  }
+
+  /**
+   * The process query failed or timed out (it is slow on a busy machine).
+   * Nothing is known about the target, so nothing is torn down: a running
+   * capture keeps its status, and every later poll retries the query, so the
+   * first one that succeeds reports the real state again.
+   */
+  handleDiscoveryFailure(error) {
+    const message = describeDiscoveryError(error);
+    this.onDebug?.("native listener discovery failed", {
+      code: typeof error?.code === "string" ? error.code : null,
+      capturing: this.capture != null,
+    });
+    // Back off: each attempt starts a PowerShell process, and retrying at the
+    // minimum interval would add load to a machine that is already too slow.
+    this.relaxPollInterval();
+    if (!this.capture) {
+      this.reportStatus({
+        available: true,
+        capturing: false,
+        monitoring: true,
+        source: null,
+        state: LISTENER_STATE.LAUNCH_FAILED,
+        error: message,
+      });
+    }
+    this.scheduleNextPoll();
   }
 
   startCapture(processIds, key) {

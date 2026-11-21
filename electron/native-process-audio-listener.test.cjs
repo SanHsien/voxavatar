@@ -271,3 +271,146 @@ test("native listener maps NDJSON typed error codes to helper_error", async () =
     listener.stop();
   }
 });
+
+function discoveryTimeout() {
+  // What execFile throws on timeout: the message carries the command line.
+  const error = new Error(
+    "Command failed: powershell.exe -NoLogo -NoProfile -NonInteractive -Command Get-CimInstance Win32_Process",
+  );
+  error.killed = true;
+  error.signal = "SIGTERM";
+  return error;
+}
+
+function discoveryHarness({ results }) {
+  const statuses = [];
+  const launches = [];
+  const children = [];
+  let calls = 0;
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    voiceSource: { mode: "custom", process_pattern: "unique-player" },
+    environment: {},
+    pidAlive: () => true,
+    // Force a full discovery on every poll so each step hits the query.
+    fullDiscoveryMaxAgeMs: 0,
+    processDiscovery: async () => {
+      const next = results[Math.min(calls, results.length - 1)];
+      calls += 1;
+      if (next instanceof Error) throw next;
+      return next;
+    },
+    spawnProcess: (file, args) => {
+      const child = fakeChild();
+      children.push(child);
+      launches.push(args);
+      return child;
+    },
+    onStatus: (status) => statuses.push(status),
+  });
+  return { listener, statuses, launches, children, calls: () => calls };
+}
+
+test("a discovery timeout keeps a running capture and its status, then carries on", async (t) => {
+  const found = { pids: [20], rootPids: [20] };
+  const harness = discoveryHarness({
+    results: [found, discoveryTimeout(), discoveryTimeout(), found],
+  });
+  const { listener, statuses, launches, children } = harness;
+  t.after(() => listener.stop());
+  await listener.start();
+  children[0].stdout.emit("data", '{"type":"ready","source":"Windows process audio"}\n');
+  assert.equal(statuses.at(-1).state, "no_output");
+  assert.equal(statuses.at(-1).capturing, true);
+
+  let killed = 0;
+  const kill = children[0].kill;
+  children[0].kill = () => {
+    killed += 1;
+    kill();
+  };
+  await listener.poll();
+  await listener.poll();
+  assert.equal(
+    statuses.at(-1).state,
+    "no_output",
+    "a failed query must not replace a healthy status",
+  );
+  assert.equal(statuses.some((status) => status.state === "launch_failed"), false);
+  assert.equal(killed, 0, "the helper keeps capturing while discovery is unavailable");
+
+  await listener.poll();
+  assert.equal(harness.calls(), 4);
+  assert.equal(launches.length, 1, "the same target must not be relaunched after recovery");
+  assert.equal(statuses.at(-1).state, "no_output");
+  children[0].stdout.emit("data", '{"type":"level","level":0.5}\n');
+  assert.equal(statuses.at(-1).state, "listening");
+});
+
+test("without a capture, a discovery timeout reports a short error, backs off, and recovers", async (t) => {
+  const harness = discoveryHarness({
+    results: [
+      discoveryTimeout(),
+      discoveryTimeout(),
+      { pids: [], rootPids: [] },
+      { pids: [20], rootPids: [20] },
+    ],
+  });
+  const { listener, statuses, launches, children } = harness;
+  t.after(() => listener.stop());
+  await listener.start();
+  assert.equal(statuses.at(-1).state, "launch_failed");
+  assert.equal(statuses.at(-1).error, "Process discovery failed.");
+  assert.equal(statuses.at(-1).monitoring, true);
+  const firstBackoff = listener.pollIntervalMs;
+  assert.ok(
+    firstBackoff > listener.minPollIntervalMs,
+    "a failed query must slow the next attempt",
+  );
+  assert.ok(listener.pollTimer, "a retry stays scheduled after a failure");
+
+  await listener.poll();
+  assert.ok(listener.pollIntervalMs > firstBackoff, "repeated failures keep backing off");
+  assert.ok(listener.pollIntervalMs <= listener.maxPollIntervalMs);
+  for (const status of statuses) {
+    assert.doesNotMatch(status.error ?? "", /powershell|Get-CimInstance|Command failed/i);
+  }
+
+  await listener.poll();
+  assert.equal(
+    statuses.at(-1).state,
+    "target_missing",
+    "the next successful query clears the error",
+  );
+  assert.equal(statuses.at(-1).error, undefined);
+  assert.equal(listener.pollIntervalMs, listener.minPollIntervalMs);
+
+  await listener.poll();
+  assert.deepEqual(launches, [["--pid", "20"]]);
+  children[0].stdout.emit("data", '{"type":"ready","source":"Windows process audio"}\n');
+  assert.equal(statuses.at(-1).state, "no_output");
+});
+
+test("a timed-out real query surfaces the classified short message in listener status", async (t) => {
+  const { discoverVoiceProcesses } = require("./process-discovery.cjs");
+  const statuses = [];
+  const listener = new NativeProcessAudioListener({
+    platform: "win32",
+    helperPath: __filename,
+    voiceSource: { mode: "custom", process_pattern: "unique-player" },
+    environment: {},
+    processDiscovery: (options) =>
+      discoverVoiceProcesses({
+        ...options,
+        run: async () => {
+          throw discoveryTimeout();
+        },
+      }),
+    onStatus: (status) => statuses.push(status),
+  });
+  t.after(() => listener.stop());
+  await listener.start();
+  assert.equal(statuses.at(-1).state, "launch_failed");
+  assert.equal(statuses.at(-1).error, "Process discovery timed out.");
+});

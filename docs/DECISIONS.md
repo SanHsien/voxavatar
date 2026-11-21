@@ -701,3 +701,36 @@ helper 的打包位置維持 `resources/native/win32/voxavatar-audio-listener.ex
   - 測試前安裝目錄的檔案是 11-14 候選檔，但 Uninstall 登錄寫「VoxAvatar 1.0.6」，成因不明，無法重現；本輪安裝後為 1.0.7。
 - **未驗（需維護者）**：SmartScreen 與 publisher（需簽章，見 ROADMAP 簽署列）；從上一個受支援版本（正式 v1.0.7）升級（本機沒有正式安裝檔；2026-11-14 已驗 1.0.6 升級）。
 - **安裝狀態**：測試結束時安裝的是本次候選檔（同為 1.0.7，Electron 45.2.3）。理由：與之前安裝的 11-14 候選檔同版號、由較新的 `main` 建置，且上面的檢查就是對它做的；userData 未變動，安裝前備份保留在本機。
+
+## 2026-11-21：實機驗收三項缺陷的修正
+
+上一節找到的三項問題，維護者決定在下一版之前全部修掉。
+
+### 匯入只認來源檔名的副檔名
+
+- **根因**：`copyValidatedGlbFile`（`electron/settings-asset-validation.cjs`）先把來源複製成以預期副檔名結尾的暫存檔，再驗暫存檔，`validateGlbFile` 的副檔名檢查因此永遠通過。
+- **決定**：複製前先對**來源**呼叫 `validateGlbFile`，複製後對暫存檔再驗一次（防止驗證與複製之間檔案被換掉）。副作用是超過 200 MB 或內容不合格的檔案不再先寫進素材目錄。VRMA 走同一個函式，一併修正。
+- **驗證**：`electron/settings-asset-validation.test.cjs` 新增 5 條，修正前 3 條失敗（VRM／VRMA 改名被接受、210 MB 檔先被複製）。沒有在打包版的檔案對話框重做。
+
+### 行程查詢變慢時 listener 不再卡住
+
+- **根因有兩個**。(1) `listPlatformProcesses` 的時限是 5 秒，低於忙碌時的實測值。(2) `NativeProcessAudioListener.poll` 在查詢失敗時一律回報 `launch_failed`；若當時已有擷取中的 helper，下一次查詢成功會走「目標沒變」的分支，那個分支不回報狀態，`launch_failed` 就一直留到有聲音為止。上一節看到的「約 20 秒沒有恢復」是哪一個造成的，當時沒有記錄可以分辨；兩個都修了。
+- **決定**：時限改為 20 秒。查詢失敗時不拆任何東西：有擷取就維持原狀態、不回報錯誤；沒有擷取才回報 `launch_failed`。之後每次輪詢都重試，間隔 ×1.5 拉長到上限 10 秒（原本是縮回最短 1.5 秒，會對已經過載的機器加壓）。錯誤文字只剩三種固定短句，原始錯誤留在 `cause`，不進狀態。
+- **不新增 listener 狀態**：查詢失敗仍用 `launch_failed`。新增狀態要動 MCP schema 與設定頁文案，這次不值得。
+- **驗證**：`process-discovery.test.cjs` 與 `native-process-audio-listener.test.cjs` 各新增 3 條，修正前 6 條全失敗。慢查詢用「時限短於所需時間就丟出 `execFile` 逾時錯誤」的假 PowerShell 模擬，沒有在真正忙碌的機器上重跑打包版。
+
+### app 執行中的 `/S` 移除
+
+- **結束碼為什麼是 0**：NSIS 的移除程式把自己複製到 `%TEMP%~nsu.tmpUn_A.exe`、啟動複本後立刻結束，結束碼固定是 0。真正的移除在複本裡；實測複本的結束碼是 2（腳本中止）。這是 NSIS 的設計，改不了，所以 `RELEASING.md` 改為只看登錄與目錄判定。
+- **根因**：electron-builder 內建的檢查（`allowOnlyOneInstallerInstance.nsh` 的 `_CHECK_APP_RUNNING`）強制關閉 app 後只再查兩輪，還查得到就 `Quit`。被強制關閉的 Electron 行程不會立刻從行程清單消失：本機實測 `taskkill /F` 3 秒內回報成功，四個行程卻各剩一條執行緒，分別在 21、58、69、104.5 秒後才消失，這段期間執行檔仍被鎖住。內建檢查的行程查詢走 WMI（PowerShell CIM 或 `tasklist`），同一時間每次要 16～30 秒。另外，從 PowerShell 7 啟動移除程式時，內建的 PowerShell 可用性探測（`Get-ExecutionPolicy -Scope Process`）實測回傳 1（推定是繼承的 `PSModulePath` 讓 5.1 載不到該指令，未進一步查證），改走 `tasklist`／`taskkill` 那條路；兩條路的等待次數相同。
+- **決定**：在 `build/installer.nsh` 定義 `customCheckAppRunning` 取代內建檢查，安裝與移除共用。順序是：以 `VoxAvatar.exe --quit` 要求 app 自行結束 → 每 500 毫秒用 nsProcess（直接讀行程清單，不經 WMI）查 `VoxAvatar.exe` 與 `voxavatar-audio-listener.exe` → 每 10 秒對還在的行程強制關閉一次 → 最多等 180 秒；逾時在靜默模式以結束碼 2 中止，互動模式詢問重試。
+- **`--quit`**：新增 `electron/quit-request.cjs`。第二個實例帶 `--quit` 時，執行中的實例結束；沒有執行中的實例時，該程序不建立視窗直接結束。argv 內有 `voxavatar:` 開頭的參數時一律不當成結束要求，連結不能關掉 app。這是安裝程式用的參數，不列入 `INTEGRATIONS.md` 的對外介面。
+- **取捨**：nsProcess 只比對執行檔名稱，不看路徑與使用者，所以另一個目錄的 `VoxAvatar.exe`（例如 `release/win-unpacked`）也會被關閉。內建檢查在 `tasklist` 那條路同樣只比名稱。為了比對路徑而回頭用 WMI，就會把這次的問題帶回來。
+- **實機驗證**（同一台機器，候選檔 191,182,194 bytes，SHA-256 `82bcf2d841d19dd3aa3f51d401da809307c30925fb04e9f4061ab0dcfbf9f4de`，由本次修正的工作目錄建置，未簽署；app 由檔案總管啟動，測試腳本只持有 `Un_A` 的 handle）：
+  - 修正前：stub 0、複本 2，安裝目錄、Uninstall 登錄、protocol 鍵、開始功能表捷徑全部留著。
+  - 修正後：stub 0、複本 0，上述四項全部消失，`settings.json` 保留。從啟動移除到行程全部消失約 79 秒。
+  - app 執行中 `/S` 覆蓋安裝：結束碼 0，97 秒，完成後 app 已結束、protocol command 指向安裝目錄。
+  - 沒有實例時執行 `VoxAvatar.exe --quit`：沒有留下行程。
+  - userData：`settings.json`、`Preferences`、`Local State` 雜湊與測試前相同；只有 Chromium 自己的 `DIPS` 資料庫因為 app 啟動過而改變。
+- **未驗**：要求結束之後，app 是自己結束的還是在第 10 秒被強制關閉的，這次的紀錄分不出來（兩種情況最後都會完成移除）。互動模式的對話框、「所有使用者」安裝、180 秒逾時那條路都沒有實跑。
+- **安裝狀態**：測試結束時安裝的是上述候選檔（1.0.7），app 未執行。

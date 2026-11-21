@@ -1,6 +1,6 @@
 # VoxAvatar 現行決策
 
-最後修訂：2026-11-15
+最後修訂：2026-11-21
 
 本檔只保留仍影響實作的取捨，不重述版本歷史、操作步驟或路線圖。歷史見 [`CHANGELOG.md`](../CHANGELOG.md)，未來工作與現況見 [`ROADMAP.md`](../ROADMAP.md)，具體發行流程見 [`RELEASING.md`](RELEASING.md)。
 
@@ -674,3 +674,30 @@ helper 的打包位置維持 `resources/native/win32/voxavatar-audio-listener.ex
 **決定**：照現狀送件很可能被拒，而條款明說不接受爭論，所以暫不申請，也不為了符合條件而把 4 個 VRM 移出安裝檔（新使用者會沒有預設角色）。安裝檔維持未簽署，`docs/release-evidence/` 的 `NotSigned` 標示不變。
 
 **重新評估的條件**：專案聲望明顯提高（star、下載量或外部引用），或安裝檔改為不附非 OSI 授權的模型時。申請表在 [signpath.org/apply](https://signpath.org/apply)，送件與帳號（含 MFA）由維護者本人處理。
+
+## 2026-11-21：Electron 45 打包候選檔實機驗收（續）
+
+- **候選檔**：`main` `7b0bdce`（Electron 45.2.3）本機 `npm ci`、`npm run check`（Node 393、renderer 159 項全過）、`assets:release`、`dist:windows` 產出的 `VoxAvatar-1.0.7-windows-x64-setup.exe`，191,183,349 bytes，SHA-256 `22092c80dd654dc4a52614963956cdddac39a492c7182950a0e7478ce1d2427a`，`Get-AuthenticodeSignature` 為 `NotSigned`。仍是本機候選檔，不能取代發版時對 Release 產物做的 `windows-smoke.md`。
+- **環境**：維護者主機（實體機），Windows 11 Pro build 26300.10075，x64，單螢幕 3840×2160、系統縮放 225%，RTX 3060。由 Claude 代為操作：視窗以 agent-desktop 的 UI Automation 語意操作，狀態以 MCP、HTTP、登錄與檔案雜湊讀取，沒有實體滑鼠輸入。
+- **安裝與生命週期（通過）**：互動精靈不要求管理員權限，安裝模式預設「僅為我安裝」，安裝目錄可改；以同版本覆蓋 11-14 候選檔，完成頁取消「執行 VoxAvatar」後 app 沒有啟動，Uninstall 登錄為 1.0.7，開始功能表與桌面捷徑建立；userData 的 `settings.json`、`Preferences`、`Local State` 雜湊不變。
+- **Protocol 重驗（通過）**：`RELEASING.md` 第 1–4 步都做了。首次啟動前 command 已指向安裝目錄、`URL Protocol` 存在，啟動後不變；`voxavatar://hide`／`show`／`toggle` 依序讓 `get_status` 回報 hidden／visible／hidden／visible。含空白的自訂目錄與預設目錄各安裝、啟動、結束後 `/S` 移除：`voxavatar` 鍵、安裝目錄、Uninstall 登錄、開始功能表與桌面捷徑都消失，userData 保留。command 改成同目錄其他執行檔、相同前綴的另一目錄（`VoxAvatar2`）、多一個參數時，`/S` 移除後鍵與值原樣保留；鍵不存在時移除照常成功。第 4 步在維護者帳戶做（沒有建立專用測試帳戶），每個變體結束後刪除測試寫入的鍵，最後重新安裝寫回正確 command。
+- **核心桌面流程**：
+  - 通過：以 `--user-data-dir` 指向空目錄模擬全新 userData，首次啟動顯示 AvatarSample_A；B、C、つくよみちゃん逐一「設為預設」後，角色視窗換成對應模型。匯入合法 VRM（內建 AvatarSample_A 的副本）並設為預設，重啟後仍載入。
+  - 通過：MCP `play_animation` 逐一播放 12 個可播動作，皆回 `played: true`，`airplane` 截圖姿勢正確；以範本建立 `wave-hello`，加入合法 VRMA（內建 CC0 `success-cheer.vrma` 的副本）後可播放，畫面出現對應姿勢。
+  - 通過：待機池預設勾選所有非說話動作，「說話」列停用；取消 `walk` 後 `idle_pool_excluded_animation_ids` 為 `["walk"]`，重啟後保留。
+  - **失敗（低風險）**：損壞檔、沒有 VRM extension 的 GLB、VRMA 改名為 `.vrm`、210 MB 檔都被拒絕，library 不變；但內容合法的 VRM 改名為 `.glb` 後，在檔案對話框輸入完整路徑即被匯入。根因：`copyValidatedGlbFile`（`electron/settings-asset-validation.cjs`）把來源先複製成以預期副檔名結尾的暫存檔，再對暫存檔呼叫 `validateGlbFile`，所以第 13 行的副檔名檢查看不到來源副檔名。VRMA 匯入走同一個函式，推定相同，未實測。
+  - 未驗：透明區點穿、左鍵拖曳、滾輪縮放、中鍵旋轉、角色右鍵選單都需要實體滑鼠。本輪 12:59 前後偵測到不是本次操作的輸入，依操作規則停止實體輸入；agent-desktop 的拖曳也不支援中鍵。系統匣與 DPI 沿用 2026-11-14 結果，本輪未重跑。
+- **語音與 MCP**：
+  - 通過：`/health` 回 `ok: true`；`tools/list` 列出六個工具；`list_animations`、`play_animation`、`control_window`（hide／toggle）、`get_status` 成功；不存在的動作回 `animation_not_playable`。
+  - 通過：預設來源啟動後 `listener` 為 `capturing: true`、`no_output`。以 `VOXAVATAR_TARGET_PROCESS_PATTERN=unique-player` 啟動時為 `target_missing`；播放程式（改名的系統 PowerShell，播放約 −28 dBFS、5 秒的 440 Hz 測試音）啟動後，除錯輸出的 `selectedPid` 等於播放程式 PID，helper 位於安裝目錄 `resources/native/win32/`、參數只有同一個 `--pid`；播放中 `voiceState` 為 `speaking`，停止約 8 秒後回到 `idle`。
+  - 通過：helper 暫時改名後啟動，`get_status` 為 `missing`、`Native listener helper is missing.`（設定頁的提示未看）；檢查完已改回，雜湊與建置產物一致。
+  - 通過：同一個 MCP session 在新增動作、加入片段與刪除動作時各收到一次 `tools/list_changed`，`play_animation` 的描述隨之加入、移除 `wave-hello`。
+  - 通過：非 loopback Host 回 403；未允許的 Origin 在 `/mcp` 回 403、在 `/events` 回 404；70 KB body 回 413；未知 `type`、不合法動作名、缺欄位的 state 回 422；壞 JSON 回 400；`text/plain` 回 415。合法事件與允許的 localhost Origin 回 202。
+  - **發現**：機器忙碌時（CPU 約 96%、約 690 個行程），`listPlatformProcesses` 的 PowerShell 查詢實測 2.8～11.9 秒，超過 `electron/process-discovery.cjs` 的 5 秒 timeout，listener 連續回報 `launch_failed`，錯誤文字是整段 PowerShell 命令列；同一實例觀察約 20 秒沒有恢復，重新啟動後回到 `no_output`。
+  - 未驗：在設定頁選定實際播放語音的 ChatGPT／Codex（`RELEASING.md`「播放來源與口型追查」第 5 步）。
+- **其他發現**：
+  - app 在系統匣執行時執行 `Uninstall VoxAvatar.exe /S`：app 被關閉，但安裝目錄、Uninstall 登錄、protocol 鍵與捷徑全部留著，啟動的程序回傳 0。完整結束 app 後再執行即正常移除。可重現兩次（一次是強制結束後仍有殘留行程時）。
+  - 匯入錯誤訊息顯示為「Asset does not declare the required `<asset>` extension.」：`src/listener-status-copy.ts` 的遮罩規則把 `.vrm` 本身當成檔名換掉，使用者看不到是哪種副檔名。
+  - 測試前安裝目錄的檔案是 11-14 候選檔，但 Uninstall 登錄寫「VoxAvatar 1.0.6」，成因不明，無法重現；本輪安裝後為 1.0.7。
+- **未驗（需維護者）**：SmartScreen 與 publisher（需簽章，見 ROADMAP 簽署列）；從上一個受支援版本（正式 v1.0.7）升級（本機沒有正式安裝檔；2026-11-14 已驗 1.0.6 升級）。
+- **安裝狀態**：測試結束時安裝的是本次候選檔（同為 1.0.7，Electron 45.2.3）。理由：與之前安裝的 11-14 候選檔同版號、由較新的 `main` 建置，且上面的檢查就是對它做的；userData 未變動，安裝前備份保留在本機。

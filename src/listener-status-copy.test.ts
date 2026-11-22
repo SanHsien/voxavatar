@@ -29,6 +29,20 @@ describe('listener-status-copy', () => {
     expect(redacted).not.toMatch(/SanHsien|Daily_Miku/i);
   });
 
+  it('keeps a bare extension token visible while still masking real filenames', () => {
+    expect(redactDisplayText('Expected a .vrm file, got .glb.')).toBe(
+      'Expected a .vrm file, got .glb.',
+    );
+    expect(
+      redactDisplayText('Asset does not declare the required .vrma extension.'),
+    ).toBe('Asset does not declare the required .vrma extension.');
+    const mixed = redactDisplayText(
+      'Expected a .vrm file, got .glb. C:\\Users\\SanHsien\\Models\\Daily_Miku.glb',
+    );
+    expect(mixed).toContain('Expected a .vrm file, got .glb.');
+    expect(mixed).not.toMatch(/SanHsien|Daily_Miku/i);
+  });
+
   it('covers shared redact fixture secrets', () => {
     for (const entry of redactCases) {
       const out = redactDisplayText(entry.input);

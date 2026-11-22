@@ -13,6 +13,15 @@ describe('settingsErrorMessage', () => {
     expect(message).toMatch(/<asset>|<home>|<path>/);
   });
 
+  it('shows expected and received extensions in an import rejection', () => {
+    const message = settingsErrorMessage(
+      new Error(
+        "Error invoking remote method 'voxavatar:settings-import-model': Error: Expected a .vrm file, got .glb.",
+      ),
+    );
+    expect(message).toBe('Expected a .vrm file, got .glb.');
+  });
+
   it('redacts non-Error string notices', () => {
     const message = settingsErrorMessage(
       'cannot open /Users/SanHsien/Models/hero.vrm',

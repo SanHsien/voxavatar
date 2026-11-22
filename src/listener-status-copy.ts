@@ -12,9 +12,10 @@ const ADJACENT_PLACEHOLDERS = new RegExp(`(?:${PLACEHOLDER}){2,}`, 'g');
 export function redactDisplayText(input: string | null | undefined): string {
   if (typeof input !== 'string' || input.length === 0) return '';
   let text = input;
-  // 先遮罩媒體／helper 檔名（含完整路徑或殘段），避免 home 替換後仍露出 basename
+  // 先遮罩媒體／helper 檔名（含完整路徑或殘段），避免 home 替換後仍露出 basename。
+  // 前綴至少一個字元：單獨的 `.vrm` 是副檔名 token 不是檔名，要留給使用者看。
   text = text.replace(
-    /(?:[A-Za-z]:\\|\/)?[^\s"'<>]*?\.(?:vrm|vrma|glb|gltf|exe|dll)\b/gi,
+    /(?:[A-Za-z]:\\|\/)?[^\s`"'<>]+?\.(?:vrm|vrma|glb|gltf|exe|dll)\b/gi,
     '<asset>',
   );
   text = text.replace(/[A-Za-z]:\\(?:Users|home)\\[^\\\s]+/gi, '<home>');

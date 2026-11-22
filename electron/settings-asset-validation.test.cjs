@@ -65,11 +65,18 @@ function importFixture(context) {
 test("import rejects a valid VRM whose source file is not named .vrm", (context) => {
   const fixture = importFixture(context);
   const vrm = glbBuffer(documentWith("VRMC_vrm"));
-  for (const name of ["renamed.glb", "renamed.vrma", "no-extension", "model.vrm.glb"]) {
+  const cases = [
+    ["renamed.glb", /Expected a \.vrm file, got \.glb\./],
+    ["renamed.vrma", /Expected a \.vrm file, got \.vrma\./],
+    ["no-extension", /Expected a \.vrm file, got no extension\./],
+    ["model.vrm.glb", /Expected a \.vrm file, got \.glb\./],
+    ["huge.averyveryverylongextensionname", /Expected a \.vrm file, got an unrecognized extension\./],
+  ];
+  for (const [name, message] of cases) {
     const source = fixture.write(name, vrm);
     assert.throws(
       () => copyValidatedGlbFile(source, fixture.destination, ".vrm"),
-      /Expected a \.vrm file\./,
+      message,
       name,
     );
     assert.deepEqual(fs.readdirSync(fixture.library), [], name);
@@ -89,7 +96,7 @@ test("import rejects a valid VRMA whose source file is not named .vrma", (contex
         path.join(fixture.library, "stored.vrma"),
         ".vrma",
       ),
-    /Expected a \.vrma file\./,
+    /Expected a \.vrma file, got \.glb\./,
   );
   assert.deepEqual(fs.readdirSync(fixture.library), []);
 });

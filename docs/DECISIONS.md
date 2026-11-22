@@ -697,7 +697,7 @@ helper 的打包位置維持 `resources/native/win32/voxavatar-audio-listener.ex
   - 未驗：在設定頁選定實際播放語音的 ChatGPT／Codex（`RELEASING.md`「播放來源與口型追查」第 5 步）。
 - **其他發現**：
   - app 在系統匣執行時執行 `Uninstall VoxAvatar.exe /S`：app 被關閉，但安裝目錄、Uninstall 登錄、protocol 鍵與捷徑全部留著，啟動的程序回傳 0。完整結束 app 後再執行即正常移除。可重現兩次（一次是強制結束後仍有殘留行程時）。
-  - 匯入錯誤訊息顯示為「Asset does not declare the required `<asset>` extension.」：`src/listener-status-copy.ts` 的遮罩規則把 `.vrm` 本身當成檔名換掉，使用者看不到是哪種副檔名。
+  - 匯入錯誤訊息顯示為「Asset does not declare the required `<asset>` extension.」：`src/listener-status-copy.ts` 的遮罩規則把 `.vrm` 本身當成檔名換掉，使用者看不到是哪種副檔名。**已修**：`redactDisplayText` 的檔名規則改為前綴至少一個字元，單獨的副檔名 token 不再被遮；`validateGlbFile` 的訊息改為 `Expected a .vrm file, got .glb.`（收到的副檔名只回顯 `.[a-z0-9_-]{1,12}`，其餘寫 `an unrecognized extension`、沒有副檔名寫 `no extension`）。完整路徑與使用者名稱的遮罩不變。
   - 測試前安裝目錄的檔案是 11-14 候選檔，但 Uninstall 登錄寫「VoxAvatar 1.0.6」，成因不明，無法重現；本輪安裝後為 1.0.7。
 - **未驗（需維護者）**：SmartScreen 與 publisher（需簽章，見 ROADMAP 簽署列）；從上一個受支援版本（正式 v1.0.7）升級（本機沒有正式安裝檔；2026-11-14 已驗 1.0.6 升級）。
 - **安裝狀態**：測試結束時安裝的是本次候選檔（同為 1.0.7，Electron 45.2.3）。理由：與之前安裝的 11-14 候選檔同版號、由較新的 `main` 建置，且上面的檢查就是對它做的；userData 未變動，安裝前備份保留在本機。

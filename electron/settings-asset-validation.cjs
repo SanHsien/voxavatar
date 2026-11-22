@@ -8,10 +8,21 @@ const MAX_ASSET_BYTES = 200 * 1024 * 1024;
 const MAX_GLB_JSON_BYTES = 16 * 1024 * 1024;
 const GLB_JSON_CHUNK_TYPE = 0x4e4f534a;
 
+// 只回報副檔名本身（不含檔名與路徑）；過長或含奇怪字元的不原樣回顯。
+function describeExtension(extension) {
+  if (!extension) return "no extension";
+  return /^\.[a-z0-9_-]{1,12}$/.test(extension)
+    ? extension
+    : "an unrecognized extension";
+}
+
 function validateGlbFile(filePath, expectedExtension) {
   if (typeof filePath !== "string") throw new Error("No asset file was selected.");
-  if (path.extname(filePath).toLowerCase() !== expectedExtension) {
-    throw new Error(`Expected a ${expectedExtension} file.`);
+  const receivedExtension = path.extname(filePath).toLowerCase();
+  if (receivedExtension !== expectedExtension) {
+    throw new Error(
+      `Expected a ${expectedExtension} file, got ${describeExtension(receivedExtension)}.`,
+    );
   }
   const descriptor = fs.openSync(filePath, "r");
   try {
